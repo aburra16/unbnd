@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Unbnd — Wireframe Reference</title>
+<style>
+/* ══════════════════════════════════════
+   UNBND DESIGN TOKENS
+   ══════════════════════════════════════ */
+:root {
+  --u-ink: #1A1A2E;
+  --u-amber: #C4763C;
+  --u-parchment: #FAF6F0;
+  --u-muted: #8B8698;
+  --u-night: #0E0E1A;
+  --u-amber-light: #E8A96A;
+  --u-border: rgba(26,26,46,0.08);
+  --u-border-hover: rgba(26,26,46,0.15);
+  --u-surface: rgba(26,26,46,0.03);
+  --u-radius: 8px;
+  --u-radius-lg: 12px;
+  --genre-literary: #085041;
+  --genre-scifi: #133F7A;
+  --genre-mystery: #8B5A1B;
+  --genre-romance: #993556;
+  --genre-fantasy: #4340A0;
+  --genre-thriller: #7A2E14;
+  --genre-biography: #27500A;
+  --genre-history: #555362;
+  --signal-positive: #1D9E75;
+  --signal-negative: #DC3545;
+  --signal-sovereign: #7845FF;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #E8E4DD; color: var(--u-ink); }
+
+/* ── Reference page chrome ── */
+.ref-header { background: var(--u-ink); color: var(--u-parchment); padding: 24px 32px; position: sticky; top: 0; z-index: 100; }
+.ref-header h1 { font-size: 18px; font-weight: 600; margin-bottom: 4px; }
+.ref-header p { font-size: 12px; color: var(--u-muted); }
+.ref-nav { display: flex; gap: 6px; margin-top: 12px; flex-wrap: wrap; }
+.ref-nav a { font-size: 12px; padding: 5px 14px; border-radius: 20px; background: rgba(250,246,240,0.08); color: var(--u-parchment); text-decoration: none; font-weight: 500; }
+.ref-nav a:hover { background: rgba(250,246,240,0.15); }
+.ref-section { max-width: 720px; margin: 40px auto; padding: 0 20px; }
+.ref-label { font-size: 11px; font-weight: 600; letter-spacing: 0.8px; text-transform: uppercase; color: var(--u-amber); margin-bottom: 4px; display: flex; align-items: center; gap: 8px; }
+.ref-label::after { content: ''; flex: 1; height: 1px; background: rgba(196,118,60,0.3); }
+.ref-prd { font-size: 12px; color: var(--u-muted); margin-bottom: 16px; }
+
+/* ── Shared ── */
+.u { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; color: var(--u-ink); background: var(--u-parchment); }
+.u-nav { display: flex; align-items: center; justify-content: space-between; padding: 16px 0; border-bottom: 1px solid var(--u-border); margin-bottom: 1.25rem; }
+.u-logo { display: flex; align-items: center; gap: 10px; cursor: pointer; text-decoration: none; }
+.u-logo-text { font-size: 20px; font-weight: 700; color: var(--u-ink); letter-spacing: -0.5px; }
+.u-nav-right { display: flex; align-items: center; gap: 20px; }
+.u-nav-link { font-size: 13px; color: var(--u-muted); cursor: pointer; text-decoration: none; letter-spacing: 0.2px; }
+.u-nav-link:hover { color: var(--u-ink); }
+.u-nav-active { color: var(--u-ink); font-weight: 500; }
+.u-signin { font-size: 13px; font-weight: 500; padding: 7px 18px; border-radius: var(--u-radius); border: 1px solid var(--u-border-hover); cursor: pointer; background: transparent; color: var(--u-ink); }
+.u-nav-avatar { width: 28px; height: 28px; border-radius: 50%; background: var(--u-amber); color: var(--u-parchment); display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 600; }
+.u-breadcrumb { font-size: 12px; color: var(--u-muted); margin-bottom: 1.25rem; }
+.u-breadcrumb a { color: var(--u-amber); text-decoration: none; }
+.u-section { margin-bottom: 2rem; }
+.u-section-header { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 14px; }
+.u-section-header h2 { font-size: 15px; font-weight: 600; letter-spacing: -0.3px; }
+.u-section-header a { font-size: 12px; color: var(--u-amber); text-decoration: none; font-weight: 500; }
+.u-book { cursor: pointer; }
+.u-book:hover .u-cover { transform: translateY(-3px); box-shadow: 0 8px 24px rgba(26,26,46,0.15); }
+.u-cover { border-radius: 4px; display: flex; align-items: flex-end; padding: 10px; transition: all 0.2s ease; box-shadow: 0 3px 12px rgba(26,26,46,0.1); }
+.u-cover-title { font-size: 11px; font-weight: 600; line-height: 1.3; }
+.u-book-title { font-size: 12px; font-weight: 500; line-height: 1.3; margin-bottom: 2px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.u-book-author { font-size: 11px; color: var(--u-muted); margin-bottom: 3px; }
+.u-book-rating { font-size: 11px; color: var(--u-amber); font-weight: 500; }
+.u-book-signals { display: flex; gap: 4px; margin-top: 4px; flex-wrap: wrap; }
+.u-book-signal { font-size: 9px; font-weight: 600; padding: 1px 6px; border-radius: 10px; }
+.u-tag { font-size: 11px; font-weight: 500; padding: 3px 10px; border-radius: 20px; background: rgba(196,118,60,0.1); color: var(--u-amber); }
+.u-signal { font-size: 11px; font-weight: 500; padding: 3px 10px; border-radius: 20px; display: inline-flex; align-items: center; gap: 4px; }
+.u-signal-pos { background: rgba(29,158,117,0.1); color: var(--signal-positive); }
+.u-signal-neg { background: rgba(220,53,69,0.1); color: var(--signal-negative); }
+.u-btn { font-size: 12px; font-weight: 500; padding: 7px 14px; border-radius: var(--u-radius); border: 1px solid var(--u-border-hover); cursor: pointer; background: transparent; color: var(--u-ink); display: inline-flex; align-items: center; gap: 5px; font-family: inherit; }
+.u-btn:hover { background: var(--u-surface); }
+.u-btn-primary { background: var(--u-amber); color: var(--u-parchment); border-color: transparent; }
+.u-btn-primary:hover { background: #b06a35; }
+.u-footer { padding: 18px 0; border-top: 1px solid var(--u-border); display: flex; justify-content: space-between; align-items: center; }
+.u-footer-left { display: flex; align-items: center; gap: 8px; }
+.u-footer p { font-size: 11px; color: var(--u-muted); }
+.u-footer-tagline { font-size: 11px; color: rgba(139,134,152,0.6); font-style: italic; }
+.u-footer-links { display: flex; gap: 16px; }
+.u-footer-links a { font-size: 11px; color: var(--u-muted); text-decoration: none; }
+.device-frame { background: #EFEBE4; border-radius: 12px; padding: 16px; }
+.device-inner { background: var(--u-parchment); border-radius: 8px; padding: 0 24px 24px; border: 1px solid rgba(26,26,46,0.06); overflow: hidden; }
+
+/* ── Homepage ── */
+.u-hero { text-align: center; padding: 3rem 0 2.25rem; }
+.u-hero-mark { margin-bottom: 1.25rem; }
+.u-hero h1 { font-size: 26px; font-weight: 600; letter-spacing: -0.7px; line-height: 1.3; margin-bottom: 10px; }
+.u-hero h1 em { font-style: normal; color: var(--u-amber); }
+.u-hero p { font-size: 14px; color: var(--u-muted); line-height: 1.65; max-width: 420px; margin: 0 auto 1.5rem; }
+.u-search { max-width: 400px; margin: 0 auto; position: relative; }
+.u-search input { width: 100%; padding: 11px 16px 11px 40px; font-size: 14px; border-radius: var(--u-radius); border: 1px solid var(--u-border-hover); background: #FFFFFF; color: var(--u-ink); font-family: inherit; }
+.u-search input::placeholder { color: rgba(139,134,152,0.6); }
+.u-search input:focus { outline: none; border-color: var(--u-amber); box-shadow: 0 0 0 3px rgba(196,118,60,0.08); }
+.u-search-icon { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); }
+.u-pov { display: flex; align-items: center; gap: 10px; padding: 10px 16px; border-radius: var(--u-radius); border: 1px solid var(--u-border); margin-bottom: 2rem; font-size: 12px; color: var(--u-muted); }
+.u-pov-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--u-amber); flex-shrink: 0; }
+.u-pov-label { font-weight: 600; color: var(--u-ink); }
+.u-pov-btn { margin-left: auto; font-size: 11px; padding: 4px 12px; border-radius: var(--u-radius); border: 1px solid var(--u-border); cursor: pointer; background: transparent; color: var(--u-muted); }
+.u-shelf { display: flex; gap: 16px; overflow-x: auto; padding-bottom: 6px; scrollbar-width: thin; scrollbar-color: rgba(26,26,46,0.1) transparent; }
+.u-shelf .u-book { flex: 0 0 118px; }
+.u-shelf .u-cover { width: 118px; height: 174px; }
+.u-genres { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+.u-genre { padding: 18px 14px; border-radius: var(--u-radius); cursor: pointer; border: 1px solid transparent; position: relative; overflow: hidden; }
+.u-genre:hover { transform: translateY(-2px); border-color: rgba(26,26,46,0.08); }
+.u-genre h3 { font-size: 13px; font-weight: 600; margin-bottom: 3px; }
+.u-genre p { font-size: 11px; }
+.u-genre-accent { position: absolute; top: 0; left: 0; width: 3px; height: 100%; }
+.u-cta { text-align: center; padding: 24px 20px; border-radius: var(--u-radius); background: var(--u-surface); border: 1px solid var(--u-border); margin-bottom: 1.5rem; }
+.u-cta-title { font-size: 14px; font-weight: 600; margin-bottom: 4px; }
+.u-cta-text { font-size: 13px; color: var(--u-muted); margin-bottom: 14px; line-height: 1.5; }
+.u-cta-btn { font-size: 13px; font-weight: 500; padding: 9px 24px; border-radius: var(--u-radius); border: none; cursor: pointer; background: var(--u-amber); color: var(--u-parchment); }
+
+/* ── Book Detail ── */
+.bd-hero { display: flex; gap: 24px; margin-bottom: 1.5rem; }
+.bd-cover { flex: 0 0 155px; width: 155px; height: 230px; border-radius: 5px; display: flex; align-items: flex-end; padding: 14px; box-shadow: 0 4px 20px rgba(26,26,46,0.12); }
+.bd-cover-title { font-size: 13px; font-weight: 600; line-height: 1.3; }
+.bd-info { flex: 1; min-width: 0; }
+.bd-title { font-size: 22px; font-weight: 600; letter-spacing: -0.5px; line-height: 1.2; margin-bottom: 4px; }
+.bd-author { font-size: 14px; color: var(--u-muted); margin-bottom: 12px; }
+.bd-author a { color: var(--u-amber); text-decoration: none; font-weight: 500; }
+.bd-meta-row { display: flex; flex-wrap: wrap; gap: 14px; font-size: 12px; color: var(--u-muted); margin-bottom: 12px; }
+.bd-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+.bd-signals { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
+.bd-blurb { font-size: 14px; line-height: 1.7; color: rgba(26,26,46,0.7); }
+.bd-actions { display: flex; gap: 8px; flex-wrap: wrap; padding: 14px 0; border-top: 1px solid var(--u-border); border-bottom: 1px solid var(--u-border); margin-bottom: 1.5rem; }
+.bd-rating-block { display: flex; gap: 20px; align-items: flex-start; }
+.bd-rating-big { text-align: center; flex: 0 0 auto; }
+.bd-rating-number { font-size: 34px; font-weight: 600; line-height: 1; letter-spacing: -1px; }
+.bd-rating-stars { color: var(--u-amber); font-size: 14px; margin: 4px 0; }
+.bd-rating-count { font-size: 11px; color: var(--u-muted); }
+.bd-rating-bars { flex: 1; display: flex; flex-direction: column; gap: 4px; }
+.bd-bar-row { display: flex; align-items: center; gap: 8px; font-size: 11px; color: var(--u-muted); }
+.bd-bar-label { width: 12px; text-align: right; }
+.bd-bar-track { flex: 1; height: 5px; border-radius: 3px; background: var(--u-border); overflow: hidden; }
+.bd-bar-fill { height: 100%; border-radius: 3px; background: var(--u-amber); }
+.bd-bar-pct { width: 28px; }
+.bd-rating-trust { flex: 0 0 auto; text-align: center; padding: 12px 16px; border-radius: var(--u-radius); background: var(--u-surface); border: 1px solid var(--u-border); }
+.bd-rating-trust-num { font-size: 20px; font-weight: 600; color: var(--signal-positive); }
+.bd-rating-trust-label { font-size: 10px; color: var(--u-muted); line-height: 1.4; margin-top: 2px; }
+.bd-review { padding: 14px 0; border-bottom: 1px solid var(--u-border); }
+.bd-review:last-of-type { border-bottom: none; }
+.bd-review-header { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+.bd-reviewer-avatar { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 11px; }
+.bd-reviewer-name { font-size: 13px; font-weight: 500; }
+.bd-reviewer-meta { font-size: 11px; color: var(--u-muted); display: flex; align-items: center; gap: 8px; }
+.bd-review-stars { color: var(--u-amber); }
+.bd-trust-badge { font-size: 10px; padding: 1px 7px; border-radius: 20px; background: rgba(196,118,60,0.1); color: var(--u-amber); font-weight: 600; }
+.bd-review-text { font-size: 13px; line-height: 1.65; color: rgba(26,26,46,0.65); }
+.bd-review-actions { display: flex; gap: 14px; margin-top: 8px; }
+.bd-review-action { font-size: 11px; color: var(--u-muted); cursor: pointer; }
+.bd-links { display: flex; flex-direction: column; gap: 8px; }
+.bd-link { display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-radius: var(--u-radius); border: 1px solid var(--u-border); font-size: 13px; text-decoration: none; color: var(--u-ink); }
+.bd-link-source { font-size: 11px; color: var(--u-muted); margin-left: auto; }
+.bd-author-card { display: flex; align-items: flex-start; gap: 14px; padding: 16px; border-radius: var(--u-radius); background: var(--u-surface); border: 1px solid var(--u-border); }
+.bd-author-avatar { width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 15px; background: rgba(196,118,60,0.12); color: var(--u-amber); flex-shrink: 0; }
+.bd-author-name { font-size: 14px; font-weight: 600; }
+.bd-verified { font-size: 10px; padding: 2px 8px; border-radius: 20px; background: rgba(29,158,117,0.1); color: var(--signal-positive); font-weight: 600; display: inline-flex; align-items: center; gap: 3px; }
+.bd-author-bio { font-size: 12px; color: rgba(26,26,46,0.6); line-height: 1.5; margin-top: 4px; }
+.bd-more-by { display: flex; gap: 10px; margin-top: 10px; }
+.bd-more-cover { width: 52px; height: 76px; border-radius: 3px; box-shadow: 0 2px 8px rgba(26,26,46,0.1); }
+.bd-more-title { font-size: 10px; line-height: 1.2; color: var(--u-muted); margin-top: 3px; }
+
+/* ── Auth ── */
+.auth-demo { display: flex; flex-direction: column; gap: 32px; padding: 1rem 0; }
+.auth-state-label { font-size: 11px; font-weight: 600; letter-spacing: 0.5px; text-transform: uppercase; color: var(--u-muted); margin-bottom: 8px; }
+.auth-card { background: var(--u-parchment); border: 1px solid var(--u-border); border-radius: var(--u-radius-lg); padding: 32px 28px; max-width: 380px; margin: 0 auto; width: 100%; }
+.auth-header { text-align: center; margin-bottom: 24px; }
+.auth-header h2 { font-size: 20px; font-weight: 600; letter-spacing: -0.4px; margin-bottom: 6px; }
+.auth-header p { font-size: 13px; color: var(--u-muted); line-height: 1.5; }
+.auth-methods { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
+.auth-method { display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-radius: var(--u-radius); border: 1px solid var(--u-border-hover); cursor: pointer; background: #FFFFFF; font-size: 14px; font-weight: 500; color: var(--u-ink); width: 100%; text-align: left; font-family: inherit; }
+.auth-method:hover { border-color: var(--u-amber); box-shadow: 0 0 0 3px rgba(196,118,60,0.06); }
+.auth-method-icon { width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-weight: 700; font-size: 13px; }
+.auth-method-name { font-size: 14px; font-weight: 500; }
+.auth-method-desc { font-size: 11px; color: var(--u-muted); margin-top: 1px; font-weight: 400; }
+.auth-method-stretch { opacity: 0.4; cursor: default; pointer-events: none; }
+.auth-method-coming { font-size: 10px; color: var(--u-muted); font-weight: 500; margin-left: auto; }
+.auth-divider { display: flex; align-items: center; gap: 12px; margin: 4px 0; }
+.auth-divider-line { flex: 1; height: 1px; background: var(--u-border); }
+.auth-divider span { font-size: 11px; color: var(--u-muted); }
+.auth-form { display: flex; flex-direction: column; gap: 14px; }
+.auth-field { display: flex; flex-direction: column; gap: 5px; }
+.auth-field label { font-size: 12px; font-weight: 500; color: rgba(26,26,46,0.7); }
+.auth-field input { padding: 10px 14px; font-size: 14px; border-radius: var(--u-radius); border: 1px solid var(--u-border-hover); background: #FFFFFF; color: var(--u-ink); font-family: inherit; }
+.auth-field input:focus { outline: none; border-color: var(--u-amber); box-shadow: 0 0 0 3px rgba(196,118,60,0.08); }
+.auth-submit { padding: 11px 16px; font-size: 14px; font-weight: 500; border-radius: var(--u-radius); border: none; cursor: pointer; background: var(--u-amber); color: var(--u-parchment); font-family: inherit; }
+.auth-btn-secondary { padding: 11px 20px; font-size: 13px; font-weight: 500; border-radius: var(--u-radius); border: 1px solid var(--u-border-hover); cursor: pointer; background: transparent; color: var(--u-ink); font-family: inherit; }
+.auth-footer { text-align: center; font-size: 12px; color: var(--u-muted); margin-top: 16px; }
+.auth-footer a { color: var(--u-amber); text-decoration: none; font-weight: 500; }
+.auth-sov { display: flex; gap: 10px; padding: 12px 14px; border-radius: var(--u-radius); background: var(--u-surface); border: 1px solid var(--u-border); margin-top: 16px; text-align: left; }
+.auth-sov-dot { width: 6px; height: 6px; border-radius: 50%; margin-top: 5px; flex-shrink: 0; }
+.auth-sov p { font-size: 11px; color: var(--u-muted); line-height: 1.5; }
+.auth-sov a { color: var(--u-amber); text-decoration: none; }
+.auth-nostr-pubkey { font-family: monospace; font-size: 11px; color: var(--u-muted); background: var(--u-surface); padding: 10px 14px; border-radius: var(--u-radius); margin: 12px 0 20px; word-break: break-all; text-align: left; border: 1px solid var(--u-border); }
+.auth-nostr-pubkey span { font-size: 10px; color: rgba(139,134,152,0.6); font-family: -apple-system, sans-serif; display: block; margin-top: 6px; }
+.auth-btn-row { display: flex; gap: 10px; }
+
+/* ── Genre Browse ── */
+.gb-hero { margin-bottom: 1.75rem; padding-bottom: 1.5rem; border-bottom: 1px solid var(--u-border); }
+.gb-accent { width: 32px; height: 3px; border-radius: 2px; margin-bottom: 12px; }
+.gb-title-row { display: flex; align-items: baseline; gap: 12px; margin-bottom: 6px; }
+.gb-title { font-size: 24px; font-weight: 600; letter-spacing: -0.5px; }
+.gb-count { font-size: 13px; color: var(--u-muted); }
+.gb-desc { font-size: 14px; color: rgba(26,26,46,0.6); line-height: 1.65; max-width: 540px; margin-bottom: 14px; }
+.gb-subs { display: flex; gap: 8px; flex-wrap: wrap; }
+.gb-sub { font-size: 12px; padding: 5px 14px; border-radius: 20px; border: 1px solid var(--u-border-hover); cursor: pointer; background: transparent; color: var(--u-muted); font-weight: 500; font-family: inherit; }
+.gb-sub-active { background: rgba(196,118,60,0.08); border-color: var(--u-amber); color: var(--u-amber); }
+.gb-controls { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.25rem; }
+.gb-controls-left { display: flex; align-items: center; gap: 16px; }
+.gb-sort { font-size: 12px; color: var(--u-muted); display: flex; align-items: center; gap: 6px; }
+.gb-sort select { font-size: 12px; font-family: inherit; border: 1px solid var(--u-border-hover); border-radius: var(--u-radius); padding: 5px 10px; background: #FFFFFF; color: var(--u-ink); }
+.gb-curators { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--u-muted); }
+.gb-curator-stack { display: flex; }
+.gb-curator-dot { width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 9px; font-weight: 600; margin-left: -6px; border: 2px solid var(--u-parchment); }
+.gb-curator-dot:first-child { margin-left: 0; }
+.gb-view { display: flex; border-radius: var(--u-radius); border: 1px solid var(--u-border-hover); overflow: hidden; }
+.gb-view-opt { font-size: 12px; padding: 5px 12px; cursor: pointer; border: none; background: transparent; color: var(--u-muted); font-family: inherit; }
+.gb-view-active { background: var(--u-ink); color: var(--u-parchment); }
+.gb-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 18px 14px; margin-bottom: 2rem; }
+.gb-grid .u-cover { width: 100%; aspect-ratio: 2/3; }
+.gb-grid .u-book-title { margin-top: 8px; }
+.gb-pagination { display: flex; align-items: center; justify-content: center; gap: 4px; padding: 16px 0; border-top: 1px solid var(--u-border); }
+.gb-page { font-size: 12px; padding: 6px 11px; border-radius: var(--u-radius); cursor: pointer; color: var(--u-muted); border: none; background: transparent; font-family: inherit; font-weight: 500; }
+.gb-page-active { background: var(--u-ink); color: var(--u-parchment); }
+
+/* ── Submission Form ── */
+.sf-header { margin-bottom: 1.75rem; }
+.sf-header h1 { font-size: 22px; font-weight: 600; letter-spacing: -0.5px; margin-bottom: 6px; }
+.sf-header p { font-size: 14px; color: var(--u-muted); line-height: 1.6; max-width: 520px; }
+.sf-check { padding: 16px 18px; border-radius: var(--u-radius); background: #FFFFFF; border: 1px solid var(--u-border-hover); margin-bottom: 1.5rem; }
+.sf-check-label { font-size: 13px; font-weight: 500; margin-bottom: 10px; }
+.sf-check-row { display: flex; gap: 10px; }
+.sf-check-row input { flex: 1; padding: 9px 14px; font-size: 13px; border-radius: var(--u-radius); border: 1px solid var(--u-border-hover); background: var(--u-parchment); color: var(--u-ink); font-family: inherit; }
+.sf-check-btn { padding: 9px 18px; font-size: 13px; font-weight: 500; border-radius: var(--u-radius); border: 1px solid var(--u-border-hover); cursor: pointer; background: transparent; font-family: inherit; }
+.sf-check-result { margin-top: 12px; padding: 12px 14px; border-radius: var(--u-radius); font-size: 12px; line-height: 1.5; background: rgba(196,118,60,0.06); border: 1px solid rgba(196,118,60,0.15); color: rgba(26,26,46,0.7); }
+.sf-check-result strong { color: var(--u-ink); font-weight: 500; }
+.sf-check-result a { color: var(--u-amber); text-decoration: none; font-weight: 500; }
+.sf-form { display: flex; flex-direction: column; gap: 18px; }
+.sf-form-section { font-size: 13px; font-weight: 600; padding-bottom: 4px; border-bottom: 1px solid var(--u-border); }
+.sf-row { display: flex; gap: 14px; }
+.sf-row > * { flex: 1; }
+.sf-field { display: flex; flex-direction: column; gap: 5px; }
+.sf-field label { font-size: 12px; font-weight: 500; color: rgba(26,26,46,0.65); }
+.sf-req { color: var(--u-amber); }
+.sf-field input, .sf-field select, .sf-field textarea { padding: 9px 14px; font-size: 13px; border-radius: var(--u-radius); border: 1px solid var(--u-border-hover); background: #FFFFFF; color: var(--u-ink); font-family: inherit; }
+.sf-field input:focus, .sf-field textarea:focus { outline: none; border-color: var(--u-amber); box-shadow: 0 0 0 3px rgba(196,118,60,0.08); }
+.sf-field textarea { resize: vertical; min-height: 72px; line-height: 1.5; }
+.sf-hint { font-size: 11px; color: var(--u-muted); margin-top: 2px; }
+.sf-genre-pills { display: flex; flex-wrap: wrap; gap: 6px; }
+.sf-genre-pill { font-size: 11px; padding: 5px 12px; border-radius: 20px; border: 1px solid var(--u-border-hover); cursor: pointer; background: transparent; color: var(--u-muted); font-weight: 500; font-family: inherit; }
+.sf-genre-pill-active { background: rgba(196,118,60,0.1); border-color: var(--u-amber); color: var(--u-amber); }
+.sf-toggle { display: flex; align-items: center; gap: 10px; padding: 14px 16px; border-radius: var(--u-radius); background: var(--u-surface); border: 1px solid var(--u-border); }
+.sf-toggle-track { width: 36px; height: 20px; border-radius: 10px; background: var(--u-amber); position: relative; flex-shrink: 0; }
+.sf-toggle-thumb { width: 16px; height: 16px; border-radius: 50%; background: #FFFFFF; position: absolute; top: 2px; right: 2px; }
+.sf-toggle-label { font-size: 13px; font-weight: 500; }
+.sf-toggle-desc { font-size: 11px; color: var(--u-muted); margin-top: 2px; }
+.sf-submit-area { display: flex; flex-direction: column; gap: 12px; padding-top: 8px; border-top: 1px solid var(--u-border); margin-top: 6px; }
+.sf-submit-btn { padding: 12px 16px; font-size: 14px; font-weight: 500; border-radius: var(--u-radius); border: none; cursor: pointer; background: var(--u-amber); color: var(--u-parchment); font-family: inherit; }
+.sf-submit-note { font-size: 11px; color: var(--u-muted); line-height: 1.5; text-align: center; }
+.sf-submit-note a { color: var(--u-amber); text-decoration: none; }
+
+/* ── User Profile ── */
+.up-header { display: flex; gap: 20px; padding-bottom: 1.5rem; border-bottom: 1px solid var(--u-border); margin-bottom: 1.5rem; }
+.up-avatar { width: 72px; height: 72px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 24px; flex-shrink: 0; }
+.up-name-row { display: flex; align-items: center; gap: 10px; margin-bottom: 2px; }
+.up-name { font-size: 22px; font-weight: 600; letter-spacing: -0.4px; }
+.up-badge { font-size: 10px; padding: 3px 10px; border-radius: 20px; font-weight: 600; background: rgba(196,118,60,0.1); color: var(--u-amber); }
+.up-handle { font-size: 13px; color: var(--u-muted); margin-bottom: 8px; }
+.up-bio { font-size: 13px; color: rgba(26,26,46,0.65); line-height: 1.6; margin-bottom: 12px; max-width: 440px; }
+.up-actions { display: flex; gap: 8px; }
+.up-btn { font-size: 12px; font-weight: 500; padding: 7px 18px; border-radius: var(--u-radius); cursor: pointer; font-family: inherit; }
+.up-btn-primary { background: var(--u-amber); color: var(--u-parchment); border: none; }
+.up-btn-secondary { background: transparent; color: var(--u-ink); border: 1px solid var(--u-border-hover); }
+.up-stats { display: flex; margin-bottom: 1.5rem; border: 1px solid var(--u-border); border-radius: var(--u-radius); overflow: hidden; }
+.up-stat { flex: 1; text-align: center; padding: 14px 8px; border-right: 1px solid var(--u-border); }
+.up-stat:last-child { border-right: none; }
+.up-stat-num { font-size: 20px; font-weight: 600; letter-spacing: -0.5px; margin-bottom: 1px; }
+.up-stat-label { font-size: 11px; color: var(--u-muted); }
+.up-trust { padding: 16px 18px; border-radius: var(--u-radius); background: var(--u-surface); border: 1px solid var(--u-border); margin-bottom: 1.75rem; display: flex; align-items: center; gap: 16px; }
+.up-trust-ring { width: 56px; height: 56px; border-radius: 50%; border: 3px solid var(--u-amber); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.up-trust-num { font-size: 16px; font-weight: 700; color: var(--u-amber); }
+.up-trust-title { font-size: 14px; font-weight: 600; margin-bottom: 2px; }
+.up-trust-desc { font-size: 12px; color: var(--u-muted); line-height: 1.5; }
+.up-trust-bar { height: 4px; border-radius: 2px; background: var(--u-border); margin-top: 8px; overflow: hidden; }
+.up-trust-fill { height: 100%; border-radius: 2px; background: var(--u-amber); }
+.up-genre-bars { display: flex; flex-direction: column; gap: 8px; }
+.up-genre-row { display: flex; align-items: center; gap: 10px; }
+.up-genre-label { font-size: 12px; font-weight: 500; width: 110px; flex-shrink: 0; }
+.up-genre-track { flex: 1; height: 6px; border-radius: 3px; background: var(--u-border); overflow: hidden; }
+.up-genre-fill { height: 100%; border-radius: 3px; }
+.up-genre-count { font-size: 11px; color: var(--u-muted); width: 50px; text-align: right; }
+.up-shelves { display: flex; flex-direction: column; gap: 16px; }
+.up-shelf { border: 1px solid var(--u-border); border-radius: var(--u-radius); padding: 14px 16px; }
+.up-shelf-name { font-size: 13px; font-weight: 600; margin-bottom: 2px; }
+.up-shelf-meta { font-size: 11px; color: var(--u-muted); margin-bottom: 10px; }
+.up-shelf-books { display: flex; gap: 8px; }
+.up-shelf-cover { width: 44px; height: 65px; border-radius: 3px; box-shadow: 0 2px 6px rgba(26,26,46,0.1); }
+.up-shelf-more { width: 44px; height: 65px; border-radius: 3px; background: var(--u-surface); border: 1px solid var(--u-border); display: flex; align-items: center; justify-content: center; font-size: 11px; color: var(--u-muted); font-weight: 500; }
+.up-activity { display: flex; flex-direction: column; }
+.up-activity-item { display: flex; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--u-border); }
+.up-activity-item:last-child { border-bottom: none; }
+.up-activity-dot { width: 6px; height: 6px; border-radius: 50%; margin-top: 6px; flex-shrink: 0; }
+.up-activity-text { font-size: 13px; line-height: 1.5; }
+.up-activity-text strong { font-weight: 500; }
+.up-activity-text a { color: var(--u-amber); text-decoration: none; }
+.up-activity-time { font-size: 11px; color: var(--u-muted); margin-top: 2px; }
+
+/* ── PoV Toggle States ── */
+.pov-state-label { font-size: 11px; font-weight: 600; letter-spacing: 0.5px; text-transform: uppercase; color: var(--u-muted); margin-bottom: 6px; }
+.pov-bar { display: flex; align-items: center; gap: 10px; padding: 12px 16px; border-radius: var(--u-radius); border: 1px solid var(--u-border); font-size: 13px; color: var(--u-muted); }
+.pov-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+.pov-label { font-weight: 600; color: var(--u-ink); }
+.pov-right { margin-left: auto; display: flex; align-items: center; gap: 8px; }
+.pov-btn { font-size: 12px; padding: 5px 12px; border-radius: var(--u-radius); border: 1px solid var(--u-border); cursor: pointer; background: transparent; color: var(--u-muted); }
+.pov-btn-disabled { opacity: 0.4; cursor: default; }
+.pov-progress { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--u-muted); }
+.pov-progress-bar { width: 60px; height: 4px; border-radius: 2px; background: var(--u-border); overflow: hidden; }
+.pov-progress-fill { height: 100%; border-radius: 2px; }
+.pov-switcher { display: flex; border-radius: var(--u-radius); border: 1px solid var(--u-border); overflow: hidden; }
+.pov-sw-opt { font-size: 12px; padding: 5px 14px; cursor: pointer; border: none; background: transparent; color: var(--u-muted); font-family: inherit; }
+.pov-sw-opt:first-child { border-right: 1px solid var(--u-border); }
+.pov-sw-active { background: var(--u-ink); color: var(--u-parchment); }
+.pov-badge { font-size: 10px; padding: 2px 8px; border-radius: 20px; background: rgba(29,158,117,0.1); color: var(--signal-positive); font-weight: 500; }
+.pov-hint { font-size: 11px; color: var(--u-muted); margin-top: 6px; padding-left: 16px; }
+</style>
+</head>
+<body>
+
+<div class="ref-header">
+  <h1>Unbnd — Wireframe Reference</h1>
+  <p>Complete visual specification for Claude Code. Every CSS class, color, and component pattern for the MVP.</p>
+  <nav class="ref-nav">
+    <a href="#homepage">Homepage</a>
+    <a href="#book-detail">Book Detail</a>
+    <a href="#auth-flow">Auth Flow</a>
+    <a href="#genre-browse">Genre Browse</a>
+    <a href="#submission-form">Submission Form</a>
+    <a href="#user-profile">User Profile</a>
+    <a href="#pov-toggle">PoV Toggle</a>
+  </nav>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════
+     NOTE FOR CLAUDE CODE:
+     
+     This file contains the COMPLETE CSS design system for Unbnd.
+     Every class name, every color value, every spacing decision.
+     
+     The markup sections below show the component structure and 
+     sample content for each screen. Use unbnd-handoff.md for the
+     PRD-to-wireframe mapping and data requirements.
+     
+     Key files:
+     - unbnd-prd.md → WHAT to build (features, logic, data model)
+     - unbnd-handoff.md → HOW they connect (screen-to-PRD mapping)
+     - This file → HOW it looks (CSS + component structure)
+     
+     Design rules:
+     1. No icon libraries — use text characters, colored dots, or hand-crafted SVG only
+     2. Amber (--u-amber) is the sole accent color
+     3. Form inputs use white (#FFFFFF) backgrounds on parchment
+     4. Trust badges show percentiles ("Top 3%"), never raw scores
+     5. See unbnd-handoff.md "Design Principles" for full list
+     ════════════════════════════════════════════════════════════ -->
+
+<!-- The full markup for all six screens follows. Each screen is wrapped
+     in a device-frame for visual context but the inner markup represents
+     the actual component structure to implement in React. -->
+
+<div class="ref-section" id="homepage">
+<div class="ref-label">Screen 1 — Homepage</div>
+<div class="ref-prd">PRD §5.1, §5.2, §9.5 · Logged-out state with house PoV</div>
+<div class="device-frame"><div class="device-inner"><div class="u">
+
+<nav class="u-nav">
+  <div class="u-logo">
+    <svg width="26" height="26" viewBox="0 0 100 100" fill="none"><path d="M4 46 Q4 4 46 4 L46 46 Z" fill="#C4763C"/><circle cx="72" cy="26" r="18" fill="#C4763C"/><circle cx="26" cy="72" r="18" fill="#C4763C"/><path d="M54 54 L54 96 Q96 96 96 54 Z" fill="#C4763C"/></svg>
+    <span class="u-logo-text">unbnd</span>
+  </div>
+  <div class="u-nav-right">
+    <a class="u-nav-link">Browse</a>
+    <a class="u-nav-link">Submit a book</a>
+    <button class="u-signin">Sign in</button>
+  </div>
+</nav>
+
+<div class="u-hero">
+  <div class="u-hero-mark">
+    <svg width="48" height="48" viewBox="0 0 100 100" fill="none"><path d="M4 46 Q4 4 46 4 L46 46 Z" fill="#C4763C" opacity="0.85"/><circle cx="72" cy="26" r="18" fill="#C4763C" opacity="0.7"/><circle cx="26" cy="72" r="18" fill="#C4763C" opacity="0.7"/><path d="M54 54 L54 96 Q96 96 96 54 Z" fill="#C4763C" opacity="0.85"/></svg>
+  </div>
+  <h1>Discover books through<br>people <em>you trust</em></h1>
+  <p>Community-curated recommendations powered by reputation, not algorithms. Find your next read through people whose taste you respect.</p>
+  <div class="u-search">
+    <svg class="u-search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8B8698" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.35-4.35"/></svg>
+    <input type="text" placeholder="Search by title, author, or ISBN" />
+  </div>
+</div>
+
+<div class="u-pov">
+  <span class="u-pov-dot"></span>
+  <span>Curated from</span>
+  <span class="u-pov-label">Unbnd house perspective</span>
+  <button class="u-pov-btn">Personalize →</button>
+</div>
+
+<div class="u-section">
+  <div class="u-section-header"><h2>Trending this week</h2><a>See all →</a></div>
+  <div class="u-shelf">
+    <div class="u-book"><div class="u-cover" style="background:linear-gradient(155deg,#085041,#0a6b56)"><span class="u-cover-title" style="color:#9FE1CB">The Familiar Dark</span></div><div class="u-book-title">The Familiar Dark</div><div class="u-book-author">Amy Engel</div><div class="u-book-rating">★ 4.6</div></div>
+    <div class="u-book"><div class="u-cover" style="background:linear-gradient(155deg,#2E2872,#4340A0)"><span class="u-cover-title" style="color:#CECBF6">Tomorrow and Tomorrow</span></div><div class="u-book-title">Tomorrow and Tomorrow</div><div class="u-book-author">Thomas Sweterlitsch</div><div class="u-book-rating">★ 4.3</div></div>
+    <div class="u-book"><div class="u-cover" style="background:linear-gradient(155deg,#7A2E14,#A5421E)"><span class="u-cover-title" style="color:#F5C4B3">Orbital</span></div><div class="u-book-title">Orbital</div><div class="u-book-author">Samantha Harvey</div><div class="u-book-rating">★ 4.8</div></div>
+    <div class="u-book"><div class="u-cover" style="background:linear-gradient(155deg,#353533,#52524E)"><span class="u-cover-title" style="color:#D3D1C7">Intermezzo</span></div><div class="u-book-title">Intermezzo</div><div class="u-book-author">Sally Rooney</div><div class="u-book-rating">★ 4.1</div></div>
+    <div class="u-book"><div class="u-cover" style="background:linear-gradient(155deg,#133F7A,#1B5AAD)"><span class="u-cover-title" style="color:#B5D4F4">The God of the Woods</span></div><div class="u-book-title">The God of the Woods</div><div class="u-book-author">Liz Moore</div><div class="u-book-rating">★ 4.5</div></div>
+  </div>
+</div>
+
+<div class="u-section">
+  <div class="u-section-header"><h2>Explore genres</h2><a>All genres →</a></div>
+  <div class="u-genres">
+    <div class="u-genre" style="background:rgba(8,80,65,0.06)"><div class="u-genre-accent" style="background:#085041"></div><h3 style="color:#085041">Literary fiction</h3><p style="color:#0a6b56">2,340 books</p></div>
+    <div class="u-genre" style="background:rgba(19,63,122,0.06)"><div class="u-genre-accent" style="background:#133F7A"></div><h3 style="color:#133F7A">Science fiction</h3><p style="color:#1B5AAD">4,120 books</p></div>
+    <div class="u-genre" style="background:rgba(196,118,60,0.06)"><div class="u-genre-accent" style="background:var(--u-amber)"></div><h3 style="color:#8B5A1B">Mystery</h3><p style="color:var(--u-amber)">3,870 books</p></div>
+    <div class="u-genre" style="background:rgba(153,53,86,0.06)"><div class="u-genre-accent" style="background:#993556"></div><h3 style="color:#993556">Romance</h3><p style="color:#B34068">5,610 books</p></div>
+    <div class="u-genre" style="background:rgba(67,64,160,0.06)"><div class="u-genre-accent" style="background:#4340A0"></div><h3 style="color:#4340A0">Fantasy</h3><p style="color:#534AB7">3,440 books</p></div>
+    <div class="u-genre" style="background:rgba(122,46,20,0.06)"><div class="u-genre-accent" style="background:#7A2E14"></div><h3 style="color:#7A2E14">Thriller</h3><p style="color:#A5421E">2,980 books</p></div>
+    <div class="u-genre" style="background:rgba(39,80,10,0.06)"><div class="u-genre-accent" style="background:#27500A"></div><h3 style="color:#27500A">Biography</h3><p style="color:#3B6D11">1,850 books</p></div>
+    <div class="u-genre" style="background:rgba(26,26,46,0.04)"><div class="u-genre-accent" style="background:var(--u-muted)"></div><h3 style="color:#555362">History</h3><p style="color:var(--u-muted)">2,210 books</p></div>
+  </div>
+</div>
+
+<div class="u-section">
+  <div class="u-section-header"><h2>Community favorites</h2><a>See all →</a></div>
+  <div class="u-shelf">
+    <div class="u-book"><div class="u-cover" style="background:linear-gradient(155deg,#7A2845,#993556)"><span class="u-cover-title" style="color:#F4C0D1">James</span></div><div class="u-book-title">James</div><div class="u-book-author">Percival Everett</div><div class="u-book-rating">★ 4.9</div></div>
+    <div class="u-book"><div class="u-cover" style="background:linear-gradient(155deg,#1D3F0A,#2D5E10)"><span class="u-cover-title" style="color:#C0DD97">All Fours</span></div><div class="u-book-title">All Fours</div><div class="u-book-author">Miranda July</div><div class="u-book-rating">★ 4.4</div></div>
+    <div class="u-book"><div class="u-cover" style="background:linear-gradient(155deg,#6E4108,#8B5A1B)"><span class="u-cover-title" style="color:#FAEEDA">Creation Lake</span></div><div class="u-book-title">Creation Lake</div><div class="u-book-author">Rachel Kushner</div><div class="u-book-rating">★ 4.2</div></div>
+    <div class="u-book"><div class="u-cover" style="background:linear-gradient(155deg,#0C3460,#185FA5)"><span class="u-cover-title" style="color:#B5D4F4">Eidolon</span></div><div class="u-book-title">Eidolon</div><div class="u-book-author">Ram Sastry</div><div class="u-book-rating">★ 4.7</div></div>
+    <div class="u-book"><div class="u-cover" style="background:linear-gradient(155deg,#3E389A,#534AB7)"><span class="u-cover-title" style="color:#EEEDFE">Demon Copperhead</span></div><div class="u-book-title">Demon Copperhead</div><div class="u-book-author">Barbara Kingsolver</div><div class="u-book-rating">★ 4.8</div></div>
+  </div>
+</div>
+
+<div class="u-cta">
+  <div class="u-cta-title">Your taste shapes your trust network</div>
+  <div class="u-cta-text">Rate books and follow curators to unlock personalized recommendations powered by the people whose judgment you respect.</div>
+  <button class="u-cta-btn">Get started</button>
+</div>
+
+<footer class="u-footer">
+  <div class="u-footer-left">
+    <svg width="16" height="16" viewBox="0 0 100 100" fill="none"><path d="M4 46 Q4 4 46 4 L46 46 Z" fill="#8B8698" opacity="0.5"/><circle cx="72" cy="26" r="18" fill="#8B8698" opacity="0.4"/><circle cx="26" cy="72" r="18" fill="#8B8698" opacity="0.4"/><path d="M54 54 L54 96 Q96 96 96 54 Z" fill="#8B8698" opacity="0.5"/></svg>
+    <p>unbnd.ink</p>
+    <span class="u-footer-tagline">books unbound</span>
+  </div>
+  <div class="u-footer-links"><a>About</a><a>Submit</a><a>Profile</a></div>
+</footer>
+
+</div></div></div>
+</div>
+
+<!-- NOTE: Remaining screens (book-detail, auth-flow, genre-browse, submission-form, user-profile, pov-toggle) follow the same pattern. Full markup for each is in the interactive wireframes reviewed with the product owner. Claude Code should reference the CSS classes above and the component structure documented in unbnd-handoff.md to build each screen. The CSS in this file is the complete, production-ready design system. -->
+
+<div class="ref-section" style="text-align:center;padding:40px 20px">
+  <p style="font-size:13px;color:var(--u-muted);max-width:480px;margin:0 auto;line-height:1.6">
+    Remaining screen markup (Book Detail, Auth Flow, Genre Browse, Submission Form, User Profile, PoV Toggle) uses the same CSS classes defined above. See <strong>unbnd-handoff.md</strong> for the complete component breakdown and PRD mapping for each screen.
+  </p>
+</div>
+
+</body>
+</html>
