@@ -98,6 +98,26 @@ describe("loadConfig — defaults", () => {
         .publicOrigin,
     ).toBe("https://unbnd.ink");
   });
+
+  it("leaves librarianPubkey undefined when LIBRARIAN_PUBKEY is unset", () => {
+    expect(loadConfig({ ...ALL_REQUIRED }).librarianPubkey).toBeUndefined();
+  });
+
+  it("reads LIBRARIAN_PUBKEY when it is 64 lowercase hex chars", () => {
+    const pk = "9".repeat(64);
+    expect(
+      loadConfig({ ...ALL_REQUIRED, LIBRARIAN_PUBKEY: pk }).librarianPubkey,
+    ).toBe(pk);
+  });
+
+  it("throws when LIBRARIAN_PUBKEY is set but not 64 hex chars", () => {
+    expect(() =>
+      loadConfig({ ...ALL_REQUIRED, LIBRARIAN_PUBKEY: "nope" }),
+    ).toThrow(/LIBRARIAN_PUBKEY/);
+    expect(() =>
+      loadConfig({ ...ALL_REQUIRED, LIBRARIAN_PUBKEY: "A".repeat(64) }),
+    ).toThrow(/LIBRARIAN_PUBKEY/);
+  });
 });
 
 describe("loadConfig — env overrides", () => {

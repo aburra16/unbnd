@@ -15,6 +15,13 @@ export type Config = {
   readonly backupEncryptionKey: string;
   /** Public origin of the web app, used as the NIP-42 relay tag on auth challenges. */
   readonly publicOrigin: string;
+  /**
+   * Hex pubkey of the librarian/house identity that owns the kind-39998
+   * concept headers. Used to build a rating's z-tag (parent header) and `a`
+   * tag (book record address). Optional: when unset, the rating endpoints
+   * report the feature as unavailable. ADR 0005.
+   */
+  readonly librarianPubkey?: string;
 };
 
 const KNOWN_PROVIDERS: readonly Config["searchProvider"][] = ["meili", "vespa"];

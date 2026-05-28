@@ -19,6 +19,26 @@ export type SignedEvent = {
   sig: string;
 };
 
+export type NostrEventTemplate = {
+  kind: number;
+  created_at: number;
+  content: string;
+  tags: string[][];
+};
+
+export type PublicRating = {
+  npub: string;
+  score: number;
+  reviewText?: string;
+  reviewDate: string;
+};
+
+export type RatingsSummary = {
+  count: number;
+  average: number | null;
+  ratings: PublicRating[];
+};
+
 export class ApiError extends Error {
   constructor(
     readonly status: number,
@@ -82,6 +102,30 @@ export const api = {
           body: JSON.stringify({ event }),
         });
       },
+    },
+  },
+  ratings: {
+    template(input: {
+      bookSlug: string;
+      score: number;
+      reviewText?: string;
+      reviewDate: string;
+    }) {
+      return authFetch<{ template: NostrEventTemplate }>(
+        "/api/ratings/template",
+        { method: "POST", body: JSON.stringify(input) },
+      );
+    },
+    submit(event: SignedEvent) {
+      return authFetch<{ rating: PublicRating; summary: RatingsSummary }>(
+        "/api/ratings",
+        { method: "POST", body: JSON.stringify({ event }) },
+      );
+    },
+    list(bookSlug: string) {
+      return authFetch<RatingsSummary>(
+        `/api/books/${encodeURIComponent(bookSlug)}/ratings`,
+      );
     },
   },
 };
