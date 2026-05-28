@@ -1,5 +1,4 @@
 // Env-var validation per ADR 0002.
-// Stub: every accessor throws until the Implementer wires it up.
 
 export type Config = {
   readonly port: number;
@@ -13,6 +12,54 @@ export type Config = {
   readonly searchProvider: "meili" | "vespa";
 };
 
-export function loadConfig(_env: NodeJS.ProcessEnv = process.env): Config {
-  throw new Error("loadConfig not implemented");
+const KNOWN_PROVIDERS: readonly Config["searchProvider"][] = ["meili", "vespa"];
+
+function required(env: NodeJS.ProcessEnv, name: string): string {
+  const v = env[name];
+  if (v === undefined || v.length === 0) {
+    throw new Error(`config: missing required env var ${name}`);
+  }
+  return v;
+}
+
+function withDefault(
+  env: NodeJS.ProcessEnv,
+  name: string,
+  fallback: string,
+): string {
+  const v = env[name];
+  return v === undefined || v.length === 0 ? fallback : v;
+}
+
+export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
+  const neo4jPassword = required(env, "NEO4J_PASSWORD");
+  const searchApiKey = required(env, "SEARCH_API_KEY");
+
+  const providerRaw = withDefault(env, "SEARCH_PROVIDER", "meili");
+  if (!KNOWN_PROVIDERS.includes(providerRaw as Config["searchProvider"])) {
+    throw new Error(
+      `config: SEARCH_PROVIDER must be one of ${KNOWN_PROVIDERS.join(", ")}; got ${JSON.stringify(providerRaw)}`,
+    );
+  }
+  const searchProvider = providerRaw as Config["searchProvider"];
+
+  const portRaw = withDefault(env, "PORT", "8787");
+  const port = Number(portRaw);
+  if (!Number.isFinite(port) || port <= 0 || !Number.isInteger(port)) {
+    throw new Error(
+      `config: PORT must be a positive integer; got ${JSON.stringify(portRaw)}`,
+    );
+  }
+
+  return {
+    port,
+    strfryUrl: withDefault(env, "STRFRY_URL", "ws://localhost:7777"),
+    neo4jBoltUrl: withDefault(env, "NEO4J_BOLT_URL", "bolt://localhost:7687"),
+    neo4jUser: withDefault(env, "NEO4J_USER", "neo4j"),
+    neo4jPassword,
+    tapestryApiUrl: withDefault(env, "TAPESTRY_API_URL", "http://localhost:8080"),
+    searchUrl: withDefault(env, "SEARCH_URL", "http://localhost:7700"),
+    searchApiKey,
+    searchProvider,
+  };
 }

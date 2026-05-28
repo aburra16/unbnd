@@ -1,0 +1,5 @@
+# Pin the upstream Tapestry source the data-layer image is built from.
+# Edit this file, then run `./scripts/build-tapestry-image.sh` to rebuild.
+# First non-comment line: branch name. Second: full 40-char commit SHA.
+concept-graph
+6a9391fdd0114930a52f42f0b4196692bfcf1b22
