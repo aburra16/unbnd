@@ -1,8 +1,8 @@
 # ADR 0003: Custodial auth — email signup, login, session
 
-**Status:** Proposed
+**Status:** Accepted
 **Date:** 2026-05-28
-**Story:** `engineering-team/stories/3-custodial-auth.md`
+**Story:** `engineering-team/stories/done/3-custodial-auth.md`
 
 ## Context
 
@@ -469,6 +469,10 @@ Implementation (after tests are committed):
 10. Update `.env.example` and add `scripts/generate-backup-key.js`.
 11. Add `apps/web` proxy + `lib/api.ts` + `hooks/useSession.ts` + `AuthEmailSignup.tsx` wiring + `Nav.tsx` swap.
 12. Run gates.
+
+## Refinements during Implementation phase (2026-05-28)
+
+**Migrations are embedded as a TypeScript string module, not a runtime-read `.sql` file.** The ADR's file layout named `db/migrations/0001_initial.sql`. The Implementer instead put the SQL in `apps/api/src/db/migrations.ts` as an exported `{ name, sql }[]`, executed by `runMigrations` via `sql.unsafe(...)`. Reason: `tsc` only emits `.js`, so a runtime-read `.sql` file would be absent from `dist/` in production without an added copy step. The TS-embedded form ships identically in dev (tsx) and prod (tsc→dist) with no copy-step risk. The SQL is fully readable in the module, each migration is idempotent (`IF NOT EXISTS`), and adopting drizzle-kit `generate` later remains an option. No behavioral change versus the ADR's schema.
 
 ## Deferred concerns — captured here so the next story finds them
 

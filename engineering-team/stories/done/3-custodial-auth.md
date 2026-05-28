@@ -1,6 +1,6 @@
 # Story 3: Custodial auth — email signup, login, session
 
-**Status:** Approved
+**Status:** Done
 **Created:** 2026-05-28
 **Type:** Feature
 
@@ -86,8 +86,8 @@ The Architect resolves these in the ADR.
 ## Linked artifacts
 
 - ADR: `engineering-team/decisions/0003-custodial-auth.md`
-- Test plan: `engineering-team/stories/3-custodial-auth.test-plan.md`
-- Review: (filled in after Review phase)
+- Test plan: `engineering-team/stories/done/3-custodial-auth.test-plan.md`
+- Review: `engineering-team/reviews/3-custodial-auth.md`
 
 ## Post-closeout actions
 

@@ -1,6 +1,6 @@
 # Test Plan: Story 3 — Custodial auth
 
-**Story:** `engineering-team/stories/3-custodial-auth.md`
+**Story:** `engineering-team/stories/done/3-custodial-auth.md`
 **ADR:** `engineering-team/decisions/0003-custodial-auth.md`
 **Date:** 2026-05-28
 
