@@ -71,7 +71,6 @@ export type BookDetailRecord = SchemaBookRecord &
     qualitySignals: QualitySignal[];
     aggregateRating: number;
     ratingCount: number;
-    trustWeightedRating: number;
     distribution: RatingDistribution[];
     reviews: Review[];
     whereToRead: WhereToRead[];
@@ -113,7 +112,6 @@ const orbital: BookDetailRecord = {
   ],
   aggregateRating: 4.8,
   ratingCount: 312,
-  trustWeightedRating: 4.7,
   distribution: [
     { stars: 5, count: 220 },
     { stars: 4, count: 70 },

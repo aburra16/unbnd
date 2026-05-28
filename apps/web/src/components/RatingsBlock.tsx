@@ -43,12 +43,6 @@ export function RatingsBlock({ book }: Props) {
           );
         })}
       </div>
-      <div className="ratings-trust" aria-label="Personalized rating">
-        <div className="ratings-trust-num">
-          {book.trustWeightedRating.toFixed(1)}
-        </div>
-        <div className="ratings-trust-label">from curators you trust</div>
-      </div>
     </section>
   );
 }

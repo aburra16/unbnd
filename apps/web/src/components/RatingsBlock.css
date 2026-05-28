@@ -73,30 +73,6 @@
   text-align: right;
 }
 
-.ratings-trust {
-  flex: 0 0 auto;
-  text-align: center;
-  padding: 14px 18px;
-  border-radius: var(--u-radius);
-  background: var(--u-surface);
-  border: 1px solid var(--u-border);
-  min-width: 130px;
-}
-
-.ratings-trust-num {
-  font-size: 22px;
-  font-weight: 600;
-  color: var(--signal-positive);
-  line-height: 1;
-}
-
-.ratings-trust-label {
-  font-size: 10px;
-  color: var(--u-muted);
-  line-height: 1.4;
-  margin-top: 6px;
-}
-
 @media (max-width: 620px) {
   .ratings {
     flex-direction: column;
@@ -104,8 +80,5 @@
   }
   .ratings-aggregate {
     align-self: flex-start;
-  }
-  .ratings-trust {
-    align-self: stretch;
   }
 }
