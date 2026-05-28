@@ -67,6 +67,6 @@ These are decisions the Architect will resolve in the ADR. Listed here so the Ar
 
 ## Linked artifacts
 
-- ADR: (filled in after Architecture phase)
+- ADR: `engineering-team/decisions/0001-dlist-schemas.md`
 - Test plan: (filled in after Test Design phase)
 - Review: (filled in after Review phase)
