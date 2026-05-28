@@ -16,6 +16,7 @@ const deadConfig: Config = {
   searchProvider: "meili",
   databaseUrl: "postgres://x:x@127.0.0.1:1/none",
   backupEncryptionKey: "a".repeat(64),
+  publicOrigin: "http://localhost:5181",
 };
 
 describe("probePostgres", () => {

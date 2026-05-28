@@ -5,6 +5,7 @@ import { Breadcrumb } from "../components/Breadcrumb";
 import { BookHeader } from "../components/BookHeader";
 import { ActionBar } from "../components/ActionBar";
 import { RatingsBlock } from "../components/RatingsBlock";
+import { RatingControl } from "../components/RatingControl";
 import { ReviewsList } from "../components/ReviewsList";
 import { WhereToRead } from "../components/WhereToRead";
 import { AuthorCard } from "../components/AuthorCard";
@@ -30,6 +31,7 @@ export function BookDetail() {
       <BookHeader book={book} />
       <ActionBar />
       <RatingsBlock book={book} />
+      {slug && <RatingControl bookSlug={slug} />}
       <ReviewsList reviews={book.reviews} />
       <WhereToRead links={book.whereToRead} />
       <AuthorCard author={book.authorInfo} />

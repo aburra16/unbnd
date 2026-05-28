@@ -24,12 +24,25 @@ const citext = customType<{ data: string }>({
 
 export const users = pgTable("users", {
   id: uuid("id").primaryKey().defaultRandom(),
-  email: citext("email").notNull().unique(),
+  // Nullable: sovereign (Tier 1) users authenticate by key and have no email.
+  // UNIQUE still holds for custodial emails (Postgres allows multiple NULLs).
+  email: citext("email").unique(),
   displayName: text("display_name").notNull(),
   pubkeyHex: char("pubkey_hex", { length: 64 }).notNull().unique(),
   tier: text("tier").notNull(),
-  encryptedNsecPassword: text("encrypted_nsec_password").notNull(),
-  encryptedNsecBackup: bytea("encrypted_nsec_backup").notNull(),
+  // Nullable: sovereign users hold their own key; the server stores none.
+  encryptedNsecPassword: text("encrypted_nsec_password"),
+  encryptedNsecBackup: bytea("encrypted_nsec_backup"),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+});
+
+export const challenges = pgTable("challenges", {
+  pubkey: char("pubkey", { length: 64 }).notNull(),
+  nonce: text("nonce").notNull(),
+  expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+  consumedAt: timestamp("consumed_at", { withTimezone: true }),
   createdAt: timestamp("created_at", { withTimezone: true })
     .notNull()
     .defaultNow(),
@@ -52,3 +65,4 @@ export const sessions = pgTable("sessions", {
 export type UserRow = typeof users.$inferSelect;
 export type NewUserRow = typeof users.$inferInsert;
 export type SessionRow = typeof sessions.$inferSelect;
+export type ChallengeRow = typeof challenges.$inferSelect;

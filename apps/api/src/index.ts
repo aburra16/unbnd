@@ -8,14 +8,20 @@ import { probeStrfry } from "./probes/strfry";
 import { probeTapestry } from "./probes/tapestry";
 import { buildAuthRouter } from "./routes/auth";
 import { buildHealthRouter } from "./routes/health";
+import { buildRatingsRouter } from "./routes/ratings";
+import { publishEvent } from "./nostr/publish";
+import { queryEvents } from "./nostr/query";
 import { resolveProvider } from "./search";
 import {
   createCustodialUser,
+  createOrLoadSovereignUser,
   findUserByEmail,
   toPublicUser,
 } from "./auth/users";
 import { decryptWithPassword } from "./auth/crypto";
 import { issueSession, resolveSession, revokeSession } from "./auth/sessions";
+import { consumeChallenge, issueChallenge } from "./auth/challenges";
+import { verifySignedChallenge } from "./auth/nostr";
 
 async function main() {
   const config = loadConfig();
@@ -75,6 +81,9 @@ async function main() {
       login: async (input, existingCookie) => {
         const row = await findUserByEmail(input.email);
         if (!row) return null;
+        // A null password column means this is not a custodial account
+        // (sovereign users have no email/password). Treat as invalid.
+        if (!row.encryptedNsecPassword) return null;
         try {
           decryptWithPassword(row.encryptedNsecPassword, input.password);
         } catch {
@@ -97,6 +106,47 @@ async function main() {
         const resolved = await resolveSession(cookie);
         return resolved ? toPublicUser(resolved.user) : null;
       },
+      nostrChallenge: async (pubkey) => {
+        const challenge = await db.transaction((tx) =>
+          issueChallenge(tx, pubkey),
+        );
+        return { challenge };
+      },
+      nostrVerify: async (event) => {
+        const verified = verifySignedChallenge(event);
+        if (!verified.ok) return null;
+        const { pubkey, challenge } = verified;
+        return db.transaction(async (tx) => {
+          // Single-use: a replayed or expired challenge fails here.
+          const consumed = await consumeChallenge(tx, pubkey, challenge);
+          if (!consumed) return null;
+          const row = await createOrLoadSovereignUser(tx, pubkey);
+          const session = await issueSession(tx, row.id);
+          return {
+            user: toPublicUser(row),
+            token: session.token,
+            expiresAt: session.expiresAt,
+          };
+        });
+      },
+    }),
+  );
+
+  app.use(
+    "/",
+    buildRatingsRouter({
+      config,
+      sessionUser: async (cookie) => {
+        const resolved = await resolveSession(cookie);
+        if (!resolved) return null;
+        return {
+          id: resolved.user.id,
+          pubkeyHex: resolved.user.pubkeyHex,
+          tier: resolved.user.tier,
+        };
+      },
+      publish: (event) => publishEvent(config, event),
+      query: (filter) => queryEvents(config, filter),
     }),
   );
 

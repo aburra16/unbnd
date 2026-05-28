@@ -63,10 +63,13 @@ export async function findUserById(id: string): Promise<UserRow | null> {
   return rows[0] ?? null;
 }
 
-/** Public-facing shape: never exposes hex pubkey or encrypted columns. */
+/**
+ * Public-facing shape: never exposes hex pubkey or encrypted columns.
+ * `email` is null for sovereign (Tier 1) users, who have no email.
+ */
 export type PublicUser = {
   readonly id: string;
-  readonly email: string;
+  readonly email: string | null;
   readonly displayName: string;
   readonly npub: string;
 };
@@ -78,4 +81,40 @@ export function toPublicUser(row: UserRow): PublicUser {
     displayName: row.displayName,
     npub: npubEncode(row.pubkeyHex),
   };
+}
+
+/**
+ * Find a sovereign user by pubkey, or create one. Sovereign rows have no
+ * email and no encrypted-nsec material; the default display name is a
+ * truncated npub. Runs inside the caller's transaction.
+ */
+function truncatedNpub(pubkeyHex: string): string {
+  const npub = npubEncode(pubkeyHex);
+  // npub1abcd…wxyz — recognizable, fits the display-name CHECK (1..100).
+  return `${npub.slice(0, 10)}…${npub.slice(-4)}`;
+}
+
+export async function createOrLoadSovereignUser(
+  tx: DbOrTx,
+  pubkeyHex: string,
+): Promise<UserRow> {
+  const existing = await tx
+    .select()
+    .from(users)
+    .where(eq(users.pubkeyHex, pubkeyHex))
+    .limit(1);
+  if (existing[0]) return existing[0];
+
+  const [row] = await tx
+    .insert(users)
+    .values({
+      email: null,
+      displayName: truncatedNpub(pubkeyHex),
+      pubkeyHex,
+      tier: "sovereign",
+      encryptedNsecPassword: null,
+      encryptedNsecBackup: null,
+    })
+    .returning();
+  return row!;
 }

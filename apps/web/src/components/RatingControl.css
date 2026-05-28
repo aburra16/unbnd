@@ -1,0 +1,97 @@
+.rate {
+  max-width: var(--page-max);
+  margin: 0 auto;
+  padding: 24px var(--page-pad-x);
+  border-top: 1px solid var(--u-border);
+}
+
+.rate-summary {
+  margin: 0 0 12px;
+  color: var(--u-muted);
+  font-size: 0.95rem;
+}
+
+.rate-gate {
+  margin: 0;
+  color: var(--u-muted);
+}
+
+.rate-gate a {
+  color: var(--u-amber);
+  font-weight: 600;
+}
+
+.rate-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.rate-stars {
+  display: flex;
+  gap: 4px;
+  color: var(--u-amber);
+}
+
+.rate-star {
+  background: none;
+  border: none;
+  padding: 2px;
+  cursor: pointer;
+  color: inherit;
+  line-height: 0;
+}
+
+.rate-star:hover {
+  color: var(--u-amber-hover);
+}
+
+.rate-review {
+  width: 100%;
+  min-height: 72px;
+  padding: 10px 12px;
+  border: 1px solid var(--u-border);
+  border-radius: var(--u-radius);
+  background: var(--u-surface);
+  color: var(--u-ink);
+  font-family: var(--font-sans);
+  font-size: 0.95rem;
+  resize: vertical;
+}
+
+.rate-review:focus {
+  outline: none;
+  border-color: var(--u-border-hover);
+}
+
+.rate-submit {
+  align-self: flex-start;
+  padding: 10px 18px;
+  border: none;
+  border-radius: var(--u-radius);
+  background: var(--u-amber);
+  color: var(--u-parchment);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.rate-submit:hover:not(:disabled) {
+  background: var(--u-amber-hover);
+}
+
+.rate-submit:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.rate-error {
+  margin: 0;
+  color: var(--signal-negative);
+  font-size: 0.9rem;
+}
+
+.rate-ok {
+  margin: 0;
+  color: var(--signal-positive);
+  font-size: 0.9rem;
+}

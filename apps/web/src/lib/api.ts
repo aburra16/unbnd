@@ -4,9 +4,39 @@ const base = import.meta.env.DEV ? "" : (import.meta.env.VITE_API_URL ?? "");
 
 export type PublicUser = {
   id: string;
-  email: string;
+  email: string | null;
   displayName: string;
   npub: string;
+};
+
+export type SignedEvent = {
+  id: string;
+  pubkey: string;
+  created_at: number;
+  kind: number;
+  tags: string[][];
+  content: string;
+  sig: string;
+};
+
+export type NostrEventTemplate = {
+  kind: number;
+  created_at: number;
+  content: string;
+  tags: string[][];
+};
+
+export type PublicRating = {
+  npub: string;
+  score: number;
+  reviewText?: string;
+  reviewDate: string;
+};
+
+export type RatingsSummary = {
+  count: number;
+  average: number | null;
+  ratings: PublicRating[];
 };
 
 export class ApiError extends Error {
@@ -58,6 +88,44 @@ export const api = {
     },
     me() {
       return authFetch<{ user: PublicUser }>("/auth/me");
+    },
+    nostr: {
+      challenge(pubkey: string) {
+        return authFetch<{ challenge: string }>("/auth/nostr/challenge", {
+          method: "POST",
+          body: JSON.stringify({ pubkey }),
+        });
+      },
+      verify(event: SignedEvent) {
+        return authFetch<{ user: PublicUser }>("/auth/nostr/verify", {
+          method: "POST",
+          body: JSON.stringify({ event }),
+        });
+      },
+    },
+  },
+  ratings: {
+    template(input: {
+      bookSlug: string;
+      score: number;
+      reviewText?: string;
+      reviewDate: string;
+    }) {
+      return authFetch<{ template: NostrEventTemplate }>(
+        "/api/ratings/template",
+        { method: "POST", body: JSON.stringify(input) },
+      );
+    },
+    submit(event: SignedEvent) {
+      return authFetch<{
+        rating: { score: number; reviewText?: string; reviewDate: string };
+        summary: RatingsSummary;
+      }>("/api/ratings", { method: "POST", body: JSON.stringify({ event }) });
+    },
+    list(bookSlug: string) {
+      return authFetch<RatingsSummary>(
+        `/api/books/${encodeURIComponent(bookSlug)}/ratings`,
+      );
     },
   },
 };

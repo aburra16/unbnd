@@ -13,6 +13,15 @@ export type Config = {
   readonly databaseUrl: string;
   /** 32-byte server-managed backup key, hex-encoded (64 hex chars). */
   readonly backupEncryptionKey: string;
+  /** Public origin of the web app, used as the NIP-42 relay tag on auth challenges. */
+  readonly publicOrigin: string;
+  /**
+   * Hex pubkey of the librarian/house identity that owns the kind-39998
+   * concept headers. Used to build a rating's z-tag (parent header) and `a`
+   * tag (book record address). Optional: when unset, the rating endpoints
+   * report the feature as unavailable. ADR 0005.
+   */
+  readonly librarianPubkey?: string;
 };
 
 const KNOWN_PROVIDERS: readonly Config["searchProvider"][] = ["meili", "vespa"];
@@ -63,6 +72,17 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
     );
   }
 
+  const librarianPubkeyRaw = env.LIBRARIAN_PUBKEY;
+  const librarianPubkey =
+    librarianPubkeyRaw === undefined || librarianPubkeyRaw.length === 0
+      ? undefined
+      : librarianPubkeyRaw;
+  if (librarianPubkey !== undefined && !/^[0-9a-f]{64}$/.test(librarianPubkey)) {
+    throw new Error(
+      "config: LIBRARIAN_PUBKEY must be 64 lowercase hex characters when set",
+    );
+  }
+
   return {
     port,
     strfryUrl: withDefault(env, "STRFRY_URL", "ws://localhost:7777"),
@@ -75,5 +95,7 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
     searchProvider,
     databaseUrl,
     backupEncryptionKey,
+    publicOrigin: withDefault(env, "PUBLIC_ORIGIN", "http://localhost:5181"),
+    librarianPubkey,
   };
 }

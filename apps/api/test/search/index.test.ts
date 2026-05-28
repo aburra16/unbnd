@@ -14,6 +14,7 @@ const cfg = (provider: Config["searchProvider"]): Config => ({
   searchProvider: provider,
   databaseUrl: "postgres://x:x@localhost:5432/x",
   backupEncryptionKey: "a".repeat(64),
+  publicOrigin: "http://localhost:5181",
 });
 
 describe("resolveProvider", () => {

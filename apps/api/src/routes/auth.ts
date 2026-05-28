@@ -26,6 +26,12 @@ export type AuthDeps = {
   ) => Promise<{ user: PublicUser; token: string; expiresAt: Date } | null>;
   readonly logout: (cookie: string | undefined) => Promise<void>;
   readonly me: (cookie: string | undefined) => Promise<PublicUser | null>;
+  /** Issue a NIP-07 login challenge for a pubkey. Optional until story 4 wires it. */
+  readonly nostrChallenge?: (pubkey: string) => Promise<{ challenge: string }>;
+  /** Verify a signed challenge; create/load the sovereign user; issue a session. */
+  readonly nostrVerify?: (
+    event: unknown,
+  ) => Promise<{ user: PublicUser; token: string; expiresAt: Date } | null>;
 };
 
 function readSessionCookie(req: Request): string | undefined {
@@ -130,6 +136,60 @@ export function buildAuthRouter(deps: AuthDeps): Router {
         return;
       }
       res.status(200).json({ user });
+    } catch (err) {
+      next(err);
+    }
+  });
+
+  const HEX64 = /^[0-9a-f]{64}$/;
+
+  router.post("/auth/nostr/challenge", async (req, res, next) => {
+    try {
+      if (!deps.nostrChallenge) {
+        res.status(501).json({
+          error: { code: "not_supported", message: "Nostr login is unavailable." },
+        });
+        return;
+      }
+      const { pubkey } = req.body ?? {};
+      if (typeof pubkey !== "string" || !HEX64.test(pubkey)) {
+        res.status(400).json({
+          error: {
+            code: "validation_failed",
+            message: "A 64-character hex pubkey is required.",
+          },
+        });
+        return;
+      }
+      const { challenge } = await deps.nostrChallenge(pubkey);
+      res.status(200).json({ challenge });
+    } catch (err) {
+      next(err);
+    }
+  });
+
+  router.post("/auth/nostr/verify", async (req, res, next) => {
+    try {
+      if (!deps.nostrVerify) {
+        res.status(501).json({
+          error: { code: "not_supported", message: "Nostr login is unavailable." },
+        });
+        return;
+      }
+      const { event } = req.body ?? {};
+      const result = await deps.nostrVerify(event);
+      if (!result) {
+        // Generic — never reveal which check failed (shape, signature, replay).
+        res.status(401).json({
+          error: {
+            code: "invalid_signature",
+            message: "Could not verify the signed challenge.",
+          },
+        });
+        return;
+      }
+      res.setHeader("Set-Cookie", sessionCookie(result.token, isProduction));
+      res.status(200).json({ user: result.user });
     } catch (err) {
       next(err);
     }

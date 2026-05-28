@@ -1,4 +1,5 @@
 export * from "./envelope";
+export * from "./wire";
 export * from "./concept-headers";
 export * from "./BookRecord";
 export * from "./BookGenre";
