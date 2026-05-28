@@ -11,11 +11,14 @@ import { buildHealthRouter } from "./routes/health";
 import { resolveProvider } from "./search";
 import {
   createCustodialUser,
+  createOrLoadSovereignUser,
   findUserByEmail,
   toPublicUser,
 } from "./auth/users";
 import { decryptWithPassword } from "./auth/crypto";
 import { issueSession, resolveSession, revokeSession } from "./auth/sessions";
+import { consumeChallenge, issueChallenge } from "./auth/challenges";
+import { verifySignedChallenge } from "./auth/nostr";
 
 async function main() {
   const config = loadConfig();
@@ -99,6 +102,29 @@ async function main() {
       me: async (cookie) => {
         const resolved = await resolveSession(cookie);
         return resolved ? toPublicUser(resolved.user) : null;
+      },
+      nostrChallenge: async (pubkey) => {
+        const challenge = await db.transaction((tx) =>
+          issueChallenge(tx, pubkey),
+        );
+        return { challenge };
+      },
+      nostrVerify: async (event) => {
+        const verified = verifySignedChallenge(event);
+        if (!verified.ok) return null;
+        const { pubkey, challenge } = verified;
+        return db.transaction(async (tx) => {
+          // Single-use: a replayed or expired challenge fails here.
+          const consumed = await consumeChallenge(tx, pubkey, challenge);
+          if (!consumed) return null;
+          const row = await createOrLoadSovereignUser(tx, pubkey);
+          const session = await issueSession(tx, row.id);
+          return {
+            user: toPublicUser(row),
+            token: session.token,
+            expiresAt: session.expiresAt,
+          };
+        });
       },
     }),
   );

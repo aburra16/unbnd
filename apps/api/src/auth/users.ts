@@ -88,9 +88,33 @@ export function toPublicUser(row: UserRow): PublicUser {
  * email and no encrypted-nsec material; the default display name is a
  * truncated npub. Runs inside the caller's transaction.
  */
+function truncatedNpub(pubkeyHex: string): string {
+  const npub = npubEncode(pubkeyHex);
+  // npub1abcd…wxyz — recognizable, fits the display-name CHECK (1..100).
+  return `${npub.slice(0, 10)}…${npub.slice(-4)}`;
+}
+
 export async function createOrLoadSovereignUser(
-  _tx: DbOrTx,
-  _pubkeyHex: string,
+  tx: DbOrTx,
+  pubkeyHex: string,
 ): Promise<UserRow> {
-  throw new Error("createOrLoadSovereignUser not implemented");
+  const existing = await tx
+    .select()
+    .from(users)
+    .where(eq(users.pubkeyHex, pubkeyHex))
+    .limit(1);
+  if (existing[0]) return existing[0];
+
+  const [row] = await tx
+    .insert(users)
+    .values({
+      email: null,
+      displayName: truncatedNpub(pubkeyHex),
+      pubkeyHex,
+      tier: "sovereign",
+      encryptedNsecPassword: null,
+      encryptedNsecBackup: null,
+    })
+    .returning();
+  return row!;
 }
