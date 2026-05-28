@@ -39,7 +39,7 @@ describe("Route smoke tests against the refit fixtures", () => {
     expect(
       screen.getByRole("link", { name: "Samantha Harvey" }),
     ).toBeInTheDocument();
-    expect(screen.getByText(/from curators you trust/i)).toBeInTheDocument();
+    expect(screen.getByText(/312 ratings/i)).toBeInTheDocument();
   });
 
   it("renders the GenreBrowse route for /genre/literary-fiction", () => {
