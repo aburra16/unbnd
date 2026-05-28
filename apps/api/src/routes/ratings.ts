@@ -1,13 +1,18 @@
 // /api/ratings + /api/books/:slug/ratings routes. ADR 0005. Dependency-
 // injected like buildAuthRouter so the endpoint suite runs with mocked
-// session/publish/query. Handlers are added by the Implementer; this stub
-// returns an empty router (every route 404s) so the route suite fails for
-// the right reason during test design.
-import express, { type Router } from "express";
+// session/publish/query.
+import express, { type Request, type Router } from "express";
+import { parse as parseCookie } from "cookie";
 import type { Config } from "../config";
 import type { PublishResult } from "../nostr/publish";
 import type { NostrFilter } from "../nostr/query";
 import type { SignedNostrEvent } from "@unbnd/schemas";
+import { buildRatingTemplate, RatingError } from "../ratings/template";
+import { validateSignedRating } from "../ratings/validate";
+import { summarizeRatings } from "../ratings/summary";
+
+const COOKIE_NAME = "session";
+const BOOK_RATING_KIND = 39999;
 
 export type SessionUser = {
   readonly id: string;
@@ -23,6 +28,121 @@ export type RatingsDeps = {
   readonly query: (filter: NostrFilter) => Promise<SignedNostrEvent[]>;
 };
 
-export function buildRatingsRouter(_deps: RatingsDeps): Router {
-  return express.Router();
+function readSessionCookie(req: Request): string | undefined {
+  const header = req.headers.cookie;
+  if (!header) return undefined;
+  return parseCookie(header)[COOKIE_NAME];
+}
+
+function bookAddress(config: Config, slug: string): string | null {
+  if (!config.librarianPubkey) return null;
+  return `${BOOK_RATING_KIND}:${config.librarianPubkey}:${slug}`;
+}
+
+export function buildRatingsRouter(deps: RatingsDeps): Router {
+  const router = express.Router();
+
+  // Build the unsigned template for the client to sign.
+  router.post("/api/ratings/template", async (req, res, next) => {
+    try {
+      const user = await deps.sessionUser(readSessionCookie(req));
+      if (!user) {
+        res
+          .status(401)
+          .json({ error: { code: "no_session", message: "Not signed in." } });
+        return;
+      }
+      const { bookSlug, score, reviewText, reviewDate } = req.body ?? {};
+      const template = buildRatingTemplate(
+        deps.config,
+        {
+          raterPubkey: user.pubkeyHex,
+          bookSlug,
+          score,
+          reviewText,
+          reviewDate,
+        },
+        Math.floor(Date.now() / 1000),
+      );
+      res.status(200).json({ template });
+    } catch (err) {
+      if (err instanceof RatingError) {
+        const status = err.code === "feature_unavailable" ? 503 : 400;
+        res.status(status).json({ error: { code: err.code, message: err.message } });
+        return;
+      }
+      next(err);
+    }
+  });
+
+  // Accept a client-signed rating, validate it, publish to strfry.
+  router.post("/api/ratings", async (req, res, next) => {
+    try {
+      const user = await deps.sessionUser(readSessionCookie(req));
+      if (!user) {
+        res
+          .status(401)
+          .json({ error: { code: "no_session", message: "Not signed in." } });
+        return;
+      }
+      const { event } = req.body ?? {};
+      const result = validateSignedRating(event, user.pubkeyHex);
+      if (!result.ok) {
+        const status = result.code === "pubkey_mismatch" ? 403 : 400;
+        res.status(status).json({
+          error: {
+            code: result.code,
+            message:
+              result.code === "pubkey_mismatch"
+                ? "A rating must be signed by your own key."
+                : "The rating event could not be validated.",
+          },
+        });
+        return;
+      }
+
+      const published = await deps.publish(event as SignedNostrEvent);
+      if (!published.ok) {
+        res.status(502).json({
+          error: {
+            code: "publish_failed",
+            message: "Could not publish the rating to the relay.",
+          },
+        });
+        return;
+      }
+
+      const addr = bookAddress(deps.config, result.rating.bookSlug);
+      const events = addr
+        ? await deps.query({ kinds: [BOOK_RATING_KIND], "#a": [addr] })
+        : [];
+      const summary = summarizeRatings(events);
+      res.status(200).json({
+        rating: {
+          npub: summary.ratings.find(() => true)?.npub,
+          score: result.rating.score,
+          reviewText: result.rating.reviewText,
+          reviewDate: result.rating.reviewDate,
+        },
+        summary,
+      });
+    } catch (err) {
+      next(err);
+    }
+  });
+
+  // Public raw read-back for a book.
+  router.get("/api/books/:slug/ratings", async (req, res, next) => {
+    try {
+      const addr = bookAddress(deps.config, req.params.slug);
+      const events = addr
+        ? await deps.query({ kinds: [BOOK_RATING_KIND], "#a": [addr] })
+        : [];
+      res.status(200).json(summarizeRatings(events));
+    } catch (err) {
+      next(err);
+    }
+  });
+
+  return router;
 }

@@ -2,7 +2,11 @@
 // first publish-path story (5a, ADR 0005). The word-wrapper payload is
 // serialized into a ["json", ...] tag; the rest of the nostr event
 // (created_at, pubkey, id, sig) is added by the signer.
-import type { UnsignedDListEvent } from "./envelope";
+import {
+  parseAddressOfKind,
+  type DListAddress,
+  type UnsignedDListEvent,
+} from "./envelope";
 
 /** An unsigned nostr event template: ready to sign, no pubkey/id/sig yet. */
 export type NostrEventTemplate = {
@@ -33,22 +37,56 @@ export type WireEventView = {
   readonly tags: ReadonlyArray<ReadonlyArray<string>>;
 };
 
+const JSON_TAG = "json";
+const Z_TAG = "z";
+
 /**
  * Serialize an unsigned DList event into a signable nostr template:
  * the named tags, plus a `["json", JSON.stringify(payload)]` tag, plus the
  * caller-supplied `created_at` (passed in so this stays pure/testable).
  */
 export function toWireTemplate(
-  _unsigned: AnyUnsignedDListEvent,
-  _createdAt: number,
+  unsigned: AnyUnsignedDListEvent,
+  createdAt: number,
 ): NostrEventTemplate {
-  throw new Error("toWireTemplate not implemented");
+  const tags: string[][] = unsigned.tags.map((t) => [...t]);
+  tags.push([JSON_TAG, JSON.stringify(unsigned.payload)]);
+  return {
+    kind: unsigned.kind,
+    created_at: createdAt,
+    content: unsigned.content,
+    tags,
+  };
 }
 
 /**
  * Reconstruct an unsigned DList event from a wire event: read the `json`
- * tag back into `payload` and the `z` tag back into `parentHeader`.
+ * tag back into `payload` and the `z` tag back into `parentHeader`. The
+ * `json` tag itself is dropped from the reconstructed `tags` (it is the
+ * serialized mirror, not a named tag).
  */
-export function fromWireEvent(_event: WireEventView): AnyUnsignedDListEvent {
-  throw new Error("fromWireEvent not implemented");
+export function fromWireEvent(event: WireEventView): AnyUnsignedDListEvent {
+  const jsonTag = event.tags.find((t) => t[0] === JSON_TAG);
+  if (!jsonTag || typeof jsonTag[1] !== "string") {
+    throw new Error("fromWireEvent: missing json tag");
+  }
+  const zTag = event.tags.find((t) => t[0] === Z_TAG);
+  if (!zTag || typeof zTag[1] !== "string") {
+    throw new Error("fromWireEvent: missing z tag (parent header)");
+  }
+
+  const payload = JSON.parse(jsonTag[1]) as AnyUnsignedDListEvent["payload"];
+  const parentHeader: DListAddress<39998> = parseAddressOfKind(zTag[1], 39998);
+
+  const tags = event.tags
+    .filter((t) => t[0] !== JSON_TAG)
+    .map((t) => [...t] as [string, ...string[]]);
+
+  return {
+    kind: event.kind,
+    tags,
+    content: event.content,
+    payload,
+    parentHeader,
+  };
 }

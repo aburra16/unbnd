@@ -1,7 +1,15 @@
 // Build the unsigned kind-39999 BookRating wire template, server-side, with
 // the librarian pubkey resolved from config. ADR 0005.
+import {
+  asHexPubkey,
+  buildBookRatingsHeaderAddress,
+  toBookRatingEvent,
+  toWireTemplate,
+  type BookRating,
+  type NostrEventTemplate,
+  type RatingScore,
+} from "@unbnd/schemas";
 import type { Config } from "../config";
-import type { NostrEventTemplate } from "@unbnd/schemas";
 
 export type BuildRatingInput = {
   readonly raterPubkey: string;
@@ -23,10 +31,41 @@ export class RatingError extends Error {
   }
 }
 
+function isValidScore(n: number): n is RatingScore {
+  return Number.isInteger(n) && n >= 1 && n <= 5;
+}
+
 export function buildRatingTemplate(
-  _config: Config,
-  _input: BuildRatingInput,
-  _createdAt: number,
+  config: Config,
+  input: BuildRatingInput,
+  createdAt: number,
 ): NostrEventTemplate {
-  throw new Error("buildRatingTemplate not implemented");
+  if (!isValidScore(input.score)) {
+    throw new RatingError(
+      "score_out_of_range",
+      "Rating score must be an integer from 1 to 5.",
+    );
+  }
+  if (!config.librarianPubkey) {
+    throw new RatingError(
+      "feature_unavailable",
+      "Rating publishing is not configured (no librarian pubkey).",
+    );
+  }
+
+  const librarian = asHexPubkey(config.librarianPubkey);
+  const raterPubkey = asHexPubkey(input.raterPubkey);
+
+  const rating: BookRating = {
+    bookSlug: input.bookSlug,
+    // The house catalog: book records are owned by the librarian identity.
+    bookAddress: { kind: 39999, pubkey: librarian, dTag: input.bookSlug },
+    raterPubkey,
+    score: input.score,
+    reviewText: input.reviewText,
+    reviewDate: input.reviewDate,
+    parentHeader: buildBookRatingsHeaderAddress(librarian),
+  };
+
+  return toWireTemplate(toBookRatingEvent(rating), createdAt);
 }

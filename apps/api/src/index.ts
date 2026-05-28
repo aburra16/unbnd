@@ -8,6 +8,9 @@ import { probeStrfry } from "./probes/strfry";
 import { probeTapestry } from "./probes/tapestry";
 import { buildAuthRouter } from "./routes/auth";
 import { buildHealthRouter } from "./routes/health";
+import { buildRatingsRouter } from "./routes/ratings";
+import { publishEvent } from "./nostr/publish";
+import { queryEvents } from "./nostr/query";
 import { resolveProvider } from "./search";
 import {
   createCustodialUser,
@@ -126,6 +129,24 @@ async function main() {
           };
         });
       },
+    }),
+  );
+
+  app.use(
+    "/",
+    buildRatingsRouter({
+      config,
+      sessionUser: async (cookie) => {
+        const resolved = await resolveSession(cookie);
+        if (!resolved) return null;
+        return {
+          id: resolved.user.id,
+          pubkeyHex: resolved.user.pubkeyHex,
+          tier: resolved.user.tier,
+        };
+      },
+      publish: (event) => publishEvent(config, event),
+      query: (filter) => queryEvents(config, filter),
     }),
   );
 

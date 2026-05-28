@@ -72,6 +72,17 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
     );
   }
 
+  const librarianPubkeyRaw = env.LIBRARIAN_PUBKEY;
+  const librarianPubkey =
+    librarianPubkeyRaw === undefined || librarianPubkeyRaw.length === 0
+      ? undefined
+      : librarianPubkeyRaw;
+  if (librarianPubkey !== undefined && !/^[0-9a-f]{64}$/.test(librarianPubkey)) {
+    throw new Error(
+      "config: LIBRARIAN_PUBKEY must be 64 lowercase hex characters when set",
+    );
+  }
+
   return {
     port,
     strfryUrl: withDefault(env, "STRFRY_URL", "ws://localhost:7777"),
@@ -85,5 +96,6 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
     databaseUrl,
     backupEncryptionKey,
     publicOrigin: withDefault(env, "PUBLIC_ORIGIN", "http://localhost:5181"),
+    librarianPubkey,
   };
 }
