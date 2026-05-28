@@ -55,6 +55,6 @@ The Architect resolves these in the ADR.
 
 ## Linked artifacts
 
-- ADR: (filled in after Architecture phase)
+- ADR: `engineering-team/decisions/0005-sovereign-rating-publish.md`
 - Test plan: (filled in after Test Design phase)
 - Review: (filled in after Review phase)
