@@ -41,9 +41,9 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Set up pnpm
+        # Version is read from the root package.json "packageManager" field
+        # (pnpm@9.0.0). Specifying it here too triggers ERR_PNPM_BAD_PM_VERSION.
         uses: pnpm/action-setup@v4
-        with:
-          version: 9
 
       - name: Set up Node
         uses: actions/setup-node@v4
