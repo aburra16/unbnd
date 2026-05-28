@@ -1,5 +1,6 @@
-// Session hook backed by /auth/me, per ADR 0003. Stub throws until wired.
-import type { PublicUser } from "../lib/api";
+// Session hook backed by /auth/me, per ADR 0003.
+import { useCallback, useEffect, useState } from "react";
+import { api, type PublicUser } from "../lib/api";
 
 export type SessionState =
   | { status: "loading" }
@@ -11,5 +12,25 @@ export type UseSession = SessionState & {
 };
 
 export function useSession(): UseSession {
-  throw new Error("useSession not implemented");
+  const [state, setState] = useState<SessionState>({ status: "loading" });
+
+  const refresh = useCallback(() => {
+    let cancelled = false;
+    setState({ status: "loading" });
+    api.auth
+      .me()
+      .then((res) => {
+        if (!cancelled) setState({ status: "signed-in", user: res.user });
+      })
+      .catch(() => {
+        if (!cancelled) setState({ status: "signed-out" });
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => refresh(), [refresh]);
+
+  return { ...state, refresh };
 }

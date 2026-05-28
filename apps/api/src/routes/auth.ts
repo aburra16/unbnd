@@ -1,30 +1,139 @@
 // /auth routes per ADR 0003. Dependency-injected like buildHealthRouter so
-// the endpoint suite can run with mocked db-touching helpers. Stub returns an
-// empty router until the Implementer wires the handlers.
-import express, { type Router } from "express";
+// the endpoint suite runs with mocked db-touching helpers.
+import express, { type Request, type Router } from "express";
+import { parse as parseCookie, serialize as serializeCookie } from "cookie";
 import type { Config } from "../config";
 import type { PublicUser } from "../auth/users";
+import {
+  validateDisplayName,
+  validateEmail,
+  validatePassword,
+} from "../auth/passwords";
+
+const COOKIE_NAME = "session";
+const COOKIE_MAX_AGE_S = 30 * 24 * 60 * 60; // 30 days
 
 export type AuthDeps = {
   readonly config: Config;
-  /** Create a custodial user + issue a session, transactionally. Returns the public user + the cookie token. */
   readonly signup: (input: {
     email: string;
     password: string;
     displayName: string;
   }) => Promise<{ user: PublicUser; token: string; expiresAt: Date }>;
-  /** Verify credentials, rotate session. Returns null on bad credentials. */
   readonly login: (
     input: { email: string; password: string },
     existingCookie: string | undefined,
   ) => Promise<{ user: PublicUser; token: string; expiresAt: Date } | null>;
-  /** Revoke the session referenced by the cookie. */
   readonly logout: (cookie: string | undefined) => Promise<void>;
-  /** Resolve the cookie to a public user, or null. */
   readonly me: (cookie: string | undefined) => Promise<PublicUser | null>;
 };
 
-export function buildAuthRouter(_deps: AuthDeps): Router {
-  // Stub: empty router. Tests hit the routes and get 404 until implemented.
-  return express.Router();
+function readSessionCookie(req: Request): string | undefined {
+  const header = req.headers.cookie;
+  if (!header) return undefined;
+  return parseCookie(header)[COOKIE_NAME];
+}
+
+function sessionCookie(token: string, isProduction: boolean): string {
+  return serializeCookie(COOKIE_NAME, token, {
+    httpOnly: true,
+    sameSite: "lax",
+    path: "/",
+    maxAge: COOKIE_MAX_AGE_S,
+    secure: isProduction,
+  });
+}
+
+function clearCookie(isProduction: boolean): string {
+  return serializeCookie(COOKIE_NAME, "", {
+    httpOnly: true,
+    sameSite: "lax",
+    path: "/",
+    maxAge: 0,
+    secure: isProduction,
+  });
+}
+
+export function buildAuthRouter(deps: AuthDeps): Router {
+  const router = express.Router();
+  const isProduction = process.env.NODE_ENV === "production";
+
+  router.post("/auth/signup", async (req, res, next) => {
+    try {
+      const { email, password, displayName } = req.body ?? {};
+      for (const check of [
+        validateEmail(email),
+        validatePassword(password),
+        validateDisplayName(displayName),
+      ]) {
+        if (!check.ok) {
+          res
+            .status(400)
+            .json({ error: { code: "validation_failed", message: check.message } });
+          return;
+        }
+      }
+      const { user, token } = await deps.signup({ email, password, displayName });
+      res.setHeader("Set-Cookie", sessionCookie(token, isProduction));
+      res.status(201).json({ user });
+    } catch (err) {
+      if (err && typeof err === "object" && (err as { code?: string }).code === "email_in_use") {
+        res.status(409).json({
+          error: {
+            code: "email_in_use",
+            message: "An account with this email already exists.",
+          },
+        });
+        return;
+      }
+      next(err);
+    }
+  });
+
+  router.post("/auth/login", async (req, res, next) => {
+    try {
+      const { email, password } = req.body ?? {};
+      const result = await deps.login({ email, password }, readSessionCookie(req));
+      if (!result) {
+        res.status(401).json({
+          error: {
+            code: "invalid_credentials",
+            message: "Email or password is incorrect.",
+          },
+        });
+        return;
+      }
+      res.setHeader("Set-Cookie", sessionCookie(result.token, isProduction));
+      res.status(200).json({ user: result.user });
+    } catch (err) {
+      next(err);
+    }
+  });
+
+  router.post("/auth/logout", async (req, res, next) => {
+    try {
+      await deps.logout(readSessionCookie(req));
+      res.setHeader("Set-Cookie", clearCookie(isProduction));
+      res.status(204).end();
+    } catch (err) {
+      next(err);
+    }
+  });
+
+  router.get("/auth/me", async (req, res, next) => {
+    try {
+      const user = await deps.me(readSessionCookie(req));
+      if (!user) {
+        res
+          .status(401)
+          .json({ error: { code: "no_session", message: "Not signed in." } });
+        return;
+      }
+      res.status(200).json({ user });
+    } catch (err) {
+      next(err);
+    }
+  });
+
+  return router;
 }

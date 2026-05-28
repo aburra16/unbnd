@@ -6,5 +6,9 @@ export default defineConfig({
   server: {
     port: 5181,
     strictPort: true,
+    proxy: {
+      "/auth": "http://localhost:8787",
+      "/api": "http://localhost:8787",
+    },
   },
 });

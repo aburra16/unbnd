@@ -7,6 +7,26 @@
   margin-bottom: 20px;
 }
 
+.nav-avatar {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: var(--u-amber);
+  color: var(--u-parchment);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  text-decoration: none;
+  transition: background 120ms ease;
+}
+
+.nav-avatar:hover {
+  background: var(--u-amber-hover);
+}
+
 .nav-logo {
   display: inline-flex;
   align-items: center;

@@ -1,6 +1,6 @@
 // Thin fetch wrapper for the apps/api auth endpoints, per ADR 0003.
 // In dev the Vite proxy routes /auth/* to localhost:8787, so base is "".
-// Stub bodies throw until the Implementer wires them.
+const base = import.meta.env.DEV ? "" : (import.meta.env.VITE_API_URL ?? "");
 
 export type PublicUser = {
   id: string;
@@ -20,26 +20,44 @@ export class ApiError extends Error {
   }
 }
 
+async function authFetch<T>(path: string, init?: RequestInit): Promise<T> {
+  const res = await fetch(`${base}${path}`, {
+    ...init,
+    credentials: "include",
+    headers: { "Content-Type": "application/json", ...(init?.headers ?? {}) },
+  });
+  if (res.status === 204) return undefined as T;
+  const body = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    const err = (body as { error?: { code?: string; message?: string } }).error;
+    throw new ApiError(
+      res.status,
+      err?.code,
+      err?.message ?? "Something went wrong. Try again.",
+    );
+  }
+  return body as T;
+}
+
 export const api = {
   auth: {
-    signup(_input: {
-      email: string;
-      password: string;
-      displayName: string;
-    }): Promise<{ user: PublicUser }> {
-      throw new Error("api.auth.signup not implemented");
+    signup(input: { email: string; password: string; displayName: string }) {
+      return authFetch<{ user: PublicUser }>("/auth/signup", {
+        method: "POST",
+        body: JSON.stringify(input),
+      });
     },
-    login(_input: {
-      email: string;
-      password: string;
-    }): Promise<{ user: PublicUser }> {
-      throw new Error("api.auth.login not implemented");
+    login(input: { email: string; password: string }) {
+      return authFetch<{ user: PublicUser }>("/auth/login", {
+        method: "POST",
+        body: JSON.stringify(input),
+      });
     },
-    logout(): Promise<void> {
-      throw new Error("api.auth.logout not implemented");
+    logout() {
+      return authFetch<void>("/auth/logout", { method: "POST" });
     },
-    me(): Promise<{ user: PublicUser }> {
-      throw new Error("api.auth.me not implemented");
+    me() {
+      return authFetch<{ user: PublicUser }>("/auth/me");
     },
   },
 };

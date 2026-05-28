@@ -4,6 +4,13 @@
   gap: 14px;
 }
 
+.auth-field-error {
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--signal-negative);
+  margin: 0;
+}
+
 .auth-field {
   display: flex;
   flex-direction: column;

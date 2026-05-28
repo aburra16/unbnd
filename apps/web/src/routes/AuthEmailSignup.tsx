@@ -2,20 +2,32 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { AuthShell } from "../components/AuthShell";
 import { SovereigntyNote } from "../components/SovereigntyNote";
+import { api, ApiError } from "../lib/api";
 import "../components/AuthForm.css";
 
 export function AuthEmailSignup() {
   const navigate = useNavigate();
+  const [displayName, setDisplayName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  function onSubmit(e: React.FormEvent) {
+  async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
+    setError(null);
     setSubmitting(true);
-    // Real implementation: generate secp256k1 keypair, derive an Argon2id
-    // key from the password, encrypt the private key, store the encrypted
-    // key alongside a server-managed backup key, issue a JWT session, then
-    // route to /auth/welcome. UI flow is in place for that wiring.
-    setTimeout(() => navigate("/auth/welcome"), 200);
+    try {
+      await api.auth.signup({ email, password, displayName });
+      navigate("/auth/welcome");
+    } catch (err) {
+      const message =
+        err instanceof ApiError
+          ? err.message
+          : "Something went wrong. Try again.";
+      setError(message);
+      setSubmitting(false);
+    }
   }
 
   return (
@@ -37,6 +49,8 @@ export function AuthEmailSignup() {
             type="text"
             autoComplete="name"
             placeholder="Mira Calloway"
+            value={displayName}
+            onChange={(e) => setDisplayName(e.target.value)}
             required
           />
         </div>
@@ -47,6 +61,8 @@ export function AuthEmailSignup() {
             type="email"
             autoComplete="email"
             placeholder="you@example.com"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
             required
           />
         </div>
@@ -58,12 +74,19 @@ export function AuthEmailSignup() {
             autoComplete="new-password"
             placeholder="At least 10 characters"
             minLength={10}
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
             required
           />
           <span className="auth-field-hint">
             Your password encrypts the private key that signs your activity.
           </span>
         </div>
+        {error && (
+          <p className="auth-field-error" role="alert">
+            {error}
+          </p>
+        )}
         <button className="auth-submit" type="submit" disabled={submitting}>
           {submitting ? "Creating account…" : "Create account"}
         </button>

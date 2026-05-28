@@ -2,6 +2,9 @@ import { describe, expect, it, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { AuthEmailSignup } from "../../src/routes/AuthEmailSignup";
+// Imported from the mocked module below, so it is the same class the
+// component sees — matching what the real api.auth.signup throws (ApiError).
+import { ApiError } from "../../src/lib/api";
 
 const navigateMock = vi.fn();
 vi.mock("react-router-dom", async (importOriginal) => {
@@ -74,9 +77,7 @@ describe("AuthEmailSignup form wiring", () => {
 
   it("shows the API error message when signup fails", async () => {
     signupMock.mockRejectedValue(
-      Object.assign(new Error("An account with this email already exists."), {
-        code: "email_in_use",
-      }),
+      new ApiError(409, "email_in_use", "An account with this email already exists."),
     );
     render(
       <MemoryRouter>

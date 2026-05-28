@@ -39,27 +39,33 @@ export function buildHealthRouter(deps: HealthDeps): Router {
   });
 
   router.get("/health/data", async (_req, res) => {
-    const [strfry, neo4j, tapestry, search] = await Promise.allSettled([
-      deps.probeStrfry(),
-      deps.probeNeo4j(),
-      deps.probeTapestry(),
-      deps.searchProvider.health(),
-    ]);
+    const probePostgres =
+      deps.probePostgres ??
+      (async () => ({ ok: false, error: "postgres probe not configured" }));
+    const [strfry, neo4j, tapestry, postgres, search] =
+      await Promise.allSettled([
+        deps.probeStrfry(),
+        deps.probeNeo4j(),
+        deps.probeTapestry(),
+        probePostgres(),
+        deps.searchProvider.health(),
+      ]);
+
+    const okOf = (s: PromiseSettledResult<{ ok: boolean }>) =>
+      s.status === "fulfilled" && s.value.ok;
 
     const result = {
       ok:
-        strfry.status === "fulfilled" &&
-        strfry.value.ok &&
-        neo4j.status === "fulfilled" &&
-        neo4j.value.ok &&
-        tapestry.status === "fulfilled" &&
-        tapestry.value.ok &&
-        search.status === "fulfilled" &&
-        search.value.ok,
+        okOf(strfry) &&
+        okOf(neo4j) &&
+        okOf(tapestry) &&
+        okOf(postgres) &&
+        okOf(search),
       services: {
         strfry: settledOrError(strfry),
         neo4j: settledOrError(neo4j),
         tapestry: settledOrError(tapestry),
+        postgres: settledOrError(postgres),
         search: settledOrSearchError(search, deps.searchProvider.name),
       },
     };
