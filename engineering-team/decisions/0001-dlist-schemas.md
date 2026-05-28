@@ -166,11 +166,15 @@ export type WordEnvelope<T extends string> = {
   };
 };
 
-export type UnsignedDListEvent<K extends number, T extends string> = {
+export type UnsignedDListEvent<
+  K extends number,
+  T extends string,
+  P = unknown,
+> = {
   readonly kind: K;
   readonly tags: ReadonlyArray<readonly [string, ...string[]]>;
   readonly content: string;
-  readonly payload: WordEnvelope<T> & { readonly [P in T]: unknown };
+  readonly payload: WordEnvelope<T> & { readonly [Key in T]: P };
   readonly parentHeader: DListAddress<39998>;
 };
 ```
@@ -178,6 +182,8 @@ export type UnsignedDListEvent<K extends number, T extends string> = {
 `HexPubkey` and `EventId` are branded strings — at boundaries, callers cast via `asHexPubkey('...')` which validates format and throws on bad input. Internal code passes them around without re-validating.
 
 `UnsignedDListEvent.tags` uses a `readonly [string, ...string[]]` tuple so the tag name is always the first element. `parentHeader` is denormalized onto the event type so the z-tag's structured form is available without re-parsing the tag.
+
+**Envelope refinement during Test Design phase (2026-05-28):** the third type parameter `P = unknown` was added so each per-shape event type can refine the inner payload field's shape without losing the envelope's generic structure. Each shape file passes its payload's inner type as the third parameter (e.g., `BookRatingEvent = UnsignedDListEvent<39999, "bookRating", BookRatingPayload["bookRating"]>`). This keeps the envelope structurally shared while restoring strong typing at consumer call sites. The change is backward compatible — code that constructs `UnsignedDListEvent<K, T>` without the third parameter still typechecks against `unknown`.
 
 ### Concept headers (`concept-headers.ts`)
 

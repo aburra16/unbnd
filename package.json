@@ -8,7 +8,11 @@
     "dev:api": "pnpm --filter @unbnd/api dev",
     "build:web": "pnpm --filter @unbnd/web build",
     "build:api": "pnpm --filter @unbnd/api build",
-    "typecheck": "pnpm -r typecheck"
+    "typecheck": "pnpm -r typecheck",
+    "test": "pnpm -r test"
+  },
+  "devDependencies": {
+    "vitest": "^2.1.0"
   },
   "packageManager": "pnpm@9.0.0"
 }
