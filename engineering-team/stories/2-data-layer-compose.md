@@ -72,5 +72,5 @@ The Architect will resolve these in the ADR:
 ## Linked artifacts
 
 - ADR: `engineering-team/decisions/0002-data-layer-compose.md`
-- Test plan: (filled in after Test Design phase)
+- Test plan: `engineering-team/stories/2-data-layer-compose.test-plan.md`
 - Review: (filled in after Review phase)
