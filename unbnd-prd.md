@@ -232,7 +232,7 @@ Goodreads is a discovery and curation platform — "I'm a reader, help me find w
 
 **Tier 2 — Custodial (Email/OAuth):**
 - MVP: sign up with email + password. Unbnd generates a nostr keypair behind the scenes.
-- For email users: private key encrypted at rest using a key derived from their password (Argon2 or equivalent). Server-managed backup key for password recovery (see §8.4).
+- For email users: private key encrypted at rest under their password via NIP-49 (scrypt + ChaCha20-Poly1305). Server-managed backup key for password recovery (see §8.4).
 - Stretch: add Google / Apple / GitHub OAuth as additional Tier 2 login methods (server-managed key encryption for OAuth users).
 - All events signed server-side. User never sees a keypair.
 - Presented as "Continue with email" (MVP) / "Continue with Google" (stretch).
@@ -491,12 +491,11 @@ See §5.7 for the user-facing spec. This section covers the technical architectu
 
 **Tier 2 — Email/Password Custodial:**
 - On registration: generate a nostr keypair (secp256k1).
-- Derive an encryption key from the password using Argon2id (high memory cost).
-- Encrypt the nostr private key with the derived key.
-- Store the encrypted private key in the database.
-- On login: derive the encryption key from the provided password, decrypt the private key, use it for the session.
-- On every write action (rate, tag, review): sign the nostr event server-side with the decrypted key, publish to strfry.
-- Password change: re-encrypt the private key with the new password-derived key.
+- Encrypt the nostr private key using NIP-49 (scrypt-based key derivation, logN=18/r=8/p=1; ChaCha20-Poly1305 AEAD). NIP-49 is the canonical nostr standard for encrypted private keys, enabling export to other compatible clients.
+- Store the resulting NIP-49 ciphertext (an `ncryptsec1…` string) in the database.
+- On login: attempt the NIP-49 decryption with the provided password. A successful decrypt confirms the password; the plaintext key is used only for the immediate operation and discarded (see §8.2).
+- On every write action (rate, tag, review): sign the nostr event server-side, then discard the plaintext key, publish to strfry.
+- Password change: decrypt with the old password (or the server-managed backup key, see §8.4) and re-encrypt under the new password.
 
 **Tier 2 — OAuth Custodial:**
 - On registration: generate a nostr keypair.
@@ -513,8 +512,8 @@ See §5.7 for the user-facing spec. This section covers the technical architectu
 
 ### 8.2 Session Management
 
-- JWTs for session tokens (short-lived, refreshable).
-- For Tier 2 users: the decrypted private key is held in server memory for the duration of the session, never written to disk unencrypted, and discarded on session end.
+- Sessions are opaque random tokens; the database stores only the SHA-256 of each token, so a database leak exposes hashes, not usable sessions. (The implementation uses opaque tokens rather than JWTs — see ADR 0003.)
+- For Tier 2 users: the decrypted private key is never persisted across requests. The signing path re-encrypts the nsec under a process-local ephemeral key for the session window; a process restart invalidates all such wrappings and forces re-login. No plaintext key is written to disk or held across a restart.
 - For Tier 1 users: no private key on the server at any point.
 
 ### 8.3 Security Considerations
