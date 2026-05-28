@@ -106,6 +106,28 @@ The full design:
 7. **Search provider boundary:** `apps/api/src/search/SearchProvider.ts` declares the interface, `apps/api/src/search/meili.ts` is the only concrete impl. Cycle 2 ships only `health()`; `index` / `search` / `delete` come with the search-wiring story.
 8. **OWNER_PUBKEY:** `.env.example` placeholder; `scripts/generate-keypair.js` prints a fresh pubkey + nsec to stdout for the developer to paste in.
 
+## Cryptographic library policy — project-wide rule established by this ADR
+
+Every cryptographic operation in Unbnd goes through the audited stack:
+
+- **Applesauce** (`applesauce-core`, `applesauce-signers`) is the default nostr SDK. Higher-level abstractions for signers, keys, encryption, and event handling.
+- **nostr-tools** is the explicit fallback for primitives Applesauce doesn't wrap (e.g., `nip19.nsecEncode` / `npubEncode`).
+- **No hand-rolled crypto. Ever.** No bespoke secp256k1 implementations, no custom bech32 encoders, no DIY hash functions, no rolled-from-scratch ciphers.
+
+The transitive crypto floor is `@noble/secp256k1` (Trail of Bits and Cure53 audited; constant-time; side-channel hardened), `@noble/hashes`, and `@noble/ciphers`. Applesauce and nostr-tools are wrappers, not new cryptography — they add convenience without re-implementing the curve math.
+
+This rule covers, at minimum:
+- Key generation (`generateSecretKey`, `getPublicKey`) — used by `scripts/generate-keypair.js` today and by the future Librarian key generation.
+- Event signing — `applesauce-signers` (`PrivateKeySigner` for the Librarian, `PasswordSigner` for Tier 2 custodial, `ExtensionSigner` for Tier 1 NIP-07, `NostrConnectSigner` for the bunker stretch).
+- NIP-19 bech32 encoding (npub / nsec) — `nostr-tools/nip19`.
+- NIP-49 password-encrypted keys — `applesauce-core/helpers/keys` (`encryptSecretKey`) for the Tier 2 custodial encryption PRD §8.4 calls for.
+- NIP-04 / NIP-44 DM encryption when relevant — `applesauce-core/helpers/encryption`.
+- Signature verification on inbound signed challenges (Tier 1 login) — Applesauce or `nostr-tools.verifyEvent`.
+
+Versions are pinned exactly in `package.json` (no `^`). Lockfile freshness and `pnpm audit` belong in a future CI story.
+
+The script `scripts/generate-keypair.js` was rewritten during this cycle from a hand-rolled secp256k1 + bech32 implementation to use `applesauce-core/helpers/keys` and `nostr-tools/nip19`. The original hand-rolled version is not in the final commit; see the commit history of this cycle for the transition.
+
 ## Consequences
 
 **Enables**
@@ -410,3 +432,9 @@ Sections: prerequisites, one-time setup (generate keypair, populate .env, build 
 **GrapeRank tuning.** The Tapestry container's GrapeRank runs with Tapestry's default config. When Unbnd needs to weight book ratings differently (or compute personalized PoV for a specific user), tuning becomes a real concern. Separate story tied to the personalization-flow work.
 
 **The full `SearchProvider` interface.** This story declares `health()` only. The next story to add a search dependency expands the interface and ships the Meili impl for the new methods. The Vespa migration becomes possible once `index` / `search` / `delete` exist and have tests.
+
+**Librarian nsec storage at deployment.** The Tapestry container's `OWNER_PUBKEY` is the relay-level admin identity — distinct from the Unbnd Librarian, the system signing key for catalog imports per PRD §7.2. Once the Librarian story lands, the nsec must live in a secret manager (e.g., Doppler, AWS Secrets Manager, a Kubernetes Secret), never in `.env` and never in committed source. The Librarian generation ADR pins the exact storage strategy, rotation policy, and what an attacker who steals the nsec can do (publish fake catalog entries; mitigation: re-derivable from Open Library on demand).
+
+**Tier 2 custodial encryption parameters.** PRD §8.1 calls for password-derived encryption of the user's nostr private key, with a server-managed backup key (§8.4) for recovery. NIP-49 specifies Argon2id with sensible defaults; `applesauce-core/helpers/keys.encryptSecretKey` wraps it. The Tier 2 ADR locks the exact Argon2id parameters (memory cost m, iteration count t, parallelism p), names the ChaCha20-Poly1305 implementation, and documents the "the server can sign on your behalf" disclosure that goes in the sovereignty note on the email signup screen.
+
+**Supply-chain integrity.** All cryptographic dependencies are pinned to exact versions in `package.json` (no `^`). The next step is a CI job that runs `pnpm audit` and verifies the lockfile is fresh on every PR. Deferred to a future infrastructure story; the policy is in place from cycle 2 onward.

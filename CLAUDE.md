@@ -114,9 +114,29 @@ A literal hardcode in shared code silently breaks any flow that signs as the Lib
 
 This rule applies anywhere the Librarian pubkey is used as: an `authors:` filter on a strfry scan; the pubkey portion of a concept handle (`kind:<librarian>:<slug>`); a signer identity; or any other identity check. If you find yourself typing a literal npub or hex, stop — use the runtime lookup.
 
+### Cryptographic library policy — no hand-rolled crypto, ever
+
+Every cryptographic operation in Unbnd goes through the audited stack:
+
+- **Applesauce** (`applesauce-core`, `applesauce-signers`) is the default nostr SDK. Higher-level abstractions for signers, keys, encryption, and event handling.
+- **nostr-tools** is the explicit fallback for primitives Applesauce doesn't wrap (e.g., `nip19.nsecEncode` / `npubEncode`).
+- **No hand-rolled crypto.** No bespoke secp256k1, no DIY bech32 encoders, no custom hashes, no rolled-from-scratch ciphers. Ever.
+
+The transitive crypto floor is `@noble/secp256k1` (Trail of Bits and Cure53 audited; constant-time; side-channel hardened), `@noble/hashes`, and `@noble/ciphers`. Applesauce and nostr-tools are wrappers, not new cryptography.
+
+The rule covers, at minimum:
+- Key generation (`generateSecretKey`, `getPublicKey`) — Applesauce re-exports from nostr-tools/pure.
+- Event signing — the four `applesauce-signers` classes (`PrivateKeySigner` for the Librarian, `PasswordSigner` for Tier 2 custodial, `ExtensionSigner` for Tier 1 NIP-07, `NostrConnectSigner` for the bunker stretch).
+- NIP-19 bech32 encoding (npub / nsec) — `nostr-tools/nip19`.
+- NIP-49 password-encrypted keys (Tier 2 custodial per PRD §8.4) — `applesauce-core/helpers/keys.encryptSecretKey`.
+- NIP-04 / NIP-44 DM encryption — `applesauce-core/helpers/encryption`.
+- Signature verification — Applesauce or `nostr-tools.verifyEvent`.
+
+Versions are pinned exactly (no `^`). Established by ADR 0002.
+
 ### No new lint/typecheck/build tooling without an ADR
 
-`pnpm -r typecheck` is the typecheck gate. Vitest will be introduced as the test runner with the first formal cycle's ADR. Anything beyond that (ESLint, Prettier hooks, custom build targets) goes through Architecture phase.
+`pnpm -r typecheck` is the typecheck gate. Vitest is the workspace test runner (introduced by ADR 0001, in use across all three packages). Anything beyond that (ESLint, Prettier hooks, custom build targets) goes through Architecture phase.
 
 ### Tapestry prior art is the protocol baseline
 

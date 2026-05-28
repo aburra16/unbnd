@@ -2,6 +2,7 @@
   "name": "unbnd",
   "private": true,
   "version": "0.0.0",
+  "type": "module",
   "description": "Unbnd: book discovery and curation on Tapestry.",
   "scripts": {
     "dev:web": "pnpm --filter @unbnd/web dev",
@@ -12,6 +13,8 @@
     "test": "pnpm -r test"
   },
   "devDependencies": {
+    "applesauce-core": "6.0.3",
+    "nostr-tools": "2.10.4",
     "vitest": "^2.1.0"
   },
   "packageManager": "pnpm@9.0.0"
