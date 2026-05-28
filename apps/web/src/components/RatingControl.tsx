@@ -113,8 +113,7 @@ export function RatingControl({ bookSlug }: { bookSlug: string }) {
 
       {session.status === "signed-in" && session.user.email !== null && (
         <p className="rate-gate">
-          Ratings are coming for email accounts. For now, sign in with Nostr to
-          rate.
+          Ratings from email accounts are coming soon.
         </p>
       )}
 

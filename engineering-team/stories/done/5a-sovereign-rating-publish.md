@@ -1,6 +1,6 @@
 # Story 5a: Sovereign rating publish + generic publish/read-back core
 
-**Status:** Draft
+**Status:** Done
 **Created:** 2026-05-28
 **Type:** Feature
 
@@ -56,5 +56,6 @@ The Architect resolves these in the ADR.
 ## Linked artifacts
 
 - ADR: `engineering-team/decisions/0005-sovereign-rating-publish.md`
-- Test plan: `engineering-team/stories/5a-sovereign-rating-publish.test-plan.md`
+- Test plan: `engineering-team/stories/done/5a-sovereign-rating-publish.test-plan.md`
+- Review: `engineering-team/reviews/5a-sovereign-rating-publish.md` (PASS)
 - Review: (filled in after Review phase)

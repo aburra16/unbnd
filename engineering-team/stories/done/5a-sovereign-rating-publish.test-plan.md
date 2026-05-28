@@ -1,6 +1,6 @@
 # Test Plan: Story 5a — Sovereign rating publish + generic core
 
-**Story:** `engineering-team/stories/5a-sovereign-rating-publish.md`
+**Story:** `engineering-team/stories/done/5a-sovereign-rating-publish.md`
 **ADR:** `engineering-team/decisions/0005-sovereign-rating-publish.md`
 **Date:** 2026-05-28
 

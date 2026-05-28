@@ -1,8 +1,8 @@
 # ADR 0005: Sovereign rating publish + generic publish/read-back core
 
-**Status:** Proposed
+**Status:** Accepted
 **Date:** 2026-05-28
-**Story:** `engineering-team/stories/5a-sovereign-rating-publish.md`
+**Story:** `engineering-team/stories/done/5a-sovereign-rating-publish.md`
 
 ## Context
 

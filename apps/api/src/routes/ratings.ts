@@ -117,9 +117,9 @@ export function buildRatingsRouter(deps: RatingsDeps): Router {
         ? await deps.query({ kinds: [BOOK_RATING_KIND], "#a": [addr] })
         : [];
       const summary = summarizeRatings(events);
+      // Echo the user's own submission (npub lives per-entry in `summary`).
       res.status(200).json({
         rating: {
-          npub: summary.ratings.find(() => true)?.npub,
           score: result.rating.score,
           reviewText: result.rating.reviewText,
           reviewDate: result.rating.reviewDate,

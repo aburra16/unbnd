@@ -117,10 +117,10 @@ export const api = {
       );
     },
     submit(event: SignedEvent) {
-      return authFetch<{ rating: PublicRating; summary: RatingsSummary }>(
-        "/api/ratings",
-        { method: "POST", body: JSON.stringify({ event }) },
-      );
+      return authFetch<{
+        rating: { score: number; reviewText?: string; reviewDate: string };
+        summary: RatingsSummary;
+      }>("/api/ratings", { method: "POST", body: JSON.stringify({ event }) });
     },
     list(bookSlug: string) {
       return authFetch<RatingsSummary>(
