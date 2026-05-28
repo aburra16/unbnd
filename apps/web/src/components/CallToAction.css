@@ -1,0 +1,39 @@
+.cta {
+  text-align: center;
+  padding: 28px 22px;
+  border-radius: var(--u-radius);
+  background: var(--u-surface);
+  border: 1px solid var(--u-border);
+  margin-bottom: 32px;
+}
+
+.cta-title {
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 6px;
+  color: var(--u-ink);
+}
+
+.cta-body {
+  font-size: 13px;
+  color: var(--u-muted);
+  line-height: 1.55;
+  margin: 0 auto 18px;
+  max-width: 440px;
+}
+
+.cta-btn {
+  display: inline-block;
+  font-size: 13px;
+  font-weight: 500;
+  padding: 10px 26px;
+  border-radius: var(--u-radius);
+  background: var(--u-amber);
+  color: var(--u-parchment);
+  border: none;
+  transition: background 140ms ease;
+}
+
+.cta-btn:hover {
+  background: var(--u-amber-hover);
+}

@@ -1,0 +1,14 @@
+{
+  "name": "unbnd",
+  "private": true,
+  "version": "0.0.0",
+  "description": "Unbnd: book discovery and curation on Tapestry.",
+  "scripts": {
+    "dev:web": "pnpm --filter @unbnd/web dev",
+    "dev:api": "pnpm --filter @unbnd/api dev",
+    "build:web": "pnpm --filter @unbnd/web build",
+    "build:api": "pnpm --filter @unbnd/api build",
+    "typecheck": "pnpm -r typecheck"
+  },
+  "packageManager": "pnpm@9.0.0"
+}

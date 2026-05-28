@@ -1,0 +1,44 @@
+:root {
+  /* Core palette */
+  --u-ink: #1A1A2E;
+  --u-amber: #C4763C;
+  --u-amber-hover: #B06A35;
+  --u-amber-light: #E8A96A;
+  --u-parchment: #FAF6F0;
+  --u-parchment-deep: #EFEBE4;
+  --u-muted: #8B8698;
+  --u-night: #0E0E1A;
+
+  /* Derived */
+  --u-border: rgba(26, 26, 46, 0.08);
+  --u-border-hover: rgba(26, 26, 46, 0.15);
+  --u-surface: rgba(26, 26, 46, 0.03);
+  --u-radius: 8px;
+  --u-radius-lg: 12px;
+
+  /* Genre colors */
+  --genre-literary: #085041;
+  --genre-scifi: #133F7A;
+  --genre-mystery: #8B5A1B;
+  --genre-romance: #993556;
+  --genre-fantasy: #4340A0;
+  --genre-thriller: #7A2E14;
+  --genre-biography: #27500A;
+  --genre-history: #555362;
+
+  /* Semantic signals */
+  --signal-positive: #1D9E75;
+  --signal-negative: #DC3545;
+  --signal-sovereign: #7845FF;
+
+  /* Type */
+  --font-sans:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue",
+    Arial, sans-serif;
+  --font-mono:
+    ui-monospace, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+
+  /* Layout */
+  --page-max: 720px;
+  --page-pad-x: 24px;
+}

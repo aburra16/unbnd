@@ -1,0 +1,72 @@
+.genres-section {
+  margin-bottom: 36px;
+}
+
+.genres-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.genres-title {
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: -0.3px;
+  color: var(--u-ink);
+}
+
+.genres-seeall {
+  font-size: 12px;
+  color: var(--u-amber);
+  font-weight: 500;
+}
+
+.genres-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+}
+
+.genre {
+  position: relative;
+  display: block;
+  padding: 18px 14px 18px 18px;
+  border-radius: var(--u-radius);
+  border: 1px solid transparent;
+  overflow: hidden;
+  transition:
+    transform 160ms ease,
+    border-color 160ms ease;
+}
+
+.genre:hover {
+  transform: translateY(-2px);
+  border-color: var(--u-border);
+}
+
+.genre-accent {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 3px;
+  height: 100%;
+}
+
+.genre-name {
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 4px;
+  letter-spacing: -0.1px;
+}
+
+.genre-count {
+  font-size: 11px;
+  opacity: 0.85;
+}
+
+@media (max-width: 720px) {
+  .genres-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}

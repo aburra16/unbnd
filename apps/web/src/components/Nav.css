@@ -1,0 +1,68 @@
+.nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 0;
+  border-bottom: 1px solid var(--u-border);
+  margin-bottom: 20px;
+}
+
+.nav-logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.nav-wordmark {
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+  color: var(--u-ink);
+}
+
+.nav-right {
+  display: flex;
+  align-items: center;
+  gap: 22px;
+}
+
+.nav-link {
+  font-size: 13px;
+  color: var(--u-muted);
+  letter-spacing: 0.2px;
+  transition: color 120ms ease;
+}
+
+.nav-link:hover {
+  color: var(--u-ink);
+}
+
+.nav-signin {
+  font-size: 13px;
+  font-weight: 500;
+  padding: 7px 18px;
+  border-radius: var(--u-radius);
+  border: 1px solid var(--u-border-hover);
+  background: transparent;
+  color: var(--u-ink);
+  transition:
+    border-color 120ms ease,
+    background 120ms ease;
+}
+
+.nav-signin:hover {
+  border-color: var(--u-ink);
+  background: var(--u-surface);
+}
+
+@media (max-width: 540px) {
+  .nav {
+    gap: 16px;
+  }
+  .nav-right {
+    gap: 14px;
+  }
+  .nav-link[href="/submit"] {
+    display: none;
+  }
+}

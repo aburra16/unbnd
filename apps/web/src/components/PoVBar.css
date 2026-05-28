@@ -1,0 +1,138 @@
+.pov {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 16px;
+  border-radius: var(--u-radius);
+  border: 1px solid var(--u-border);
+  background: rgba(26, 26, 46, 0.015);
+  font-size: 12px;
+  color: var(--u-muted);
+  margin-bottom: 36px;
+}
+
+.pov-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--u-amber);
+  flex-shrink: 0;
+}
+
+.pov-dot-positive {
+  background: var(--signal-positive);
+}
+
+.pov-strong {
+  font-weight: 600;
+  color: var(--u-ink);
+}
+
+.pov-right {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.pov-btn {
+  font-size: 11px;
+  padding: 5px 12px;
+  border-radius: var(--u-radius);
+  border: 1px solid var(--u-border-hover);
+  background: transparent;
+  color: var(--u-muted);
+  transition:
+    color 120ms ease,
+    border-color 120ms ease;
+}
+
+.pov-btn:hover:not(:disabled) {
+  color: var(--u-ink);
+  border-color: var(--u-ink);
+}
+
+.pov-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.pov-progress {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.pov-progress-label {
+  font-size: 11px;
+  color: var(--u-muted);
+}
+
+.pov-progress-track {
+  width: 68px;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--u-border);
+  overflow: hidden;
+  display: inline-block;
+}
+
+.pov-progress-fill {
+  display: block;
+  height: 100%;
+  background: var(--u-amber);
+  transition: width 200ms ease;
+}
+
+.pov-badge {
+  font-size: 10px;
+  letter-spacing: 0.4px;
+  padding: 2px 8px;
+  border-radius: 20px;
+  background: rgba(29, 158, 117, 0.1);
+  color: var(--signal-positive);
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.pov-switcher {
+  display: flex;
+  border-radius: var(--u-radius);
+  border: 1px solid var(--u-border-hover);
+  overflow: hidden;
+}
+
+.pov-sw {
+  font-size: 12px;
+  padding: 5px 14px;
+  background: transparent;
+  border: none;
+  color: var(--u-muted);
+}
+
+.pov-sw + .pov-sw {
+  border-left: 1px solid var(--u-border-hover);
+}
+
+.pov-sw-active {
+  background: var(--u-ink);
+  color: var(--u-parchment);
+}
+
+.pov-hint {
+  font-size: 11px;
+  color: var(--u-muted);
+  margin-left: auto;
+}
+
+@media (max-width: 540px) {
+  .pov {
+    flex-wrap: wrap;
+  }
+  .pov-right {
+    width: 100%;
+    margin-left: 0;
+    margin-top: 6px;
+    justify-content: flex-end;
+  }
+}
