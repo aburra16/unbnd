@@ -4,9 +4,19 @@ const base = import.meta.env.DEV ? "" : (import.meta.env.VITE_API_URL ?? "");
 
 export type PublicUser = {
   id: string;
-  email: string;
+  email: string | null;
   displayName: string;
   npub: string;
+};
+
+export type SignedEvent = {
+  id: string;
+  pubkey: string;
+  created_at: number;
+  kind: number;
+  tags: string[][];
+  content: string;
+  sig: string;
 };
 
 export class ApiError extends Error {
@@ -58,6 +68,20 @@ export const api = {
     },
     me() {
       return authFetch<{ user: PublicUser }>("/auth/me");
+    },
+    nostr: {
+      challenge(pubkey: string) {
+        return authFetch<{ challenge: string }>("/auth/nostr/challenge", {
+          method: "POST",
+          body: JSON.stringify({ pubkey }),
+        });
+      },
+      verify(event: SignedEvent) {
+        return authFetch<{ user: PublicUser }>("/auth/nostr/verify", {
+          method: "POST",
+          body: JSON.stringify({ event }),
+        });
+      },
     },
   },
 };

@@ -85,6 +85,19 @@ describe("loadConfig — defaults", () => {
   it("defaults PORT to 8787", () => {
     expect(loadConfig({ ...ALL_REQUIRED }).port).toBe(8787);
   });
+
+  it("defaults PUBLIC_ORIGIN to http://localhost:5181", () => {
+    expect(loadConfig({ ...ALL_REQUIRED }).publicOrigin).toBe(
+      "http://localhost:5181",
+    );
+  });
+
+  it("respects an explicit PUBLIC_ORIGIN override", () => {
+    expect(
+      loadConfig({ ...ALL_REQUIRED, PUBLIC_ORIGIN: "https://unbnd.ink" })
+        .publicOrigin,
+    ).toBe("https://unbnd.ink");
+  });
 });
 
 describe("loadConfig — env overrides", () => {

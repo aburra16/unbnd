@@ -26,6 +26,12 @@ export type AuthDeps = {
   ) => Promise<{ user: PublicUser; token: string; expiresAt: Date } | null>;
   readonly logout: (cookie: string | undefined) => Promise<void>;
   readonly me: (cookie: string | undefined) => Promise<PublicUser | null>;
+  /** Issue a NIP-07 login challenge for a pubkey. Optional until story 4 wires it. */
+  readonly nostrChallenge?: (pubkey: string) => Promise<{ challenge: string }>;
+  /** Verify a signed challenge; create/load the sovereign user; issue a session. */
+  readonly nostrVerify?: (
+    event: unknown,
+  ) => Promise<{ user: PublicUser; token: string; expiresAt: Date } | null>;
 };
 
 function readSessionCookie(req: Request): string | undefined {

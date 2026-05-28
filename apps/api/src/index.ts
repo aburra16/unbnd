@@ -75,6 +75,9 @@ async function main() {
       login: async (input, existingCookie) => {
         const row = await findUserByEmail(input.email);
         if (!row) return null;
+        // A null password column means this is not a custodial account
+        // (sovereign users have no email/password). Treat as invalid.
+        if (!row.encryptedNsecPassword) return null;
         try {
           decryptWithPassword(row.encryptedNsecPassword, input.password);
         } catch {

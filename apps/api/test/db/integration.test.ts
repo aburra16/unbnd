@@ -9,9 +9,14 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { createDb, runMigrations, type DbClient } from "../../src/db";
 import {
   createCustodialUser,
+  createOrLoadSovereignUser,
   findUserByEmail,
 } from "../../src/auth/users";
 import { issueSession, resolveSession, revokeSession } from "../../src/auth/sessions";
+import {
+  consumeChallenge,
+  issueChallenge,
+} from "../../src/auth/challenges";
 
 const DATABASE_URL = process.env.DATABASE_URL;
 const BACKUP_KEY_HEX = "d".repeat(64);
@@ -92,5 +97,48 @@ suite("custodial auth against real Postgres", () => {
     const { token } = await db.transaction((tx) => issueSession(tx, user.id));
     await db.transaction((tx) => revokeSession(tx, token));
     expect(await resolveSession(token)).toBeNull();
+  });
+
+  // ── Sovereign users (story 4) ──
+
+  function fakePubkey(seed: string): string {
+    // 64-hex, deterministic per seed for test isolation.
+    return (seed + "0".repeat(64)).slice(0, 64);
+  }
+
+  it("creates a sovereign user with no email or key material", async () => {
+    const pk = fakePubkey(`${Date.now()}a`);
+    const row = await db.transaction((tx) => createOrLoadSovereignUser(tx, pk));
+    expect(row.tier).toBe("sovereign");
+    expect(row.email).toBeNull();
+    expect(row.encryptedNsecPassword).toBeNull();
+    expect(row.encryptedNsecBackup).toBeNull();
+    expect(row.pubkeyHex).toBe(pk);
+  });
+
+  it("loads the existing sovereign user on a repeat pubkey (no duplicate)", async () => {
+    const pk = fakePubkey(`${Date.now()}b`);
+    const first = await db.transaction((tx) => createOrLoadSovereignUser(tx, pk));
+    const second = await db.transaction((tx) => createOrLoadSovereignUser(tx, pk));
+    expect(second.id).toBe(first.id);
+  });
+
+  // ── Challenges (story 4) ──
+
+  it("issues a challenge and consumes it exactly once", async () => {
+    const pk = fakePubkey(`${Date.now()}d`);
+    const nonce = await db.transaction((tx) => issueChallenge(tx, pk));
+    const first = await db.transaction((tx) => consumeChallenge(tx, pk, nonce));
+    const second = await db.transaction((tx) => consumeChallenge(tx, pk, nonce));
+    expect(first).toBe(true);
+    expect(second).toBe(false); // single-use
+  });
+
+  it("does not consume an unknown challenge", async () => {
+    const pk = fakePubkey(`${Date.now()}e`);
+    const consumed = await db.transaction((tx) =>
+      consumeChallenge(tx, pk, "never-issued"),
+    );
+    expect(consumed).toBe(false);
   });
 });

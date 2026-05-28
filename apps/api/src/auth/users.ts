@@ -63,10 +63,13 @@ export async function findUserById(id: string): Promise<UserRow | null> {
   return rows[0] ?? null;
 }
 
-/** Public-facing shape: never exposes hex pubkey or encrypted columns. */
+/**
+ * Public-facing shape: never exposes hex pubkey or encrypted columns.
+ * `email` is null for sovereign (Tier 1) users, who have no email.
+ */
 export type PublicUser = {
   readonly id: string;
-  readonly email: string;
+  readonly email: string | null;
   readonly displayName: string;
   readonly npub: string;
 };
@@ -78,4 +81,16 @@ export function toPublicUser(row: UserRow): PublicUser {
     displayName: row.displayName,
     npub: npubEncode(row.pubkeyHex),
   };
+}
+
+/**
+ * Find a sovereign user by pubkey, or create one. Sovereign rows have no
+ * email and no encrypted-nsec material; the default display name is a
+ * truncated npub. Runs inside the caller's transaction.
+ */
+export async function createOrLoadSovereignUser(
+  _tx: DbOrTx,
+  _pubkeyHex: string,
+): Promise<UserRow> {
+  throw new Error("createOrLoadSovereignUser not implemented");
 }

@@ -13,6 +13,8 @@ export type Config = {
   readonly databaseUrl: string;
   /** 32-byte server-managed backup key, hex-encoded (64 hex chars). */
   readonly backupEncryptionKey: string;
+  /** Public origin of the web app, used as the NIP-42 relay tag on auth challenges. */
+  readonly publicOrigin: string;
 };
 
 const KNOWN_PROVIDERS: readonly Config["searchProvider"][] = ["meili", "vespa"];
@@ -75,5 +77,6 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
     searchProvider,
     databaseUrl,
     backupEncryptionKey,
+    publicOrigin: withDefault(env, "PUBLIC_ORIGIN", "http://localhost:5181"),
   };
 }
