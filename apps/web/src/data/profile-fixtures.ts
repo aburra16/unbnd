@@ -1,10 +1,66 @@
+import {
+  buildBookShelvesHeaderAddress,
+  type DListAddress,
+  type HexPubkey,
+} from "@unbnd/schemas";
+import {
+  FIXTURE_LIBRARIAN_PUBKEY,
+  FIXTURE_MIRA_PUBKEY,
+} from "./fixture-constants";
+
+const SHELVES_HEADER = buildBookShelvesHeaderAddress(FIXTURE_LIBRARIAN_PUBKEY);
+
+type CoverFixture = {
+  slug: string;
+  title: string;
+  coverFrom: string;
+  coverTo: string;
+  coverInk: string;
+};
+
+/**
+ * UI augmentation of the wire-shape `@unbnd/schemas` BookShelf. Adds
+ * route-only fields (`count` for the visible "N books" label, `covers`
+ * for the mini-thumbnail row). The schema's `bookSlugs` and
+ * `bookAddresses` are derived from `covers` so the parallel-array
+ * invariant is enforced by construction.
+ */
 export type ProfileShelfFixture = {
+  slug: string;
+  name: string;
+  visibility: "public" | "private";
+  bookSlugs: readonly string[];
+  bookAddresses: readonly DListAddress<39999>[];
+  userPubkey: HexPubkey;
+  parentHeader: DListAddress<39998>;
+  // route augmentations
+  count: number;
+  covers: CoverFixture[];
+};
+
+function shelfFromCovers(input: {
   slug: string;
   name: string;
   count: number;
   visibility: "public" | "private";
-  covers: { slug: string; title: string; coverFrom: string; coverTo: string; coverInk: string }[];
-};
+  covers: CoverFixture[];
+}): ProfileShelfFixture {
+  return {
+    slug: input.slug,
+    name: input.name,
+    visibility: input.visibility,
+    bookSlugs: input.covers.map((c) => c.slug),
+    bookAddresses: input.covers.map((c) => ({
+      kind: 39999 as const,
+      pubkey: FIXTURE_LIBRARIAN_PUBKEY,
+      dTag: c.slug,
+    })),
+    userPubkey: FIXTURE_MIRA_PUBKEY,
+    parentHeader: SHELVES_HEADER,
+    count: input.count,
+    covers: input.covers,
+  };
+}
 
 export type ProfileActivityKind =
   | "rating"
@@ -76,7 +132,7 @@ const mira: ProfileRecord = {
     { slug: "memoir", label: "Memoir", color: "#27500A", count: 26 },
   ],
   shelves: [
-    {
+    shelfFromCovers({
       slug: "read",
       name: "Read",
       count: 412,
@@ -89,8 +145,8 @@ const mira: ProfileRecord = {
         { slug: "trust", title: "Trust", coverFrom: "#0E3F4D", coverTo: "#185D70", coverInk: "#B6DDE5" },
         { slug: "demon-copperhead", title: "Demon Copperhead", coverFrom: "#3E389A", coverTo: "#534AB7", coverInk: "#EEEDFE" },
       ],
-    },
-    {
+    }),
+    shelfFromCovers({
       slug: "want-to-read",
       name: "Want to read",
       count: 38,
@@ -101,8 +157,8 @@ const mira: ProfileRecord = {
         { slug: "the-bee-sting", title: "The Bee Sting", coverFrom: "#8B5A1B", coverTo: "#B07423", coverInk: "#F5E3C7" },
         { slug: "tomorrow-and-tomorrow", title: "Tomorrow and Tomorrow", coverFrom: "#2E2872", coverTo: "#4340A0", coverInk: "#CECBF6" },
       ],
-    },
-    {
+    }),
+    shelfFromCovers({
       slug: "best-of-2026",
       name: "Best of 2026",
       count: 18,
@@ -112,8 +168,8 @@ const mira: ProfileRecord = {
         { slug: "james", title: "James", coverFrom: "#7A2845", coverTo: "#993556", coverInk: "#F4C0D1" },
         { slug: "north-woods", title: "North Woods", coverFrom: "#27500A", coverTo: "#3B6D11", coverInk: "#D1ECB6" },
       ],
-    },
-    {
+    }),
+    shelfFromCovers({
       slug: "ai-slop",
       name: "AI slop · hall of shame",
       count: 7,
@@ -121,7 +177,7 @@ const mira: ProfileRecord = {
       covers: [
         { slug: "ai-fragments", title: "The Algorithm Within", coverFrom: "#444248", coverTo: "#6A6770", coverInk: "#D2D0D6" },
       ],
-    },
+    }),
   ],
   activity: [
     {

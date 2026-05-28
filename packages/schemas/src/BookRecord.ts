@@ -1,7 +1,9 @@
-import type {
-  DListAddress,
-  HexPubkey,
-  UnsignedDListEvent,
+import {
+  asHexPubkey,
+  formatAddress,
+  type DListAddress,
+  type HexPubkey,
+  type UnsignedDListEvent,
 } from "./envelope";
 
 export const BOOK_RECORD_KIND = 39999 as const;
@@ -76,14 +78,97 @@ export type BookRecordEvent = UnsignedDListEvent<
  * The book record's d-tag is the slug — the librarian alone publishes the
  * catalog seed, so the composite identity reduces to slug.
  */
-export function buildBookRecordDTag(_slug: string): string {
-  throw new Error("buildBookRecordDTag not implemented");
+export function buildBookRecordDTag(slug: string): string {
+  return slug;
 }
 
-export function toBookRecordEvent(_record: BookRecord): BookRecordEvent {
-  throw new Error("toBookRecordEvent not implemented");
+export function toBookRecordEvent(record: BookRecord): BookRecordEvent {
+  const dTag = buildBookRecordDTag(record.slug);
+  const tags: Array<readonly [string, ...string[]]> = [
+    ["d", dTag],
+    ["z", formatAddress(record.parentHeader)],
+    ["t", record.slug],
+    ["title", record.title],
+    ["author", record.authorName],
+  ];
+  if (record.authorPubkey) tags.push(["p", record.authorPubkey]);
+  if (record.isbn13) tags.push(["isbn", record.isbn13]);
+  if (record.isbn10) tags.push(["isbn10", record.isbn10]);
+  if (record.openLibraryId)
+    tags.push(["open-library-id", record.openLibraryId]);
+  if (record.language) tags.push(["lang", record.language]);
+  if (record.publishYear !== undefined)
+    tags.push(["year", String(record.publishYear)]);
+  if (record.pageCount !== undefined)
+    tags.push(["pages", String(record.pageCount)]);
+  if (record.coverUrl) tags.push(["cover", record.coverUrl]);
+  if (record.purchaseUrl) tags.push(["read-at", record.purchaseUrl]);
+  if (record.fileUrl) tags.push(["file", record.fileUrl]);
+  if (record.subjects) {
+    for (const subject of record.subjects) {
+      tags.push(["subject", subject]);
+    }
+  }
+  tags.push(["format", record.format]);
+  tags.push(["source", record.source]);
+
+  const payload: BookRecordPayload = {
+    word: {
+      slug: record.slug,
+      name: record.title,
+      title: record.title,
+      wordTypes: ["word", "bookSubmission"],
+    },
+    bookSubmission: {
+      slug: record.slug,
+      title: record.title,
+      authorName: record.authorName,
+      authorPubkey: record.authorPubkey ?? null,
+      isbn13: record.isbn13,
+      isbn10: record.isbn10,
+      openLibraryId: record.openLibraryId,
+      coverUrl: record.coverUrl,
+      pageCount: record.pageCount,
+      publishYear: record.publishYear,
+      language: record.language,
+      subjects: record.subjects,
+      blurb: record.blurb,
+      format: record.format,
+      fileUrl: record.fileUrl ?? null,
+      purchaseUrl: record.purchaseUrl,
+      source: record.source,
+    },
+  };
+
+  return {
+    kind: BOOK_RECORD_KIND,
+    tags,
+    content: record.blurb ?? "",
+    payload,
+    parentHeader: record.parentHeader,
+  };
 }
 
-export function fromBookRecordEvent(_event: BookRecordEvent): BookRecord {
-  throw new Error("fromBookRecordEvent not implemented");
+export function fromBookRecordEvent(event: BookRecordEvent): BookRecord {
+  const p = event.payload.bookSubmission;
+  return {
+    slug: p.slug,
+    title: p.title,
+    authorName: p.authorName,
+    authorPubkey: p.authorPubkey ? asHexPubkey(p.authorPubkey) : undefined,
+    isbn13: p.isbn13,
+    isbn10: p.isbn10,
+    openLibraryId: p.openLibraryId,
+    coverUrl: p.coverUrl,
+    pageCount: p.pageCount,
+    publishYear: p.publishYear,
+    language: p.language,
+    subjects: p.subjects,
+    blurb: p.blurb,
+    format: p.format,
+    fileUrl: p.fileUrl ?? undefined,
+    purchaseUrl: p.purchaseUrl,
+    source: p.source,
+    parentHeader: event.parentHeader,
+  };
 }

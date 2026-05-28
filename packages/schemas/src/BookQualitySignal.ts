@@ -1,7 +1,11 @@
-import type {
-  DListAddress,
-  HexPubkey,
-  UnsignedDListEvent,
+import {
+  asHexPubkey,
+  formatAddress,
+  parseAddressOfKind,
+  pubkeyPrefix,
+  type DListAddress,
+  type HexPubkey,
+  type UnsignedDListEvent,
 } from "./envelope";
 
 export const BOOK_QUALITY_SIGNAL_KIND = 39999 as const;
@@ -47,21 +51,70 @@ export type BookQualitySignalEvent = UnsignedDListEvent<
  * Composite identity (tagger, book, signal); re-publishing overwrites.
  */
 export function buildBookQualitySignalDTag(
-  _bookSlug: string,
-  _signalSlug: string,
-  _taggerPubkey: HexPubkey,
+  bookSlug: string,
+  signalSlug: string,
+  taggerPubkey: HexPubkey,
 ): string {
-  throw new Error("buildBookQualitySignalDTag not implemented");
+  return `quality-signal--${bookSlug}--${signalSlug}--${pubkeyPrefix(taggerPubkey)}`;
 }
 
 export function toBookQualitySignalEvent(
-  _signal: BookQualitySignal,
+  signal: BookQualitySignal,
 ): BookQualitySignalEvent {
-  throw new Error("toBookQualitySignalEvent not implemented");
+  const dTag = buildBookQualitySignalDTag(
+    signal.bookSlug,
+    signal.signalSlug,
+    signal.taggerPubkey,
+  );
+  const bookAtag = formatAddress(signal.bookAddress);
+
+  const tags: Array<readonly [string, ...string[]]> = [
+    ["d", dTag],
+    ["z", formatAddress(signal.parentHeader)],
+    ["t", signal.bookSlug],
+    ["t", signal.signalSlug],
+    ["a", bookAtag],
+    ["p", signal.taggerPubkey],
+  ];
+
+  const payload: BookQualitySignalPayload = {
+    word: {
+      slug: dTag,
+      name: `quality signal: ${signal.bookSlug} → ${signal.signalSlug}`,
+      title: `Quality signal: ${signal.bookSlug} → ${signal.signalSlug}`,
+      wordTypes: ["word", "bookQualitySignal"],
+    },
+    bookQualitySignal: {
+      bookSlug: signal.bookSlug,
+      bookAtag,
+      signalSlug: signal.signalSlug,
+    },
+  };
+
+  return {
+    kind: BOOK_QUALITY_SIGNAL_KIND,
+    tags,
+    content: "",
+    payload,
+    parentHeader: signal.parentHeader,
+  };
 }
 
 export function fromBookQualitySignalEvent(
-  _event: BookQualitySignalEvent,
+  event: BookQualitySignalEvent,
 ): BookQualitySignal {
-  throw new Error("fromBookQualitySignalEvent not implemented");
+  const p = event.payload.bookQualitySignal;
+  const taggerTag = event.tags.find((t) => t[0] === "p");
+  if (!taggerTag || taggerTag.length < 2) {
+    throw new Error(
+      "fromBookQualitySignalEvent: missing `p` tag carrying the tagger pubkey",
+    );
+  }
+  return {
+    bookSlug: p.bookSlug,
+    bookAddress: parseAddressOfKind(p.bookAtag, 39999),
+    signalSlug: p.signalSlug,
+    taggerPubkey: asHexPubkey(taggerTag[1]!),
+    parentHeader: event.parentHeader,
+  };
 }

@@ -1,7 +1,11 @@
-import type {
-  DListAddress,
-  HexPubkey,
-  UnsignedDListEvent,
+import {
+  asHexPubkey,
+  formatAddress,
+  parseAddressOfKind,
+  pubkeyPrefix,
+  type DListAddress,
+  type HexPubkey,
+  type UnsignedDListEvent,
 } from "./envelope";
 
 export const BOOK_RATING_KIND = 39999 as const;
@@ -55,16 +59,65 @@ export type BookRatingEvent = UnsignedDListEvent<
  * overwrites the previous rating.
  */
 export function buildBookRatingDTag(
-  _bookSlug: string,
-  _raterPubkey: HexPubkey,
+  bookSlug: string,
+  raterPubkey: HexPubkey,
 ): string {
-  throw new Error("buildBookRatingDTag not implemented");
+  return `rating--${bookSlug}--${pubkeyPrefix(raterPubkey)}`;
 }
 
-export function toBookRatingEvent(_rating: BookRating): BookRatingEvent {
-  throw new Error("toBookRatingEvent not implemented");
+export function toBookRatingEvent(rating: BookRating): BookRatingEvent {
+  const dTag = buildBookRatingDTag(rating.bookSlug, rating.raterPubkey);
+  const bookAtag = formatAddress(rating.bookAddress);
+  const tags: Array<readonly [string, ...string[]]> = [
+    ["d", dTag],
+    ["z", formatAddress(rating.parentHeader)],
+    ["t", rating.bookSlug],
+    ["a", bookAtag],
+    ["p", rating.raterPubkey],
+    ["score", String(rating.score)],
+    ["review-date", rating.reviewDate],
+  ];
+
+  const payload: BookRatingPayload = {
+    word: {
+      slug: dTag,
+      name: `rating: ${rating.bookSlug}`,
+      title: `Rating: ${rating.bookSlug}`,
+      wordTypes: ["word", "bookRating"],
+    },
+    bookRating: {
+      bookSlug: rating.bookSlug,
+      bookAtag,
+      score: rating.score,
+      reviewText: rating.reviewText,
+      reviewDate: rating.reviewDate,
+    },
+  };
+
+  return {
+    kind: BOOK_RATING_KIND,
+    tags,
+    content: rating.reviewText ?? "",
+    payload,
+    parentHeader: rating.parentHeader,
+  };
 }
 
-export function fromBookRatingEvent(_event: BookRatingEvent): BookRating {
-  throw new Error("fromBookRatingEvent not implemented");
+export function fromBookRatingEvent(event: BookRatingEvent): BookRating {
+  const p = event.payload.bookRating;
+  const raterTag = event.tags.find((t) => t[0] === "p");
+  if (!raterTag || raterTag.length < 2) {
+    throw new Error(
+      "fromBookRatingEvent: missing `p` tag carrying the rater pubkey",
+    );
+  }
+  return {
+    bookSlug: p.bookSlug,
+    bookAddress: parseAddressOfKind(p.bookAtag, 39999),
+    raterPubkey: asHexPubkey(raterTag[1]!),
+    score: p.score,
+    reviewText: p.reviewText,
+    reviewDate: p.reviewDate,
+    parentHeader: event.parentHeader,
+  };
 }

@@ -1,4 +1,8 @@
-import type { DListAddress, UnsignedDListEvent } from "./envelope";
+import {
+  formatAddress,
+  type DListAddress,
+  type UnsignedDListEvent,
+} from "./envelope";
 
 export const BOOK_GENRE_KIND = 39999 as const;
 export const BOOK_GENRE_WORD_TYPE = "bookGenre" as const;
@@ -38,14 +42,52 @@ export type BookGenreEvent = UnsignedDListEvent<
   BookGenrePayload["bookGenre"]
 >;
 
-export function buildBookGenreDTag(_slug: string): string {
-  throw new Error("buildBookGenreDTag not implemented");
+export function buildBookGenreDTag(slug: string): string {
+  return slug;
 }
 
-export function toBookGenreEvent(_genre: BookGenre): BookGenreEvent {
-  throw new Error("toBookGenreEvent not implemented");
+export function toBookGenreEvent(genre: BookGenre): BookGenreEvent {
+  const tags: Array<readonly [string, ...string[]]> = [
+    ["d", buildBookGenreDTag(genre.slug)],
+    ["z", formatAddress(genre.parentHeader)],
+    ["t", genre.slug],
+    ["name", genre.name],
+  ];
+  if (genre.parentGenreSlug) {
+    tags.push(["parent-genre", genre.parentGenreSlug]);
+  }
+
+  const payload: BookGenrePayload = {
+    word: {
+      slug: genre.slug,
+      name: genre.name,
+      title: genre.name,
+      wordTypes: ["word", "bookGenre"],
+    },
+    bookGenre: {
+      slug: genre.slug,
+      name: genre.name,
+      description: genre.description,
+      parentGenre: genre.parentGenreSlug,
+    },
+  };
+
+  return {
+    kind: BOOK_GENRE_KIND,
+    tags,
+    content: genre.description,
+    payload,
+    parentHeader: genre.parentHeader,
+  };
 }
 
-export function fromBookGenreEvent(_event: BookGenreEvent): BookGenre {
-  throw new Error("fromBookGenreEvent not implemented");
+export function fromBookGenreEvent(event: BookGenreEvent): BookGenre {
+  const p = event.payload.bookGenre;
+  return {
+    slug: p.slug,
+    name: p.name,
+    description: p.description,
+    parentGenreSlug: p.parentGenre,
+    parentHeader: event.parentHeader,
+  };
 }

@@ -322,6 +322,16 @@ The web app does not need Vitest in this story (no component tests yet); the Tes
 9. Run `pnpm -r typecheck`. Fix any drift.
 10. Hand off to the Tester for the Vitest setup and the unit tests.
 
+## Refinements during Implementation phase (2026-05-28)
+
+Three small adjustments surfaced while implementing the conversion functions. All align with existing Tapestry conventions or PRD-allowed display concerns; all preserve the ADR's intent.
+
+**1. A `["p", <userPubkey>]` tag on BookRating, BookGenreTag, BookQualitySignal, and BookShelf wire events.** The round-trip tests require recovering the rater / tagger / shelf-owner pubkey from an unsigned event (signed events would carry the pubkey at the top level, but the wire type we ship is unsigned by design). Adding the `p` tag follows the `feat/pubkey-tagging-target` convention ("target — relay-filterable via #p"). Relay clients can now filter "all events by this pubkey" with a `#p` query, and the `from*Event` decoders recover the domain pubkey from this tag.
+
+**2. A `genreAtag` field on the `bookGenreTag` payload.** PRD §6.5 sketched the payload with `bookSlug`, `bookAtag`, and `genreSlug`. The domain type carries both `bookAddress` and `genreAddress` (typed cross-references per AC-3); recovering `genreAddress` from the event requires its full address in the payload. The natural home is the payload, mirroring how `bookAtag` is already stored there.
+
+**3. A small display helper in `apps/web/src/components/BookHeader.tsx`** that maps ISO 639-1 language codes (the schema's wire format per PRD §6.2) to display names ("en" → "English"). The fixture refit changed the language value from "English" to "en" to match the schema's `language` field; the helper preserves the original rendered output. Application-layer concern; the schemas package stays language-agnostic.
+
 ## Deferred concerns — captured here so the next story finds them
 
 **Npub display at the UI boundary.** `HexPubkey` is the internal type. Anywhere a pubkey is rendered to a human (Settings → Advanced, fallback display names, copy-to-clipboard flows), it must convert to npub (`npub1...`, bech32-encoded). The format/parse helpers — `formatNpub(pubkey: HexPubkey): string` and `parseNpub(npub: string): HexPubkey` — belong in `packages/schemas/src/envelope.ts` alongside `asHexPubkey`. They are not implemented in this story; the first user-facing pubkey display story adds them. Adding the dependency for bech32 encoding (`@scure/base` or `nostr-tools`) will be authorized in that story's ADR. See `memory/feedback_unbnd_copy_and_visual.md` "User-facing pubkey display" section.

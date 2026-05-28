@@ -7,38 +7,45 @@ export const BOOK_GENRE_TAGS_HEADER_SLUG = "book-genre-tags";
 export const BOOK_QUALITY_SIGNALS_HEADER_SLUG = "book-quality-signals";
 export const BOOK_SHELVES_HEADER_SLUG = "book-shelves";
 
-export function buildBookRecordsHeaderAddress(
-  _librarianPubkey: HexPubkey,
+function header(
+  librarianPubkey: HexPubkey,
+  dTag: string,
 ): DListAddress<39998> {
-  throw new Error("buildBookRecordsHeaderAddress not implemented");
+  return { kind: 39998, pubkey: librarianPubkey, dTag };
+}
+
+export function buildBookRecordsHeaderAddress(
+  librarianPubkey: HexPubkey,
+): DListAddress<39998> {
+  return header(librarianPubkey, BOOK_RECORDS_HEADER_SLUG);
 }
 
 export function buildBookGenresHeaderAddress(
-  _librarianPubkey: HexPubkey,
+  librarianPubkey: HexPubkey,
 ): DListAddress<39998> {
-  throw new Error("buildBookGenresHeaderAddress not implemented");
+  return header(librarianPubkey, BOOK_GENRES_HEADER_SLUG);
 }
 
 export function buildBookRatingsHeaderAddress(
-  _librarianPubkey: HexPubkey,
+  librarianPubkey: HexPubkey,
 ): DListAddress<39998> {
-  throw new Error("buildBookRatingsHeaderAddress not implemented");
+  return header(librarianPubkey, BOOK_RATINGS_HEADER_SLUG);
 }
 
 export function buildBookGenreTagsHeaderAddress(
-  _librarianPubkey: HexPubkey,
+  librarianPubkey: HexPubkey,
 ): DListAddress<39998> {
-  throw new Error("buildBookGenreTagsHeaderAddress not implemented");
+  return header(librarianPubkey, BOOK_GENRE_TAGS_HEADER_SLUG);
 }
 
 export function buildBookQualitySignalsHeaderAddress(
-  _librarianPubkey: HexPubkey,
+  librarianPubkey: HexPubkey,
 ): DListAddress<39998> {
-  throw new Error("buildBookQualitySignalsHeaderAddress not implemented");
+  return header(librarianPubkey, BOOK_QUALITY_SIGNALS_HEADER_SLUG);
 }
 
 export function buildBookShelvesHeaderAddress(
-  _librarianPubkey: HexPubkey,
+  librarianPubkey: HexPubkey,
 ): DListAddress<39998> {
-  throw new Error("buildBookShelvesHeaderAddress not implemented");
+  return header(librarianPubkey, BOOK_SHELVES_HEADER_SLUG);
 }

@@ -1,8 +1,8 @@
-import type { BookRecord } from "../data/book-fixtures";
+import type { BookDetailRecord } from "../data/book-fixtures";
 import "./RatingsBlock.css";
 
 type Props = {
-  book: BookRecord;
+  book: BookDetailRecord;
 };
 
 function fmt(n: number) {

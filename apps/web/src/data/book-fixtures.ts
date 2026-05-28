@@ -1,4 +1,9 @@
+import {
+  buildBookRecordsHeaderAddress,
+  type BookRecord as SchemaBookRecord,
+} from "@unbnd/schemas";
 import type { Book } from "../components/BookCard";
+import { FIXTURE_LIBRARIAN_PUBKEY } from "./fixture-constants";
 
 export type GenreTag = {
   slug: string;
@@ -48,39 +53,53 @@ export type RatingDistribution = {
   count: number;
 };
 
-export type BookRecord = Book & {
-  publishYear: number;
-  pageCount: number;
-  language: string;
-  isbn13: string;
-  blurb: string;
-  primaryGenreSlug: string;
-  primaryGenreLabel: string;
-  genreTags: GenreTag[];
-  qualitySignals: QualitySignal[];
-  aggregateRating: number;
-  ratingCount: number;
-  trustWeightedRating: number;
-  distribution: RatingDistribution[];
-  reviews: Review[];
-  whereToRead: WhereToRead[];
-  authorInfo: AuthorInfo;
-};
+/**
+ * The rendering-augmented book record. Composes the wire-shape
+ * `@unbnd/schemas` BookRecord with the extra fields the BookDetail
+ * route renders (cover gradient, rating aggregates, reviews, etc.).
+ *
+ * Every entry satisfies `@unbnd/schemas` BookRecord — that conformance
+ * is asserted in `apps/web/test/fixtures.test.ts`.
+ */
+export type BookDetailRecord = SchemaBookRecord &
+  Pick<Book, "coverFrom" | "coverTo" | "coverInk" | "rating"> & {
+    /** Display alias for the schema's `authorName`. Kept for the existing UI surface. */
+    author: string;
+    primaryGenreSlug: string;
+    primaryGenreLabel: string;
+    genreTags: GenreTag[];
+    qualitySignals: QualitySignal[];
+    aggregateRating: number;
+    ratingCount: number;
+    trustWeightedRating: number;
+    distribution: RatingDistribution[];
+    reviews: Review[];
+    whereToRead: WhereToRead[];
+    authorInfo: AuthorInfo;
+  };
 
-const orbital: BookRecord = {
+const BOOKS_HEADER = buildBookRecordsHeaderAddress(FIXTURE_LIBRARIAN_PUBKEY);
+
+const orbital: BookDetailRecord = {
+  // Wire-shape fields
   slug: "orbital",
   title: "Orbital",
+  authorName: "Samantha Harvey",
+  isbn13: "9780802161543",
+  pageCount: 207,
+  publishYear: 2023,
+  language: "en",
+  blurb:
+    "Six astronauts circle the Earth from a space station, sixteen orbits in a single day. A typhoon gathers force over the Pacific. A father dies on a continent below. Across the slow hours of a working shift, the crew watch the planet roll past the window and weigh what it means to leave home, to keep watch, to return.",
+  format: "reference",
+  source: "openlibrary",
+  parentHeader: BOOKS_HEADER,
+  // Rendering augmentations
   author: "Samantha Harvey",
   rating: 4.8,
   coverFrom: "#7A2E14",
   coverTo: "#A5421E",
   coverInk: "#F5C4B3",
-  publishYear: 2023,
-  pageCount: 207,
-  language: "English",
-  isbn13: "9780802161543",
-  blurb:
-    "Six astronauts circle the Earth from a space station, sixteen orbits in a single day. A typhoon gathers force over the Pacific. A father dies on a continent below. Across the slow hours of a working shift, the crew watch the planet roll past the window and weigh what it means to leave home, to keep watch, to return.",
   primaryGenreSlug: "literary-fiction",
   primaryGenreLabel: "Literary fiction",
   genreTags: [
@@ -164,10 +183,10 @@ const orbital: BookRecord = {
   },
 };
 
-export const bookRecords: Record<string, BookRecord> = {
+export const bookRecords: Record<string, BookDetailRecord> = {
   orbital,
 };
 
-export function getBookRecord(slug: string): BookRecord | undefined {
+export function getBookRecord(slug: string): BookDetailRecord | undefined {
   return bookRecords[slug];
 }

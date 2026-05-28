@@ -1,4 +1,9 @@
+import {
+  buildBookGenresHeaderAddress,
+  type DListAddress,
+} from "@unbnd/schemas";
 import type { Book } from "../components/BookCard";
+import { FIXTURE_LIBRARIAN_PUBKEY } from "./fixture-constants";
 
 export type CuratorDot = {
   initials: string;
@@ -7,21 +12,33 @@ export type CuratorDot = {
   trustTier: string;
 };
 
+/**
+ * UI augmentation of the wire-shape `@unbnd/schemas` BookGenre. Adds
+ * route-only fields (color, bookCount, subgenres, top curators, books)
+ * that don't belong on the DList event. Every entry's `parentHeader`
+ * resolves to the librarian's "genres" concept header — fixture-only
+ * librarian pubkey, real deployments resolve at runtime.
+ */
 export type GenreRecord = {
   slug: string;
   name: string;
+  description: string;
+  parentHeader: DListAddress<39998>;
+  // route augmentations
   color: string;
   countColor: string;
   bookCount: number;
-  description: string;
   subgenres: { slug: string; label: string }[];
   topCurators: CuratorDot[];
   books: Book[];
 };
 
+const GENRES_HEADER = buildBookGenresHeaderAddress(FIXTURE_LIBRARIAN_PUBKEY);
+
 const literary: GenreRecord = {
   slug: "literary-fiction",
   name: "Literary fiction",
+  parentHeader: GENRES_HEADER,
   color: "#085041",
   countColor: "#0A6B56",
   bookCount: 2340,

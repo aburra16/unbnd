@@ -1,7 +1,11 @@
-import type {
-  DListAddress,
-  HexPubkey,
-  UnsignedDListEvent,
+import {
+  asHexPubkey,
+  formatAddress,
+  parseAddressOfKind,
+  pubkeyPrefix,
+  type DListAddress,
+  type HexPubkey,
+  type UnsignedDListEvent,
 } from "./envelope";
 
 export const BOOK_GENRE_TAG_KIND = 39999 as const;
@@ -34,6 +38,7 @@ export type BookGenreTagPayload = {
     readonly bookSlug: string;
     readonly bookAtag: string;
     readonly genreSlug: string;
+    readonly genreAtag: string;
   };
 };
 
@@ -48,17 +53,72 @@ export type BookGenreTagEvent = UnsignedDListEvent<
  * Composite identity (tagger, book, genre); re-publishing overwrites.
  */
 export function buildBookGenreTagDTag(
-  _bookSlug: string,
-  _genreSlug: string,
-  _taggerPubkey: HexPubkey,
+  bookSlug: string,
+  genreSlug: string,
+  taggerPubkey: HexPubkey,
 ): string {
-  throw new Error("buildBookGenreTagDTag not implemented");
+  return `genre-tag--${bookSlug}--${genreSlug}--${pubkeyPrefix(taggerPubkey)}`;
 }
 
-export function toBookGenreTagEvent(_tag: BookGenreTag): BookGenreTagEvent {
-  throw new Error("toBookGenreTagEvent not implemented");
+export function toBookGenreTagEvent(tag: BookGenreTag): BookGenreTagEvent {
+  const dTag = buildBookGenreTagDTag(
+    tag.bookSlug,
+    tag.genreSlug,
+    tag.taggerPubkey,
+  );
+  const bookAtag = formatAddress(tag.bookAddress);
+  const genreAtag = formatAddress(tag.genreAddress);
+
+  const tags: Array<readonly [string, ...string[]]> = [
+    ["d", dTag],
+    ["z", formatAddress(tag.parentHeader)],
+    ["t", tag.bookSlug],
+    ["t", tag.genreSlug],
+    ["a", bookAtag],
+    ["a", genreAtag],
+    ["p", tag.taggerPubkey],
+  ];
+
+  const payload: BookGenreTagPayload = {
+    word: {
+      slug: dTag,
+      name: `genre tag: ${tag.bookSlug} → ${tag.genreSlug}`,
+      title: `Genre tag: ${tag.bookSlug} → ${tag.genreSlug}`,
+      wordTypes: ["word", "bookGenreTag"],
+    },
+    bookGenreTag: {
+      bookSlug: tag.bookSlug,
+      bookAtag,
+      genreSlug: tag.genreSlug,
+      genreAtag,
+    },
+  };
+
+  return {
+    kind: BOOK_GENRE_TAG_KIND,
+    tags,
+    content: "",
+    payload,
+    parentHeader: tag.parentHeader,
+  };
 }
 
-export function fromBookGenreTagEvent(_event: BookGenreTagEvent): BookGenreTag {
-  throw new Error("fromBookGenreTagEvent not implemented");
+export function fromBookGenreTagEvent(
+  event: BookGenreTagEvent,
+): BookGenreTag {
+  const p = event.payload.bookGenreTag;
+  const taggerTag = event.tags.find((t) => t[0] === "p");
+  if (!taggerTag || taggerTag.length < 2) {
+    throw new Error(
+      "fromBookGenreTagEvent: missing `p` tag carrying the tagger pubkey",
+    );
+  }
+  return {
+    bookSlug: p.bookSlug,
+    bookAddress: parseAddressOfKind(p.bookAtag, 39999),
+    genreSlug: p.genreSlug,
+    genreAddress: parseAddressOfKind(p.genreAtag, 39999),
+    taggerPubkey: asHexPubkey(taggerTag[1]!),
+    parentHeader: event.parentHeader,
+  };
 }

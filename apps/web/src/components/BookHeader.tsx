@@ -1,10 +1,10 @@
 import { Link } from "react-router-dom";
 import { GenrePill, SignalPill } from "./Pill";
-import type { BookRecord } from "../data/book-fixtures";
+import type { BookDetailRecord } from "../data/book-fixtures";
 import "./BookHeader.css";
 
 type Props = {
-  book: BookRecord;
+  book: BookDetailRecord;
 };
 
 export function BookHeader({ book }: Props) {
@@ -27,10 +27,14 @@ export function BookHeader({ book }: Props) {
           <Link to={`/author/${slugify(book.author)}`}>{book.author}</Link>
         </p>
         <div className="bh-meta">
-          <span>{book.publishYear}</span>
-          <span>{book.pageCount} pages</span>
-          <span>{book.language}</span>
-          <span className="bh-meta-isbn">ISBN {book.isbn13}</span>
+          {book.publishYear !== undefined && <span>{book.publishYear}</span>}
+          {book.pageCount !== undefined && (
+            <span>{book.pageCount} pages</span>
+          )}
+          {book.language && <span>{displayLanguage(book.language)}</span>}
+          {book.isbn13 && (
+            <span className="bh-meta-isbn">ISBN {book.isbn13}</span>
+          )}
         </div>
         <div className="bh-tags">
           {book.genreTags.map((tag) => (
@@ -55,4 +59,21 @@ export function BookHeader({ book }: Props) {
 
 function slugify(name: string) {
   return name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+}
+
+const languageNames: Record<string, string> = {
+  en: "English",
+  es: "Spanish",
+  fr: "French",
+  de: "German",
+  it: "Italian",
+  pt: "Portuguese",
+  ja: "Japanese",
+  zh: "Chinese",
+  ru: "Russian",
+  ar: "Arabic",
+};
+
+function displayLanguage(code: string): string {
+  return languageNames[code] ?? code;
 }
