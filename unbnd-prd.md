@@ -692,11 +692,11 @@ A toggle in settings allows switching between "House recommendations" and "My re
 
 ## 12. Phase Roadmap
 
-### Phase 1: MVP (Pre-Grant, 6–8 weeks)
+### Phase 1: MVP (6–8 weeks)
 
 Build and launch the core discovery and curation platform. Demonstrate that trust-weighted book curation works. Deploy to unbnd.ink.
 
-### Phase 2: Grant-Funded Build (6–12 months, OpenSats + HRF)
+### Phase 2: Distribution and Economic Layer (6–12 months)
 
 - Lightning payment integration (V4V + fixed price).
 - Blossom file hosting for ebooks.
@@ -727,31 +727,10 @@ Build and launch the core discovery and curation platform. Demonstrate that trus
 | Books rated (first month) | 500+ | Proves engagement loop works |
 | Genre tags applied (first month) | 1,000+ | Proves curation is happening |
 | Nostr-native logins | 10%+ of accounts | Proves the bridge works both ways |
-| Grant application submitted | 1+ (OpenSats or HRF) | The MVP's primary purpose |
 
 ---
 
-## 14. Grant Positioning
-
-### 14.1 OpenSats Application
-
-**Lead with:** "I'm building sovereign publishing infrastructure for nostr — an open-source book discovery platform where communities curate through Web of Trust, with no dependence on Amazon or Goodreads."
-
-**Technical angle:** The platform demonstrates DList primitives and GrapeRank applied to a real consumer use case. All data is portable nostr events. The custodial auth model bridges mainstream users onto sovereign infrastructure without requiring technical knowledge.
-
-**Founder-market fit:** Author of three novels, experienced the publishing gatekeeping firsthand, host of Plebchain Radio, co-founder of NosFabrica (the team building the underlying protocol). Building the tool he wished existed.
-
-### 14.2 HRF Application
-
-**Lead with:** "I'm building a censorship-resistant book discovery platform where no government, corporation, or payment processor can prevent a book from being found by its audience."
-
-**Censorship angle:** Books are banned, suppressed, and deplatformed with increasing frequency. Amazon has removed titles without explanation. Payment processors have pressured publishers. Unbnd ensures that once a book is in the catalog — stored as nostr events across relays — it cannot be removed by any single entity.
-
-**Use cases:** Writers in authoritarian regimes, banned books, deplatformed voices, pseudonymous publishing for at-risk authors.
-
----
-
-## 15. Open Questions
+## 14. Open Questions
 
 1. **GrapeRank computation for millions of ratings:** The existing GrapeRank pipeline handles the Tapestry scale. Does it handle millions of book ratings across hundreds of thousands of users? Needs stress testing.
 
