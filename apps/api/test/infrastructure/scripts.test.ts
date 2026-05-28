@@ -70,3 +70,20 @@ describe("scripts/generate-keypair.js", () => {
     expect(text).toMatch(/nsec/i);
   });
 });
+
+describe("scripts/generate-backup-key.js", () => {
+  const path = resolve(REPO_ROOT, "scripts", "generate-backup-key.js");
+
+  it("exists", () => {
+    expect(() => statSync(path)).not.toThrow();
+  });
+
+  it("generates a 32-byte (64 hex char) key via a vetted source", () => {
+    const text = readFileSync(path, "utf8");
+    // 32 random bytes, hex-encoded. Must use node:crypto randomBytes,
+    // not Math.random — per the no-hand-rolled-crypto policy.
+    expect(text).toMatch(/randomBytes\(\s*32\s*\)/);
+    expect(text).toMatch(/hex/);
+    expect(text).not.toMatch(/Math\.random/);
+  });
+});

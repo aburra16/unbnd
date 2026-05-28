@@ -14,6 +14,8 @@ const cfg: Config = {
   searchUrl: "http://localhost:7700",
   searchApiKey: "test-key",
   searchProvider: "meili",
+  databaseUrl: "postgres://x:x@localhost:5432/x",
+  backupEncryptionKey: "a".repeat(64),
 };
 
 function makeApp(overrides: Partial<HealthDeps> = {}) {
@@ -22,6 +24,7 @@ function makeApp(overrides: Partial<HealthDeps> = {}) {
     probeStrfry: vi.fn(async () => ({ ok: true })),
     probeNeo4j: vi.fn(async () => ({ ok: true })),
     probeTapestry: vi.fn(async () => ({ ok: true })),
+    probePostgres: vi.fn(async () => ({ ok: true })),
     searchProvider: {
       name: "meili",
       health: vi.fn(async () => ({ ok: true, provider: "meili" as const })),
@@ -53,6 +56,21 @@ describe("GET /health/data", () => {
     expect(res.body.services.tapestry.ok).toBe(true);
     expect(res.body.services.search.ok).toBe(true);
     expect(res.body.services.search.provider).toBe("meili");
+    expect(res.body.services.postgres.ok).toBe(true);
+  });
+
+  it("returns 503 when postgres is unreachable", async () => {
+    const res = await request(
+      makeApp({
+        probePostgres: vi.fn(async () => ({
+          ok: false,
+          error: "ECONNREFUSED 5432",
+        })),
+      }),
+    ).get("/health/data");
+    expect(res.status).toBe(503);
+    expect(res.body.ok).toBe(false);
+    expect(res.body.services.postgres.ok).toBe(false);
   });
 
   it("returns 503 when strfry is unreachable", async () => {

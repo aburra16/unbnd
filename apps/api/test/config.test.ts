@@ -4,6 +4,8 @@ import { loadConfig } from "../src/config";
 const ALL_REQUIRED = {
   NEO4J_PASSWORD: "tapestry-local-dev",
   SEARCH_API_KEY: "local-dev-search-key",
+  DATABASE_URL: "postgres://unbnd:unbnd@localhost:5432/unbnd",
+  BACKUP_ENCRYPTION_KEY: "a".repeat(64),
 };
 
 describe("loadConfig — required vars", () => {
@@ -17,6 +19,33 @@ describe("loadConfig — required vars", () => {
     const env = { ...ALL_REQUIRED } as NodeJS.ProcessEnv;
     delete env.SEARCH_API_KEY;
     expect(() => loadConfig(env)).toThrow(/SEARCH_API_KEY/);
+  });
+
+  it("throws when DATABASE_URL is missing", () => {
+    const env = { ...ALL_REQUIRED } as NodeJS.ProcessEnv;
+    delete env.DATABASE_URL;
+    expect(() => loadConfig(env)).toThrow(/DATABASE_URL/);
+  });
+
+  it("throws when BACKUP_ENCRYPTION_KEY is missing", () => {
+    const env = { ...ALL_REQUIRED } as NodeJS.ProcessEnv;
+    delete env.BACKUP_ENCRYPTION_KEY;
+    expect(() => loadConfig(env)).toThrow(/BACKUP_ENCRYPTION_KEY/);
+  });
+
+  it("throws when BACKUP_ENCRYPTION_KEY is not 64 hex characters", () => {
+    expect(() =>
+      loadConfig({ ...ALL_REQUIRED, BACKUP_ENCRYPTION_KEY: "tooshort" }),
+    ).toThrow(/BACKUP_ENCRYPTION_KEY/);
+    expect(() =>
+      loadConfig({ ...ALL_REQUIRED, BACKUP_ENCRYPTION_KEY: "A".repeat(64) }),
+    ).toThrow(/BACKUP_ENCRYPTION_KEY/);
+  });
+
+  it("loads DATABASE_URL and BACKUP_ENCRYPTION_KEY when valid", () => {
+    const c = loadConfig({ ...ALL_REQUIRED });
+    expect(c.databaseUrl).toBe("postgres://unbnd:unbnd@localhost:5432/unbnd");
+    expect(c.backupEncryptionKey).toBe("a".repeat(64));
   });
 });
 

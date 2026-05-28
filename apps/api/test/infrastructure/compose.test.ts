@@ -22,6 +22,17 @@ describe("docker-compose.yml", () => {
     expect(text).not.toMatch(/^\s*meilisearch:/m);
   });
 
+  it("declares a `db` service running Postgres 16 with a named volume", () => {
+    const text = compose();
+    expect(text).toMatch(/^\s*db:/m);
+    expect(text).toMatch(/image:\s*postgres:16/);
+    expect(text).toContain("unbnd-postgres");
+  });
+
+  it("exposes the Postgres port on the host", () => {
+    expect(compose()).toContain('"5432:5432"');
+  });
+
   it("references the tagged Tapestry image, not a build context", () => {
     const text = compose();
     expect(text).toMatch(/image:\s*unbnd\/tapestry-data-layer:latest/);

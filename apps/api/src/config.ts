@@ -10,6 +10,9 @@ export type Config = {
   readonly searchUrl: string;
   readonly searchApiKey: string;
   readonly searchProvider: "meili" | "vespa";
+  readonly databaseUrl: string;
+  /** 32-byte server-managed backup key, hex-encoded (64 hex chars). */
+  readonly backupEncryptionKey: string;
 };
 
 const KNOWN_PROVIDERS: readonly Config["searchProvider"][] = ["meili", "vespa"];
@@ -51,6 +54,15 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
     );
   }
 
+  const databaseUrl = required(env, "DATABASE_URL");
+
+  const backupEncryptionKey = required(env, "BACKUP_ENCRYPTION_KEY");
+  if (!/^[0-9a-f]{64}$/.test(backupEncryptionKey)) {
+    throw new Error(
+      "config: BACKUP_ENCRYPTION_KEY must be 64 lowercase hex characters (32 bytes)",
+    );
+  }
+
   return {
     port,
     strfryUrl: withDefault(env, "STRFRY_URL", "ws://localhost:7777"),
@@ -61,5 +73,7 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
     searchUrl: withDefault(env, "SEARCH_URL", "http://localhost:7700"),
     searchApiKey,
     searchProvider,
+    databaseUrl,
+    backupEncryptionKey,
   };
 }

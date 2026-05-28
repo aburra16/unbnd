@@ -19,6 +19,11 @@ export type HealthDeps = {
     error?: string;
     latencyMs?: number;
   }>;
+  readonly probePostgres?: () => Promise<{
+    ok: boolean;
+    error?: string;
+    latencyMs?: number;
+  }>;
   readonly searchProvider: SearchProvider;
 };
 

@@ -22,6 +22,8 @@ describe(".env.example", () => {
     "NEO4J_USER",
     "TAPESTRY_API_URL",
     "SEARCH_URL",
+    "DATABASE_URL",
+    "BACKUP_ENCRYPTION_KEY",
   ])("documents %s", (key) => {
     expect(envExample()).toMatch(new RegExp(`^${key}=`, "m"));
   });
