@@ -1,8 +1,8 @@
 # ADR 0001: DList schemas for the core data model
 
-**Status:** Proposed
+**Status:** Accepted
 **Date:** 2026-05-28
-**Story:** `engineering-team/stories/1-dlist-schemas.md`
+**Story:** `engineering-team/stories/done/1-dlist-schemas.md`
 
 ## Context
 

@@ -1,6 +1,6 @@
 # Test Plan: Story 1 — DList schemas for the core data model
 
-**Story:** `engineering-team/stories/1-dlist-schemas.md`
+**Story:** `engineering-team/stories/done/1-dlist-schemas.md`
 **ADR:** `engineering-team/decisions/0001-dlist-schemas.md`
 **Date:** 2026-05-28
 
