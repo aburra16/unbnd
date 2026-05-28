@@ -2,7 +2,6 @@ name: CI
 
 on:
   push:
-    branches: [main]
   pull_request:
     branches: [main]
 
@@ -16,6 +15,27 @@ jobs:
     name: Typecheck, test, build
     runs-on: ubuntu-latest
     timeout-minutes: 10
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: unbnd
+          POSTGRES_PASSWORD: unbnd
+          POSTGRES_DB: unbnd
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      # Lets the @unbnd/api integration suite run against the service above
+      # instead of skipping.
+      DATABASE_URL: postgres://unbnd:unbnd@localhost:5432/unbnd
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
