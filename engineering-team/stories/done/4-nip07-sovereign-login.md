@@ -1,6 +1,6 @@
 # Story 4: NIP-07 sovereign login backend
 
-**Status:** Approved
+**Status:** Done
 **Created:** 2026-05-28
 **Type:** Feature
 **Branch:** cycle-4-nostr-writes
@@ -60,5 +60,5 @@ The Architect resolves these in the ADR.
 ## Linked artifacts
 
 - ADR: `engineering-team/decisions/0004-nip07-sovereign-login.md`
-- Test plan: `engineering-team/stories/4-nip07-sovereign-login.test-plan.md`
-- Review: (filled in after Review phase)
+- Test plan: `engineering-team/stories/done/4-nip07-sovereign-login.test-plan.md`
+- Review: `engineering-team/reviews/4-nip07-sovereign-login.md` (PASS, CI-contingent)

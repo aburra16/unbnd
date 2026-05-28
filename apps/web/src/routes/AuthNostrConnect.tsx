@@ -86,7 +86,10 @@ export function AuthNostrConnect() {
       const signed = await nostr.signEvent({
         kind: NIP42_KIND,
         created_at: Math.floor(Date.now() / 1000),
-        tags: [["challenge", challenge]],
+        tags: [
+          ["challenge", challenge],
+          ["relay", window.location.origin],
+        ],
         content: "",
       });
       // 3. Server verifies the signature, consumes the challenge, issues a session.

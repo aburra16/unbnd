@@ -2,7 +2,7 @@
 
 **Status:** Accepted
 **Date:** 2026-05-28
-**Story:** `engineering-team/stories/4-nip07-sovereign-login.md`
+**Story:** `engineering-team/stories/done/4-nip07-sovereign-login.md`
 
 ## Context
 
@@ -164,3 +164,12 @@ The write path (story 5), NIP-46 bunker, custodial→sovereign upgrade, kind-0 p
 - **kind-0 profile enrichment.** Fresh sovereign users get a truncated-npub display name; pulling their real name/avatar from relays is a later story.
 - **Challenge sweeper.** Same as the session sweeper — a periodic delete; ride the same future job.
 - **Rate limiting** on challenge/verify — reverse-proxy layer, cycle 5.
+
+## Refinements (recorded post-review, 2026-05-28)
+
+Two adjustments surfaced during test design and review. Both are accepted; neither changes the decision.
+
+1. **`email` is also nullable.** §4's migration text dropped NOT NULL on the two encrypted-nsec columns but did not mention `email`. Sovereign users have no email, so `users.email` is made nullable too, and `PublicUser.email` is typed `string | null`. The custodial unique-email constraint is unaffected (a unique index permits multiple NULLs in Postgres).
+2. **npub display is client-side, via `applesauce-core`.** §"apps/web flow" said the `npubEncode` for display is server-side and "New dependencies? None." In practice the connect screen shows the user their key *before* any server round-trip (right after `getPublicKey()`), so no server-derived npub exists at that point, and rendering raw hex would violate the npub-not-hex house rule. The client therefore encodes with `applesauce-core/helpers.npubEncode` — the sanctioned default under the Cryptographic library policy, already pinned at the workspace root at the same version (6.0.3). `apps/web` gains it as a declared dependency. Hex is still what the client *posts*; npub is display-only.
+
+Also: the client signs `[["challenge", nonce], ["relay", window.location.origin]]` (the relay value is `window.location.origin`, not `config.publicOrigin`, since the tag is built client-side). The server does not verify the relay tag, so this is cosmetic fidelity to NIP-42.

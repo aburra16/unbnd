@@ -1,6 +1,6 @@
 # Test Plan: Story 4 — NIP-07 sovereign login
 
-**Story:** `engineering-team/stories/4-nip07-sovereign-login.md`
+**Story:** `engineering-team/stories/done/4-nip07-sovereign-login.md`
 **ADR:** `engineering-team/decisions/0004-nip07-sovereign-login.md`
 **Date:** 2026-05-28
 
