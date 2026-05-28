@@ -1,0 +1,24 @@
+.crumb {
+  font-size: 12px;
+  color: var(--u-muted);
+  margin-bottom: 18px;
+}
+
+.crumb-item a {
+  color: var(--u-amber);
+  font-weight: 500;
+}
+
+.crumb-item a:hover {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.crumb-current {
+  color: var(--u-muted);
+}
+
+.crumb-sep {
+  margin: 0 8px;
+  color: rgba(139, 134, 152, 0.5);
+}

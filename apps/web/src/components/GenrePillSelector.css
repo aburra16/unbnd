@@ -1,0 +1,41 @@
+.gps {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.gps-pill {
+  font-size: 11px;
+  font-weight: 500;
+  padding: 6px 13px;
+  border-radius: 20px;
+  border: 1px solid var(--u-border-hover);
+  background: transparent;
+  color: var(--u-muted);
+  transition:
+    color 120ms ease,
+    border-color 120ms ease,
+    background 120ms ease;
+}
+
+.gps-pill:hover:not(:disabled) {
+  color: var(--u-ink);
+  border-color: var(--u-ink);
+}
+
+.gps-on {
+  background: rgba(196, 118, 60, 0.1);
+  border-color: var(--u-amber);
+  color: var(--u-amber);
+}
+
+.gps-on:hover {
+  background: rgba(196, 118, 60, 0.15);
+  border-color: var(--u-amber-hover);
+  color: var(--u-amber-hover);
+}
+
+.gps-off {
+  opacity: 0.4;
+  cursor: not-allowed;
+}

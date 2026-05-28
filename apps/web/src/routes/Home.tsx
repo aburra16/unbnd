@@ -36,7 +36,7 @@ export function Home() {
         title="Your taste shapes your trust network"
         body="Rate the books you have read and follow the curators you respect. Your recommendations will start to match your shelf."
         ctaLabel="Get started"
-        ctaHref="/signup"
+        ctaHref="/auth"
       />
       <Footer />
     </div>

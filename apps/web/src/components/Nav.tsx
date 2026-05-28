@@ -1,23 +1,24 @@
+import { Link } from "react-router-dom";
 import { LogoMark } from "./LogoMark";
 import "./Nav.css";
 
 export function Nav() {
   return (
     <nav className="nav">
-      <a className="nav-logo" href="/">
+      <Link className="nav-logo" to="/">
         <LogoMark size={26} />
         <span className="nav-wordmark">unbnd</span>
-      </a>
+      </Link>
       <div className="nav-right">
-        <a className="nav-link" href="/browse">
+        <Link className="nav-link" to="/browse">
           Browse
-        </a>
-        <a className="nav-link" href="/submit">
+        </Link>
+        <Link className="nav-link" to="/submit">
           Submit a book
-        </a>
-        <button className="nav-signin" type="button">
+        </Link>
+        <Link className="nav-signin" to="/auth">
           Sign in
-        </button>
+        </Link>
       </div>
     </nav>
   );

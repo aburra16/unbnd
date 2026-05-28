@@ -1,0 +1,72 @@
+.tc {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  padding: 18px 20px;
+  border-radius: var(--u-radius);
+  background: var(--u-surface);
+  border: 1px solid var(--u-border);
+  margin-bottom: 28px;
+}
+
+.tc-ring {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  border: 3px solid var(--u-amber);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  line-height: 1;
+}
+
+.tc-ring-num {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--u-amber);
+  letter-spacing: -0.3px;
+  line-height: 1;
+}
+
+.tc-ring-mark {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--u-amber);
+  margin-left: 1px;
+  line-height: 1;
+  align-self: center;
+}
+
+.tc-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.tc-tier {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--u-ink);
+  margin-bottom: 4px;
+}
+
+.tc-desc {
+  font-size: 12px;
+  color: var(--u-muted);
+  line-height: 1.55;
+  margin-bottom: 10px;
+}
+
+.tc-bar {
+  height: 4px;
+  border-radius: 2px;
+  background: var(--u-border);
+  overflow: hidden;
+}
+
+.tc-bar-fill {
+  display: block;
+  height: 100%;
+  background: var(--u-amber);
+  border-radius: 2px;
+}

@@ -1,0 +1,46 @@
+.sov {
+  display: flex;
+  gap: 10px;
+  padding: 12px 14px;
+  border-radius: var(--u-radius);
+  background: var(--u-surface);
+  border: 1px solid var(--u-border);
+  margin-top: 18px;
+  text-align: left;
+}
+
+.sov-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  margin-top: 6px;
+  flex-shrink: 0;
+}
+
+.sov-amber .sov-dot {
+  background: var(--u-amber);
+}
+
+.sov-sovereign .sov-dot {
+  background: var(--signal-sovereign);
+}
+
+.sov-positive .sov-dot {
+  background: var(--signal-positive);
+}
+
+.sov-text {
+  font-size: 11px;
+  color: var(--u-muted);
+  line-height: 1.6;
+}
+
+.sov-text a {
+  color: var(--u-amber);
+  font-weight: 500;
+}
+
+.sov-text a:hover {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}

@@ -1,0 +1,37 @@
+.subs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 22px;
+}
+
+.sub {
+  font-size: 12px;
+  font-weight: 500;
+  padding: 6px 14px;
+  border-radius: 20px;
+  border: 1px solid var(--u-border-hover);
+  background: transparent;
+  color: var(--u-muted);
+  transition:
+    color 120ms ease,
+    border-color 120ms ease,
+    background 120ms ease;
+}
+
+.sub:hover {
+  color: var(--u-ink);
+  border-color: var(--u-ink);
+}
+
+.sub-active {
+  background: rgba(196, 118, 60, 0.08);
+  border-color: var(--u-amber);
+  color: var(--u-amber);
+}
+
+.sub-active:hover {
+  color: var(--u-amber-hover);
+  border-color: var(--u-amber-hover);
+  background: rgba(196, 118, 60, 0.12);
+}

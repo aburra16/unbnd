@@ -1,0 +1,38 @@
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 16px 0;
+  border-top: 1px solid var(--u-border);
+  border-bottom: 1px solid var(--u-border);
+  margin-bottom: 32px;
+}
+
+.action {
+  font-size: 13px;
+  font-weight: 500;
+  padding: 8px 16px;
+  border-radius: var(--u-radius);
+  border: 1px solid var(--u-border-hover);
+  background: transparent;
+  color: var(--u-ink);
+  transition:
+    background 120ms ease,
+    border-color 120ms ease;
+}
+
+.action:hover {
+  background: var(--u-surface);
+  border-color: var(--u-ink);
+}
+
+.action-primary {
+  background: var(--u-amber);
+  color: var(--u-parchment);
+  border-color: transparent;
+}
+
+.action-primary:hover {
+  background: var(--u-amber-hover);
+  border-color: transparent;
+}

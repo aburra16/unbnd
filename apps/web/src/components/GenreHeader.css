@@ -1,0 +1,39 @@
+.ghead {
+  padding-bottom: 22px;
+  border-bottom: 1px solid var(--u-border);
+  margin-bottom: 22px;
+}
+
+.ghead-accent {
+  display: block;
+  width: 36px;
+  height: 3px;
+  border-radius: 2px;
+  margin-bottom: 14px;
+}
+
+.ghead-titlerow {
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+}
+
+.ghead-title {
+  font-size: 26px;
+  font-weight: 600;
+  letter-spacing: -0.6px;
+}
+
+.ghead-count {
+  font-size: 13px;
+  color: var(--u-muted);
+}
+
+.ghead-desc {
+  font-size: 14px;
+  color: rgba(26, 26, 46, 0.62);
+  line-height: 1.65;
+  max-width: 560px;
+}

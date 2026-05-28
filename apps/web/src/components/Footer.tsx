@@ -12,7 +12,7 @@ export function Footer() {
       <div className="footer-links">
         <a href="/about">About</a>
         <a href="/submit">Submit</a>
-        <a href="/profile">Profile</a>
+        <a href="/profile/mira-calloway">Profile</a>
       </div>
     </footer>
   );
