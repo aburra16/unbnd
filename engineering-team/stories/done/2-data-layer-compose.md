@@ -1,6 +1,6 @@
 # Story 2: Data-layer stack via Docker Compose
 
-**Status:** Approved
+**Status:** Done
 **Created:** 2026-05-28
 **Type:** Feature
 
@@ -72,5 +72,5 @@ The Architect will resolve these in the ADR:
 ## Linked artifacts
 
 - ADR: `engineering-team/decisions/0002-data-layer-compose.md`
-- Test plan: `engineering-team/stories/2-data-layer-compose.test-plan.md`
-- Review: (filled in after Review phase)
+- Test plan: `engineering-team/stories/done/2-data-layer-compose.test-plan.md`
+- Review: `engineering-team/reviews/2-data-layer-compose.md`

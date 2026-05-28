@@ -1,6 +1,6 @@
 # Test Plan: Story 2 — Data-layer stack via Docker Compose
 
-**Story:** `engineering-team/stories/2-data-layer-compose.md`
+**Story:** `engineering-team/stories/done/2-data-layer-compose.md`
 **ADR:** `engineering-team/decisions/0002-data-layer-compose.md`
 **Date:** 2026-05-28
 
