@@ -13,6 +13,7 @@ import { buildHealthRouter } from "./routes/health";
 import { buildRatingsRouter } from "./routes/ratings";
 import { buildTagsRouter } from "./routes/tags";
 import { publishEvent } from "./nostr/publish";
+import { withUpSync } from "./nostr/propagate";
 import { queryEvents } from "./nostr/query";
 import { resolveProvider } from "./search";
 import {
@@ -193,6 +194,23 @@ async function main() {
     }),
   );
 
+  // Write path (ADR 0011): local relay is the source of truth + read path.
+  // When dcosl propagation is configured, accepted writes are also dual-
+  // published to dcosl best-effort (off the critical path); the up-sync cron
+  // is the durability backstop.
+  const localPublish = (event: SignedNostrEvent) =>
+    publishEvent(config.strfryUrl, event);
+  const publish =
+    config.propagateWrites && config.dcoslRelayUrl
+      ? withUpSync(
+          localPublish,
+          (event: SignedNostrEvent) =>
+            publishEvent(config.dcoslRelayUrl as string, event),
+          (reason, id) =>
+            console.warn(`[upsync] dcosl publish failed id=${id}: ${reason}`),
+        )
+      : localPublish;
+
   // Shared user-event write/read deps for ratings + tag assertions (ADR 0009).
   const userEventDeps = {
     config,
@@ -205,7 +223,7 @@ async function main() {
         tier: resolved.user.tier,
       };
     },
-    publish: (event: SignedNostrEvent) => publishEvent(config, event),
+    publish,
     query: (filter: Parameters<typeof queryEvents>[1]) => queryEvents(config, filter),
     custodialSign: async (
       sessionIdHex: string,

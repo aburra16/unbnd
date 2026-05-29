@@ -2,7 +2,6 @@
 // relay's ["OK", id, accepted, msg] frame. Mirrors the handshake in
 // origin/concept-graph:lib/publish.js. ADR 0005.
 import { WebSocket } from "ws";
-import type { Config } from "../config";
 import type { SignedNostrEvent } from "@unbnd/schemas";
 
 export type PublishResult =
@@ -12,7 +11,7 @@ export type PublishResult =
 const PUBLISH_TIMEOUT_MS = 5000;
 
 export function publishEvent(
-  config: Config,
+  relayUrl: string,
   event: SignedNostrEvent,
 ): Promise<PublishResult> {
   return new Promise<PublishResult>((resolve) => {
@@ -29,7 +28,7 @@ export function publishEvent(
       resolve(r);
     };
 
-    const ws = new WebSocket(config.strfryUrl);
+    const ws = new WebSocket(relayUrl);
     const timer = setTimeout(() => {
       try {
         ws.terminate();

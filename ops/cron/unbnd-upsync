@@ -1,0 +1,22 @@
+# /etc/cron.d/unbnd-upsync — write up-sync backstop (ADR 0011).
+#
+# Pushes community writes (ratings + tag assertions: kind 39999, z-tagged to
+# the librarian's book-ratings / book-tag-assertions concepts) from the local
+# strfry UP to dcosl, every 5 minutes. Negentropy reconciliation only transfers
+# events dcosl is missing, so it is idempotent and does not re-push the
+# librarian's already-published seed assertions.
+#
+# This is the durability backstop for the API's best-effort dual-publish: if a
+# live dcosl publish ever drops (relay blip), the next run reconciles it.
+#
+# Install (on the droplet, replace <LIBRARIAN_HEX> with $LIBRARIAN_PUBKEY):
+#   sudo cp /opt/unbnd/ops/cron/unbnd-upsync /etc/cron.d/unbnd-upsync
+#   sudo sed -i "s/<LIBRARIAN_HEX>/<the hex pubkey>/g" /etc/cron.d/unbnd-upsync
+#   sudo chmod 644 /etc/cron.d/unbnd-upsync && sudo systemctl restart cron
+#
+# Mirrors the existing down-sync (/etc/cron.d/unbnd-sync, --dir down).
+
+SHELL=/bin/sh
+PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+
+*/5 * * * * root docker exec unbnd-tapestry strfry sync wss://dcosl.brainstorm.world/ --dir up --filter '{"kinds":[39999],"#z":["39998:<LIBRARIAN_HEX>:book-ratings","39998:<LIBRARIAN_HEX>:book-tag-assertions"]}' >> /var/log/unbnd-upsync.log 2>&1

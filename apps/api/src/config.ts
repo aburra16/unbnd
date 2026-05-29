@@ -22,6 +22,18 @@ export type Config = {
    * report the feature as unavailable. ADR 0005.
    */
   readonly librarianPubkey?: string;
+  /**
+   * Shared relay (dcosl) that community writes are propagated TO, so ratings
+   * and tag assertions become globally visible and durable beyond the local
+   * relay. Optional: unset → no propagation (fail-safe for dev/test). ADR 0011.
+   */
+  readonly dcoslRelayUrl?: string;
+  /**
+   * Whether the API dual-publishes accepted writes to dcosl. Always set by
+   * `loadConfig` (derived from `dcoslRelayUrl` + `PROPAGATE_WRITES`); optional
+   * here only so partial test fixtures need not set it. ADR 0011.
+   */
+  readonly propagateWrites?: boolean;
 };
 
 const KNOWN_PROVIDERS: readonly Config["searchProvider"][] = ["meili", "vespa"];
@@ -83,9 +95,25 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
     );
   }
 
+  // dcosl propagation target (ADR 0011). No default: dev/test must opt in via
+  // DCOSL_RELAY_URL, so a local run can't accidentally write to production dcosl.
+  const dcoslRaw = env.DCOSL_RELAY_URL;
+  const dcoslRelayUrl =
+    dcoslRaw === undefined || dcoslRaw.length === 0 ? undefined : dcoslRaw;
+  if (dcoslRelayUrl !== undefined && !/^wss?:\/\//.test(dcoslRelayUrl)) {
+    throw new Error(
+      "config: DCOSL_RELAY_URL must be a ws:// or wss:// URL when set",
+    );
+  }
+  const propagateWrites =
+    dcoslRelayUrl !== undefined &&
+    withDefault(env, "PROPAGATE_WRITES", "true") !== "false";
+
   return {
     port,
     strfryUrl: withDefault(env, "STRFRY_URL", "ws://localhost:7777"),
+    dcoslRelayUrl,
+    propagateWrites,
     neo4jBoltUrl: withDefault(env, "NEO4J_BOLT_URL", "bolt://localhost:7687"),
     neo4jUser: withDefault(env, "NEO4J_USER", "neo4j"),
     neo4jPassword,
