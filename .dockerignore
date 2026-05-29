@@ -1,0 +1,9 @@
+**/node_modules
+**/dist
+**/.turbo
+.git
+.github
+engineering-team
+**/*.test.ts
+**/*.test.tsx
+**/test

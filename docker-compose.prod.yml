@@ -1,0 +1,91 @@
+# Staging production stack on one droplet (ADR 0007, story 6).
+# Only caddy exposes ports; everything else talks over the internal network.
+# Secrets come from /opt/unbnd/.env (untracked). Bring up with:
+#   docker compose -f docker-compose.prod.yml up -d --build
+services:
+  caddy:
+    container_name: unbnd-caddy
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+    environment:
+      - SITE_ADDRESS=${SITE_ADDRESS}
+    ports:
+      - "80:80"
+      - "443:443"
+    depends_on:
+      - api
+    volumes:
+      - caddy-data:/data
+      - caddy-config:/config
+    restart: unless-stopped
+
+  api:
+    container_name: unbnd-api
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    environment:
+      - NODE_ENV=production
+      - PORT=8787
+      - DATABASE_URL=postgres://unbnd:${POSTGRES_PASSWORD}@db:5432/unbnd
+      - STRFRY_URL=ws://tapestry:7777
+      - NEO4J_BOLT_URL=bolt://tapestry:7687
+      - NEO4J_USER=neo4j
+      - NEO4J_PASSWORD=${NEO4J_PASSWORD}
+      - TAPESTRY_API_URL=http://tapestry:80
+      - SEARCH_URL=http://search:7700
+      - SEARCH_API_KEY=${SEARCH_API_KEY}
+      - SEARCH_PROVIDER=meili
+      - BACKUP_ENCRYPTION_KEY=${BACKUP_ENCRYPTION_KEY}
+      - LIBRARIAN_PUBKEY=${LIBRARIAN_PUBKEY}
+      - PUBLIC_ORIGIN=${PUBLIC_ORIGIN}
+    depends_on:
+      - db
+      - tapestry
+      - search
+    restart: unless-stopped
+
+  tapestry:
+    container_name: unbnd-tapestry
+    image: unbnd/tapestry-data-layer:latest
+    environment:
+      - OWNER_PUBKEY=${LIBRARIAN_PUBKEY}
+      - NEO4J_PASSWORD=${NEO4J_PASSWORD}
+      - DOMAIN_NAME=${SITE_ADDRESS}
+    volumes:
+      - neo4j:/var/lib/neo4j/data
+      - strfry:/var/lib/strfry
+      - tapestry-data:/var/lib/brainstorm
+    restart: unless-stopped
+
+  db:
+    container_name: unbnd-db
+    image: postgres:16
+    environment:
+      - POSTGRES_USER=unbnd
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=unbnd
+    volumes:
+      - postgres:/var/lib/postgresql/data
+    restart: unless-stopped
+
+  search:
+    container_name: unbnd-search
+    image: getmeili/meilisearch:v1.10
+    environment:
+      - MEILI_MASTER_KEY=${SEARCH_API_KEY}
+      - MEILI_ENV=production
+      - MEILI_NO_ANALYTICS=true
+    volumes:
+      - search:/meili_data
+    restart: unless-stopped
+
+volumes:
+  caddy-data:
+  caddy-config:
+  neo4j:
+  strfry:
+  tapestry-data:
+  postgres:
+  search:
