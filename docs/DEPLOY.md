@@ -82,22 +82,25 @@ droplet `/opt/unbnd/.env`, not in Actions — the deploy job only needs SSH.
 
 ## Continuous deploy
 
-Two workflows build images in CI and push to GHCR:
-- `Publish images` — builds `unbnd-api` + `unbnd-web` on every successful CI
-  run on `main`.
-- `Publish tapestry-data-layer image` — manual (`workflow_dispatch`), builds
-  the data layer from a pinned `nous-clawds4/tapestry` commit.
+One ordered pipeline, `.github/workflows/staging.yml` (`Staging (build +
+deploy)`), runs after **CI** succeeds on `main`:
 
-`.github/workflows/deploy.yml` triggers after **CI** succeeds on `main`, SSHes
-to the droplet, and runs:
-```sh
-git reset --hard origin/main \
-  && docker compose -f docker-compose.prod.yml pull \
-  && docker compose -f docker-compose.prod.yml up -d
-```
-A merge to `main` therefore redeploys automatically once CI is green — the
-droplet pulls the freshly-built images, never building locally. (The deploy
-job no-ops with a notice until `DROPLET_HOST` is set.)
+1. **build** (matrix: api, web) — checks out the triggering commit SHA, builds
+   each image, pushes to GHCR tagged with **that SHA** plus `:latest`.
+2. **deploy** (`needs: build`) — SSHes to the droplet, `git reset --hard
+   <SHA>`, then `UNBND_IMAGE_TAG=<SHA> docker compose pull && up -d`.
+
+Because `deploy` `needs` `build`, the droplet can never pull stale images, and
+because it deploys the **exact SHA** (not a mutable `:latest`), code and images
+always match and rollback is "re-point to a prior SHA". The deploy job no-ops
+with a notice until `DROPLET_HOST` is set.
+
+The data layer is published separately and rarely: `Publish tapestry-data-layer
+image` (`workflow_dispatch`) builds it from a pinned `nous-clawds4/tapestry`
+commit. It stays `:latest` in compose (the app images are the SHA-pinned ones).
+
+A merge to `main` therefore: CI → build+push SHA images → deploy that SHA. The
+droplet only ever pulls and runs.
 
 ## Verify
 
