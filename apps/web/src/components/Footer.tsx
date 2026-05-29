@@ -13,7 +13,7 @@ export function Footer() {
         <span className="footer-tagline">books unbound</span>
       </div>
       <div className="footer-links">
-        <a href="/about">About</a>
+        <Link to="/about">About</Link>
         <Link to="/submit">Submit</Link>
         {session.status === "signed-in" ? (
           <Link to="/profile/me">Profile</Link>

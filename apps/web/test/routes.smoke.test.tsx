@@ -4,6 +4,8 @@ import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { Home } from "../src/routes/Home";
 import { BookDetail } from "../src/routes/BookDetail";
 import { GenreBrowse } from "../src/routes/GenreBrowse";
+import { Browse } from "../src/routes/Browse";
+import { About } from "../src/routes/About";
 import { Submit } from "../src/routes/Submit";
 import { Profile } from "../src/routes/Profile";
 import type {
@@ -130,6 +132,32 @@ describe("Route smoke tests against live data (mocked API)", () => {
     );
     expect(
       await screen.findByText(/No books carry this genre yet/i),
+    ).toBeInTheDocument();
+  });
+
+  it("renders the Browse route with a genre grid", async () => {
+    render(
+      <MemoryRouter initialEntries={["/browse"]}>
+        <Routes>
+          <Route path="/browse" element={<Browse />} />
+        </Routes>
+      </MemoryRouter>,
+    );
+    expect(
+      await screen.findByRole("heading", { name: /Browse by genre/i }),
+    ).toBeInTheDocument();
+  });
+
+  it("renders the About route", () => {
+    render(
+      <MemoryRouter initialEntries={["/about"]}>
+        <Routes>
+          <Route path="/about" element={<About />} />
+        </Routes>
+      </MemoryRouter>,
+    );
+    expect(
+      screen.getByRole("heading", { name: /About Unbnd/i }),
     ).toBeInTheDocument();
   });
 
