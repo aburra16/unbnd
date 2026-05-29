@@ -6,6 +6,8 @@ import type { SignedNostrEvent } from "@unbnd/schemas";
 export type NostrFilter = {
   readonly kinds?: number[];
   readonly limit?: number;
+  readonly until?: number;
+  readonly since?: number;
   readonly [tagFilter: `#${string}`]: string[] | number[] | undefined;
 };
 
@@ -48,4 +50,34 @@ export function queryRelay(
     });
     ws.on("error", (err) => done(err instanceof Error ? err : new Error(String(err))));
   });
+}
+
+/**
+ * Read ALL matching events, paging past the relay's per-REQ cap (strfry
+ * `maxFilterLimit`, default 500). Walks backwards by `created_at` using an
+ * `until` cursor, dedups by id, and stops when a page is short or yields no
+ * new events. `fetchPage` is injected for testability.
+ */
+export async function queryAllPages(
+  fetchPage: (cursor: { until?: number; limit: number }) => Promise<SignedNostrEvent[]>,
+  pageSize = 500,
+): Promise<SignedNostrEvent[]> {
+  const byId = new Map<string, SignedNostrEvent>();
+  let until: number | undefined;
+  for (;;) {
+    const page = await fetchPage({ until, limit: pageSize });
+    let added = 0;
+    let oldest = Infinity;
+    for (const e of page) {
+      if (!byId.has(e.id)) {
+        byId.set(e.id, e);
+        added++;
+      }
+      if (e.created_at < oldest) oldest = e.created_at;
+    }
+    // Short page → exhausted. No new events → boundary plateau, stop to avoid a loop.
+    if (page.length < pageSize || added === 0) break;
+    until = oldest; // overlap at the boundary second is handled by id dedup
+  }
+  return [...byId.values()];
 }
