@@ -118,6 +118,33 @@ droplet only ever pulls and runs.
   `docker compose -f docker-compose.prod.yml run --rm -e STRFRY_TEST_URL=ws://tapestry/relay api ...`
   (or from the api container), since the relay has no host-exposed port.
 
+## Catalog seed (ADR 0008)
+
+The catalog is seeded from Open Library into DLists on **dcosl**; the local
+strfry then syncs them down. The seeder is a `profiles: [seed]` service, so it
+never runs with the normal stack.
+
+1. Set `LIBRARIAN_NSEC` (and optionally `DCOSL_RELAY_URL`, `PER_SUBJECT`) in
+   `/opt/unbnd/.env`.
+2. Run the seeder on the droplet (detached — survives your machine being off):
+   ```sh
+   cd /opt/unbnd
+   docker compose -f docker-compose.prod.yml --profile seed run -d --rm seeder
+   docker logs -f $(docker ps -ql)   # watch progress
+   ```
+   It is idempotent (re-run safe) and resumable (checkpoint on the
+   `seeder-data` volume), so an interrupted run continues where it left off.
+3. **Sync the catalog into the local relay** (so the app serves it). Run once
+   after seeding, then on a cron:
+   ```sh
+   docker exec unbnd-tapestry strfry sync wss://dcosl.brainstorm.world/ \
+     --dir down --filter '{"kinds":[39998,39999]}'
+   ```
+   Add a crontab entry on the droplet to keep it current, e.g. every 5 min:
+   ```
+   */5 * * * * docker exec unbnd-tapestry strfry sync wss://dcosl.brainstorm.world/ --dir down --filter '{"kinds":[39998,39999]}' >> /var/log/unbnd-sync.log 2>&1
+   ```
+
 ## Rollback
 
 Pin the app services to a previous image tag (CI tags every image with its
