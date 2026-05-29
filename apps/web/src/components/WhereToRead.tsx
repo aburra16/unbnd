@@ -1,8 +1,13 @@
-import type { WhereToRead as Link } from "../data/book-fixtures";
 import "./WhereToRead.css";
 
+export type WhereToReadLink = {
+  label: string;
+  source: string;
+  href: string;
+};
+
 type Props = {
-  links: Link[];
+  links: WhereToReadLink[];
 };
 
 export function WhereToRead({ links }: Props) {

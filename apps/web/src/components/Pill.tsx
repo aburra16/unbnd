@@ -3,10 +3,11 @@ import "./Pill.css";
 type GenrePillProps = {
   label: string;
   color?: string;
-  confidence?: number;
+  /** Raw count of readers who applied this tag. No trust weighting yet. */
+  count?: number;
 };
 
-export function GenrePill({ label, color, confidence }: GenrePillProps) {
+export function GenrePill({ label, color, count }: GenrePillProps) {
   const style = color
     ? {
         background: `${color}14`,
@@ -16,8 +17,8 @@ export function GenrePill({ label, color, confidence }: GenrePillProps) {
   return (
     <span className="pill pill-genre" style={style}>
       {label}
-      {typeof confidence === "number" && (
-        <span className="pill-conf">{Math.round(confidence * 100)}%</span>
+      {typeof count === "number" && count > 0 && (
+        <span className="pill-conf">{count}</span>
       )}
     </span>
   );

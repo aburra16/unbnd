@@ -21,6 +21,19 @@
   line-height: 1.3;
 }
 
+.bh-cover-img {
+  padding: 0;
+  overflow: hidden;
+}
+
+.bh-cover-img img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 5px;
+  display: block;
+}
+
 .bh-info {
   flex: 1;
   min-width: 0;

@@ -3,7 +3,7 @@ import "./GenreGrid.css";
 export type Genre = {
   slug: string;
   name: string;
-  bookCount: number;
+  bookCount?: number;
   color: string;
   countColor?: string;
 };
@@ -47,9 +47,14 @@ export function GenreGrid({ title, genres, seeAllHref }: Props) {
             <h3 className="genre-name" style={{ color: g.color }}>
               {g.name}
             </h3>
-            <p className="genre-count" style={{ color: g.countColor ?? g.color }}>
-              {fmt(g.bookCount)} books
-            </p>
+            {typeof g.bookCount === "number" && (
+              <p
+                className="genre-count"
+                style={{ color: g.countColor ?? g.color }}
+              >
+                {fmt(g.bookCount)} books
+              </p>
+            )}
           </a>
         ))}
       </div>

@@ -1,6 +1,6 @@
 # Story 8: Book classification via tag assertions (Tapestry-aligned)
 
-**Status:** Approved
+**Status:** Done (stages 1-3; web surfacing -> story 9)
 **Created:** 2026-05-29
 **Type:** Feature
 
@@ -66,5 +66,5 @@ For the ADR / operator.
 ## Linked artifacts
 
 - ADR: `engineering-team/decisions/0009-classification-tag-assertions.md`
-- Test plan: `engineering-team/stories/8-classification-tag-assertions.test-plan.md`
-- Review: (filled in after Review phase)
+- Test plan: `engineering-team/stories/done/8-classification-tag-assertions.test-plan.md`
+- Review: `engineering-team/reviews/8-classification-tag-assertions.md` (PASS; web -> story 9)

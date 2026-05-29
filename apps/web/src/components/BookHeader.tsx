@@ -1,64 +1,53 @@
-import { Link } from "react-router-dom";
-import { GenrePill, SignalPill } from "./Pill";
-import type { BookDetailRecord } from "../data/book-fixtures";
+import { GenrePill } from "./Pill";
+import type { PublicBook, TagConsensus } from "../lib/api";
+import { coverGradient } from "../lib/view-model";
 import "./BookHeader.css";
 
 type Props = {
-  book: BookDetailRecord;
+  book: PublicBook;
+  genres: TagConsensus[];
+  styles: TagConsensus[];
 };
 
-export function BookHeader({ book }: Props) {
+export function BookHeader({ book, genres, styles }: Props) {
+  const g = coverGradient(book.slug);
+  const chips = [...genres, ...styles];
   return (
     <header className="bh">
-      <div
-        className="bh-cover"
-        style={{
-          background: `linear-gradient(155deg, ${book.coverFrom}, ${book.coverTo})`,
-        }}
-      >
-        <span className="bh-cover-title" style={{ color: book.coverInk }}>
-          {book.title}
-        </span>
-      </div>
+      {book.coverUrl ? (
+        <div className="bh-cover bh-cover-img">
+          <img src={book.coverUrl} alt="" loading="lazy" />
+        </div>
+      ) : (
+        <div
+          className="bh-cover"
+          style={{ background: `linear-gradient(155deg, ${g.from}, ${g.to})` }}
+        >
+          <span className="bh-cover-title" style={{ color: g.ink }}>
+            {book.title}
+          </span>
+        </div>
+      )}
       <div className="bh-info">
         <h1 className="bh-title">{book.title}</h1>
-        <p className="bh-author">
-          by{" "}
-          <Link to={`/author/${slugify(book.author)}`}>{book.author}</Link>
-        </p>
+        <p className="bh-author">by {book.authorName}</p>
         <div className="bh-meta">
           {book.publishYear !== undefined && <span>{book.publishYear}</span>}
-          {book.pageCount !== undefined && (
-            <span>{book.pageCount} pages</span>
-          )}
+          {book.pageCount !== undefined && <span>{book.pageCount} pages</span>}
           {book.language && <span>{displayLanguage(book.language)}</span>}
-          {book.isbn13 && (
-            <span className="bh-meta-isbn">ISBN {book.isbn13}</span>
-          )}
+          {book.isbn13 && <span className="bh-meta-isbn">ISBN {book.isbn13}</span>}
         </div>
-        <div className="bh-tags">
-          {book.genreTags.map((tag) => (
-            <GenrePill
-              key={tag.slug}
-              label={tag.label}
-              color={tag.color}
-              confidence={tag.confidence}
-            />
-          ))}
-        </div>
-        <div className="bh-tags">
-          {book.qualitySignals.map((s) => (
-            <SignalPill key={s.slug} label={s.label} tone={s.tone} />
-          ))}
-        </div>
-        <p className="bh-blurb">{book.blurb}</p>
+        {chips.length > 0 && (
+          <div className="bh-tags">
+            {chips.map((t) => (
+              <GenrePill key={`${t.type}:${t.slug}`} label={t.name} count={t.applies} />
+            ))}
+          </div>
+        )}
+        {book.blurb && <p className="bh-blurb">{book.blurb}</p>}
       </div>
     </header>
   );
-}
-
-function slugify(name: string) {
-  return name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
 }
 
 const languageNames: Record<string, string> = {
