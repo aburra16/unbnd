@@ -27,6 +27,7 @@ describe(".env.example", () => {
     "PUBLIC_ORIGIN",
     "DCOSL_RELAY_URL",
     "PROPAGATE_WRITES",
+    "PROFILE_RELAYS",
   ])("documents %s", (key) => {
     expect(envExample()).toMatch(new RegExp(`^${key}=`, "m"));
   });

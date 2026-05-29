@@ -77,6 +77,17 @@ export type TaxonomyElement = {
   sensitivity: "normal" | "accusatory";
 };
 
+// kind-0 profile metadata (ADR 0012). Always carries npub; the rest is
+// best-effort from public relays (present for sovereign users with a profile).
+export type ProfileMeta = {
+  npub: string;
+  name?: string;
+  displayName?: string;
+  picture?: string;
+  nip05?: string;
+  about?: string;
+};
+
 export class ApiError extends Error {
   constructor(
     readonly status: number,
@@ -192,6 +203,13 @@ export const api = {
     },
     recent(limit = 24) {
       return authFetch<{ books: PublicBook[] }>(`/api/books?limit=${limit}`);
+    },
+  },
+  profile: {
+    get(idOrNpub: string) {
+      return authFetch<{ profile: ProfileMeta }>(
+        `/api/profile/${encodeURIComponent(idOrNpub)}`,
+      );
     },
   },
   tags: {

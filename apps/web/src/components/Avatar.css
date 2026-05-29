@@ -1,0 +1,20 @@
+.avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  flex: 0 0 auto;
+  overflow: hidden;
+}
+
+.avatar-initials {
+  font-weight: 600;
+  letter-spacing: 0.2px;
+  line-height: 1;
+  user-select: none;
+}
+
+.avatar-img {
+  object-fit: cover;
+  background: var(--u-border, rgba(26, 26, 46, 0.08));
+}
