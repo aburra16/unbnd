@@ -57,5 +57,5 @@ The Architect resolves these in the ADR.
 ## Linked artifacts
 
 - ADR: `engineering-team/decisions/0006-custodial-server-signing.md`
-- Test plan: (filled in after Test Design phase)
+- Test plan: `engineering-team/stories/5b-custodial-server-signing.test-plan.md`
 - Review: (filled in after Review phase)

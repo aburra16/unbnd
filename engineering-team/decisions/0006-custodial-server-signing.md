@@ -1,6 +1,6 @@
 # ADR 0006: Custodial server-side signing (session-scoped ephemeral wrap)
 
-**Status:** Proposed
+**Status:** Accepted
 **Date:** 2026-05-28
 **Story:** `engineering-team/stories/5b-custodial-server-signing.md`
 

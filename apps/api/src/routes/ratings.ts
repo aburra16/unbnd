@@ -6,7 +6,7 @@ import { parse as parseCookie } from "cookie";
 import type { Config } from "../config";
 import type { PublishResult } from "../nostr/publish";
 import type { NostrFilter } from "../nostr/query";
-import type { SignedNostrEvent } from "@unbnd/schemas";
+import type { NostrEventTemplate, SignedNostrEvent } from "@unbnd/schemas";
 import { buildRatingTemplate, RatingError } from "../ratings/template";
 import { validateSignedRating } from "../ratings/validate";
 import { summarizeRatings } from "../ratings/summary";
@@ -26,6 +26,16 @@ export type RatingsDeps = {
   readonly sessionUser: (cookie: string | undefined) => Promise<SessionUser | null>;
   readonly publish: (event: SignedNostrEvent) => Promise<PublishResult>;
   readonly query: (filter: NostrFilter) => Promise<SignedNostrEvent[]>;
+  /**
+   * Sign a template server-side for a custodial session, using that session's
+   * ephemeral-wrapped key (ADR 0006). Returns null when the session has no
+   * live key (post-restart / evicted) — the route maps that to 401
+   * reauth_required. Optional until story 5b wires it.
+   */
+  readonly custodialSign?: (
+    sessionIdHex: string,
+    template: NostrEventTemplate,
+  ) => Promise<SignedNostrEvent | null>;
 };
 
 function readSessionCookie(req: Request): string | undefined {

@@ -122,6 +122,20 @@ export const api = {
         summary: RatingsSummary;
       }>("/api/ratings", { method: "POST", body: JSON.stringify({ event }) });
     },
+    // Custodial (email) users: the server signs server-side (ADR 0006). No
+    // client signature — just the rating intent. Same endpoint, branched by
+    // tier server-side.
+    submitCustodial(input: {
+      bookSlug: string;
+      score: number;
+      reviewText?: string;
+      reviewDate: string;
+    }) {
+      return authFetch<{
+        rating: { score: number; reviewText?: string; reviewDate: string };
+        summary: RatingsSummary;
+      }>("/api/ratings", { method: "POST", body: JSON.stringify(input) });
+    },
     list(bookSlug: string) {
       return authFetch<RatingsSummary>(
         `/api/books/${encodeURIComponent(bookSlug)}/ratings`,
