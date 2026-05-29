@@ -1,0 +1,21 @@
+# Reverse proxy + static host (ADR 0007). SITE_ADDRESS drives automatic
+# HTTPS; defaults to localhost for local smoke tests (Caddy uses an internal
+# cert there). On the droplet, SITE_ADDRESS=staging.unbnd.ink.
+{$SITE_ADDRESS:localhost} {
+	encode gzip
+
+	# API surface -> the api container.
+	handle /auth/* {
+		reverse_proxy api:8787
+	}
+	handle /api/* {
+		reverse_proxy api:8787
+	}
+
+	# Everything else is the SPA.
+	handle {
+		root * /srv
+		try_files {path} /index.html
+		file_server
+	}
+}
