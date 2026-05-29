@@ -76,12 +76,22 @@
   text-align: center;
 }
 
-.auth-card-footer a {
+.auth-card-footer a,
+.auth-card-footer .auth-linklike {
   color: var(--u-amber);
   font-weight: 500;
 }
 
-.auth-card-footer a:hover {
+.auth-card-footer .auth-linklike {
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  cursor: pointer;
+}
+
+.auth-card-footer a:hover,
+.auth-card-footer .auth-linklike:hover {
   text-decoration: underline;
   text-underline-offset: 2px;
 }

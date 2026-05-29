@@ -2,8 +2,6 @@ import { describe, expect, it, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { AuthEmailSignup } from "../../src/routes/AuthEmailSignup";
-// Imported from the mocked module below, so it is the same class the
-// component sees — matching what the real api.auth.signup throws (ApiError).
 import { ApiError } from "../../src/lib/api";
 
 const navigateMock = vi.fn();
@@ -13,6 +11,7 @@ vi.mock("react-router-dom", async (importOriginal) => {
 });
 
 const signupMock = vi.fn();
+const loginMock = vi.fn();
 vi.mock("../../src/lib/api", () => ({
   ApiError: class ApiError extends Error {
     constructor(
@@ -23,71 +22,99 @@ vi.mock("../../src/lib/api", () => ({
       super(message);
     }
   },
-  api: { auth: { signup: (...args: unknown[]) => signupMock(...args) } },
+  api: {
+    auth: {
+      signup: (...args: unknown[]) => signupMock(...args),
+      login: (...args: unknown[]) => loginMock(...args),
+    },
+  },
 }));
 
-function fillAndSubmit() {
-  fireEvent.change(screen.getByLabelText(/display name/i), {
-    target: { value: "Mira Calloway" },
-  });
-  fireEvent.change(screen.getByLabelText(/email/i), {
-    target: { value: "reader@example.com" },
-  });
-  fireEvent.change(screen.getByLabelText(/password/i), {
-    target: { value: "abcdefghij" },
-  });
-  fireEvent.click(screen.getByRole("button", { name: /create account/i }));
+function renderScreen() {
+  render(
+    <MemoryRouter>
+      <AuthEmailSignup />
+    </MemoryRouter>,
+  );
 }
 
-describe("AuthEmailSignup form wiring", () => {
-  beforeEach(() => {
-    navigateMock.mockReset();
-    signupMock.mockReset();
+beforeEach(() => {
+  navigateMock.mockReset();
+  signupMock.mockReset();
+  loginMock.mockReset();
+});
+
+describe("AuthEmailSignup — sign in (default)", () => {
+  it("defaults to the sign-in form (no display name field)", () => {
+    renderScreen();
+    expect(screen.getByRole("button", { name: /^sign in$/i })).toBeInTheDocument();
+    expect(screen.queryByLabelText(/display name/i)).not.toBeInTheDocument();
   });
 
-  it("calls api.auth.signup with the form values on submit", async () => {
-    signupMock.mockResolvedValue({ user: { npub: "npub1abc" } });
-    render(
-      <MemoryRouter>
-        <AuthEmailSignup />
-      </MemoryRouter>,
-    );
-    fillAndSubmit();
+  it("calls api.auth.login and navigates home on success", async () => {
+    loginMock.mockResolvedValue({ user: { npub: "npub1abc" } });
+    renderScreen();
+    fireEvent.change(screen.getByLabelText(/email/i), {
+      target: { value: "malfactoryst@gmail.com" },
+    });
+    fireEvent.change(screen.getByLabelText(/password/i), {
+      target: { value: "abcdefghij" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: /^sign in$/i }));
     await waitFor(() =>
-      expect(signupMock).toHaveBeenCalledWith({
-        email: "reader@example.com",
+      expect(loginMock).toHaveBeenCalledWith({
+        email: "malfactoryst@gmail.com",
         password: "abcdefghij",
-        displayName: "Mira Calloway",
       }),
     );
+    await waitFor(() => expect(navigateMock).toHaveBeenCalledWith("/"));
   });
 
-  it("navigates to /auth/welcome on a successful signup", async () => {
-    signupMock.mockResolvedValue({ user: { npub: "npub1abc" } });
-    render(
-      <MemoryRouter>
-        <AuthEmailSignup />
-      </MemoryRouter>,
+  it("shows the API error when login fails and does not navigate", async () => {
+    loginMock.mockRejectedValue(
+      new ApiError(401, "invalid_credentials", "Email or password is incorrect."),
     );
-    fillAndSubmit();
-    await waitFor(() =>
-      expect(navigateMock).toHaveBeenCalledWith("/auth/welcome"),
-    );
-  });
-
-  it("shows the API error message when signup fails", async () => {
-    signupMock.mockRejectedValue(
-      new ApiError(409, "email_in_use", "An account with this email already exists."),
-    );
-    render(
-      <MemoryRouter>
-        <AuthEmailSignup />
-      </MemoryRouter>,
-    );
-    fillAndSubmit();
+    renderScreen();
+    fireEvent.change(screen.getByLabelText(/email/i), {
+      target: { value: "x@y.com" },
+    });
+    fireEvent.change(screen.getByLabelText(/password/i), {
+      target: { value: "wrongpass12" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: /^sign in$/i }));
     expect(
-      await screen.findByText(/an account with this email already exists/i),
+      await screen.findByText(/email or password is incorrect/i),
     ).toBeInTheDocument();
     expect(navigateMock).not.toHaveBeenCalled();
+  });
+});
+
+describe("AuthEmailSignup — create account (toggled)", () => {
+  function toCreateMode() {
+    renderScreen();
+    fireEvent.click(screen.getByRole("button", { name: /create an account/i }));
+  }
+
+  it("calls api.auth.signup with the form values and navigates to welcome", async () => {
+    signupMock.mockResolvedValue({ user: { npub: "npub1abc" } });
+    toCreateMode();
+    fireEvent.change(screen.getByLabelText(/display name/i), {
+      target: { value: "test" },
+    });
+    fireEvent.change(screen.getByLabelText(/email/i), {
+      target: { value: "malfactoryst@gmail.com" },
+    });
+    fireEvent.change(screen.getByLabelText(/password/i), {
+      target: { value: "abcdefghij" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: /create account/i }));
+    await waitFor(() =>
+      expect(signupMock).toHaveBeenCalledWith({
+        email: "malfactoryst@gmail.com",
+        password: "abcdefghij",
+        displayName: "test",
+      }),
+    );
+    await waitFor(() => expect(navigateMock).toHaveBeenCalledWith("/auth/welcome"));
   });
 });
