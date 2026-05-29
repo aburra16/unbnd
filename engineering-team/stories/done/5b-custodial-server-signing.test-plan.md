@@ -1,6 +1,6 @@
 # Test Plan: Story 5b — Custodial server-side signing
 
-**Story:** `engineering-team/stories/5b-custodial-server-signing.md`
+**Story:** `engineering-team/stories/done/5b-custodial-server-signing.md`
 **ADR:** `engineering-team/decisions/0006-custodial-server-signing.md`
 **Date:** 2026-05-29
 

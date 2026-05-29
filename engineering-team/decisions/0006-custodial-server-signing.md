@@ -2,7 +2,7 @@
 
 **Status:** Accepted
 **Date:** 2026-05-28
-**Story:** `engineering-team/stories/5b-custodial-server-signing.md`
+**Story:** `engineering-team/stories/done/5b-custodial-server-signing.md`
 
 ## Context
 

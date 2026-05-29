@@ -123,6 +123,10 @@ async function main() {
             await revokeSession(tx, existingCookie); // rotation
             return issueSession(tx, row.id);
           });
+          // Drop the rotated-out session's wrapped key so it doesn't orphan.
+          if (existingCookie) {
+            forgetSessionKey(tokenToId(existingCookie).toString("hex"));
+          }
           // §8.2: wrap the just-decrypted nsec under the process-local
           // ephemeral key, bound to this session, for server-side signing.
           rememberSessionKey(tokenToId(session.token).toString("hex"), secret);
