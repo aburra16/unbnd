@@ -109,11 +109,14 @@ droplet only ever pulls and runs.
   persists (published to strfry, read back).
 - Email signup/login works; the rating control shows the "coming for email
   accounts" note (until story 5b).
-- Optional: run the gated relay round-trip test against staging strfry from a
-  trusted host:
-  `STRFRY_TEST_URL=ws://<droplet>:7777 pnpm --filter @unbnd/api test`
-  (strfry is not publicly exposed by the prod compose; run from within the
-  droplet or open the port temporarily).
+- strfry is **internal only**: it binds loopback inside the tapestry
+  container and is reachable on the compose network via nginx at
+  `ws://tapestry/relay` (port 80, `/relay`). It is not published to the host
+  or the internet — only Caddy's 80/443 are. The API talks to it via
+  `STRFRY_URL=ws://tapestry/relay`.
+- Optional gated relay round-trip test: run it on the compose network, e.g.
+  `docker compose -f docker-compose.prod.yml run --rm -e STRFRY_TEST_URL=ws://tapestry/relay api ...`
+  (or from the api container), since the relay has no host-exposed port.
 
 ## Rollback
 
