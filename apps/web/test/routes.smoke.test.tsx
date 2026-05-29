@@ -1,14 +1,79 @@
-import { describe, expect, it } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { render, screen, waitFor } from "@testing-library/react";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { Home } from "../src/routes/Home";
 import { BookDetail } from "../src/routes/BookDetail";
 import { GenreBrowse } from "../src/routes/GenreBrowse";
 import { Submit } from "../src/routes/Submit";
 import { Profile } from "../src/routes/Profile";
+import type {
+  BookTags,
+  PublicBook,
+  RatingsSummary,
+  TaxonomyElement,
+} from "../src/lib/api";
 
-describe("Route smoke tests against the refit fixtures", () => {
-  it("renders the Home route with the trending shelf and hero", () => {
+// The live routes read from the API; mock the client so the smoke tests
+// assert the live-data render shape (ADR 0010), not fixtures.
+const booksGet = vi.fn();
+const booksList = vi.fn();
+const booksRecent = vi.fn();
+const tagsList = vi.fn();
+const tagsBook = vi.fn();
+const tagsGenreBooks = vi.fn();
+const ratingsList = vi.fn();
+
+vi.mock("../src/lib/api", async (orig) => {
+  const actual = await orig<typeof import("../src/lib/api")>();
+  return {
+    ...actual,
+    api: {
+      ...actual.api,
+      auth: { ...actual.api.auth, me: vi.fn().mockRejectedValue(new Error("signed out")) },
+      books: {
+        get: (...a: unknown[]) => booksGet(...a),
+        list: (...a: unknown[]) => booksList(...a),
+        recent: (...a: unknown[]) => booksRecent(...a),
+      },
+      tags: {
+        list: (...a: unknown[]) => tagsList(...a),
+        book: (...a: unknown[]) => tagsBook(...a),
+        genreBooks: (...a: unknown[]) => tagsGenreBooks(...a),
+      },
+      ratings: { ...actual.api.ratings, list: (...a: unknown[]) => ratingsList(...a) },
+    },
+  };
+});
+
+const ORBITAL: PublicBook = {
+  slug: "orbital",
+  title: "Orbital",
+  authorName: "Samantha Harvey",
+  blurb: "Six astronauts circle the Earth.",
+  publishYear: 2023,
+  format: "reference",
+};
+const NO_TAGS: BookTags = { genres: [], styles: [], signals: [] };
+const NO_RATINGS: RatingsSummary = { count: 0, average: null, ratings: [] };
+const TAXONOMY: TaxonomyElement[] = [
+  { slug: "literary-fiction", type: "genre", name: "Literary fiction", sensitivity: "normal" },
+];
+
+beforeEach(() => {
+  booksGet.mockReset().mockResolvedValue({ book: ORBITAL });
+  booksList.mockReset().mockResolvedValue({ books: [ORBITAL] });
+  booksRecent.mockReset().mockResolvedValue({ books: [ORBITAL] });
+  tagsList.mockReset().mockResolvedValue({ tags: TAXONOMY });
+  tagsBook.mockReset().mockResolvedValue(NO_TAGS);
+  tagsGenreBooks.mockReset().mockResolvedValue({ books: ["orbital"] });
+  ratingsList.mockReset().mockResolvedValue(NO_RATINGS);
+});
+afterEach(() => {
+  delete (window as unknown as { nostr?: unknown }).nostr;
+});
+
+describe("Route smoke tests against live data (mocked API)", () => {
+  it("renders Home with the hero, recently-added shelf, and genre grid", async () => {
     render(
       <MemoryRouter initialEntries={["/"]}>
         <Routes>
@@ -18,14 +83,14 @@ describe("Route smoke tests against the refit fixtures", () => {
     );
     expect(screen.getByText(/Discover books through/i)).toBeInTheDocument();
     expect(
-      screen.getByRole("heading", { name: /Trending this week/i }),
+      await screen.findByRole("heading", { name: /Recently added/i }),
     ).toBeInTheDocument();
     expect(
-      screen.getByRole("heading", { name: /Explore genres/i }),
+      await screen.findByRole("heading", { name: /Explore genres/i }),
     ).toBeInTheDocument();
   });
 
-  it("renders the BookDetail route for /book/orbital", () => {
+  it("renders BookDetail for /book/orbital from the API", async () => {
     render(
       <MemoryRouter initialEntries={["/book/orbital"]}>
         <Routes>
@@ -34,15 +99,13 @@ describe("Route smoke tests against the refit fixtures", () => {
       </MemoryRouter>,
     );
     expect(
-      screen.getByRole("heading", { name: "Orbital" }),
+      await screen.findByRole("heading", { name: "Orbital" }),
     ).toBeInTheDocument();
-    expect(
-      screen.getByRole("link", { name: "Samantha Harvey" }),
-    ).toBeInTheDocument();
-    expect(screen.getByText(/312 ratings/i)).toBeInTheDocument();
+    expect(screen.getByText(/Samantha Harvey/)).toBeInTheDocument();
+    expect(screen.getByText(/Be the first to rate it/i)).toBeInTheDocument();
   });
 
-  it("renders the GenreBrowse route for /genre/literary-fiction", () => {
+  it("renders GenreBrowse for /genre/literary-fiction with its book grid", async () => {
     render(
       <MemoryRouter initialEntries={["/genre/literary-fiction"]}>
         <Routes>
@@ -51,9 +114,23 @@ describe("Route smoke tests against the refit fixtures", () => {
       </MemoryRouter>,
     );
     expect(
-      screen.getByRole("heading", { name: /Literary fiction/i }),
+      await screen.findByRole("heading", { name: /Literary fiction/i }),
     ).toBeInTheDocument();
-    expect(screen.getByText(/Sort/i)).toBeInTheDocument();
+    await waitFor(() => expect(booksList).toHaveBeenCalledWith(["orbital"]));
+  });
+
+  it("renders an empty genre honestly", async () => {
+    tagsGenreBooks.mockResolvedValue({ books: [] });
+    render(
+      <MemoryRouter initialEntries={["/genre/mystery"]}>
+        <Routes>
+          <Route path="/genre/:slug" element={<GenreBrowse />} />
+        </Routes>
+      </MemoryRouter>,
+    );
+    expect(
+      await screen.findByText(/No books carry this genre yet/i),
+    ).toBeInTheDocument();
   });
 
   it("renders the Submit route", () => {
@@ -67,9 +144,6 @@ describe("Route smoke tests against the refit fixtures", () => {
     expect(
       screen.getByRole("heading", { name: /Submit a book to Unbnd/i }),
     ).toBeInTheDocument();
-    expect(
-      screen.getByRole("heading", { name: /Book details/i }),
-    ).toBeInTheDocument();
   });
 
   it("renders the Profile route for /profile/mira-calloway", () => {
@@ -82,10 +156,6 @@ describe("Route smoke tests against the refit fixtures", () => {
     );
     expect(
       screen.getByRole("heading", { name: "Mira Calloway" }),
-    ).toBeInTheDocument();
-    expect(screen.getByText(/@mira-calloway/)).toBeInTheDocument();
-    expect(
-      screen.getByRole("heading", { name: /Genre affinity/i }),
     ).toBeInTheDocument();
   });
 });

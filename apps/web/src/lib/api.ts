@@ -39,6 +39,44 @@ export type RatingsSummary = {
   ratings: PublicRating[];
 };
 
+// Catalog read shapes (ADR 0010). Mirror apps/api PublicBook + tag consensus.
+export type PublicBook = {
+  slug: string;
+  title: string;
+  authorName: string;
+  blurb?: string;
+  coverUrl?: string;
+  publishYear?: number;
+  pageCount?: number;
+  language?: string;
+  subjects?: readonly string[];
+  openLibraryId?: string;
+  isbn13?: string;
+  purchaseUrl?: string;
+  format: string;
+};
+
+export type TagConsensus = {
+  slug: string;
+  name: string;
+  type: "genre" | "style" | "signal";
+  applies: number;
+  disputes: number;
+};
+
+export type BookTags = {
+  genres: TagConsensus[];
+  styles: TagConsensus[];
+  signals: TagConsensus[];
+};
+
+export type TaxonomyElement = {
+  slug: string;
+  type: "genre" | "style" | "signal";
+  name: string;
+  sensitivity: "normal" | "accusatory";
+};
+
 export class ApiError extends Error {
   constructor(
     readonly status: number,
@@ -140,6 +178,63 @@ export const api = {
       return authFetch<RatingsSummary>(
         `/api/books/${encodeURIComponent(bookSlug)}/ratings`,
       );
+    },
+  },
+  books: {
+    get(slug: string) {
+      return authFetch<{ book: PublicBook }>(
+        `/api/books/${encodeURIComponent(slug)}`,
+      );
+    },
+    list(slugs: string[]) {
+      const q = slugs.map((s) => encodeURIComponent(s)).join(",");
+      return authFetch<{ books: PublicBook[] }>(`/api/books?slugs=${q}`);
+    },
+    recent(limit = 24) {
+      return authFetch<{ books: PublicBook[] }>(`/api/books?limit=${limit}`);
+    },
+  },
+  tags: {
+    list() {
+      return authFetch<{ tags: TaxonomyElement[] }>("/api/tags");
+    },
+    book(slug: string) {
+      return authFetch<BookTags>(
+        `/api/books/${encodeURIComponent(slug)}/tags`,
+      );
+    },
+    genreBooks(slug: string) {
+      return authFetch<{ books: string[] }>(
+        `/api/genres/${encodeURIComponent(slug)}/books`,
+      );
+    },
+    template(input: {
+      bookSlug: string;
+      tagSlug: string;
+      tagType: "genre" | "style" | "signal";
+      polarity: 1 | -1;
+    }) {
+      return authFetch<{ template: NostrEventTemplate }>("/api/tags/template", {
+        method: "POST",
+        body: JSON.stringify(input),
+      });
+    },
+    submit(event: SignedEvent) {
+      return authFetch<{ ok: true }>("/api/tags", {
+        method: "POST",
+        body: JSON.stringify({ event }),
+      });
+    },
+    submitCustodial(input: {
+      bookSlug: string;
+      tagSlug: string;
+      tagType: "genre" | "style" | "signal";
+      polarity: 1 | -1;
+    }) {
+      return authFetch<{ ok: true }>("/api/tags", {
+        method: "POST",
+        body: JSON.stringify(input),
+      });
     },
   },
 };
