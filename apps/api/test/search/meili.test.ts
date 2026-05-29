@@ -92,3 +92,93 @@ describe("MeiliProvider", () => {
     expect(h.latencyMs).toBeGreaterThanOrEqual(0);
   });
 });
+
+/** Capture every request; return an ok Response with the given body. */
+function captureFetch(body: unknown = {}) {
+  const calls: Array<{ url: string; init: RequestInit | undefined }> = [];
+  const fn = vi.fn(async (url: unknown, init?: RequestInit) => {
+    calls.push({ url: String(url), init });
+    return new Response(JSON.stringify(body), { status: 200 });
+  }) as unknown as typeof fetch;
+  return { fn, calls };
+}
+
+const doc = {
+  id: "ol-a",
+  title: "Alpha",
+  authorName: "Ada",
+  subjects: ["fiction"],
+  tags: ["Literary fiction"],
+  genreSlugs: ["literary-fiction"],
+  format: "reference",
+} as const;
+
+describe("MeiliProvider.configureIndex", () => {
+  it("creates the index and PATCHes searchable + filterable settings", async () => {
+    const { fn, calls } = captureFetch();
+    await new MeiliProvider(baseConfig, fn).configureIndex();
+    const create = calls.find((c) => c.url.endsWith("/indexes"));
+    expect(create?.init?.method).toBe("POST");
+    const settings = calls.find((c) => c.url.endsWith("/indexes/books/settings"));
+    expect(settings?.init?.method).toBe("PATCH");
+    const sentBody = JSON.parse(String(settings?.init?.body));
+    expect(sentBody.searchableAttributes[0]).toBe("title");
+    expect(sentBody.filterableAttributes).toContain("genreSlugs");
+  });
+});
+
+describe("MeiliProvider.index", () => {
+  it("POSTs documents to the books index", async () => {
+    const { fn, calls } = captureFetch();
+    await new MeiliProvider(baseConfig, fn).index([doc]);
+    const post = calls.find((c) => c.url.endsWith("/indexes/books/documents"));
+    expect(post?.init?.method).toBe("POST");
+    expect(JSON.parse(String(post?.init?.body))[0].id).toBe("ol-a");
+  });
+
+  it("is a no-op for an empty batch", async () => {
+    const { fn, calls } = captureFetch();
+    await new MeiliProvider(baseConfig, fn).index([]);
+    expect(calls).toHaveLength(0);
+  });
+});
+
+describe("MeiliProvider.search", () => {
+  it("maps Meili hits to neutral, PublicBook-shaped results", async () => {
+    const { fn } = captureFetch({
+      hits: [
+        {
+          id: "ol-a",
+          title: "Alpha",
+          authorName: "Ada",
+          blurb: "x",
+          coverUrl: "https://c/a.jpg",
+          publishYear: 2001,
+          format: "reference",
+          _rankingScore: 0.9,
+        },
+      ],
+      estimatedTotalHits: 1,
+      limit: 6,
+      offset: 0,
+    });
+    const r = await new MeiliProvider(baseConfig, fn).search({ q: "alpha", limit: 6, offset: 0 });
+    expect(r.total).toBe(1);
+    expect(r.hits[0]).toMatchObject({ slug: "ol-a", title: "Alpha", authorName: "Ada", score: 0.9 });
+    // neutral hit carries no provider-only fields
+    expect((r.hits[0] as Record<string, unknown>).id).toBeUndefined();
+  });
+
+  it("builds an AND filter from genre/format/language", async () => {
+    const { fn, calls } = captureFetch({ hits: [], estimatedTotalHits: 0 });
+    await new MeiliProvider(baseConfig, fn).search({
+      q: "x",
+      limit: 6,
+      offset: 0,
+      filters: { genre: "mystery", format: "reference" },
+    });
+    const sent = JSON.parse(String(calls[0]?.init?.body));
+    expect(sent.filter).toContain('genreSlugs = "mystery"');
+    expect(sent.filter).toContain('format = "reference"');
+  });
+});

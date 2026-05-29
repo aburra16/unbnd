@@ -29,6 +29,10 @@ function makeApp(overrides: Partial<HealthDeps> = {}) {
     searchProvider: {
       name: "meili",
       health: vi.fn(async () => ({ ok: true, provider: "meili" as const })),
+      configureIndex: vi.fn(async () => {}),
+      index: vi.fn(async () => {}),
+      deleteAll: vi.fn(async () => {}),
+      search: vi.fn(async () => ({ hits: [], total: 0, offset: 0, limit: 0 })),
     },
     ...overrides,
   };
@@ -99,6 +103,10 @@ describe("GET /health/data", () => {
             provider: "meili" as const,
             error: "503 Service Unavailable",
           })),
+          configureIndex: vi.fn(async () => {}),
+          index: vi.fn(async () => {}),
+          deleteAll: vi.fn(async () => {}),
+          search: vi.fn(async () => ({ hits: [], total: 0, offset: 0, limit: 0 })),
         },
       }),
     ).get("/health/data");
