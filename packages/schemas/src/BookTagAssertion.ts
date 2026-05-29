@@ -1,8 +1,12 @@
 // Book tag assertion (ADR 0009): applies a tag (genre/style/signal) to a book
 // target with polarity (apply/dispute). The unified classification mechanism,
 // replacing BookGenreTag + BookQualitySignal. Kind-39999 item z-tagged to the
-// `book-tag-assertions` concept. IMPLEMENTATION PENDING (stubs throw).
+// `book-tag-assertions` concept.
 import {
+  asHexPubkey,
+  formatAddress,
+  parseAddressOfKind,
+  pubkeyPrefix,
   type DListAddress,
   type HexPubkey,
   type UnsignedDListEvent,
@@ -49,21 +53,72 @@ export type BookTagAssertionEvent = UnsignedDListEvent<
 
 /** D-tag: `tagassert--<bookSlug>--<tagSlug>--<asserter8>`; identity (author, book, tag). */
 export function buildBookTagAssertionDTag(
-  _bookSlug: string,
-  _tagSlug: string,
-  _asserterPubkey: HexPubkey,
+  bookSlug: string,
+  tagSlug: string,
+  asserterPubkey: HexPubkey,
 ): string {
-  throw new Error("buildBookTagAssertionDTag not implemented");
+  return `tagassert--${bookSlug}--${tagSlug}--${pubkeyPrefix(asserterPubkey)}`;
 }
 
 export function toBookTagAssertionEvent(
-  _assertion: BookTagAssertion,
+  assertion: BookTagAssertion,
 ): BookTagAssertionEvent {
-  throw new Error("toBookTagAssertionEvent not implemented");
+  const dTag = buildBookTagAssertionDTag(
+    assertion.bookSlug,
+    assertion.tagSlug,
+    assertion.asserterPubkey,
+  );
+  const bookAtag = formatAddress(assertion.bookAddress);
+  const tags: Array<readonly [string, ...string[]]> = [
+    ["d", dTag],
+    ["z", formatAddress(assertion.parentHeader)],
+    ["a", bookAtag],
+    ["t", assertion.tagSlug],
+    ["t", assertion.tagType],
+    ["polarity", String(assertion.polarity)],
+    ["p", assertion.asserterPubkey],
+  ];
+  const payload: BookTagAssertionPayload = {
+    word: {
+      slug: dTag,
+      name: `tag: ${assertion.bookSlug} → ${assertion.tagSlug}`,
+      title: `Tag: ${assertion.bookSlug} → ${assertion.tagSlug}`,
+      wordTypes: ["word", "bookTagAssertion"],
+    },
+    bookTagAssertion: {
+      bookSlug: assertion.bookSlug,
+      bookAtag,
+      tagSlug: assertion.tagSlug,
+      tagType: assertion.tagType,
+      polarity: assertion.polarity,
+    },
+  };
+  return {
+    kind: BOOK_TAG_ASSERTION_KIND,
+    tags,
+    content: "",
+    payload,
+    parentHeader: assertion.parentHeader,
+  };
 }
 
 export function fromBookTagAssertionEvent(
-  _event: BookTagAssertionEvent,
+  event: BookTagAssertionEvent,
 ): BookTagAssertion {
-  throw new Error("fromBookTagAssertionEvent not implemented");
+  const p = event.payload.bookTagAssertion;
+  const asserterTag = event.tags.find((t) => t[0] === "p");
+  if (!asserterTag || asserterTag.length < 2) {
+    throw new Error(
+      "fromBookTagAssertionEvent: missing `p` tag carrying the asserter pubkey",
+    );
+  }
+  return {
+    bookSlug: p.bookSlug,
+    bookAddress: parseAddressOfKind(p.bookAtag, 39999),
+    tagSlug: p.tagSlug,
+    tagType: p.tagType,
+    polarity: p.polarity,
+    asserterPubkey: asHexPubkey(asserterTag[1]!),
+    parentHeader: event.parentHeader,
+  };
 }

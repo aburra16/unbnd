@@ -4,8 +4,6 @@ export * from "./concept-headers";
 export * from "./BookRecord";
 export * from "./BookGenre";
 export * from "./BookRating";
-export * from "./BookGenreTag";
-export * from "./BookQualitySignal";
 export * from "./BookTag";
 export * from "./BookTagAssertion";
 export * from "./BookShelf";
