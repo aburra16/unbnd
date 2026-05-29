@@ -62,6 +62,6 @@ Resolved with the operator / in the ADR.
 
 ## Linked artifacts
 
-- ADR: (filled in after Architecture phase)
+- ADR: `engineering-team/decisions/0008-catalog-seed.md`
 - Test plan: (filled in after Test Design phase)
 - Review: (filled in after Review phase)
