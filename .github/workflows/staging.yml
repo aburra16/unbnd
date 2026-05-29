@@ -38,6 +38,8 @@ jobs:
             dockerfile: apps/web/Dockerfile
           - name: seeder
             dockerfile: apps/seeder/Dockerfile
+          - name: indexer
+            dockerfile: apps/indexer/Dockerfile
     steps:
       - name: Checkout (pinned to the built SHA)
         uses: actions/checkout@v4

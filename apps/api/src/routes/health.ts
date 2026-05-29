@@ -1,6 +1,6 @@
 import express, { type Router } from "express";
 import type { Config } from "../config";
-import type { SearchProvider } from "../search/SearchProvider";
+import type { SearchProvider } from "@unbnd/search";
 
 export type HealthDeps = {
   readonly config: Config;
