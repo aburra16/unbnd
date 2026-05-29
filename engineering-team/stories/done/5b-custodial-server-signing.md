@@ -1,6 +1,6 @@
 # Story 5b: Custodial server-side signing (session-scoped ephemeral wrap)
 
-**Status:** Draft
+**Status:** Done
 **Created:** 2026-05-28
 **Type:** Feature
 
@@ -56,6 +56,7 @@ The Architect resolves these in the ADR.
 
 ## Linked artifacts
 
-- ADR: (filled in after Architecture phase)
-- Test plan: (filled in after Test Design phase)
+- ADR: `engineering-team/decisions/0006-custodial-server-signing.md`
+- Test plan: `engineering-team/stories/done/5b-custodial-server-signing.test-plan.md`
+- Review: `engineering-team/reviews/5b-custodial-server-signing.md` (PASS)
 - Review: (filled in after Review phase)

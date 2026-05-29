@@ -6,10 +6,11 @@ import { parse as parseCookie } from "cookie";
 import type { Config } from "../config";
 import type { PublishResult } from "../nostr/publish";
 import type { NostrFilter } from "../nostr/query";
-import type { SignedNostrEvent } from "@unbnd/schemas";
+import type { NostrEventTemplate, SignedNostrEvent } from "@unbnd/schemas";
 import { buildRatingTemplate, RatingError } from "../ratings/template";
 import { validateSignedRating } from "../ratings/validate";
 import { summarizeRatings } from "../ratings/summary";
+import { tokenToId } from "../auth/sessions";
 
 const COOKIE_NAME = "session";
 const BOOK_RATING_KIND = 39999;
@@ -26,6 +27,16 @@ export type RatingsDeps = {
   readonly sessionUser: (cookie: string | undefined) => Promise<SessionUser | null>;
   readonly publish: (event: SignedNostrEvent) => Promise<PublishResult>;
   readonly query: (filter: NostrFilter) => Promise<SignedNostrEvent[]>;
+  /**
+   * Sign a template server-side for a custodial session, using that session's
+   * ephemeral-wrapped key (ADR 0006). Returns null when the session has no
+   * live key (post-restart / evicted) — the route maps that to 401
+   * reauth_required. Optional until story 5b wires it.
+   */
+  readonly custodialSign?: (
+    sessionIdHex: string,
+    template: NostrEventTemplate,
+  ) => Promise<SignedNostrEvent | null>;
 };
 
 function readSessionCookie(req: Request): string | undefined {
@@ -75,16 +86,76 @@ export function buildRatingsRouter(deps: RatingsDeps): Router {
     }
   });
 
-  // Accept a client-signed rating, validate it, publish to strfry.
+  // Publish a rating. Sovereign sessions post a client-signed `{ event }`;
+  // custodial sessions post a rating intent and the server signs it with the
+  // session's ephemeral-wrapped key (ADR 0006). Branched by tier.
   router.post("/api/ratings", async (req, res, next) => {
     try {
-      const user = await deps.sessionUser(readSessionCookie(req));
+      const cookie = readSessionCookie(req);
+      const user = await deps.sessionUser(cookie);
       if (!user) {
         res
           .status(401)
           .json({ error: { code: "no_session", message: "Not signed in." } });
         return;
       }
+
+      if (user.tier === "custodial") {
+        const { bookSlug, score, reviewText, reviewDate } = req.body ?? {};
+        let template;
+        try {
+          template = buildRatingTemplate(
+            deps.config,
+            { raterPubkey: user.pubkeyHex, bookSlug, score, reviewText, reviewDate },
+            Math.floor(Date.now() / 1000),
+          );
+        } catch (err) {
+          if (err instanceof RatingError) {
+            const status = err.code === "feature_unavailable" ? 503 : 400;
+            res.status(status).json({ error: { code: err.code, message: err.message } });
+            return;
+          }
+          throw err;
+        }
+        if (!deps.custodialSign) {
+          res.status(501).json({
+            error: { code: "not_supported", message: "Custodial signing is unavailable." },
+          });
+          return;
+        }
+        const sessionIdHex = cookie ? tokenToId(cookie).toString("hex") : "";
+        const signed = await deps.custodialSign(sessionIdHex, template);
+        if (!signed) {
+          // The session's signing key is gone (process restart / evicted).
+          res.status(401).json({
+            error: {
+              code: "reauth_required",
+              message: "Please sign in again to rate.",
+            },
+          });
+          return;
+        }
+        const published = await deps.publish(signed);
+        if (!published.ok) {
+          res.status(502).json({
+            error: {
+              code: "publish_failed",
+              message: "Could not publish the rating to the relay.",
+            },
+          });
+          return;
+        }
+        const addr = bookAddress(deps.config, bookSlug);
+        const events = addr
+          ? await deps.query({ kinds: [BOOK_RATING_KIND], "#a": [addr] })
+          : [];
+        res.status(200).json({
+          rating: { score, reviewText, reviewDate },
+          summary: summarizeRatings(events),
+        });
+        return;
+      }
+
       const { event } = req.body ?? {};
       const result = validateSignedRating(event, user.pubkeyHex);
       if (!result.ok) {

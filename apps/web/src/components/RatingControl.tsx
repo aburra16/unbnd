@@ -64,20 +64,44 @@ export function RatingControl({ bookSlug }: { bookSlug: string }) {
     };
   }, [bookSlug]);
 
+  // Sovereign users (no email) sign in the browser; custodial users (email)
+  // have the server sign with their session-wrapped key (ADR 0006).
+  const isSovereign =
+    session.status === "signed-in" && session.user.email === null;
+
   async function onSubmit() {
-    const nostr = (window as unknown as { nostr?: Nip07 }).nostr;
-    if (!nostr || score < 1) return;
+    if (score < 1) return;
     setStatus("submitting");
     setErrorMsg(null);
+    const reviewText = review.trim() === "" ? undefined : review.trim();
+    const reviewDate = todayIso();
     try {
-      const { template } = await api.ratings.template({
-        bookSlug,
-        score,
-        reviewText: review.trim() === "" ? undefined : review.trim(),
-        reviewDate: todayIso(),
-      });
-      const signed = await nostr.signEvent(template);
-      const { summary: next } = await api.ratings.submit(signed);
+      let next;
+      if (isSovereign) {
+        const nostr = (window as unknown as { nostr?: Nip07 }).nostr;
+        if (!nostr) {
+          setErrorMsg("No Nostr extension found.");
+          setStatus("error");
+          return;
+        }
+        const { template } = await api.ratings.template({
+          bookSlug,
+          score,
+          reviewText,
+          reviewDate,
+        });
+        const signed = await nostr.signEvent(template);
+        next = (await api.ratings.submit(signed)).summary;
+      } else {
+        next = (
+          await api.ratings.submitCustodial({
+            bookSlug,
+            score,
+            reviewText,
+            reviewDate,
+          })
+        ).summary;
+      }
       setSummary(next);
       setStatus("done");
     } catch (err) {
@@ -111,13 +135,7 @@ export function RatingControl({ bookSlug }: { bookSlug: string }) {
         </p>
       )}
 
-      {session.status === "signed-in" && session.user.email !== null && (
-        <p className="rate-gate">
-          Ratings from email accounts are coming soon.
-        </p>
-      )}
-
-      {session.status === "signed-in" && session.user.email === null && (
+      {session.status === "signed-in" && (
         <div className="rate-form">
           <div className="rate-stars" role="group" aria-label="Your rating">
             {[1, 2, 3, 4, 5].map((n) => (

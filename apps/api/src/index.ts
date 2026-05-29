@@ -20,7 +20,20 @@ import {
   toPublicUser,
 } from "./auth/users";
 import { decryptWithPassword } from "./auth/crypto";
-import { issueSession, resolveSession, revokeSession } from "./auth/sessions";
+import {
+  issueSession,
+  resolveSession,
+  revokeSession,
+  tokenToId,
+} from "./auth/sessions";
+import {
+  rememberSessionKey,
+  forgetSessionKey,
+  useSessionKey,
+  NoSessionKeyError,
+} from "./auth/ephemeral";
+import { finalizeEvent } from "nostr-tools/pure";
+import type { SignedNostrEvent } from "@unbnd/schemas";
 import { consumeChallenge, issueChallenge } from "./auth/challenges";
 import { verifySignedChallenge } from "./auth/nostr";
 
@@ -99,22 +112,35 @@ async function main() {
         // A null password column means this is not a custodial account
         // (sovereign users have no email/password). Treat as invalid.
         if (!row.encryptedNsecPassword) return null;
+        let secret: Uint8Array;
         try {
-          decryptWithPassword(row.encryptedNsecPassword, input.password);
+          secret = decryptWithPassword(row.encryptedNsecPassword, input.password);
         } catch {
           return null; // wrong password — NIP-49 AEAD tag check failed
         }
-        const session = await db.transaction(async (tx) => {
-          await revokeSession(tx, existingCookie); // rotation
-          return issueSession(tx, row.id);
-        });
-        return {
-          user: toPublicUser(row),
-          token: session.token,
-          expiresAt: session.expiresAt,
-        };
+        try {
+          const session = await db.transaction(async (tx) => {
+            await revokeSession(tx, existingCookie); // rotation
+            return issueSession(tx, row.id);
+          });
+          // Drop the rotated-out session's wrapped key so it doesn't orphan.
+          if (existingCookie) {
+            forgetSessionKey(tokenToId(existingCookie).toString("hex"));
+          }
+          // §8.2: wrap the just-decrypted nsec under the process-local
+          // ephemeral key, bound to this session, for server-side signing.
+          rememberSessionKey(tokenToId(session.token).toString("hex"), secret);
+          return {
+            user: toPublicUser(row),
+            token: session.token,
+            expiresAt: session.expiresAt,
+          };
+        } finally {
+          secret.fill(0); // never retain the plaintext beyond the wrap
+        }
       },
       logout: async (cookie) => {
+        if (cookie) forgetSessionKey(tokenToId(cookie).toString("hex"));
         await db.transaction((tx) => revokeSession(tx, cookie));
       },
       me: async (cookie) => {
@@ -162,6 +188,17 @@ async function main() {
       },
       publish: (event) => publishEvent(config, event),
       query: (filter) => queryEvents(config, filter),
+      custodialSign: async (sessionIdHex, template) => {
+        try {
+          return await useSessionKey(
+            sessionIdHex,
+            (secret) => finalizeEvent(template, secret) as SignedNostrEvent,
+          );
+        } catch (err) {
+          if (err instanceof NoSessionKeyError) return null; // restart/evicted
+          throw err;
+        }
+      },
     }),
   );
 

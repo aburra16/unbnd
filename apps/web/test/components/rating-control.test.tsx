@@ -102,14 +102,19 @@ describe("RatingControl — gating", () => {
     expect(signEvent).not.toHaveBeenCalled();
   });
 
-  it("shows the email-account placeholder for a custodial user (5b), no signing", async () => {
+  it("gives a custodial user the rating control (no placeholder, no extension signing)", async () => {
+    // 5b: custodial users now rate via server-side signing. The full custodial
+    // submit flow is covered in rating-control-custodial.test.tsx; here we just
+    // assert the control renders for them and the extension isn't touched.
     sessionMock.mockReturnValue({
       status: "signed-in",
       user: custodialUser,
       refresh: vi.fn(),
     });
     renderControl();
-    expect(await screen.findByText(/email accounts/i)).toBeInTheDocument();
+    expect(
+      await screen.findByRole("button", { name: /rate 5 of 5/i }),
+    ).toBeInTheDocument();
     expect(signEvent).not.toHaveBeenCalled();
   });
 });
