@@ -1,6 +1,6 @@
 # ADR 0010: Web goes live — book-read API + live read paths + classification UI
 
-**Status:** Proposed
+**Status:** Accepted
 **Date:** 2026-05-29
 **Story:** `engineering-team/stories/9-web-goes-live.md`
 
