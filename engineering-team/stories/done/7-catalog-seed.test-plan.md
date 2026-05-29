@@ -1,6 +1,6 @@
 # Test Plan: Story 7 — Catalog seed
 
-**Story:** `engineering-team/stories/7-catalog-seed.md`
+**Story:** `engineering-team/stories/done/7-catalog-seed.md`
 **ADR:** `engineering-team/decisions/0008-catalog-seed.md`
 **Date:** 2026-05-29
 

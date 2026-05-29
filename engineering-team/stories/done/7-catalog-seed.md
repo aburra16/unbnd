@@ -1,6 +1,6 @@
 # Story 7: Seed the book catalog (Open Library → DLists)
 
-**Status:** Approved
+**Status:** Done
 **Created:** 2026-05-29
 **Type:** Feature
 
@@ -63,5 +63,5 @@ Resolved with the operator / in the ADR.
 ## Linked artifacts
 
 - ADR: `engineering-team/decisions/0008-catalog-seed.md`
-- Test plan: `engineering-team/stories/7-catalog-seed.test-plan.md`
-- Review: (filled in after Review phase)
+- Test plan: `engineering-team/stories/done/7-catalog-seed.test-plan.md`
+- Review: `engineering-team/reviews/7-catalog-seed.md` (PASS)

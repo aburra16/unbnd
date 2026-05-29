@@ -2,7 +2,7 @@
 
 **Status:** Accepted
 **Date:** 2026-05-29
-**Story:** `engineering-team/stories/7-catalog-seed.md`
+**Story:** `engineering-team/stories/done/7-catalog-seed.md`
 
 ## Context
 
