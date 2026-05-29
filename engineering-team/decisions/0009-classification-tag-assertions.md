@@ -2,7 +2,7 @@
 
 **Status:** Accepted
 **Date:** 2026-05-29
-**Story:** `engineering-team/stories/8-classification-tag-assertions.md`
+**Story:** `engineering-team/stories/done/8-classification-tag-assertions.md`
 
 ## Context
 

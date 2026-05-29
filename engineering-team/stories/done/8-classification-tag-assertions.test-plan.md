@@ -1,6 +1,6 @@
 # Test Plan: Story 8 — Classification via tag assertions
 
-**Story:** `engineering-team/stories/8-classification-tag-assertions.md`
+**Story:** `engineering-team/stories/done/8-classification-tag-assertions.md`
 **ADR:** `engineering-team/decisions/0009-classification-tag-assertions.md`
 **Date:** 2026-05-29
 
