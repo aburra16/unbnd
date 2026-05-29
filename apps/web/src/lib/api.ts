@@ -77,6 +77,26 @@ export type TaxonomyElement = {
   sensitivity: "normal" | "accusatory";
 };
 
+// Search (ADR 0013). Provider-neutral hits; the web only ever talks to
+// /api/search, never the search backend.
+export type SearchHit = {
+  slug: string;
+  title: string;
+  authorName: string;
+  blurb?: string;
+  coverUrl?: string;
+  publishYear?: number;
+  format: string;
+  score?: number;
+};
+
+export type SearchResult = {
+  hits: SearchHit[];
+  total: number;
+  offset: number;
+  limit: number;
+};
+
 // kind-0 profile metadata (ADR 0012). Always carries npub; the rest is
 // best-effort from public relays (present for sovereign users with a profile).
 export type ProfileMeta = {
@@ -204,6 +224,16 @@ export const api = {
     recent(limit = 24) {
       return authFetch<{ books: PublicBook[] }>(`/api/books?limit=${limit}`);
     },
+  },
+  search(
+    q: string,
+    opts: { limit?: number; offset?: number; genre?: string } = {},
+  ) {
+    const p = new URLSearchParams({ q });
+    if (opts.limit != null) p.set("limit", String(opts.limit));
+    if (opts.offset != null) p.set("offset", String(opts.offset));
+    if (opts.genre) p.set("genre", opts.genre);
+    return authFetch<SearchResult>(`/api/search?${p.toString()}`);
   },
   profile: {
     get(idOrNpub: string) {

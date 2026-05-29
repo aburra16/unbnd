@@ -1,5 +1,5 @@
 import { LogoMark } from "./LogoMark";
-import { SearchIcon } from "./SearchIcon";
+import { SearchBox } from "./SearchBox";
 import "./Hero.css";
 
 export function Hero() {
@@ -18,14 +18,7 @@ export function Hero() {
         respect.
       </p>
       <div className="hero-search">
-        <span className="hero-search-icon" aria-hidden="true">
-          <SearchIcon />
-        </span>
-        <input
-          type="text"
-          placeholder="Search by title, author, or ISBN"
-          aria-label="Search the catalog"
-        />
+        <SearchBox autoFocus />
       </div>
     </section>
   );
