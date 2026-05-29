@@ -75,6 +75,18 @@
   background: var(--u-surface);
 }
 
+.nav-search {
+  display: flex;
+}
+
+/* The homepage hero already has a prominent search; avoid doubling up there is
+   unnecessary — the nav search is fine on every page and stays subtle. */
+@media (max-width: 860px) {
+  .nav-search {
+    display: none;
+  }
+}
+
 @media (max-width: 540px) {
   .nav {
     gap: 16px;

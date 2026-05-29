@@ -53,3 +53,20 @@ tail -f /var/log/unbnd-upsync.log
 - Disable dual-publish without redeploying: set `PROPAGATE_WRITES=false` in
   `.env` and restart the api service. The cron backstop still propagates.
 - dcosl accepts writes from any key (probed 2026-05-29); no allowlist gate.
+
+## Search index (ADR 0013)
+
+The search index is built by the `@unbnd/indexer` job from the local relay
+(books + taxonomy + assertions). It is **not** live — re-run it after a
+re-seed, or to reflect freshly-applied community tags in search:
+
+```bash
+cd /opt/unbnd
+docker pull ghcr.io/aburra16/unbnd-indexer:latest   # profile jobs aren't pulled by deploy
+docker compose -f docker-compose.prod.yml --profile index run --rm indexer
+```
+
+Idempotent (documents upsert by slug) and paginates past the relay's 500-event
+`maxFilterLimit`. Provider-agnostic: set `SEARCH_PROVIDER` (default `meili`) —
+the indexer and API both resolve the provider through `@unbnd/search`.
+(Live index-on-write is a future upgrade.)
