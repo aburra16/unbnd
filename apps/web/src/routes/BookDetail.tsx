@@ -6,6 +6,7 @@ import { Breadcrumb } from "../components/Breadcrumb";
 import { BookHeader } from "../components/BookHeader";
 import { RatingsBlock } from "../components/RatingsBlock";
 import { RatingControl } from "../components/RatingControl";
+import { TagControl } from "../components/TagControl";
 import { ReviewsList } from "../components/ReviewsList";
 import { WhereToRead } from "../components/WhereToRead";
 import { NotFound } from "./NotFound";
@@ -62,6 +63,20 @@ export function BookDetail() {
     };
   }, [slug]);
 
+  const reloadTags = () => {
+    if (!slug) return;
+    api.tags
+      .book(slug)
+      .then((tags) =>
+        setState((prev) =>
+          prev.status === "ready" ? { ...prev, tags } : prev,
+        ),
+      )
+      .catch(() => {
+        /* keep the current chips on a refresh failure */
+      });
+  };
+
   if (state.status === "not-found") return <NotFound />;
 
   if (state.status === "loading") {
@@ -106,6 +121,7 @@ export function BookDetail() {
       <BookHeader book={book} genres={tags.genres} styles={tags.styles} />
       <RatingsBlock summary={ratings} />
       {slug && <RatingControl bookSlug={slug} />}
+      {slug && <TagControl bookSlug={slug} tags={tags} onChanged={reloadTags} />}
       <ReviewsList ratings={ratings.ratings} />
       {book.purchaseUrl && (
         <WhereToRead
