@@ -4,6 +4,7 @@ import { BookDetail } from "./routes/BookDetail";
 import { GenreBrowse } from "./routes/GenreBrowse";
 import { Submit } from "./routes/Submit";
 import { Profile } from "./routes/Profile";
+import { ProfileMe } from "./routes/ProfileMe";
 import { AuthMethodSelect } from "./routes/AuthMethodSelect";
 import { AuthEmailSignup } from "./routes/AuthEmailSignup";
 import { AuthNostrConnect } from "./routes/AuthNostrConnect";
@@ -18,6 +19,7 @@ export function App() {
         <Route path="/book/:slug" element={<BookDetail />} />
         <Route path="/genre/:slug" element={<GenreBrowse />} />
         <Route path="/submit" element={<Submit />} />
+        <Route path="/profile/me" element={<ProfileMe />} />
         <Route path="/profile/:handle" element={<Profile />} />
         <Route path="/auth" element={<AuthMethodSelect />} />
         <Route path="/auth/email" element={<AuthEmailSignup />} />

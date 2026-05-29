@@ -34,7 +34,21 @@ export type Config = {
    * here only so partial test fixtures need not set it. ADR 0011.
    */
   readonly propagateWrites?: boolean;
+  /**
+   * Public relays queried (best-effort) for a pubkey's kind-0 profile metadata
+   * — sovereign users' name/picture live on the broad network, not dcosl.
+   * Always set by `loadConfig`; optional here so partial test fixtures need
+   * not set it. ADR 0012.
+   */
+  readonly profileRelays?: readonly string[];
 };
+
+const DEFAULT_PROFILE_RELAYS = [
+  "wss://relay.damus.io",
+  "wss://relay.primal.net",
+  "wss://nos.lol",
+  "wss://relay.nostr.band",
+];
 
 const KNOWN_PROVIDERS: readonly Config["searchProvider"][] = ["meili", "vespa"];
 
@@ -109,11 +123,20 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
     dcoslRelayUrl !== undefined &&
     withDefault(env, "PROPAGATE_WRITES", "true") !== "false";
 
+  // kind-0 profile relays (ADR 0012). Comma-separated override; dcosl appended
+  // so we also catch metadata that happens to live there.
+  const profileRelaysRaw = env.PROFILE_RELAYS;
+  const profileRelays =
+    profileRelaysRaw && profileRelaysRaw.length > 0
+      ? profileRelaysRaw.split(",").map((s) => s.trim()).filter(Boolean)
+      : [...DEFAULT_PROFILE_RELAYS, ...(dcoslRelayUrl ? [dcoslRelayUrl] : [])];
+
   return {
     port,
     strfryUrl: withDefault(env, "STRFRY_URL", "ws://localhost:7777"),
     dcoslRelayUrl,
     propagateWrites,
+    profileRelays,
     neo4jBoltUrl: withDefault(env, "NEO4J_BOLT_URL", "bolt://localhost:7687"),
     neo4jUser: withDefault(env, "NEO4J_USER", "neo4j"),
     neo4jPassword,

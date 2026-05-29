@@ -1,7 +1,10 @@
+import { Link } from "react-router-dom";
 import { LogoMark } from "./LogoMark";
+import { useSession } from "../hooks/useSession";
 import "./Footer.css";
 
 export function Footer() {
+  const session = useSession();
   return (
     <footer className="footer">
       <div className="footer-left">
@@ -11,8 +14,12 @@ export function Footer() {
       </div>
       <div className="footer-links">
         <a href="/about">About</a>
-        <a href="/submit">Submit</a>
-        <a href="/profile/mira-calloway">Profile</a>
+        <Link to="/submit">Submit</Link>
+        {session.status === "signed-in" ? (
+          <Link to="/profile/me">Profile</Link>
+        ) : (
+          <Link to="/auth">Sign in</Link>
+        )}
       </div>
     </footer>
   );

@@ -15,9 +15,11 @@ export type NostrFilter = {
 const QUERY_TIMEOUT_MS = 5000;
 const SUB_ID = "unbnd-read";
 
-export function queryEvents(
-  config: Config,
+/** One-shot REQ→EOSE read against an explicit relay URL (ADR 0012). */
+export function queryRelayUrl(
+  relayUrl: string,
   filter: NostrFilter,
+  timeoutMs = QUERY_TIMEOUT_MS,
 ): Promise<SignedNostrEvent[]> {
   return new Promise<SignedNostrEvent[]>((resolve) => {
     const collected: SignedNostrEvent[] = [];
@@ -34,7 +36,7 @@ export function queryEvents(
       resolve(collected);
     };
 
-    const ws = new WebSocket(config.strfryUrl);
+    const ws = new WebSocket(relayUrl);
     const timer = setTimeout(() => {
       try {
         ws.terminate();
@@ -42,7 +44,7 @@ export function queryEvents(
         // ignore
       }
       finish();
-    }, QUERY_TIMEOUT_MS);
+    }, timeoutMs);
 
     ws.on("open", () => {
       ws.send(JSON.stringify(["REQ", SUB_ID, filter]));
@@ -65,4 +67,11 @@ export function queryEvents(
 
     ws.on("error", () => finish());
   });
+}
+
+export function queryEvents(
+  config: Config,
+  filter: NostrFilter,
+): Promise<SignedNostrEvent[]> {
+  return queryRelayUrl(config.strfryUrl, filter);
 }
