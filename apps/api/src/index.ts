@@ -100,6 +100,24 @@ async function main() {
           }
           throw err;
         });
+        // A signup session is logged in — establish the ephemeral signing
+        // wrap now (mirror login) so a new custodial user can rate without
+        // having to sign in again. Decrypt the just-stored nsec with the
+        // signup password, wrap, wipe.
+        if (user.row.encryptedNsecPassword) {
+          const secret = decryptWithPassword(
+            user.row.encryptedNsecPassword,
+            input.password,
+          );
+          try {
+            rememberSessionKey(
+              tokenToId(user.session.token).toString("hex"),
+              secret,
+            );
+          } finally {
+            secret.fill(0);
+          }
+        }
         return {
           user: toPublicUser(user.row),
           token: user.session.token,
