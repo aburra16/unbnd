@@ -41,12 +41,18 @@ deferred to cycle 5.
 5. **Write the env file** `/opt/unbnd/.env` from `.env.production.example`,
    with the generated secrets. `chmod 600 /opt/unbnd/.env`. Never commit it.
 
-6. **Confirm the data-layer image is pullable**
+6. **Images come from GHCR — the droplet never builds.** All three app
+   images (`unbnd-api`, `unbnd-web`, `unbnd-tapestry-data-layer`) are built in
+   CI and pushed to `ghcr.io/aburra16/…`. The data-layer image is produced by
+   the `Publish tapestry-data-layer image` workflow from a **pinned** upstream
+   commit of `nous-clawds4/tapestry` (concept-graph) — strfry/Neo4j compile on
+   GitHub runners, not here. Run that workflow once before the first deploy:
    ```sh
-   docker pull unbnd/tapestry-data-layer:latest
+   gh workflow run "Publish tapestry-data-layer image"   # uses the pinned default ref
    ```
-   If it is not published, build and push it from the Tapestry repo first
-   (or load it onto the droplet), then retry.
+   If the images are **public** (recommended for staging — they contain no
+   secrets), the droplet needs no registry login. If you keep them private,
+   `docker login ghcr.io` once with a `read:packages` token.
 
 7. **DNS:** add an `A` record `staging.unbnd.ink` → the droplet's public IP
    (Namecheap). Wait for propagation before the first `up` so Caddy can
@@ -55,7 +61,8 @@ deferred to cycle 5.
 8. **First boot**
    ```sh
    cd /opt/unbnd
-   docker compose -f docker-compose.prod.yml up -d --build
+   docker compose -f docker-compose.prod.yml pull
+   docker compose -f docker-compose.prod.yml up -d
    docker compose -f docker-compose.prod.yml logs -f caddy api
    ```
    The API runs migrations on start; Caddy obtains the certificate once DNS
@@ -75,12 +82,22 @@ droplet `/opt/unbnd/.env`, not in Actions — the deploy job only needs SSH.
 
 ## Continuous deploy
 
-`.github/workflows/deploy.yml` triggers after the **CI** workflow succeeds on
-`main`, SSHes to the droplet, and runs:
+Two workflows build images in CI and push to GHCR:
+- `Publish images` — builds `unbnd-api` + `unbnd-web` on every successful CI
+  run on `main`.
+- `Publish tapestry-data-layer image` — manual (`workflow_dispatch`), builds
+  the data layer from a pinned `nous-clawds4/tapestry` commit.
+
+`.github/workflows/deploy.yml` triggers after **CI** succeeds on `main`, SSHes
+to the droplet, and runs:
 ```sh
-git reset --hard origin/main && docker compose -f docker-compose.prod.yml up -d --build
+git reset --hard origin/main \
+  && docker compose -f docker-compose.prod.yml pull \
+  && docker compose -f docker-compose.prod.yml up -d
 ```
-A merge to `main` therefore redeploys automatically once CI is green.
+A merge to `main` therefore redeploys automatically once CI is green — the
+droplet pulls the freshly-built images, never building locally. (The deploy
+job no-ops with a notice until `DROPLET_HOST` is set.)
 
 ## Verify
 
@@ -97,7 +114,13 @@ A merge to `main` therefore redeploys automatically once CI is green.
 
 ## Rollback
 
+Pin the app services to a previous image tag (CI tags every image with its
+commit SHA) and re-up:
 ```sh
-cd /opt/unbnd && git reset --hard <previous-good-sha>
-docker compose -f docker-compose.prod.yml up -d --build
+cd /opt/unbnd
+# e.g. export UNBND_API_TAG=<previous-sha> if compose is parameterised, or
+# `docker compose pull` after pointing image tags at the last good SHA.
+docker compose -f docker-compose.prod.yml up -d
 ```
+The simplest staging rollback is to re-run the `Publish images` workflow from
+the last good commit and `docker compose pull && up -d` on the droplet.
