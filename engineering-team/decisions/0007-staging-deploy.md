@@ -84,4 +84,20 @@ search       : meilisearch v1.10
 
 ## Out of scope
 
-Public launch, real book seeding, GHCR image pipeline, blue-green/zero-downtime, monitoring/alerting, `__Host-` cookies, rate limiting, secrets manager — all later. Custodial rating is story 5b.
+Public launch, real book seeding, blue-green/zero-downtime, monitoring/alerting, `__Host-` cookies, rate limiting, secrets manager — all later. Custodial rating is story 5b.
+
+## Amendment (2026-05-28): GHCR images supersede build-on-droplet
+
+The original "deploy mechanism: SSH + build-on-droplet" choice is **superseded** before go-live. Two facts forced it: (1) `unbnd/tapestry-data-layer:latest` is not published anywhere — it must be built from `nous-clawds4/tapestry` (compiles strfry from C++ source + installs Neo4j), and (2) the operator wants the non-shortcut path and to protect droplet resources. Building that on the runtime host each deploy is the anti-pattern we should avoid; it also burns the 2 vCPU / 8 GB droplet's CPU/disk and is non-reproducible.
+
+**Revised decision — build in CI, push to GHCR, the droplet only pulls:**
+
+1. **Three images on GHCR** (`ghcr.io/aburra16/`): `unbnd-api`, `unbnd-web` (Caddy + static build), `unbnd-tapestry-data-layer`.
+2. **`publish-images.yml`** builds `api` + `web` on each successful CI run on `main` (and `workflow_dispatch`), via the built-in `GITHUB_TOKEN` (no PAT), tagged `:latest` + `:<sha>`, with GHA layer caching.
+3. **`publish-tapestry-data-layer.yml`** (`workflow_dispatch`) checks out **`nous-clawds4/tapestry` at a pinned commit** (default `6a9391fd…`, concept-graph) and builds its `Dockerfile` on GitHub runners — the heavy strfry/Neo4j compile never touches the droplet, and upstream is never modified (no PR/push to David's repo required; his repo is public so we build *from* it). Bump the ref deliberately.
+4. **`docker-compose.prod.yml`** now references `image:` (GHCR) instead of `build:`; **`deploy.yml`** does `docker compose pull && up -d` (no `--build`).
+5. **Image visibility:** recommended **public** for staging — the images contain no secrets (config is injected at runtime via env) and the source repos are public, so public images leak nothing and spare the droplet any registry credential. Trivially switchable to private + a `read:packages` login for launch.
+
+**Why this is strictly better:** immutable, version-pinned, reproducible artifacts; fast deploys (pull, not a multi-minute compile); the droplet spends its resources running, not building; and it is the path we want for launch anyway, so it is not rework. The trade is a little more CI plumbing, which is the correct investment.
+
+A courtesy issue to David proposing official upstream image publishing is optional and non-blocking; it does not gate staging.

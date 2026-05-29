@@ -1,0 +1,50 @@
+name: Publish tapestry-data-layer image
+
+# Builds the Tapestry data-layer image (strfry + Neo4j + tapestry-api) from
+# the public upstream repo at a PINNED commit and pushes it to our GHCR. The
+# heavy strfry/Neo4j compile runs on GitHub runners, never on the droplet.
+# Upstream (nous-clawds4/tapestry) is never modified. Manual trigger only —
+# the image changes rarely; bump REF deliberately. ADR 0007 (amended).
+on:
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: "nous-clawds4/tapestry commit/branch to build"
+        required: true
+        default: "6a9391fdd0114930a52f42f0b4196692bfcf1b22"
+
+concurrency:
+  group: publish-tapestry-data-layer
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  publish:
+    name: Build + push data layer
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout upstream Tapestry (pinned)
+        uses: actions/checkout@v4
+        with:
+          repository: nous-clawds4/tapestry
+          ref: ${{ inputs.ref }}
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build + push
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: Dockerfile
+          push: true
+          tags: |
+            ghcr.io/${{ github.repository_owner }}/unbnd-tapestry-data-layer:latest
+            ghcr.io/${{ github.repository_owner }}/unbnd-tapestry-data-layer:${{ inputs.ref }}

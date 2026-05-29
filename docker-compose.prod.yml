@@ -1,13 +1,13 @@
-# Staging production stack on one droplet (ADR 0007, story 6).
-# Only caddy exposes ports; everything else talks over the internal network.
-# Secrets come from /opt/unbnd/.env (untracked). Bring up with:
-#   docker compose -f docker-compose.prod.yml up -d --build
+# Staging production stack on one droplet (ADR 0007, amended).
+# All app images are pulled from GHCR (built in CI) — the droplet never
+# builds. Only caddy exposes ports; everything else talks over the internal
+# network. Secrets come from /opt/unbnd/.env (untracked). Bring up with:
+#   docker compose -f docker-compose.prod.yml pull
+#   docker compose -f docker-compose.prod.yml up -d
 services:
   caddy:
     container_name: unbnd-caddy
-    build:
-      context: .
-      dockerfile: apps/web/Dockerfile
+    image: ghcr.io/aburra16/unbnd-web:latest
     environment:
       - SITE_ADDRESS=${SITE_ADDRESS}
     ports:
@@ -22,9 +22,7 @@ services:
 
   api:
     container_name: unbnd-api
-    build:
-      context: .
-      dockerfile: apps/api/Dockerfile
+    image: ghcr.io/aburra16/unbnd-api:latest
     environment:
       - NODE_ENV=production
       - PORT=8787
@@ -48,7 +46,7 @@ services:
 
   tapestry:
     container_name: unbnd-tapestry
-    image: unbnd/tapestry-data-layer:latest
+    image: ghcr.io/aburra16/unbnd-tapestry-data-layer:latest
     environment:
       - OWNER_PUBKEY=${LIBRARIAN_PUBKEY}
       - NEO4J_PASSWORD=${NEO4J_PASSWORD}
