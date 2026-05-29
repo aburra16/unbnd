@@ -11,6 +11,9 @@
 	handle /api/* {
 		reverse_proxy api:8787
 	}
+	handle /health* {
+		reverse_proxy api:8787
+	}
 
 	# Everything else is the SPA.
 	handle {
