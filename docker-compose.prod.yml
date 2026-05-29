@@ -7,7 +7,7 @@
 services:
   caddy:
     container_name: unbnd-caddy
-    image: ghcr.io/aburra16/unbnd-web:latest
+    image: ghcr.io/aburra16/unbnd-web:${UNBND_IMAGE_TAG:-latest}
     environment:
       - SITE_ADDRESS=${SITE_ADDRESS}
     ports:
@@ -22,7 +22,7 @@ services:
 
   api:
     container_name: unbnd-api
-    image: ghcr.io/aburra16/unbnd-api:latest
+    image: ghcr.io/aburra16/unbnd-api:${UNBND_IMAGE_TAG:-latest}
     environment:
       - NODE_ENV=production
       - PORT=8787
