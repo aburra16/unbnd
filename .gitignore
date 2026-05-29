@@ -12,3 +12,4 @@ coverage
 .idea
 .vscode
 .cache
+.claude/settings.local.json
