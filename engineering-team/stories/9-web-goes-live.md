@@ -1,6 +1,6 @@
 # Story 9: Web goes live — live catalog reads + classification UI
 
-**Status:** Draft
+**Status:** Approved
 **Created:** 2026-05-29
 **Type:** Feature
 
