@@ -1,6 +1,6 @@
 # Story 6: Staging deployment (sovereign flow live on a real relay)
 
-**Status:** Approved
+**Status:** Implemented — pending go-live verification (AC-5/7/8 on the droplet)
 **Created:** 2026-05-28
 **Type:** Feature (infra)
 
@@ -62,5 +62,5 @@ Resolved with the operator before/in the ADR.
 ## Linked artifacts
 
 - ADR: `engineering-team/decisions/0007-staging-deploy.md`
-- Test plan: (filled in after Test Design phase)
-- Review: (filled in after Review phase)
+- Test plan: n/a — infra story; verification is executable (esbuild bundle runs locally; image builds + live flow verified on the droplet per `docs/DEPLOY.md`).
+- Review: `engineering-team/reviews/6-staging-deploy.md` (PASS for artifacts; go-live checklist pending)
