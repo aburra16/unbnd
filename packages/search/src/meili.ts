@@ -1,18 +1,17 @@
 // Meilisearch adapter — the ONLY file in the codebase that knows about Meili
 // (ADR 0013). Raw HTTP, no SDK. Everything else depends on the neutral
-// SearchProvider interface + ./types, so a Vespa adapter is a drop-in. The
-// architecture guard test enforces that Meili specifics never leak past here.
-import type { Config } from "../config";
+// SearchProvider interface + the domain types, so a Vespa adapter is a drop-in.
+// The architecture guard test enforces that Meili specifics never leak past
+// this file.
 import type {
   ProviderHealth,
   ProviderName,
-  SearchProvider,
-} from "./SearchProvider";
-import type {
+  ProviderOptions,
   SearchDocument,
+  SearchHit,
+  SearchProvider,
   SearchQuery,
   SearchResult,
-  SearchHit,
 } from "./types";
 
 const INDEX = "books";
@@ -34,23 +33,21 @@ type MeiliHit = SearchDocument & { _rankingScore?: number };
 
 export class MeiliProvider implements SearchProvider {
   readonly name: ProviderName = "meili";
-  readonly #config: Config;
+  readonly #url: string;
+  readonly #apiKey: string;
   readonly #fetch: typeof fetch;
 
-  constructor(config: Config, fetchImpl: typeof fetch = fetch) {
-    this.#config = config;
+  constructor(opts: Pick<ProviderOptions, "url" | "apiKey">, fetchImpl: typeof fetch = fetch) {
+    this.#url = opts.url;
+    this.#apiKey = opts.apiKey;
     this.#fetch = fetchImpl;
   }
 
-  #url(path: string): string {
-    return `${this.#config.searchUrl}${path}`;
-  }
-
   #req(path: string, init?: RequestInit): Promise<Response> {
-    return this.#fetch(this.#url(path), {
+    return this.#fetch(`${this.#url}${path}`, {
       ...init,
       headers: {
-        Authorization: `Bearer ${this.#config.searchApiKey}`,
+        Authorization: `Bearer ${this.#apiKey}`,
         "Content-Type": "application/json",
         ...(init?.headers ?? {}),
       },

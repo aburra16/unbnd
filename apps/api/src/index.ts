@@ -16,7 +16,7 @@ import { buildTagsRouter } from "./routes/tags";
 import { publishEvent } from "./nostr/publish";
 import { withUpSync } from "./nostr/propagate";
 import { queryEvents } from "./nostr/query";
-import { resolveProvider } from "./search";
+import { resolveProvider } from "@unbnd/search";
 import {
   createCustodialUser,
   createOrLoadSovereignUser,
@@ -43,7 +43,11 @@ import { verifySignedChallenge } from "./auth/nostr";
 
 async function main() {
   const config = loadConfig();
-  const searchProvider = resolveProvider(config);
+  const searchProvider = resolveProvider({
+    provider: config.searchProvider,
+    url: config.searchUrl,
+    apiKey: config.searchApiKey,
+  });
 
   // Postgres may not accept connections the instant the API container starts
   // (compose `depends_on: service_healthy` covers the normal case; this is

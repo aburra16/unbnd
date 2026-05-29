@@ -26,6 +26,9 @@ importers:
       '@unbnd/schemas':
         specifier: workspace:*
         version: link:../../packages/schemas
+      '@unbnd/search':
+        specifier: workspace:*
+        version: link:../../packages/search
       cookie:
         specifier: 1.1.1
         version: 1.1.1
@@ -66,6 +69,40 @@ importers:
       supertest:
         specifier: ^7.0.0
         version: 7.2.2
+      tsx:
+        specifier: ^4.19.0
+        version: 4.22.3
+      typescript:
+        specifier: ^5.5.3
+        version: 5.9.3
+      vitest:
+        specifier: ^2.1.0
+        version: 2.1.9(@types/node@22.19.19)(happy-dom@15.11.7)
+
+  apps/indexer:
+    dependencies:
+      '@unbnd/schemas':
+        specifier: workspace:*
+        version: link:../../packages/schemas
+      '@unbnd/search':
+        specifier: workspace:*
+        version: link:../../packages/search
+      ws:
+        specifier: ^8.18.0
+        version: 8.21.0
+    devDependencies:
+      '@types/node':
+        specifier: ^22.5.0
+        version: 22.19.19
+      '@types/ws':
+        specifier: ^8.5.12
+        version: 8.18.1
+      esbuild:
+        specifier: 0.24.2
+        version: 0.24.2
+      nostr-tools:
+        specifier: 2.10.4
+        version: 2.10.4(typescript@5.9.3)
       tsx:
         specifier: ^4.19.0
         version: 4.22.3
@@ -154,6 +191,15 @@ importers:
         version: 2.1.9(@types/node@22.19.19)(happy-dom@15.11.7)
 
   packages/schemas:
+    devDependencies:
+      typescript:
+        specifier: ^5.5.3
+        version: 5.9.3
+      vitest:
+        specifier: ^2.1.0
+        version: 2.1.9(@types/node@22.19.19)(happy-dom@15.11.7)
+
+  packages/search:
     devDependencies:
       typescript:
         specifier: ^5.5.3

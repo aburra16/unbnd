@@ -1,4 +1,4 @@
-// Provider-neutral search domain types (ADR 0013). NOTHING in here (or anywhere
+// Provider-neutral search domain types (ADR 0013). NOTHING here (or anywhere
 // outside a provider adapter) may reference Meili/Vespa specifics — that's what
 // keeps the provider swap a one-adapter change. Enforced by the architecture
 // guard test.
@@ -53,3 +53,34 @@ export type SearchResult = {
   readonly offset: number;
   readonly limit: number;
 };
+
+export type ProviderName = "meili" | "vespa";
+
+export type ProviderHealth = {
+  readonly ok: boolean;
+  readonly provider: ProviderName;
+  readonly version?: string;
+  readonly error?: string;
+  readonly latencyMs?: number;
+};
+
+/** Connection options for any provider. Deliberately minimal + neutral. */
+export type ProviderOptions = {
+  readonly provider: ProviderName;
+  readonly url: string;
+  readonly apiKey: string;
+};
+
+export interface SearchProvider {
+  readonly name: ProviderName;
+  /** Liveness/version probe. */
+  health(): Promise<ProviderHealth>;
+  /** Apply index settings (searchable order/weights, filterable attrs, etc.). */
+  configureIndex(): Promise<void>;
+  /** Upsert documents by id. Idempotent. */
+  index(docs: readonly SearchDocument[]): Promise<void>;
+  /** Drop all documents (for a clean re-index). */
+  deleteAll(): Promise<void>;
+  /** Full-text query → provider-neutral results. */
+  search(query: SearchQuery): Promise<SearchResult>;
+}

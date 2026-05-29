@@ -96,6 +96,21 @@ services:
       - seeder-data:/data
     restart: "no"
 
+  # Search indexer (ADR 0013). Never starts with the normal stack — only via
+  #   docker compose --profile index run --rm indexer
+  # Reads the local relay catalog and loads the search index. Provider-agnostic
+  # (SEARCH_PROVIDER); re-runnable.
+  indexer:
+    image: ghcr.io/aburra16/unbnd-indexer:${UNBND_IMAGE_TAG:-latest}
+    profiles: ["index"]
+    environment:
+      - STRFRY_URL=ws://tapestry/relay
+      - LIBRARIAN_PUBKEY=${LIBRARIAN_PUBKEY}
+      - SEARCH_URL=http://search:7700
+      - SEARCH_API_KEY=${SEARCH_API_KEY}
+      - SEARCH_PROVIDER=${SEARCH_PROVIDER:-meili}
+    restart: "no"
+
   search:
     container_name: unbnd-search
     image: getmeili/meilisearch:v1.10
