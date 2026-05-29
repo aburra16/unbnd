@@ -10,6 +10,7 @@ import { probeTapestry } from "./probes/tapestry";
 import { buildAuthRouter } from "./routes/auth";
 import { buildBooksRouter } from "./routes/books";
 import { buildProfileRouter } from "./routes/profile";
+import { buildSearchRouter } from "./routes/search";
 import { buildHealthRouter } from "./routes/health";
 import { buildRatingsRouter } from "./routes/ratings";
 import { buildTagsRouter } from "./routes/tags";
@@ -248,6 +249,7 @@ async function main() {
 
   app.use("/", buildBooksRouter({ config, query: userEventDeps.query }));
   app.use("/", buildProfileRouter({ config }));
+  app.use("/", buildSearchRouter({ searchProvider }));
   app.use("/", buildRatingsRouter(userEventDeps));
   app.use("/", buildTagsRouter(userEventDeps));
 
