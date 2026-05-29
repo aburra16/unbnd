@@ -11,7 +11,7 @@ import {
   formatAddress,
 } from "@unbnd/schemas";
 import { resolveProvider, type ProviderName } from "@unbnd/search";
-import { queryRelay } from "./relay";
+import { queryRelay, queryAllPages } from "./relay";
 import { buildSearchDocuments } from "./build-documents";
 
 const KIND = 39999;
@@ -41,10 +41,13 @@ async function main() {
 
   console.log(`[indexer] relay=${relayUrl} provider=${provider.name} librarian=${lib.slice(0, 12)}`);
 
+  // Paginate past the relay's per-REQ cap so the WHOLE catalog is indexed.
+  const readAll = (z: string) =>
+    queryAllPages((cursor) => queryRelay(relayUrl, { kinds: [KIND], "#z": [z], ...cursor }));
   const [books, taxonomy, assertions] = await Promise.all([
-    queryRelay(relayUrl, { kinds: [KIND], "#z": [booksZ] }),
-    queryRelay(relayUrl, { kinds: [KIND], "#z": [tagsZ] }),
-    queryRelay(relayUrl, { kinds: [KIND], "#z": [assertZ] }),
+    readAll(booksZ),
+    readAll(tagsZ),
+    readAll(assertZ),
   ]);
   console.log(
     `[indexer] read ${books.length} books, ${taxonomy.length} taxonomy, ${assertions.length} assertions`,
