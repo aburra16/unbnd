@@ -50,6 +50,6 @@ Sub-PRs: (a) book-read API; (b) web read-path swap (home/genre/book-detail off A
 
 ## Linked artifacts
 
-- ADR: (filled in after Architecture phase)
+- ADR: `engineering-team/decisions/0010-web-goes-live.md`
 - Test plan: (filled in after Test Design phase)
 - Review: (filled in after Review phase)
