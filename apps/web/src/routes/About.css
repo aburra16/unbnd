@@ -1,0 +1,34 @@
+.about {
+  max-width: 620px;
+  margin: 12px auto 0;
+}
+
+.about-title {
+  font-size: 28px;
+  font-weight: 600;
+  letter-spacing: -0.6px;
+  color: var(--u-ink);
+  margin-bottom: 14px;
+}
+
+.about-lede {
+  font-size: 17px;
+  line-height: 1.6;
+  color: var(--u-ink);
+  margin-bottom: 16px;
+}
+
+.about p {
+  font-size: 15px;
+  line-height: 1.75;
+  color: rgba(26, 26, 46, 0.78);
+  margin-bottom: 14px;
+}
+
+.about-state {
+  margin-top: 22px;
+  padding-top: 16px;
+  border-top: 1px solid var(--u-border, rgba(26, 26, 46, 0.1));
+  color: var(--u-muted) !important;
+  font-size: 14px !important;
+}

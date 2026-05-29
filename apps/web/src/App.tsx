@@ -2,6 +2,8 @@ import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { Home } from "./routes/Home";
 import { BookDetail } from "./routes/BookDetail";
 import { GenreBrowse } from "./routes/GenreBrowse";
+import { Browse } from "./routes/Browse";
+import { About } from "./routes/About";
 import { Submit } from "./routes/Submit";
 import { Profile } from "./routes/Profile";
 import { ProfileMe } from "./routes/ProfileMe";
@@ -18,6 +20,8 @@ export function App() {
         <Route path="/" element={<Home />} />
         <Route path="/book/:slug" element={<BookDetail />} />
         <Route path="/genre/:slug" element={<GenreBrowse />} />
+        <Route path="/browse" element={<Browse />} />
+        <Route path="/about" element={<About />} />
         <Route path="/submit" element={<Submit />} />
         <Route path="/profile/me" element={<ProfileMe />} />
         <Route path="/profile/:handle" element={<Profile />} />
