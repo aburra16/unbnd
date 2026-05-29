@@ -66,5 +66,5 @@ For the ADR / operator.
 ## Linked artifacts
 
 - ADR: `engineering-team/decisions/0009-classification-tag-assertions.md`
-- Test plan: (filled in after Test Design phase)
+- Test plan: `engineering-team/stories/8-classification-tag-assertions.test-plan.md`
 - Review: (filled in after Review phase)
