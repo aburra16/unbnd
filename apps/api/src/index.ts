@@ -10,6 +10,7 @@ import { probeTapestry } from "./probes/tapestry";
 import { buildAuthRouter } from "./routes/auth";
 import { buildHealthRouter } from "./routes/health";
 import { buildRatingsRouter } from "./routes/ratings";
+import { buildTagsRouter } from "./routes/tags";
 import { publishEvent } from "./nostr/publish";
 import { queryEvents } from "./nostr/query";
 import { resolveProvider } from "./search";
@@ -191,34 +192,38 @@ async function main() {
     }),
   );
 
-  app.use(
-    "/",
-    buildRatingsRouter({
-      config,
-      sessionUser: async (cookie) => {
-        const resolved = await resolveSession(cookie);
-        if (!resolved) return null;
-        return {
-          id: resolved.user.id,
-          pubkeyHex: resolved.user.pubkeyHex,
-          tier: resolved.user.tier,
-        };
-      },
-      publish: (event) => publishEvent(config, event),
-      query: (filter) => queryEvents(config, filter),
-      custodialSign: async (sessionIdHex, template) => {
-        try {
-          return await useSessionKey(
-            sessionIdHex,
-            (secret) => finalizeEvent(template, secret) as SignedNostrEvent,
-          );
-        } catch (err) {
-          if (err instanceof NoSessionKeyError) return null; // restart/evicted
-          throw err;
-        }
-      },
-    }),
-  );
+  // Shared user-event write/read deps for ratings + tag assertions (ADR 0009).
+  const userEventDeps = {
+    config,
+    sessionUser: async (cookie: string | undefined) => {
+      const resolved = await resolveSession(cookie);
+      if (!resolved) return null;
+      return {
+        id: resolved.user.id,
+        pubkeyHex: resolved.user.pubkeyHex,
+        tier: resolved.user.tier,
+      };
+    },
+    publish: (event: SignedNostrEvent) => publishEvent(config, event),
+    query: (filter: Parameters<typeof queryEvents>[1]) => queryEvents(config, filter),
+    custodialSign: async (
+      sessionIdHex: string,
+      template: Parameters<typeof finalizeEvent>[0],
+    ) => {
+      try {
+        return await useSessionKey(
+          sessionIdHex,
+          (secret) => finalizeEvent(template, secret) as SignedNostrEvent,
+        );
+      } catch (err) {
+        if (err instanceof NoSessionKeyError) return null; // restart/evicted
+        throw err;
+      }
+    },
+  };
+
+  app.use("/", buildRatingsRouter(userEventDeps));
+  app.use("/", buildTagsRouter(userEventDeps));
 
   app.use(errorSanitizer);
 
