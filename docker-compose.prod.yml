@@ -39,9 +39,12 @@ services:
       - LIBRARIAN_PUBKEY=${LIBRARIAN_PUBKEY}
       - PUBLIC_ORIGIN=${PUBLIC_ORIGIN}
     depends_on:
-      - db
-      - tapestry
-      - search
+      db:
+        condition: service_healthy
+      tapestry:
+        condition: service_started
+      search:
+        condition: service_started
     restart: unless-stopped
 
   tapestry:
@@ -66,6 +69,12 @@ services:
       - POSTGRES_DB=unbnd
     volumes:
       - postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U unbnd -d unbnd"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+      start_period: 10s
     restart: unless-stopped
 
   search:

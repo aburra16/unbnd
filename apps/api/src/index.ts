@@ -1,6 +1,7 @@
 import express from "express";
 import { loadConfig } from "./config";
 import { createDb, db, runMigrations } from "./db";
+import { retryWithBackoff, isRetryableConnError } from "./util/retry";
 import { errorSanitizer } from "./middleware/errors";
 import { probeNeo4j } from "./probes/neo4j";
 import { probePostgres } from "./probes/postgres";
@@ -27,7 +28,21 @@ async function main() {
   const config = loadConfig();
   const searchProvider = resolveProvider(config);
 
-  await runMigrations(config.databaseUrl);
+  // Postgres may not accept connections the instant the API container starts
+  // (compose `depends_on: service_healthy` covers the normal case; this is
+  // defense in depth and helps local/dev too).
+  await retryWithBackoff(() => runMigrations(config.databaseUrl), {
+    attempts: 15,
+    baseDelayMs: 1000,
+    maxDelayMs: 5000,
+    shouldRetry: isRetryableConnError,
+    onRetry: (_err, attempt, delayMs) => {
+      // eslint-disable-next-line no-console
+      console.warn(
+        `db not ready (attempt ${attempt}); retrying in ${delayMs}ms`,
+      );
+    },
+  });
   createDb(config.databaseUrl);
 
   const app = express();
