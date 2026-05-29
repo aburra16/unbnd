@@ -38,6 +38,9 @@ services:
       - BACKUP_ENCRYPTION_KEY=${BACKUP_ENCRYPTION_KEY}
       - LIBRARIAN_PUBKEY=${LIBRARIAN_PUBKEY}
       - PUBLIC_ORIGIN=${PUBLIC_ORIGIN}
+      # Write up-sync (ADR 0011): dual-publish accepted community writes to dcosl.
+      - DCOSL_RELAY_URL=${DCOSL_RELAY_URL:-wss://dcosl.brainstorm.world/}
+      - PROPAGATE_WRITES=${PROPAGATE_WRITES:-true}
     depends_on:
       db:
         condition: service_healthy

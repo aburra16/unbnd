@@ -35,7 +35,7 @@ describe.skipIf(!STRFRY_TEST_URL)("strfry publish + read-back", () => {
     const slug = `it-${Math.floor(Date.now() / 1000)}`;
     const { event, pubkey } = signedRating({ bookSlug: slug, score: 5 });
 
-    const published = await publishEvent(config, event as never);
+    const published = await publishEvent(config.strfryUrl, event as never);
     expect(published.ok).toBe(true);
 
     const addr = `39999:${LIBRARIAN}:${slug}`;

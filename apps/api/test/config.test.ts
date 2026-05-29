@@ -103,6 +103,37 @@ describe("loadConfig — defaults", () => {
     expect(loadConfig({ ...ALL_REQUIRED }).librarianPubkey).toBeUndefined();
   });
 
+  it("leaves dcosl propagation off (fail-safe) when DCOSL_RELAY_URL is unset", () => {
+    const c = loadConfig({ ...ALL_REQUIRED });
+    expect(c.dcoslRelayUrl).toBeUndefined();
+    expect(c.propagateWrites).toBe(false);
+  });
+
+  it("enables propagation when DCOSL_RELAY_URL is a ws(s) URL", () => {
+    const c = loadConfig({
+      ...ALL_REQUIRED,
+      DCOSL_RELAY_URL: "wss://dcosl.brainstorm.world/",
+    });
+    expect(c.dcoslRelayUrl).toBe("wss://dcosl.brainstorm.world/");
+    expect(c.propagateWrites).toBe(true);
+  });
+
+  it("PROPAGATE_WRITES=false overrides propagation off even with a URL set", () => {
+    const c = loadConfig({
+      ...ALL_REQUIRED,
+      DCOSL_RELAY_URL: "wss://dcosl.brainstorm.world/",
+      PROPAGATE_WRITES: "false",
+    });
+    expect(c.dcoslRelayUrl).toBe("wss://dcosl.brainstorm.world/");
+    expect(c.propagateWrites).toBe(false);
+  });
+
+  it("throws when DCOSL_RELAY_URL is set but not a ws(s) URL", () => {
+    expect(() =>
+      loadConfig({ ...ALL_REQUIRED, DCOSL_RELAY_URL: "https://nope.example" }),
+    ).toThrow(/DCOSL_RELAY_URL/);
+  });
+
   it("reads LIBRARIAN_PUBKEY when it is 64 lowercase hex chars", () => {
     const pk = "9".repeat(64);
     expect(

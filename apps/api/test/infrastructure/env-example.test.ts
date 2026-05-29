@@ -25,6 +25,8 @@ describe(".env.example", () => {
     "DATABASE_URL",
     "BACKUP_ENCRYPTION_KEY",
     "PUBLIC_ORIGIN",
+    "DCOSL_RELAY_URL",
+    "PROPAGATE_WRITES",
   ])("documents %s", (key) => {
     expect(envExample()).toMatch(new RegExp(`^${key}=`, "m"));
   });
