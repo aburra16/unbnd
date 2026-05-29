@@ -36,6 +36,8 @@ jobs:
             dockerfile: apps/api/Dockerfile
           - name: web
             dockerfile: apps/web/Dockerfile
+          - name: seeder
+            dockerfile: apps/seeder/Dockerfile
     steps:
       - name: Checkout (pinned to the built SHA)
         uses: actions/checkout@v4

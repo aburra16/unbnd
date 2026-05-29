@@ -11,12 +11,25 @@ export type ConceptHeaderInput = {
 };
 
 /**
- * Returns a signable kind-39998 template: d-tag = slug, a `["json", …]` tag
- * carrying `{ word: { slug, name, title, wordTypes: ["word","conceptHeader"] },
+ * A signable kind-39998 template: d-tag = slug, a `["json", …]` tag carrying
+ * `{ word: { slug, name, title, wordTypes: ["word","conceptHeader"] },
  * conceptHeader: { slug, name, title } }`, empty content.
  */
 export function buildConceptHeaderTemplate(
-  _input: ConceptHeaderInput,
+  input: ConceptHeaderInput,
 ): NostrEventTemplate {
-  throw new Error("buildConceptHeaderTemplate not implemented");
+  const { slug, name, title, createdAt } = input;
+  const payload = {
+    word: { slug, name, title, wordTypes: ["word", "conceptHeader"] },
+    conceptHeader: { slug, name, title },
+  };
+  return {
+    kind: 39998,
+    created_at: createdAt,
+    content: "",
+    tags: [
+      ["d", slug],
+      ["json", JSON.stringify(payload)],
+    ],
+  };
 }

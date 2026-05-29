@@ -1,6 +1,6 @@
 # Story 7: Seed the book catalog (Open Library → DLists)
 
-**Status:** Draft
+**Status:** Approved
 **Created:** 2026-05-29
 **Type:** Feature
 

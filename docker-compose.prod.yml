@@ -77,6 +77,22 @@ services:
       start_period: 10s
     restart: unless-stopped
 
+  # Catalog seeder (ADR 0008). Never starts with the normal stack — only via
+  #   docker compose --profile seed run --rm seeder
+  # Publishes to dcosl; the local strfry syncs the records down.
+  seeder:
+    image: ghcr.io/aburra16/unbnd-seeder:${UNBND_IMAGE_TAG:-latest}
+    profiles: ["seed"]
+    environment:
+      - DCOSL_RELAY_URL=${DCOSL_RELAY_URL:-wss://dcosl.brainstorm.world/}
+      - LIBRARIAN_NSEC=${LIBRARIAN_NSEC}
+      - PER_SUBJECT=${PER_SUBJECT:-300}
+      - RATE_MS=${RATE_MS:-250}
+      - CHECKPOINT_PATH=/data/seed-checkpoint
+    volumes:
+      - seeder-data:/data
+    restart: "no"
+
   search:
     container_name: unbnd-search
     image: getmeili/meilisearch:v1.10
@@ -96,3 +112,4 @@ volumes:
   tapestry-data:
   postgres:
   search:
+  seeder-data:
