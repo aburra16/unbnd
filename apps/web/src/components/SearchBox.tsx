@@ -13,9 +13,11 @@ const DROPDOWN_LIMIT = 6;
 export function SearchBox({
   placeholder = "Search by title, author, or ISBN",
   autoFocus = false,
+  compact = false,
 }: {
   placeholder?: string;
   autoFocus?: boolean;
+  compact?: boolean;
 }) {
   const navigate = useNavigate();
   const [q, setQ] = useState("");
@@ -81,7 +83,7 @@ export function SearchBox({
   }
 
   return (
-    <div className="searchbox" ref={root}>
+    <div className={compact ? "searchbox searchbox-compact" : "searchbox"} ref={root}>
       <form className="searchbox-form" onSubmit={onSubmit} role="search">
         <span className="searchbox-icon" aria-hidden="true">
           <SearchIcon />

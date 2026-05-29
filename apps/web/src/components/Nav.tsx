@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import { LogoMark } from "./LogoMark";
 import { useSession } from "../hooks/useSession";
 import { AccountMenu } from "./AccountMenu";
+import { SearchBox } from "./SearchBox";
 import "./Nav.css";
 
 export function Nav() {
@@ -14,6 +15,9 @@ export function Nav() {
         <span className="nav-wordmark">unbnd</span>
       </Link>
       <div className="nav-right">
+        <div className="nav-search">
+          <SearchBox compact placeholder="Search books" />
+        </div>
         <Link className="nav-link" to="/browse">
           Browse
         </Link>

@@ -3,6 +3,29 @@
   width: 100%;
 }
 
+/* Compact variant for the global nav — slim, understated. */
+.searchbox-compact {
+  width: 230px;
+}
+
+.searchbox-compact .searchbox-input {
+  padding: 8px 12px 8px 34px;
+  font-size: 13px;
+  border-radius: 8px;
+  background: var(--u-surface, rgba(26, 26, 46, 0.03));
+  border-color: transparent;
+}
+
+.searchbox-compact .searchbox-input:focus {
+  background: #fff;
+  border-color: var(--u-amber);
+}
+
+.searchbox-compact .searchbox-icon {
+  left: 11px;
+  transform: scale(0.85);
+}
+
 .searchbox-form {
   position: relative;
   display: flex;
