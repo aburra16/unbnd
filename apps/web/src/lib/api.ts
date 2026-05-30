@@ -58,6 +58,8 @@ export type SubmittedBook = {
   coverUrl?: string;
   publishYear?: number;
   createdAt: number;
+  /** Present on the public list: the submitter's npub. */
+  submitter?: string;
 };
 
 // Trust-weighted view from an observer's vantage (ADR 0014); null when no
@@ -295,6 +297,9 @@ export const api = {
     },
     mine() {
       return authFetch<{ submissions: SubmittedBook[] }>("/api/submissions/mine");
+    },
+    list() {
+      return authFetch<{ submissions: SubmittedBook[] }>("/api/submissions");
     },
   },
   trust: {

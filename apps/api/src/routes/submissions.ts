@@ -5,6 +5,7 @@
 // lists the signed-in user's submissions. DI like the ratings/tags routers.
 import express, { type Request, type Router } from "express";
 import { parse as parseCookie } from "cookie";
+import { npubEncode } from "nostr-tools/nip19";
 import {
   buildBookSubmissionsHeaderAddress,
   fromBookRecordEvent,
@@ -44,6 +45,26 @@ export type SubmissionsDeps = {
 function cookieOf(req: Request): string | undefined {
   const header = req.headers.cookie;
   return header ? parseCookie(header)[COOKIE_NAME] : undefined;
+}
+
+function toSubmission(e: SignedNostrEvent, withSubmitter: boolean) {
+  try {
+    const rec = fromBookRecordEvent(
+      fromWireEvent({ kind: e.kind, content: e.content, tags: e.tags }) as never,
+    );
+    return {
+      slug: rec.slug,
+      title: rec.title,
+      authorName: rec.authorName,
+      isbn13: rec.isbn13,
+      coverUrl: rec.coverUrl,
+      publishYear: rec.publishYear,
+      createdAt: e.created_at,
+      ...(withSubmitter ? { submitter: npubEncode(e.pubkey) } : {}),
+    };
+  } catch {
+    return null;
+  }
 }
 
 export function buildSubmissionsRouter(deps: SubmissionsDeps): Router {
@@ -142,24 +163,23 @@ export function buildSubmissionsRouter(deps: SubmissionsDeps): Router {
         ? await deps.query({ kinds: [KIND], "#z": [addr], authors: [user.pubkeyHex] })
         : [];
       const submissions = events
-        .map((e) => {
-          try {
-            const rec = fromBookRecordEvent(
-              fromWireEvent({ kind: e.kind, content: e.content, tags: e.tags }) as never,
-            );
-            return {
-              slug: rec.slug,
-              title: rec.title,
-              authorName: rec.authorName,
-              isbn13: rec.isbn13,
-              coverUrl: rec.coverUrl,
-              publishYear: rec.publishYear,
-              createdAt: e.created_at,
-            };
-          } catch {
-            return null;
-          }
-        })
+        .map((e) => toSubmission(e, false))
+        .filter((s): s is NonNullable<typeof s> => s !== null)
+        .sort((a, b) => b.createdAt - a.createdAt);
+      res.status(200).json({ submissions });
+    } catch (err) {
+      next(err);
+    }
+  });
+
+  // Public: all community submissions (16b-i). Read-only, separate from the
+  // canonical catalog; promotion into the catalog is 16b-ii.
+  router.get("/api/submissions", async (_req, res, next) => {
+    try {
+      const addr = conceptAddr();
+      const events = addr ? await deps.query({ kinds: [KIND], "#z": [addr], limit: 200 }) : [];
+      const submissions = events
+        .map((e) => toSubmission(e, true))
         .filter((s): s is NonNullable<typeof s> => s !== null)
         .sort((a, b) => b.createdAt - a.createdAt);
       res.status(200).json({ submissions });

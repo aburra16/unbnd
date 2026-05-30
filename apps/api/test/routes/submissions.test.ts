@@ -91,3 +91,18 @@ describe("GET /api/submissions/mine", () => {
     expect((await request(makeApp({ sessionUser: vi.fn(async () => null) }).app).get("/api/submissions/mine")).status).toBe(401);
   });
 });
+
+describe("GET /api/submissions (public list)", () => {
+  it("lists all submissions with the submitter npub, no auth needed", async () => {
+    const a = signedSubmission(generateSecretKey(), "Alpha");
+    const b = signedSubmission(generateSecretKey(), "Beta");
+    const { app } = makeApp({
+      sessionUser: vi.fn(async () => null), // public — must not require a session
+      query: vi.fn(async () => [a, b]),
+    });
+    const res = await request(app).get("/api/submissions");
+    expect(res.status).toBe(200);
+    expect(res.body.submissions).toHaveLength(2);
+    expect(res.body.submissions[0].submitter).toMatch(/^npub1/);
+  });
+});

@@ -5,6 +5,7 @@ import { GenreBrowse } from "./routes/GenreBrowse";
 import { Browse } from "./routes/Browse";
 import { About } from "./routes/About";
 import { Search } from "./routes/Search";
+import { CommunitySubmissions } from "./routes/CommunitySubmissions";
 import { Submit } from "./routes/Submit";
 import { Profile } from "./routes/Profile";
 import { ProfileMe } from "./routes/ProfileMe";
@@ -24,6 +25,7 @@ export function App() {
         <Route path="/browse" element={<Browse />} />
         <Route path="/about" element={<About />} />
         <Route path="/search" element={<Search />} />
+        <Route path="/submissions" element={<CommunitySubmissions />} />
         <Route path="/submit" element={<Submit />} />
         <Route path="/profile/me" element={<ProfileMe />} />
         <Route path="/profile/:handle" element={<Profile />} />

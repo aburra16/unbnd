@@ -1,0 +1,45 @@
+.cs-head {
+  margin: 8px 0 20px;
+}
+
+.cs-title {
+  font-size: 26px;
+  font-weight: 600;
+  letter-spacing: -0.6px;
+  color: var(--u-ink);
+  margin-bottom: 6px;
+}
+
+.cs-sub {
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--u-muted);
+  max-width: 560px;
+}
+
+.cs-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.cs-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 12px 14px;
+  border: 1px solid var(--u-border, rgba(26, 26, 46, 0.1));
+  border-radius: 10px;
+}
+
+.cs-item-title {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--u-ink);
+}
+
+.cs-item-meta {
+  font-size: 12px;
+  color: var(--u-muted);
+}
