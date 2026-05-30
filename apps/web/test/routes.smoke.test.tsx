@@ -104,7 +104,8 @@ describe("Route smoke tests against live data (mocked API)", () => {
       await screen.findByRole("heading", { name: "Orbital" }),
     ).toBeInTheDocument();
     expect(screen.getByText(/Samantha Harvey/)).toBeInTheDocument();
-    expect(screen.getByText(/Be the first to rate it/i)).toBeInTheDocument();
+    // RatingsPanel loads ratings asynchronously — await the empty state.
+    expect(await screen.findByText(/Be the first to rate it/i)).toBeInTheDocument();
   });
 
   it("renders GenreBrowse for /genre/literary-fiction with its book grid", async () => {
