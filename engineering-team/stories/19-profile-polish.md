@@ -77,5 +77,5 @@ Resolve before approving the story.
 
 ## Linked artifacts
 - ADR: `engineering-team/decisions/0019-profile-polish.md`
-- Test plan: (filled in after Test Design phase)
+- Test plan: `engineering-team/stories/19-profile-polish.test-plan.md`
 - Review: (filled in after Review phase)
