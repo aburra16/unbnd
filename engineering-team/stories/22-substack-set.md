@@ -82,5 +82,5 @@ Resolve before approving the story.
 
 ## Linked artifacts
 - ADR: `engineering-team/decisions/0022-substack-set.md`
-- Test plan: (filled in after Test Design phase)
+- Test plan: `engineering-team/stories/22-substack-set.test-plan.md`
 - Review: (filled in after Review phase)
