@@ -115,4 +115,62 @@ export class BrainstormProvider implements TrustProvider {
     this.#weights.set(observerHex, { value: out, at: this.#now() });
     return out;
   }
+
+  async hasScores(observerHex: string): Promise<boolean> {
+    const svc = await this.#serviceKey(observerHex);
+    if (!svc) return false;
+    const relays =
+      svc.relayHint && !this.#relays.includes(svc.relayHint)
+        ? [...this.#relays, svc.relayHint]
+        : this.#relays;
+    for (const relay of relays) {
+      try {
+        const events = await this.#query(relay, {
+          kinds: [KIND_TRUSTED_ASSERTION],
+          authors: [svc.key],
+          limit: 1,
+        });
+        if (events.length > 0) return true;
+      } catch {
+        // try the next relay
+      }
+    }
+    return false;
+  }
+
+  async authChallenge(observerHex: string): Promise<string | null> {
+    try {
+      const res = await this.#fetch(`${this.#apiUrl}/authChallenge/${observerHex}`);
+      if (!res.ok) return null;
+      const body = (await res.json()) as { data?: { challenge?: string }; challenge?: string };
+      return body.data?.challenge ?? body.challenge ?? null;
+    } catch {
+      return null;
+    }
+  }
+
+  async personalize(observerHex: string, signedChallenge: SignedNostrEvent): Promise<boolean> {
+    try {
+      const verify = await this.#fetch(`${this.#apiUrl}/authChallenge/${observerHex}/verify`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ signed_event: signedChallenge }),
+      });
+      if (!verify.ok) return false;
+      const vbody = (await verify.json()) as { data?: { token?: string }; token?: string };
+      const token = vbody.data?.token ?? vbody.token;
+      if (!token) return false;
+      // New calc coming → drop any cached service key/weights for this observer.
+      this.#serviceKeys.delete(observerHex);
+      this.#weights.delete(observerHex);
+      const trigger = await this.#fetch(`${this.#apiUrl}/user/graperank`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: "{}",
+      });
+      return trigger.ok;
+    } catch {
+      return false;
+    }
+  }
 }

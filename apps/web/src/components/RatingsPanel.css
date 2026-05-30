@@ -27,3 +27,34 @@
   color: var(--u-ink);
   box-shadow: 0 1px 3px rgba(26, 26, 46, 0.12);
 }
+
+.rp-controls {
+  margin-bottom: 14px;
+  min-height: 30px;
+}
+
+.rp-personalize {
+  font-size: 12px;
+  font-weight: 500;
+  padding: 7px 16px;
+  border-radius: 8px;
+  border: 1px solid var(--u-amber);
+  background: transparent;
+  color: var(--u-amber);
+  cursor: pointer;
+}
+
+.rp-personalize:hover {
+  background: rgba(196, 118, 60, 0.08);
+}
+
+.rp-building {
+  font-size: 12px;
+  color: var(--u-muted);
+}
+
+.rp-error {
+  font-size: 12px;
+  color: var(--signal-negative, #dc3545);
+  margin-bottom: 10px;
+}

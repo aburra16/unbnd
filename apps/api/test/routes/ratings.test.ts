@@ -148,7 +148,13 @@ describe("GET /api/books/:slug/ratings", () => {
     const a = signedRating({ score: 5 }); // high-trust rater
     const b = signedRating({ score: 1 }); // untrusted rater
     const weights = new Map<string, number>([[a.pubkey, 0.9]]); // only `a` trusted
-    const trust = { name: "brainstorm" as const, weights: vi.fn(async () => weights) };
+    const trust = {
+      name: "brainstorm" as const,
+      weights: vi.fn(async () => weights),
+      hasScores: vi.fn(async () => true),
+      authChallenge: vi.fn(async () => "c"),
+      personalize: vi.fn(async () => true),
+    };
     const { app } = makeApp({
       query: vi.fn(async () => [a.event, b.event] as never),
       trust,
@@ -163,7 +169,13 @@ describe("GET /api/books/:slug/ratings", () => {
 
   it("weighted is null when the observer trusts none of the raters", async () => {
     const a = signedRating({ score: 4 });
-    const trust = { name: "brainstorm" as const, weights: vi.fn(async () => new Map()) };
+    const trust = {
+      name: "brainstorm" as const,
+      weights: vi.fn(async () => new Map()),
+      hasScores: vi.fn(async () => true),
+      authChallenge: vi.fn(async () => "c"),
+      personalize: vi.fn(async () => true),
+    };
     const { app } = makeApp({ query: vi.fn(async () => [a.event] as never), trust });
     const res = await request(app).get("/api/books/orbital/ratings");
     expect(res.status).toBe(200);
