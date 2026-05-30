@@ -81,6 +81,6 @@ Resolve before approving the story.
 - **Q4 (read-back freshness for the AC-2/AC-8 test):** kind-0 reads are best-effort fan-outs with a 3s timeout and may briefly lag a just-published write across public relays. Confirm whether the success response should echo the saved value optimistically (so the UI updates immediately) while propagation settles, rather than depending on an immediate re-read. PO recommends: echo optimistically; do not block the UI on a public-relay re-read.
 
 ## Linked artifacts
-- ADR: (filled in after Architecture phase)
+- ADR: `engineering-team/decisions/0022-substack-set.md`
 - Test plan: (filled in after Test Design phase)
 - Review: (filled in after Review phase)
