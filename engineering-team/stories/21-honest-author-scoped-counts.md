@@ -78,6 +78,6 @@ Stated explicitly so it does not creep:
 - PRD §11.3 Phase-2+ items generally.
 
 ## Linked artifacts
-- ADR: (filled in after Architecture phase)
+- ADR: `engineering-team/decisions/0021-honest-author-scoped-counts.md`
 - Test plan: (filled in after Test Design phase)
 - Review: (filled in after Review phase)
