@@ -10,6 +10,9 @@ services:
     image: ghcr.io/aburra16/unbnd-web:${UNBND_IMAGE_TAG:-latest}
     environment:
       - SITE_ADDRESS=${SITE_ADDRESS}
+      # Apex domain served ONLY for the librarian NIP-05 (all else 404s).
+      # Unset -> Caddy uses *.localhost and the apex stays inert.
+      - APEX_ADDRESS=${APEX_ADDRESS:-}
     ports:
       - "80:80"
       - "443:443"
