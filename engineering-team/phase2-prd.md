@@ -360,3 +360,16 @@ Phase 2 ADRs begin at **0017** and continue from Phase 1 (0001–0016). The 5-ph
 - **No AI-slop copy/visuals** (enforced in review).
 - **Provider-agnostic seams** for search + trust, CI-guarded; backend specifics never leak outside their adapter.
 - **No tech debt / no shortcuts** — every story lands with an ADR + a review; push back when something does not make sense.
+
+## Appendix C: Backlog (end of Phase 2; lower priority)
+
+Queued for late Phase 2 (or Phase 3 where noted). Each still runs through the gated story flow when picked up.
+
+### C-1 — External writing link on public profiles
+Optional profile field linking a reader's external publication (e.g. a Substack URL), rendered on their public profile under the bio. **Engineering note:** store it in the user's **kind-0 metadata** (portable — travels with the npub) rather than a proprietary DB column; kind-0 already carries a `website` field. Light validation only (well-formed URL); don't over-build domain verification. Folds into the public-profiles story.
+
+### C-2 — Link unfurls for book pages (oEmbed + per-book meta)
+`GET /oembed?url=…/book/:slug` returns a `rich` card (cover, title, author, rating, top tags), plus per-book `og:` tags and a `<link rel="alternate" … json+oembed>` for auto-discovery, so a book URL pasted into another platform renders a card instead of a bare link. **Architecture caveat (the real cost):** the web app is a static SPA behind Caddy, so per-book `<head>` tags are **not** per-route today — unfurlers/crawlers don't run JS, and the current `og:` tags are the generic site-wide ones in `index.html`. Making book URLs unfurl requires **server-rendered per-book `<head>`** (a small meta/oembed responder for `/book/:slug`, or bot-aware serving) — an architecture addition, not a one-endpoint job. Scope accordingly. The card's rating shows raw counts until trust data is live (no fabricated numbers).
+
+### C-3 — Identity mapping: provider → npub federation [design note; implementation Phase 3]
+Evolve the Phase-1 custodial bridge (email + NIP-07) into a many-to-one mapping: multiple application-layer identities funnel into one npub, with the sovereignty upgrade path (export nsec → NIP-07) always available. **Schema:** an `IdentityMapping` table (`npub`, `provider`, `provider_id`, `linked_at`, `is_primary`), many rows → one `KeyVault` (the encrypted nsec already built in Phase 1). **Conflict resolution:** *prevent* at signup (cross-check a provider's email against the mapping table → "sign in instead?") as the default; a kind-0 "moved to" redirect as an escape hatch (note: that redirect is a new, non-standard convention we'd be inventing). **Engineering caveats:** (a) **OAuth providers (Google/Apple/GitHub) fit the federation/login pattern; an external-publication link like Substack does NOT** — Substack has no third-party OAuth, so it is a *claimed profile link* (C-1), not a login provider; don't conflate the two. (b) A **shared key vault across apps** is a serious custodial-custody security design (research-grade, not near-term). This is a design note now; it earns an ADR when picked up in Phase 3.
