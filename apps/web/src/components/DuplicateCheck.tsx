@@ -1,46 +1,65 @@
-import { useState } from "react";
+// Search-first de-duplication for submissions (ADR 0015). Live search against
+// the real catalog; matches shown as a persistent inline list (review, don't
+// dismiss). ISBN-exact → a firm "already exists" banner. Once the user has
+// searched, an all-clear CTA lets them proceed to the form.
+import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
+import { api, type SearchHit } from "../lib/api";
 import "./DuplicateCheck.css";
 
-type MatchResult = {
-  slug: string;
-  title: string;
-  author: string;
-} | null;
+const MIN_CHARS = 2;
+const DEBOUNCE_MS = 200;
 
-const fixtureMatches: Record<string, NonNullable<MatchResult>> = {
-  orbital: {
-    slug: "orbital",
-    title: "Orbital",
-    author: "Samantha Harvey",
-  },
+function normalizeIsbn(s: string): string | null {
+  const digits = s.replace(/[^0-9Xx]/g, "");
+  return digits.length === 13 || digits.length === 10 ? digits.toUpperCase() : null;
+}
+
+type Props = {
+  onProceed: (prefill: { title: string }) => void;
 };
 
-export function DuplicateCheck() {
+export function DuplicateCheck({ onProceed }: Props) {
   const [query, setQuery] = useState("");
-  const [result, setResult] = useState<MatchResult | "none" | null>(null);
+  const [hits, setHits] = useState<SearchHit[] | null>(null);
+  const [loading, setLoading] = useState(false);
+  const seq = useRef(0);
 
-  function runCheck() {
-    const key = query.trim().toLowerCase();
-    if (!key) {
-      setResult(null);
+  useEffect(() => {
+    const q = query.trim();
+    if (q.length < MIN_CHARS) {
+      setHits(null);
+      setLoading(false);
       return;
     }
-    const hit = Object.entries(fixtureMatches).find(
-      ([slug, m]) =>
-        slug.includes(key) ||
-        m.title.toLowerCase().includes(key) ||
-        m.author.toLowerCase().includes(key),
-    );
-    setResult(hit ? hit[1] : "none");
-  }
+    const mine = ++seq.current;
+    setLoading(true);
+    const t = setTimeout(() => {
+      api.search(q, { limit: 8 })
+        .then((r) => {
+          if (mine !== seq.current) return;
+          setHits(r.hits);
+          setLoading(false);
+        })
+        .catch(() => {
+          if (mine !== seq.current) return;
+          setHits([]); // search down → treat as no match (don't block)
+          setLoading(false);
+        });
+    }, DEBOUNCE_MS);
+    return () => clearTimeout(t);
+  }, [query]);
+
+  const isbn = normalizeIsbn(query);
+  const isbnExact =
+    isbn && hits ? hits.find((h) => h.isbn13 && normalizeIsbn(h.isbn13) === isbn) : undefined;
+  const searched = hits !== null && query.trim().length >= MIN_CHARS;
 
   return (
     <section className="dc">
-      <h2 className="dc-title">Check if the book is already on Unbnd</h2>
+      <h2 className="dc-title">Is the book already on Unbnd?</h2>
       <p className="dc-sub">
-        Search by title, author, or ISBN before submitting. Most books are
-        already catalogued from Open Library.
+        Search by title, author, or ISBN. Most books are already in the catalog.
       </p>
       <div className="dc-row">
         <input
@@ -48,41 +67,55 @@ export function DuplicateCheck() {
           type="text"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === "Enter") {
-              e.preventDefault();
-              runCheck();
-            }
-          }}
-          placeholder="Try 'Orbital' or '9780802161543'"
-          aria-label="Duplicate check"
+          placeholder="Search the catalog"
+          aria-label="Search the catalog for an existing book"
         />
-        <button type="button" className="dc-btn" onClick={runCheck}>
-          Check
-        </button>
       </div>
-      {result && result !== "none" && (
-        <div className="dc-result dc-result-hit">
-          <p>
-            Found a match: <strong>{result.title}</strong> by {result.author}.
-          </p>
-          <div className="dc-actions">
-            <Link to={`/book/${result.slug}`} className="dc-link">
-              View the existing entry →
-            </Link>
-            <span className="dc-sep">·</span>
-            <Link to={`/book/${result.slug}#claim`} className="dc-link">
-              Claim it as the author
-            </Link>
-          </div>
+
+      {loading && <p className="dc-status" role="status">Searching…</p>}
+
+      {isbnExact && (
+        <div className="dc-exact" role="alert">
+          <span>This book is already on Unbnd.</span>
+          <Link className="dc-exact-link" to={`/book/${isbnExact.slug}`}>
+            Open {isbnExact.title} →
+          </Link>
         </div>
       )}
-      {result === "none" && (
-        <div className="dc-result dc-result-empty">
-          <p>
-            Nothing matched. Carry on with the submission below to add this
-            book to Unbnd.
-          </p>
+
+      {searched && !loading && hits && hits.length > 0 && !isbnExact && (
+        <>
+          <p className="dc-matches-label">Possible matches — open one if it's your book:</p>
+          <ul className="dc-matches">
+            {hits.map((h) => (
+              <li key={h.slug}>
+                <Link className="dc-match" to={`/book/${h.slug}`}>
+                  <span className="dc-match-title">{h.title}</span>
+                  <span className="dc-match-author">{h.authorName}</span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+          <button
+            type="button"
+            className="dc-proceed dc-proceed-quiet"
+            onClick={() => onProceed({ title: query.trim() })}
+          >
+            Don't see your book? Add it anyway
+          </button>
+        </>
+      )}
+
+      {searched && !loading && hits && hits.length === 0 && (
+        <div className="dc-clear">
+          <p className="dc-clear-note">No match found — this looks new.</p>
+          <button
+            type="button"
+            className="dc-proceed"
+            onClick={() => onProceed({ title: query.trim() })}
+          >
+            Add this book
+          </button>
         </div>
       )}
     </section>

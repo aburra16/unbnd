@@ -159,6 +159,7 @@ function toHit(hit: MeiliHit): SearchHit {
     blurb: hit.blurb,
     coverUrl: hit.coverUrl,
     publishYear: hit.publishYear,
+    isbn13: hit.isbn13,
     format: hit.format,
     score: hit._rankingScore,
   };

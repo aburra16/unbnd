@@ -43,6 +43,7 @@ export type SearchHit = {
   readonly blurb?: string;
   readonly coverUrl?: string;
   readonly publishYear?: number;
+  readonly isbn13?: string;
   readonly format: string;
   readonly score?: number;
 };

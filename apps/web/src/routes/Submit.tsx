@@ -41,6 +41,9 @@ const languages = [
 export function Submit() {
   const [selectedGenres, setSelectedGenres] = useState<string[]>([]);
   const [isAuthor, setIsAuthor] = useState(false);
+  // Search-first (ADR 0015): the form stays hidden until the user has searched
+  // the catalog and chosen to proceed; `adding` carries the prefill.
+  const [adding, setAdding] = useState<{ title: string } | null>(null);
 
   function toggleGenre(slug: string) {
     setSelectedGenres((prev) =>
@@ -69,9 +72,17 @@ export function Submit() {
         </p>
       </header>
 
-      <DuplicateCheck />
+      {!adding && <DuplicateCheck onProceed={setAdding} />}
 
+      {adding && (
       <form className="sub-form" onSubmit={onSubmit}>
+        <button
+          type="button"
+          className="sub-back"
+          onClick={() => setAdding(null)}
+        >
+          ← Back to search
+        </button>
         <div className="sub-section">
           <h2 className="sub-section-title">Book details</h2>
 
@@ -80,7 +91,7 @@ export function Submit() {
               <label htmlFor="sub-title-in">
                 Title <span className="sub-req">required</span>
               </label>
-              <input id="sub-title-in" type="text" required />
+              <input id="sub-title-in" type="text" required defaultValue={adding.title} />
             </div>
             <div className="sub-field">
               <label htmlFor="sub-author">
@@ -202,6 +213,7 @@ export function Submit() {
           </p>
         </div>
       </form>
+      )}
 
       <Footer />
     </div>
