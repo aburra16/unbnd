@@ -1,6 +1,6 @@
 # Story 21: Honest author-scoped counts — paginate past the relay's 500-event cap
 
-**Status:** Draft
+**Status:** Done
 **Created:** 2026-05-30
 **Type:** Bug
 
@@ -79,5 +79,5 @@ Stated explicitly so it does not creep:
 
 ## Linked artifacts
 - ADR: `engineering-team/decisions/0021-honest-author-scoped-counts.md`
-- Test plan: `engineering-team/stories/21-honest-author-scoped-counts.test-plan.md`
-- Review: (filled in after Review phase)
+- Test plan: `engineering-team/stories/done/21-honest-author-scoped-counts.test-plan.md`
+- Review: `engineering-team/reviews/21-honest-author-scoped-counts.md` (PASS)

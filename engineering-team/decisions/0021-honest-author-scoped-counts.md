@@ -2,7 +2,7 @@
 
 **Status:** Proposed
 **Date:** 2026-05-30
-**Story:** `engineering-team/stories/21-honest-author-scoped-counts.md`
+**Story:** `engineering-team/stories/done/21-honest-author-scoped-counts.md`
 
 ## Context
 

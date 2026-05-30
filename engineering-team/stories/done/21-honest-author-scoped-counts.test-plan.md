@@ -1,6 +1,6 @@
 # Test Plan: Story 21 — Honest author-scoped counts (paginate past the 500-event cap)
 
-**Story:** `engineering-team/stories/21-honest-author-scoped-counts.md`
+**Story:** `engineering-team/stories/done/21-honest-author-scoped-counts.md`
 **ADR:** `engineering-team/decisions/0021-honest-author-scoped-counts.md`
 **Date:** 2026-05-30
 
