@@ -6,6 +6,7 @@ import { BookDetail } from "../src/routes/BookDetail";
 import { GenreBrowse } from "../src/routes/GenreBrowse";
 import { Browse } from "../src/routes/Browse";
 import { About } from "../src/routes/About";
+import { CommunitySubmissions } from "../src/routes/CommunitySubmissions";
 import { Submit } from "../src/routes/Submit";
 import { Profile } from "../src/routes/Profile";
 import type {
@@ -43,6 +44,7 @@ vi.mock("../src/lib/api", async (orig) => {
         genreBooks: (...a: unknown[]) => tagsGenreBooks(...a),
       },
       ratings: { ...actual.api.ratings, list: (...a: unknown[]) => ratingsList(...a) },
+      submissions: { ...actual.api.submissions, list: vi.fn().mockResolvedValue({ submissions: [] }) },
     },
   };
 });
@@ -159,6 +161,19 @@ describe("Route smoke tests against live data (mocked API)", () => {
     );
     expect(
       screen.getByRole("heading", { name: /About Unbnd/i }),
+    ).toBeInTheDocument();
+  });
+
+  it("renders the Community submissions route", async () => {
+    render(
+      <MemoryRouter initialEntries={["/submissions"]}>
+        <Routes>
+          <Route path="/submissions" element={<CommunitySubmissions />} />
+        </Routes>
+      </MemoryRouter>,
+    );
+    expect(
+      await screen.findByRole("heading", { name: /Community submissions/i }),
     ).toBeInTheDocument();
   });
 
