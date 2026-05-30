@@ -76,6 +76,6 @@ Resolve before approving the story.
 - **Q3 (counts read cost):** Counting the user's own ratings/tags is a full author-scoped scan. At current staging volume this is trivial. If the Architect foresees this read getting hot, flag whether it should be combined into a single profile-stats read. Not a blocker for the story.
 
 ## Linked artifacts
-- ADR: (filled in after Architecture phase)
+- ADR: `engineering-team/decisions/0019-profile-polish.md`
 - Test plan: (filled in after Test Design phase)
 - Review: (filled in after Review phase)
