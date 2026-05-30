@@ -1,6 +1,6 @@
 # Story 20: Real public profile at `/profile/:npub` (retire the Mira fixture) + Substack link display
 
-**Status:** Draft
+**Status:** Done
 **Created:** 2026-05-30
 **Type:** Feature
 
@@ -92,5 +92,5 @@ Resolve before approving the story.
 
 ## Linked artifacts
 - ADR: `engineering-team/decisions/0020-public-profiles.md`
-- Test plan: `engineering-team/stories/20-public-profiles.test-plan.md`
-- Review: (filled in after Review phase)
+- Test plan: `engineering-team/stories/done/20-public-profiles.test-plan.md`
+- Review: `engineering-team/reviews/20-public-profiles.md` (PASS, 2026-05-30)

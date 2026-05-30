@@ -1,6 +1,6 @@
 # Test Plan: Story 20 — Real public profile at `/profile/:npub` (retire the Mira fixture) + Substack link display
 
-**Story:** `engineering-team/stories/20-public-profiles.md`
+**Story:** `engineering-team/stories/done/20-public-profiles.md`
 **ADR:** `engineering-team/decisions/0020-public-profiles.md`
 **Date:** 2026-05-30
 **Branch:** `feat/public-profiles`

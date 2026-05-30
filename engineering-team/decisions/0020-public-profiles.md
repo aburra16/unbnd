@@ -2,7 +2,7 @@
 
 **Status:** Proposed
 **Date:** 2026-05-30
-**Story:** `engineering-team/stories/20-public-profiles.md`
+**Story:** `engineering-team/stories/done/20-public-profiles.md`
 
 ## Context
 
