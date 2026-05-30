@@ -130,7 +130,7 @@ describe("POST /api/ratings", () => {
 });
 
 describe("GET /api/books/:slug/ratings", () => {
-  it("returns a public raw summary (count + average, no trust number)", async () => {
+  it("returns a raw summary; weighted is null when no trust provider is configured", async () => {
     const a = signedRating({ score: 4 });
     const b = signedRating({ score: 2 });
     const { app } = makeApp({
@@ -140,6 +140,33 @@ describe("GET /api/books/:slug/ratings", () => {
     expect(res.status).toBe(200);
     expect(res.body.count).toBe(2);
     expect(res.body.average).toBe(3);
-    expect(JSON.stringify(res.body)).not.toMatch(/weight|graperank|trust/i);
+    // No trust dep → no fabricated weighting (ADR 0014 fail-safe).
+    expect(res.body.weighted).toBeNull();
+  });
+
+  it("returns a trust-weighted view from the observer's vantage when trust is configured", async () => {
+    const a = signedRating({ score: 5 }); // high-trust rater
+    const b = signedRating({ score: 1 }); // untrusted rater
+    const weights = new Map<string, number>([[a.pubkey, 0.9]]); // only `a` trusted
+    const trust = { name: "brainstorm" as const, weights: vi.fn(async () => weights) };
+    const { app } = makeApp({
+      query: vi.fn(async () => [a.event, b.event] as never),
+      trust,
+    });
+    const res = await request(app).get("/api/books/orbital/ratings?observer=" + "c".repeat(64));
+    expect(res.status).toBe(200);
+    expect(res.body.count).toBe(2); // raw still counts both
+    expect(res.body.weighted.trustedCount).toBe(1);
+    expect(res.body.weighted.average).toBe(5); // only the trusted rater contributes
+    expect(trust.weights).toHaveBeenCalledWith(expect.any(String), expect.arrayContaining([a.pubkey, b.pubkey]));
+  });
+
+  it("weighted is null when the observer trusts none of the raters", async () => {
+    const a = signedRating({ score: 4 });
+    const trust = { name: "brainstorm" as const, weights: vi.fn(async () => new Map()) };
+    const { app } = makeApp({ query: vi.fn(async () => [a.event] as never), trust });
+    const res = await request(app).get("/api/books/orbital/ratings");
+    expect(res.status).toBe(200);
+    expect(res.body.weighted).toBeNull();
   });
 });

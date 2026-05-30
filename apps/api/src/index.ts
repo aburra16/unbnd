@@ -16,6 +16,7 @@ import { buildRatingsRouter } from "./routes/ratings";
 import { buildTagsRouter } from "./routes/tags";
 import { publishEvent } from "./nostr/publish";
 import { withUpSync } from "./nostr/propagate";
+import { resolveTrustProvider } from "./trust";
 import { queryEvents } from "./nostr/query";
 import { resolveProvider } from "@unbnd/search";
 import {
@@ -231,6 +232,16 @@ async function main() {
     },
     publish,
     query: (filter: Parameters<typeof queryEvents>[1]) => queryEvents(config, filter),
+    // Trust-weighting source (ADR 0014). Enabled when a house observer is set
+    // + the Brainstorm API/relays are configured (all have defaults).
+    trust:
+      config.houseObserverPubkey && config.brainstormApiUrl && config.trustRelays
+        ? resolveTrustProvider({
+            provider: "brainstorm",
+            apiUrl: config.brainstormApiUrl,
+            relays: config.trustRelays,
+          })
+        : undefined,
     custodialSign: async (
       sessionIdHex: string,
       template: Parameters<typeof finalizeEvent>[0],

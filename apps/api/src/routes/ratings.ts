@@ -7,10 +7,31 @@ import type { Config } from "../config";
 import type { PublishResult } from "../nostr/publish";
 import type { NostrFilter } from "../nostr/query";
 import type { NostrEventTemplate, SignedNostrEvent } from "@unbnd/schemas";
+import { npubEncode, decode } from "nostr-tools/nip19";
 import { buildRatingTemplate, RatingError } from "../ratings/template";
 import { validateSignedRating } from "../ratings/validate";
-import { summarizeRatings } from "../ratings/summary";
+import {
+  summarizeRatings,
+  dedupeRatings,
+  rawFromParsed,
+  weightedRatings,
+} from "../ratings/summary";
+import type { TrustProvider } from "../trust";
 import { tokenToId } from "../auth/sessions";
+
+const HEX64 = /^[0-9a-f]{64}$/i;
+
+/** npub or hex → lowercase hex, or null. */
+function toObserverHex(id: string): string | null {
+  if (HEX64.test(id)) return id.toLowerCase();
+  try {
+    const d = decode(id);
+    if (d.type === "npub" && typeof d.data === "string") return d.data;
+  } catch {
+    // not an npub
+  }
+  return null;
+}
 
 const COOKIE_NAME = "session";
 const BOOK_RATING_KIND = 39999;
@@ -37,6 +58,8 @@ export type RatingsDeps = {
     sessionIdHex: string,
     template: NostrEventTemplate,
   ) => Promise<SignedNostrEvent | null>;
+  /** Trust-weighting source (ADR 0014). Absent → raw-only reads. */
+  readonly trust?: TrustProvider;
 };
 
 function readSessionCookie(req: Request): string | undefined {
@@ -202,14 +225,38 @@ export function buildRatingsRouter(deps: RatingsDeps): Router {
     }
   });
 
-  // Public raw read-back for a book.
+  // Public read-back for a book. Always returns the raw summary; when trust is
+  // configured, also a trust-weighted view for the observer (ADR 0014).
+  // `?observer=<npub|hex>` picks the vantage; default = the house observer.
   router.get("/api/books/:slug/ratings", async (req, res, next) => {
     try {
       const addr = bookAddress(deps.config, req.params.slug);
       const events = addr
         ? await deps.query({ kinds: [BOOK_RATING_KIND], "#a": [addr] })
         : [];
-      res.status(200).json(summarizeRatings(events));
+      const deduped = dedupeRatings(events);
+      const raw = rawFromParsed(deduped);
+
+      // Resolve the observer: explicit param, else the house observer.
+      const observerParam = typeof req.query.observer === "string" ? req.query.observer : "";
+      const observerHex = observerParam
+        ? toObserverHex(observerParam)
+        : (deps.config.houseObserverPubkey ?? null);
+
+      let weighted = null;
+      if (deps.trust && observerHex && deduped.length > 0) {
+        try {
+          const weights = await deps.trust.weights(
+            observerHex,
+            deduped.map((r) => r.pubkey),
+          );
+          weighted = weightedRatings(deduped, weights, npubEncode(observerHex));
+        } catch {
+          weighted = null; // degrade to raw on any trust failure
+        }
+      }
+
+      res.status(200).json({ ...raw, weighted });
     } catch (err) {
       next(err);
     }
