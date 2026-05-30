@@ -1,0 +1,10 @@
+{
+  "names": {
+    "librarian": "6aca05b812da97601151776d13de04ae71afc9d86da1408f0e72cffef72ece4b"
+  },
+  "relays": {
+    "6aca05b812da97601151776d13de04ae71afc9d86da1408f0e72cffef72ece4b": [
+      "wss://dcosl.brainstorm.world/"
+    ]
+  }
+}

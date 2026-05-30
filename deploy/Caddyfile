@@ -15,6 +15,15 @@
 		reverse_proxy api:8787
 	}
 
+	# NIP-05 (librarian identity). The spec requires permissive CORS on
+	# nostr.json so any nostr client can resolve the identifier. Routed
+	# explicitly so the SPA catch-all below doesn't shadow it.
+	handle /.well-known/nostr.json {
+		header Access-Control-Allow-Origin "*"
+		root * /srv
+		file_server
+	}
+
 	# Everything else is the SPA.
 	handle {
 		root * /srv
