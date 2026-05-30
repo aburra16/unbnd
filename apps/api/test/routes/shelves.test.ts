@@ -160,7 +160,7 @@ describe("GET /api/shelves/mine — grouped honest read (AC-7)", () => {
   it("queries the user's own kind-39999 shelf assertions and groups them", async () => {
     const sk = generateSecretKey();
     const pubkeyHex = getPublicKey(sk);
-    const query = vi.fn(async () => [
+    const query = vi.fn(async (_f: Record<string, unknown>) => [
       signedShelf(sk, "orbital", "want-to-read"),
       signedShelf(sk, "north-woods", "want-to-read"),
     ]);

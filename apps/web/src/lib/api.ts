@@ -116,6 +116,26 @@ export type TaxonomyElement = {
   sensitivity: "normal" | "accusatory";
 };
 
+// Shelves (ADR 0018). A grouped read of the user's own membership assertions.
+export type ShelfBook = {
+  bookSlug: string;
+  bookAtag: string;
+};
+
+export type Shelf = {
+  slug: string;
+  name: string;
+  count: number;
+  books: ShelfBook[];
+};
+
+export type ShelfInput = {
+  bookSlug: string;
+  shelfSlug: string;
+  shelfName?: string;
+  polarity: 1 | -1;
+};
+
 // Search (ADR 0013). Provider-neutral hits; the web only ever talks to
 // /api/search, never the search backend.
 export type SearchHit = {
@@ -363,6 +383,29 @@ export const api = {
       polarity: 1 | -1;
     }) {
       return authFetch<{ ok: true }>("/api/tags", {
+        method: "POST",
+        body: JSON.stringify(input),
+      });
+    },
+  },
+  shelves: {
+    mine() {
+      return authFetch<{ shelves: Shelf[] }>("/api/shelves/mine");
+    },
+    template(input: ShelfInput) {
+      return authFetch<{ template: NostrEventTemplate }>(
+        "/api/shelves/template",
+        { method: "POST", body: JSON.stringify(input) },
+      );
+    },
+    submit(event: SignedEvent) {
+      return authFetch<{ ok: true }>("/api/shelves", {
+        method: "POST",
+        body: JSON.stringify({ event }),
+      });
+    },
+    submitCustodial(input: ShelfInput) {
+      return authFetch<{ ok: true }>("/api/shelves", {
         method: "POST",
         body: JSON.stringify(input),
       });

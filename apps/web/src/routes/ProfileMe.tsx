@@ -3,7 +3,7 @@
 // no fabricated data. Real activity is a later story.
 import { useEffect, useState } from "react";
 import { Navigate } from "react-router-dom";
-import { api, type SubmittedBook } from "../lib/api";
+import { api, type Shelf, type SubmittedBook } from "../lib/api";
 import { Nav } from "../components/Nav";
 import { Footer } from "../components/Footer";
 import { Avatar } from "../components/Avatar";
@@ -17,6 +17,7 @@ export function ProfileMe() {
   const npub = session.status === "signed-in" ? session.user.npub : undefined;
   const meta = useProfileMeta(npub);
   const [submissions, setSubmissions] = useState<SubmittedBook[] | null>(null);
+  const [shelves, setShelves] = useState<Shelf[] | null>(null);
 
   useEffect(() => {
     if (session.status !== "signed-in") return;
@@ -25,6 +26,10 @@ export function ProfileMe() {
       .mine()
       .then((r) => !cancelled && setSubmissions(r.submissions))
       .catch(() => !cancelled && setSubmissions([]));
+    api.shelves
+      .mine()
+      .then((r) => !cancelled && setShelves(r.shelves))
+      .catch(() => !cancelled && setShelves([]));
     return () => {
       cancelled = true;
     };
@@ -70,6 +75,33 @@ export function ProfileMe() {
           { label: "Tags applied", value: 0 },
         ]}
       />
+
+      <section className="me-activity">
+        <h2 className="me-activity-title">Your shelves</h2>
+        {shelves && shelves.length > 0 ? (
+          <ul className="me-shelves">
+            {shelves.map((s) => (
+              <li className="me-shelf" key={s.slug}>
+                <div className="me-shelf-head">
+                  <span className="me-shelf-name">{s.name}</span>
+                  <span className="me-shelf-count">{s.count}</span>
+                </div>
+                <ul className="me-shelf-books">
+                  {s.books.map((b) => (
+                    <li className="me-shelf-book" key={b.bookSlug}>
+                      <a href={`/book/${b.bookSlug}`}>{b.bookSlug}</a>
+                    </li>
+                  ))}
+                </ul>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="me-empty">
+            You have not added any books to a shelf yet.
+          </p>
+        )}
+      </section>
 
       <section className="me-activity">
         <h2 className="me-activity-title">Your submissions</h2>
