@@ -5,10 +5,8 @@ import type {
 } from "@unbnd/schemas";
 import { bookRecords } from "../src/data/book-fixtures";
 import { genreRecords } from "../src/data/genre-fixtures";
-import {
-  profileRecords,
-  type ProfileShelfFixture,
-} from "../src/data/profile-fixtures";
+// Story 20 (AC-5): the Mira public-profile fixture (apps/web/src/data/profile-fixtures.ts)
+// is retired. Its well-formedness test below is removed with it.
 
 describe("book-fixtures conform to @unbnd/schemas BookRecord", () => {
   it("exports the orbital fixture as a BookRecord", () => {
@@ -41,19 +39,6 @@ describe("genre-fixtures conform to @unbnd/schemas BookGenre", () => {
       expect(g.slug).toBe(slug);
       expect(g.parentHeader.kind).toBe(39998);
       expect(g.parentHeader.dTag).toBe("genres");
-    }
-  });
-});
-
-describe("profile-fixtures shelves are well-formed ProfileShelfFixtures", () => {
-  it("every shelf in mira-calloway's profile is z-tagged to book-shelves with parallel book arrays", () => {
-    const mira = profileRecords["mira-calloway"];
-    expect(mira).toBeDefined();
-    for (const shelf of mira!.shelves) {
-      const s: ProfileShelfFixture = shelf;
-      expect(s.parentHeader.kind).toBe(39998);
-      expect(s.parentHeader.dTag).toBe("book-shelves");
-      expect(s.bookSlugs.length).toBe(s.bookAddresses.length);
     }
   });
 });

@@ -92,5 +92,5 @@ Resolve before approving the story.
 
 ## Linked artifacts
 - ADR: `engineering-team/decisions/0020-public-profiles.md`
-- Test plan: (filled in after Test Design phase)
+- Test plan: `engineering-team/stories/20-public-profiles.test-plan.md`
 - Review: (filled in after Review phase)
