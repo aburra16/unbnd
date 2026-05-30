@@ -1,6 +1,6 @@
 # Test Plan: Story 18 — Shelves (add/remove a book, view your own shelves)
 
-**Story:** `engineering-team/stories/18-shelves.md`
+**Story:** `engineering-team/stories/done/18-shelves.md`
 **ADR:** `engineering-team/decisions/0018-shelves.md`
 **Date:** 2026-05-30
 **Phase:** Test Design (red). Tests are intentionally failing — the production surface does not exist yet.

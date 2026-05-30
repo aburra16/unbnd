@@ -2,7 +2,7 @@
 
 **Status:** Proposed
 **Date:** 2026-05-30
-**Story:** `engineering-team/stories/18-shelves.md`
+**Story:** `engineering-team/stories/done/18-shelves.md`
 
 ## Context
 

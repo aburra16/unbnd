@@ -1,6 +1,6 @@
 # Story 18: Shelves — add/remove a book and view your own shelves (vertical slice)
 
-**Status:** Draft
+**Status:** Done
 **Created:** 2026-05-30
 **Type:** Feature
 
@@ -204,8 +204,8 @@ only remaining items are Architect-level — **not blocking the gate.**
 
 ## Linked artifacts
 - ADR: `engineering-team/decisions/0018-shelves.md`
-- Test plan: `engineering-team/stories/18-shelves.test-plan.md`
-- Review: (filled in after Review phase)
+- Test plan: `engineering-team/stories/done/18-shelves.test-plan.md`
+- Review: `engineering-team/reviews/18-shelves.md` (PASS)
 - Builds on: `@unbnd/schemas` `BookTagAssertion.ts` (the apply/retract model to
   mirror), `BookShelf.ts` (reworked to assertion-model), `concept-headers.ts`
   (`book-shelves`); the ratings/tags write path (`apps/api/src/routes/ratings.ts`,
