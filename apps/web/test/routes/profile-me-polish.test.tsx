@@ -80,7 +80,12 @@ describe("ProfileMe — enriched shelf books (AC-1)", () => {
     renderMe();
     expect(await screen.findByText("Orbital")).toBeInTheDocument();
     expect(screen.getByText("Samantha Harvey")).toBeInTheDocument();
-    expect(screen.getByText("North Woods")).toBeInTheDocument();
+    // North Woods has no coverUrl, so BookCard (per ADR 0019) renders its title
+    // both as the gradient-fallback cover art and as the meta label. Scope the
+    // assertion to the meta label so we verify the real title shows there.
+    expect(
+      screen.getByText("North Woods", { selector: ".book-title" }),
+    ).toBeInTheDocument();
     expect(screen.getByText("Daniel Mason")).toBeInTheDocument();
     // The raw catalog slug is never shown as the book's visible label.
     expect(screen.queryByText("ol-ol21177w")).not.toBeInTheDocument();

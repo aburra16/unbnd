@@ -55,7 +55,7 @@ function toPublicBook(record: BookRecord): PublicBook {
   };
 }
 
-function parseBook(event: SignedNostrEvent): PublicBook | null {
+export function parseBook(event: SignedNostrEvent): PublicBook | null {
   try {
     const unsigned = fromWireEvent({ kind: event.kind, content: event.content, tags: event.tags });
     return toPublicBook(fromBookRecordEvent(unsigned as never));

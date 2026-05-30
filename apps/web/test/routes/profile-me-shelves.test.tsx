@@ -19,11 +19,13 @@ vi.mock("../../src/hooks/useProfileMeta", () => ({
 
 const submissionsMineMock = vi.fn();
 const shelvesMineMock = vi.fn();
+const meStatsMock = vi.fn();
 vi.mock("../../src/lib/api", () => ({
   ApiError: class ApiError extends Error {},
   api: {
     submissions: { mine: (...a: unknown[]) => submissionsMineMock(...a) },
     shelves: { mine: (...a: unknown[]) => shelvesMineMock(...a) },
+    profile: { meStats: (...a: unknown[]) => meStatsMock(...a) },
   },
 }));
 
@@ -37,6 +39,7 @@ const sovereignUser = {
 beforeEach(() => {
   submissionsMineMock.mockReset().mockResolvedValue({ submissions: [] });
   shelvesMineMock.mockReset();
+  meStatsMock.mockReset().mockResolvedValue({ stats: {} });
   sessionMock.mockReset().mockReturnValue({
     status: "signed-in",
     user: sovereignUser,
@@ -62,15 +65,15 @@ describe("ProfileMe — Your shelves (AC-8)", () => {
           name: "Want to Read",
           count: 2,
           books: [
-            { bookSlug: "orbital", bookAtag: "x" },
-            { bookSlug: "north-woods", bookAtag: "y" },
+            { slug: "orbital", title: "Orbital", authorName: "Samantha Harvey", format: "reference" },
+            { slug: "north-woods", title: "North Woods", authorName: "Daniel Mason", format: "reference" },
           ],
         },
         {
           slug: "read",
           name: "Read",
           count: 1,
-          books: [{ bookSlug: "the-bee-sting", bookAtag: "z" }],
+          books: [{ slug: "the-bee-sting", title: "The Bee Sting", authorName: "Paul Murray", format: "reference" }],
         },
       ],
     });

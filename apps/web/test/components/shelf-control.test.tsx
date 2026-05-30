@@ -104,7 +104,7 @@ describe("ShelfControl — sovereign remove (AC-2)", () => {
     sessionMock.mockReturnValue({ status: "signed-in", user: sovereignUser, refresh: vi.fn() });
     mineMock.mockResolvedValue({
       shelves: [
-        { slug: "want-to-read", name: "Want to Read", count: 1, books: [{ bookSlug: "orbital", bookAtag: "x" }] },
+        { slug: "want-to-read", name: "Want to Read", count: 1, books: [{ slug: "orbital", title: "Orbital", authorName: "Samantha Harvey", format: "reference" }] },
       ],
     });
     templateMock.mockResolvedValue({ template: { kind: 39999, created_at: 1, tags: [], content: "" } });
@@ -214,7 +214,7 @@ describe("ShelfControl — default mutual exclusivity = move (AC-5)", () => {
     sessionMock.mockReturnValue({ status: "signed-in", user: custodialUser, refresh: vi.fn() });
     mineMock.mockResolvedValue({
       shelves: [
-        { slug: "reading", name: "Reading", count: 1, books: [{ bookSlug: "orbital", bookAtag: "x" }] },
+        { slug: "reading", name: "Reading", count: 1, books: [{ slug: "orbital", title: "Orbital", authorName: "Samantha Harvey", format: "reference" }] },
       ],
     });
     submitCustodialMock.mockResolvedValue({ ok: true });

@@ -7,10 +7,13 @@ import { describe, expect, it, vi } from "vitest";
 import { finalizeEvent, generateSecretKey, getPublicKey } from "nostr-tools/pure";
 import {
   asHexPubkey,
+  buildBookRecordsHeaderAddress,
+  toBookRecordEvent,
   toShelfAssertionEvent,
   toWireTemplate,
   SHELF_ON,
   SHELF_OFF,
+  type BookRecord,
   type Polarity,
   type SignedNostrEvent,
 } from "@unbnd/schemas";
@@ -49,6 +52,20 @@ function signedShelf(
   };
   const tmpl = toWireTemplate(toShelfAssertionEvent(a), Math.floor(Date.now() / 1000));
   return JSON.parse(JSON.stringify(finalizeEvent(tmpl as never, sk))) as SignedNostrEvent;
+}
+
+const BOOKS_HDR = buildBookRecordsHeaderAddress(LIB);
+
+// A catalog book record (kind-39999, z-tagged to `books`). The /mine read now
+// enriches shelf books via a batch catalog read (ADR 0019 Decision 1), so the
+// grouped-read test's query mock must resolve the shelved slugs to records.
+function bookEvent(slug: string, title: string, author: string): SignedNostrEvent {
+  const rec: BookRecord = {
+    slug, title, authorName: author, format: "reference", source: "openlibrary",
+    parentHeader: BOOKS_HDR, coverUrl: `https://covers/${slug}.jpg`, publishYear: 2024,
+  };
+  const t = toWireTemplate(toBookRecordEvent(rec), 1);
+  return { id: slug, pubkey: LIB, sig: "x", ...t } as SignedNostrEvent;
 }
 
 const sovereign: ShelvesSessionUser = { id: "u", pubkeyHex: "9".repeat(64), tier: "sovereign" };
@@ -160,10 +177,18 @@ describe("GET /api/shelves/mine — grouped honest read (AC-7)", () => {
   it("queries the user's own kind-39999 shelf assertions and groups them", async () => {
     const sk = generateSecretKey();
     const pubkeyHex = getPublicKey(sk);
-    const query = vi.fn(async (_f: Record<string, unknown>) => [
-      signedShelf(sk, "orbital", "want-to-read"),
-      signedShelf(sk, "north-woods", "want-to-read"),
-    ]);
+    const query = vi.fn(async (f: Record<string, unknown>) => {
+      const z = ((f["#z"] as string[]) ?? [])[0] ?? "";
+      if (z.endsWith("books"))
+        return [
+          bookEvent("orbital", "Orbital", "Samantha Harvey"),
+          bookEvent("north-woods", "North Woods", "Daniel Mason"),
+        ];
+      return [
+        signedShelf(sk, "orbital", "want-to-read"),
+        signedShelf(sk, "north-woods", "want-to-read"),
+      ];
+    });
     const { app } = makeApp({
       sessionUser: vi.fn(async () => ({ ...sovereign, pubkeyHex })),
       query: query as never,
