@@ -41,7 +41,21 @@ export type Config = {
    * not set it. ADR 0012.
    */
   readonly profileRelays?: readonly string[];
+  /** Brainstorm API base for resolving an observer's trust-score source. ADR 0014. */
+  readonly brainstormApiUrl?: string;
+  /** nip85 relays unioned when reading trust-score events. ADR 0014. */
+  readonly trustRelays?: readonly string[];
+  /** Default "house" observer pubkey (hex) whose vantage powers the default view. */
+  readonly houseObserverPubkey?: string;
 };
+
+const DEFAULT_TRUST_RELAYS = [
+  "wss://nip85.nosfabrica.com",
+  "wss://nip85.brainstorm.world",
+];
+// nosfabrica (npub1health…) — a well-connected default house observer (ADR 0014).
+const DEFAULT_HOUSE_OBSERVER =
+  "be7bf5de068c1d842ed34a7c270507ec940f5ea51671cfd062a95e9d09420d0a";
 
 const DEFAULT_PROFILE_RELAYS = [
   "wss://relay.damus.io",
@@ -131,12 +145,33 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
       ? profileRelaysRaw.split(",").map((s) => s.trim()).filter(Boolean)
       : [...DEFAULT_PROFILE_RELAYS, ...(dcoslRelayUrl ? [dcoslRelayUrl] : [])];
 
+  // Trust-weighting (ADR 0014). Sensible defaults so it's on in prod; a blank
+  // HOUSE_OBSERVER_PUBKEY disables the house-weighted default (fail-safe to raw).
+  const trustRelaysRaw = env.TRUST_RELAYS;
+  const trustRelays =
+    trustRelaysRaw && trustRelaysRaw.length > 0
+      ? trustRelaysRaw.split(",").map((s) => s.trim()).filter(Boolean)
+      : DEFAULT_TRUST_RELAYS;
+  const houseObserverRaw = env.HOUSE_OBSERVER_PUBKEY;
+  const houseObserverPubkey =
+    houseObserverRaw === undefined
+      ? DEFAULT_HOUSE_OBSERVER
+      : houseObserverRaw.length === 0
+        ? undefined
+        : houseObserverRaw;
+  if (houseObserverPubkey !== undefined && !/^[0-9a-f]{64}$/.test(houseObserverPubkey)) {
+    throw new Error("config: HOUSE_OBSERVER_PUBKEY must be 64 lowercase hex chars when set");
+  }
+
   return {
     port,
     strfryUrl: withDefault(env, "STRFRY_URL", "ws://localhost:7777"),
     dcoslRelayUrl,
     propagateWrites,
     profileRelays,
+    brainstormApiUrl: withDefault(env, "BRAINSTORM_API_URL", "https://brainstormserver.nosfabrica.com"),
+    trustRelays,
+    houseObserverPubkey,
     neo4jBoltUrl: withDefault(env, "NEO4J_BOLT_URL", "bolt://localhost:7687"),
     neo4jUser: withDefault(env, "NEO4J_USER", "neo4j"),
     neo4jPassword,

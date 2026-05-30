@@ -28,6 +28,9 @@ describe(".env.example", () => {
     "DCOSL_RELAY_URL",
     "PROPAGATE_WRITES",
     "PROFILE_RELAYS",
+    "BRAINSTORM_API_URL",
+    "TRUST_RELAYS",
+    "HOUSE_OBSERVER_PUBKEY",
   ])("documents %s", (key) => {
     expect(envExample()).toMatch(new RegExp(`^${key}=`, "m"));
   });
