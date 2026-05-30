@@ -31,3 +31,24 @@
 		file_server
 	}
 }
+
+# Apex / production domain. Reserved for a deliberate production release; the
+# staging.unbnd.ink site above is the only auto-deployed environment. Until that
+# release the apex serves ONLY the librarian NIP-05 (so librarian@unbnd.ink
+# resolves); every other path 404s. Env-gated: APEX_ADDRESS is unset locally, so
+# this defaults to *.localhost (Caddy internal cert, no public ACME). Set
+# APEX_ADDRESS=unbnd.ink in the droplet .env to activate. This block does not run
+# the app and does not touch SITE_ADDRESS or the data layer's DOMAIN_NAME.
+{$APEX_ADDRESS:apex.localhost} {
+	encode gzip
+
+	handle /.well-known/nostr.json {
+		header Access-Control-Allow-Origin "*"
+		root * /srv
+		file_server
+	}
+
+	handle {
+		respond 404
+	}
+}
