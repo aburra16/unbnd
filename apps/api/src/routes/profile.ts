@@ -2,29 +2,16 @@
 // user's kind-0 (name, picture, nip05) best-effort from public relays. Always
 // returns at least the npub so the client can render an initials avatar.
 import express, { type Router } from "express";
-import { decode, npubEncode } from "nostr-tools/nip19";
+import { npubEncode } from "nostr-tools/nip19";
 import type { Config } from "../config";
 import { fetchProfileMeta, type ProfileMeta } from "../nostr/profile";
-
-const HEX64 = /^[0-9a-f]{64}$/i;
+import { toHex } from "../nostr/npub";
 
 export type ProfileDeps = {
   readonly config: Config;
   // Injectable for tests; defaults to the real relay fan-out.
   readonly resolve?: (pubkeyHex: string) => Promise<ProfileMeta | null>;
 };
-
-/** Normalise an npub (bech32) or hex string to a lowercase hex pubkey. */
-function toHex(id: string): string | null {
-  if (HEX64.test(id)) return id.toLowerCase();
-  try {
-    const d = decode(id);
-    if (d.type === "npub" && typeof d.data === "string") return d.data;
-  } catch {
-    // not a valid npub
-  }
-  return null;
-}
 
 export function buildProfileRouter(deps: ProfileDeps): Router {
   const router = express.Router();

@@ -28,7 +28,7 @@ export function App() {
         <Route path="/submissions" element={<CommunitySubmissions />} />
         <Route path="/submit" element={<Submit />} />
         <Route path="/profile/me" element={<ProfileMe />} />
-        <Route path="/profile/:handle" element={<Profile />} />
+        <Route path="/profile/:npub" element={<Profile />} />
         <Route path="/auth" element={<AuthMethodSelect />} />
         <Route path="/auth/email" element={<AuthEmailSignup />} />
         <Route path="/auth/nostr" element={<AuthNostrConnect />} />

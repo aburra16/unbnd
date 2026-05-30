@@ -103,6 +103,16 @@ export function ProfileMe() {
             {user.npub}
           </p>
           {meta?.about && <p className="me-about">{meta.about}</p>}
+          {meta?.substack && (
+            <a
+              className="me-substack"
+              href={meta.substack}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Writes on Substack ↗
+            </a>
+          )}
         </div>
       </header>
 

@@ -37,6 +37,14 @@
   margin-top: 8px;
 }
 
+.me-substack {
+  display: inline-block;
+  margin-top: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--u-amber);
+}
+
 .me-activity {
   margin-top: 28px;
 }

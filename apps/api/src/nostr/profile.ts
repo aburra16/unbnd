@@ -12,12 +12,27 @@ export type ProfileMeta = {
   readonly picture?: string;
   readonly nip05?: string;
   readonly about?: string;
+  // ADR 0020 Decision 2: a dedicated "Writes on Substack" link, light-validated
+  // at parse so a malformed value never reaches the wire (AC-8).
+  readonly substack?: string;
 };
 
 const KIND0_TIMEOUT_MS = 3000;
 
 function str(v: unknown): string | undefined {
   return typeof v === "string" && v.trim() !== "" ? v.trim() : undefined;
+}
+
+/** Keep a value only if it parses as an http(s) URL via the platform URL. */
+function httpUrl(v: unknown): string | undefined {
+  const s = str(v);
+  if (!s) return undefined;
+  try {
+    const u = new URL(s);
+    return u.protocol === "http:" || u.protocol === "https:" ? s : undefined;
+  } catch {
+    return undefined;
+  }
 }
 
 /** Pure: pick the newest kind-0 across the given events and parse its content. */
@@ -42,6 +57,7 @@ export function parseKind0(events: SignedNostrEvent[]): ProfileMeta | null {
     picture: str(content.picture),
     nip05: str(content.nip05),
     about: str(content.about),
+    substack: httpUrl(content.substack),
   };
   // All-empty content → treat as no metadata.
   return Object.values(meta).some((v) => v !== undefined) ? meta : null;
