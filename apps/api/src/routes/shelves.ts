@@ -7,7 +7,7 @@ import express, { type Request, type Router } from "express";
 import { parse as parseCookie } from "cookie";
 import type { Config } from "../config";
 import type { PublishResult } from "../nostr/publish";
-import type { NostrFilter } from "../nostr/query";
+import type { NostrFilter, PagedResult } from "../nostr/query";
 import type { SignedNostrEvent, NostrEventTemplate } from "@unbnd/schemas";
 import { tokenToId } from "../auth/sessions";
 import { validateSignedEvent } from "../nostr/validate";
@@ -18,6 +18,9 @@ import { toHex } from "../nostr/npub";
 
 const COOKIE_NAME = "session";
 const KIND = 39999;
+// Chunk size for the #d catalog enrichment read — tracks strfry maxFilterLimit
+// (same source the indexer's BATCH and the paginator's page size use).
+const RELAY_PAGE_SIZE = 500;
 
 /** A shelf with its books resolved to catalog records (ADR 0019 Decision 1). */
 type EnrichedShelf = {
@@ -40,6 +43,10 @@ export type ShelvesDeps = {
   ) => Promise<ShelvesSessionUser | null>;
   readonly publish: (event: SignedNostrEvent) => Promise<PublishResult>;
   readonly query: (filter: NostrFilter) => Promise<SignedNostrEvent[]>;
+  // Paginating author-scoped read (ADR 0021) for the shelf-membership read so a
+  // power-curator's full membership is grouped, not truncated at 500. The `#d`
+  // catalog enrichment stays on the one-shot `query` (chunked, finite id set).
+  readonly queryPaged: (filter: NostrFilter) => Promise<PagedResult>;
   readonly custodialSign?: (
     sessionIdHex: string,
     template: NostrEventTemplate,
@@ -67,22 +74,31 @@ export function buildShelvesRouter(deps: ShelvesDeps): Router {
   // omitted and the shelf count recounts to the survivors (AC-2). Shared by the
   // session-gated /mine read and the public by-pubkey twin.
   async function enrichedShelvesFor(author: string): Promise<EnrichedShelf[]> {
-    const events = await deps.query({
-      kinds: [KIND],
-      "#z": [shelvesConcept()],
-      authors: [author],
-    });
+    // Membership read paginates past the 500 cap (ADR 0021); `.capped` is
+    // discarded — no realistic author exceeds 10,000 shelf assertions and the
+    // shelf view has no headline count to floor.
+    const events = (
+      await deps.queryPaged({
+        kinds: [KIND],
+        "#z": [shelvesConcept()],
+        authors: [author],
+      })
+    ).events;
     const shelves = groupOwnShelves(events);
 
     const distinctSlugs = [
       ...new Set(shelves.flatMap((s) => s.books.map((b) => b.bookSlug))),
     ];
     const bySlug = new Map<string, PublicBook>();
-    if (distinctSlugs.length > 0) {
+    // The catalog enrichment is a fixed id set (one current event per slug), not
+    // an author walk, so the until-cursor does not apply. Chunk into ≤500-slug
+    // one-shot reads (each slice ≤ the cap, so no read is truncated) and merge.
+    for (let i = 0; i < distinctSlugs.length; i += RELAY_PAGE_SIZE) {
+      const slice = distinctSlugs.slice(i, i + RELAY_PAGE_SIZE);
       const bookEvents = await deps.query({
         kinds: [KIND],
         "#z": [booksConcept()],
-        "#d": distinctSlugs,
+        "#d": slice,
       });
       for (const e of bookEvents) {
         const b = parseBook(e);

@@ -25,15 +25,17 @@ import "./ProfileMe.css";
 // the target). An absent field contributes no cell; a present 0 renders 0.
 function statCells(
   stats: ProfileStatsResponse | null,
-): { label: string; value: number }[] {
+): { label: string; value: number; capped: boolean }[] {
   if (!stats) return [];
-  const cells: { label: string; value: number }[] = [];
+  const isCapped = (key: "booksRated" | "reviews" | "tagsApplied") =>
+    stats.capped?.includes(key) ?? false;
+  const cells: { label: string; value: number; capped: boolean }[] = [];
   if (stats.booksRated !== undefined)
-    cells.push({ label: "Books rated", value: stats.booksRated });
+    cells.push({ label: "Books rated", value: stats.booksRated, capped: isCapped("booksRated") });
   if (stats.reviews !== undefined)
-    cells.push({ label: "Reviews", value: stats.reviews });
+    cells.push({ label: "Reviews", value: stats.reviews, capped: isCapped("reviews") });
   if (stats.tagsApplied !== undefined)
-    cells.push({ label: "Tags applied", value: stats.tagsApplied });
+    cells.push({ label: "Tags applied", value: stats.tagsApplied, capped: isCapped("tagsApplied") });
   return cells;
 }
 

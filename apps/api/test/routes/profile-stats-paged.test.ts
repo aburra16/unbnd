@@ -54,7 +54,7 @@ function ratingEvent(pubkey: string, opts: { bookSlug: string; score: number; re
   const r: BookRating = {
     bookSlug: opts.bookSlug,
     bookAddress: { kind: 39999 as const, pubkey: LIB, dTag: opts.bookSlug },
-    raterPubkey: pubkey,
+    raterPubkey: asHexPubkey(pubkey),
     score: opts.score as BookRating["score"],
     reviewText: opts.reviewText,
     reviewDate: "2026-05-27",
@@ -71,7 +71,7 @@ function tagEvent(pubkey: string, opts: { bookSlug: string; tagSlug: string; pol
     tagSlug: opts.tagSlug,
     tagType: "genre" as const,
     polarity: opts.polarity,
-    asserterPubkey: pubkey,
+    asserterPubkey: asHexPubkey(pubkey),
     parentHeader: TAGS_HDR,
   };
   const t = toWireTemplate(toBookTagAssertionEvent(a), opts.createdAt ?? 1);

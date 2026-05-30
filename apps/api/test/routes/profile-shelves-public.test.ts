@@ -93,6 +93,9 @@ function makeApp(opts: {
     sessionUser: vi.fn(async () => null), // public route: never consulted
     publish: vi.fn(async () => ({ ok: true as const, id: "e" })),
     query: query as never,
+    // Membership read is via queryPaged (ADR 0021); wrap the routed one-shot
+    // `query` into a PagedResult so the same shelfEvents drive it.
+    queryPaged: vi.fn(async (filter) => ({ events: await query(filter as never), capped: false })) as never,
     custodialSign: vi.fn(async () => null),
     ...(opts.now ? { now: opts.now } : {}),
   };
