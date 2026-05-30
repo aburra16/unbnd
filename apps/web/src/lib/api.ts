@@ -33,6 +33,33 @@ export type PublicRating = {
   reviewDate: string;
 };
 
+// Community submission (ADR 0016). The form's intent; the server/ client builds
+// the kind-39999 record from it.
+export type SubmissionInput = {
+  title: string;
+  authorName: string;
+  isbn13?: string;
+  isbn10?: string;
+  blurb?: string;
+  coverUrl?: string;
+  publishYear?: number;
+  pageCount?: number;
+  language?: string;
+  purchaseUrl?: string;
+  subjects?: string[];
+  isAuthor?: boolean;
+};
+
+export type SubmittedBook = {
+  slug: string;
+  title: string;
+  authorName: string;
+  isbn13?: string;
+  coverUrl?: string;
+  publishYear?: number;
+  createdAt: number;
+};
+
 // Trust-weighted view from an observer's vantage (ADR 0014); null when no
 // rater is trusted from that vantage.
 export type WeightedRatings = {
@@ -246,6 +273,29 @@ export const api = {
     if (opts.offset != null) p.set("offset", String(opts.offset));
     if (opts.genre) p.set("genre", opts.genre);
     return authFetch<SearchResult>(`/api/search?${p.toString()}`);
+  },
+  submissions: {
+    template(input: SubmissionInput) {
+      return authFetch<{ template: NostrEventTemplate }>("/api/submissions/template", {
+        method: "POST",
+        body: JSON.stringify(input),
+      });
+    },
+    create(event: SignedEvent) {
+      return authFetch<{ ok: true }>("/api/submissions", {
+        method: "POST",
+        body: JSON.stringify({ event }),
+      });
+    },
+    createCustodial(input: SubmissionInput) {
+      return authFetch<{ ok: true }>("/api/submissions", {
+        method: "POST",
+        body: JSON.stringify(input),
+      });
+    },
+    mine() {
+      return authFetch<{ submissions: SubmittedBook[] }>("/api/submissions/mine");
+    },
   },
   trust: {
     status() {

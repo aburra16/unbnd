@@ -173,3 +173,41 @@
 .sub-back:hover {
   color: var(--u-ink);
 }
+
+.sub-done {
+  padding: 22px;
+  border: 1px solid rgba(29, 158, 117, 0.3);
+  border-radius: 12px;
+  background: rgba(29, 158, 117, 0.06);
+  margin-bottom: 24px;
+}
+
+.sub-done-title {
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--u-ink);
+  margin-bottom: 6px;
+}
+
+.sub-done-note {
+  font-size: 14px;
+  line-height: 1.6;
+  color: rgba(26, 26, 46, 0.75);
+}
+
+.sub-done-note a,
+.sub-submit-note a {
+  color: var(--u-amber);
+  font-weight: 500;
+}
+
+.sub-error {
+  font-size: 13px;
+  color: var(--signal-negative, #dc3545);
+  margin-bottom: 10px;
+}
+
+.sub-submit-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
