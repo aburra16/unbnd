@@ -172,6 +172,8 @@ export type ProfileMeta = {
   picture?: string;
   nip05?: string;
   about?: string;
+  // ADR 0020: a "Writes on Substack" link, server-validated as an http(s) URL.
+  substack?: string;
 };
 
 export class ApiError extends Error {
@@ -353,6 +355,18 @@ export const api = {
     meStats() {
       return authFetch<{ stats: ProfileStatsResponse }>(
         "/api/profile/me/stats",
+      );
+    },
+    // Public by-pubkey twins (ADR 0020): a target user's enriched shelves and
+    // honest activity counts, read by npub (or hex). Same shapes as the /me reads.
+    shelves(npub: string) {
+      return authFetch<{ shelves: Shelf[] }>(
+        `/api/profile/${encodeURIComponent(npub)}/shelves`,
+      );
+    },
+    stats(npub: string) {
+      return authFetch<{ stats: ProfileStatsResponse }>(
+        `/api/profile/${encodeURIComponent(npub)}/stats`,
       );
     },
   },

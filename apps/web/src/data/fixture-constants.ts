@@ -15,11 +15,3 @@ import { asHexPubkey, type HexPubkey } from "@unbnd/schemas";
 export const FIXTURE_LIBRARIAN_PUBKEY: HexPubkey = asHexPubkey(
   "0".repeat(63) + "1",
 );
-
-/**
- * Synthetic pubkey for the user whose profile we render in the
- * `/profile/mira-calloway` route. Fixture-only.
- */
-export const FIXTURE_MIRA_PUBKEY: HexPubkey = asHexPubkey(
-  "9bf2eed5c7f783735c06e518f56efb96bbd9e3dbd962e2f56b4cb14caf105d84",
-);

@@ -14,6 +14,7 @@ import { validateSignedEvent } from "../nostr/validate";
 import { buildShelfTemplate, ShelfError } from "../shelves/template";
 import { groupOwnShelves } from "../shelves/aggregate";
 import { parseBook, type PublicBook } from "./books";
+import { toHex } from "../nostr/npub";
 
 const COOKIE_NAME = "session";
 const KIND = 39999;
@@ -43,7 +44,11 @@ export type ShelvesDeps = {
     sessionIdHex: string,
     template: NostrEventTemplate,
   ) => Promise<SignedNostrEvent | null>;
+  // Injectable clock for the public-twin TTL cache (ADR 0020 Decision 4).
+  readonly now?: () => number;
 };
+
+const PUBLIC_TTL_MS = 60_000;
 
 function cookieOf(req: Request): string | undefined {
   const header = req.headers.cookie;
@@ -55,6 +60,46 @@ export function buildShelvesRouter(deps: ShelvesDeps): Router {
   const lib = () => deps.config.librarianPubkey;
   const shelvesConcept = () => `39998:${lib()}:book-shelves`;
   const booksConcept = () => `39998:${lib()}:books`;
+  const now = deps.now ?? (() => Date.now());
+
+  // Read one author's public shelves and enrich them to PublicBooks via ONE
+  // batch catalog read (ADR 0019 Decision 1). Slugs with no resolved record are
+  // omitted and the shelf count recounts to the survivors (AC-2). Shared by the
+  // session-gated /mine read and the public by-pubkey twin.
+  async function enrichedShelvesFor(author: string): Promise<EnrichedShelf[]> {
+    const events = await deps.query({
+      kinds: [KIND],
+      "#z": [shelvesConcept()],
+      authors: [author],
+    });
+    const shelves = groupOwnShelves(events);
+
+    const distinctSlugs = [
+      ...new Set(shelves.flatMap((s) => s.books.map((b) => b.bookSlug))),
+    ];
+    const bySlug = new Map<string, PublicBook>();
+    if (distinctSlugs.length > 0) {
+      const bookEvents = await deps.query({
+        kinds: [KIND],
+        "#z": [booksConcept()],
+        "#d": distinctSlugs,
+      });
+      for (const e of bookEvents) {
+        const b = parseBook(e);
+        if (b && !bySlug.has(b.slug)) bySlug.set(b.slug, b);
+      }
+    }
+    return shelves.map((s) => {
+      const books = s.books
+        .map((b) => bySlug.get(b.bookSlug))
+        .filter((b): b is PublicBook => Boolean(b));
+      return { slug: s.slug, name: s.name, count: books.length, books };
+    });
+  }
+
+  // 60s in-memory TTL cache keyed by the resolved target hex (ADR 0020
+  // Decision 4). Time-only invalidation; `now` is injectable for tests.
+  const publicCache = new Map<string, { value: EnrichedShelf[]; at: number }>();
 
   // Build a template for the client to sign (sovereign).
   router.post("/api/shelves/template", async (req, res, next) => {
@@ -185,38 +230,39 @@ export function buildShelvesRouter(deps: ShelvesDeps): Router {
             message: "Shelves are not configured.",
           },
         });
-      const events = await deps.query({
-        kinds: [KIND],
-        "#z": [shelvesConcept()],
-        authors: [user.pubkeyHex],
-      });
-      const shelves = groupOwnShelves(events);
+      const enriched = await enrichedShelvesFor(user.pubkeyHex);
+      res.status(200).json({ shelves: enriched });
+    } catch (err) {
+      next(err);
+    }
+  });
 
-      // Enrich each shelf's books to PublicBook via ONE batch catalog read
-      // (ADR 0019 Decision 1). Slugs with no resolved record are omitted and
-      // the shelf count is recounted to the survivors (AC-2). No read fires
-      // when the user has no shelved books.
-      const distinctSlugs = [
-        ...new Set(shelves.flatMap((s) => s.books.map((b) => b.bookSlug))),
-      ];
-      const bySlug = new Map<string, PublicBook>();
-      if (distinctSlugs.length > 0) {
-        const bookEvents = await deps.query({
-          kinds: [KIND],
-          "#z": [booksConcept()],
-          "#d": distinctSlugs,
+  // Any user's public shelves, by npub or hex (ADR 0020 Decision 1, AC-3).
+  // Un-gated, author-scoped to the path param. Same EnrichedShelf shape as
+  // /mine. A valid-but-empty target returns { shelves: [] }, not 404; an
+  // unresolvable segment is 404 not_found (AC-6). A 60s TTL cache keyed by the
+  // resolved hex collapses repeat hits (Decision 4).
+  router.get("/api/profile/:npub/shelves", async (req, res, next) => {
+    try {
+      const hex = toHex(req.params.npub);
+      if (!hex)
+        return void res
+          .status(404)
+          .json({ error: { code: "not_found", message: "No such profile." } });
+      if (!lib())
+        return void res.status(503).json({
+          error: {
+            code: "feature_unavailable",
+            message: "Shelves are not configured.",
+          },
         });
-        for (const e of bookEvents) {
-          const b = parseBook(e);
-          if (b && !bySlug.has(b.slug)) bySlug.set(b.slug, b);
-        }
+
+      const hit = publicCache.get(hex);
+      if (hit && now() - hit.at < PUBLIC_TTL_MS) {
+        return void res.status(200).json({ shelves: hit.value });
       }
-      const enriched: EnrichedShelf[] = shelves.map((s) => {
-        const books = s.books
-          .map((b) => bySlug.get(b.bookSlug))
-          .filter((b): b is PublicBook => Boolean(b));
-        return { slug: s.slug, name: s.name, count: books.length, books };
-      });
+      const enriched = await enrichedShelvesFor(hex);
+      publicCache.set(hex, { value: enriched, at: now() });
       res.status(200).json({ shelves: enriched });
     } catch (err) {
       next(err);

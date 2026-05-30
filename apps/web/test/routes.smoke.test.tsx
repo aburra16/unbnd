@@ -45,9 +45,23 @@ vi.mock("../src/lib/api", async (orig) => {
       },
       ratings: { ...actual.api.ratings, list: (...a: unknown[]) => ratingsList(...a) },
       submissions: { ...actual.api.submissions, list: vi.fn().mockResolvedValue({ submissions: [] }) },
+      // Story 20: the public profile reads from the API by-npub twins, not the
+      // retired Mira fixture.
+      profile: {
+        ...actual.api.profile,
+        shelves: vi.fn().mockResolvedValue({ shelves: [] }),
+        stats: vi.fn().mockResolvedValue({ stats: {} }),
+      },
     },
   };
 });
+
+// Story 20: Profile's identity header comes from useProfileMeta(npub). Stub it so
+// the smoke test renders the honest npub-fallback header (no kind-0), never Mira.
+vi.mock("../src/hooks/useProfileMeta", () => ({
+  useProfileMeta: () => null,
+  displayNameOf: (_meta: unknown, fallback: string) => fallback,
+}));
 
 const ORBITAL: PublicBook = {
   slug: "orbital",
@@ -190,16 +204,18 @@ describe("Route smoke tests against live data (mocked API)", () => {
     ).toBeInTheDocument();
   });
 
-  it("renders the Profile route for /profile/mira-calloway", () => {
+  it("renders the public Profile route for /profile/:npub from live data (no Mira fixture)", async () => {
+    const NPUB =
+      "npub1n0ewa4w877phxhqxu5v02mhmj6aanc7mm93w9attfjc5etcstkzql9rk23";
     render(
-      <MemoryRouter initialEntries={["/profile/mira-calloway"]}>
+      <MemoryRouter initialEntries={[`/profile/${NPUB}`]}>
         <Routes>
-          <Route path="/profile/:handle" element={<Profile />} />
+          <Route path="/profile/:npub" element={<Profile />} />
         </Routes>
       </MemoryRouter>,
     );
-    expect(
-      screen.getByRole("heading", { name: "Mira Calloway" }),
-    ).toBeInTheDocument();
+    // Honest npub-fallback header (no kind-0 resolved), never the Mira mock.
+    expect(await screen.findByText(NPUB)).toBeInTheDocument();
+    expect(screen.queryByText("Mira Calloway")).not.toBeInTheDocument();
   });
 });
