@@ -19,6 +19,7 @@ const cfg: Config = {
   searchUrl: "http://localhost:7700",
   searchApiKey: "x",
   searchProvider: "meili",
+  trustProvider: "brainstorm",
   databaseUrl: "postgres://x:x@localhost:5432/x",
   backupEncryptionKey: "a".repeat(64),
   publicOrigin: "http://localhost:5181",

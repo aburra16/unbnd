@@ -4,15 +4,37 @@
 // swappable.
 import type { SignedNostrEvent } from "@unbnd/schemas";
 
-export type TrustProviderName = "brainstorm";
+export type TrustProviderName = "brainstorm" | "fixture";
 
-export type TrustOptions = {
-  readonly provider: TrustProviderName;
-  /** Brainstorm-style API base that resolves an observer's score source. */
-  readonly apiUrl: string;
-  /** Relays to union when reading the score events. */
-  readonly relays: readonly string[];
+/**
+ * Deterministic spec for the fixture provider (ADR 0017). No network, time, or
+ * randomness — the same spec always yields the same trust results, so trust-
+ * consuming features can be built and verified in CI without Brainstorm or a
+ * relay. Also drives the "fixture mode" of the staging seed harness.
+ */
+export type FixtureSpec = {
+  /** observerHex → (targetHex → weight in (0,1]). Absent target = not trusted. */
+  readonly weights: Readonly<Record<string, Readonly<Record<string, number>>>>;
+  /** Observers `hasScores()` reports true for. Default: observers with weights. */
+  readonly scoredObservers?: readonly string[];
+  /** Canned `authChallenge()` value; null = none. undefined = deterministic default. */
+  readonly challenge?: string | null;
+  /** Result of `personalize()`. Default true. */
+  readonly personalizeOk?: boolean;
 };
+
+export type TrustOptions =
+  | {
+      readonly provider: "brainstorm";
+      /** Brainstorm-style API base that resolves an observer's score source. */
+      readonly apiUrl: string;
+      /** Relays to union when reading the score events. */
+      readonly relays: readonly string[];
+    }
+  | {
+      readonly provider: "fixture";
+      readonly fixture: FixtureSpec;
+    };
 
 export interface TrustProvider {
   readonly name: TrustProviderName;

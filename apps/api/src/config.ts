@@ -1,4 +1,5 @@
 // Env-var validation per ADR 0002.
+import type { FixtureSpec, TrustProviderName } from "./trust";
 
 export type Config = {
   readonly port: number;
@@ -41,10 +42,14 @@ export type Config = {
    * not set it. ADR 0012.
    */
   readonly profileRelays?: readonly string[];
+  /** Trust-score backend (ADR 0014/0017). `fixture` = deterministic, no network. */
+  readonly trustProvider: TrustProviderName;
   /** Brainstorm API base for resolving an observer's trust-score source. ADR 0014. */
   readonly brainstormApiUrl?: string;
   /** nip85 relays unioned when reading trust-score events. ADR 0014. */
   readonly trustRelays?: readonly string[];
+  /** Deterministic fixture spec; required + used when trustProvider==="fixture". ADR 0017. */
+  readonly trustFixture?: FixtureSpec;
   /** Default "house" observer pubkey (hex) whose vantage powers the default view. */
   readonly houseObserverPubkey?: string;
 };
@@ -65,6 +70,7 @@ const DEFAULT_PROFILE_RELAYS = [
 ];
 
 const KNOWN_PROVIDERS: readonly Config["searchProvider"][] = ["meili", "vespa"];
+const KNOWN_TRUST_PROVIDERS: readonly TrustProviderName[] = ["brainstorm", "fixture"];
 
 function required(env: NodeJS.ProcessEnv, name: string): string {
   const v = env[name];
@@ -163,14 +169,45 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
     throw new Error("config: HOUSE_OBSERVER_PUBKEY must be 64 lowercase hex chars when set");
   }
 
+  // Trust backend selection (ADR 0017), mirroring SEARCH_PROVIDER. `fixture` is
+  // a deterministic, network-free provider for CI + the staging seed harness.
+  const trustProviderRaw = withDefault(env, "TRUST_PROVIDER", "brainstorm");
+  if (!KNOWN_TRUST_PROVIDERS.includes(trustProviderRaw as TrustProviderName)) {
+    throw new Error(
+      `config: TRUST_PROVIDER must be one of ${KNOWN_TRUST_PROVIDERS.join(", ")}; got ${JSON.stringify(trustProviderRaw)}`,
+    );
+  }
+  const trustProvider = trustProviderRaw as TrustProviderName;
+
+  let trustFixture: FixtureSpec | undefined;
+  if (trustProvider === "fixture") {
+    const raw = env.TRUST_FIXTURE;
+    if (raw === undefined || raw.length === 0) {
+      throw new Error("config: TRUST_FIXTURE (JSON) is required when TRUST_PROVIDER=fixture");
+    }
+    let parsed: unknown;
+    try {
+      parsed = JSON.parse(raw);
+    } catch {
+      throw new Error("config: TRUST_FIXTURE must be valid JSON");
+    }
+    const weights = (parsed as { weights?: unknown } | null)?.weights;
+    if (typeof parsed !== "object" || parsed === null || typeof weights !== "object" || weights === null) {
+      throw new Error("config: TRUST_FIXTURE must be an object with a 'weights' map");
+    }
+    trustFixture = parsed as FixtureSpec;
+  }
+
   return {
     port,
     strfryUrl: withDefault(env, "STRFRY_URL", "ws://localhost:7777"),
     dcoslRelayUrl,
     propagateWrites,
     profileRelays,
+    trustProvider,
     brainstormApiUrl: withDefault(env, "BRAINSTORM_API_URL", "https://brainstormserver.nosfabrica.com"),
     trustRelays,
+    trustFixture,
     houseObserverPubkey,
     neo4jBoltUrl: withDefault(env, "NEO4J_BOLT_URL", "bolt://localhost:7687"),
     neo4jUser: withDefault(env, "NEO4J_USER", "neo4j"),
