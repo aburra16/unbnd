@@ -33,10 +33,20 @@ export type PublicRating = {
   reviewDate: string;
 };
 
+// Trust-weighted view from an observer's vantage (ADR 0014); null when no
+// rater is trusted from that vantage.
+export type WeightedRatings = {
+  observer: string;
+  average: number;
+  trustedCount: number;
+  ratings: PublicRating[];
+};
+
 export type RatingsSummary = {
   count: number;
   average: number | null;
   ratings: PublicRating[];
+  weighted?: WeightedRatings | null;
 };
 
 // Catalog read shapes (ADR 0010). Mirror apps/api PublicBook + tag consensus.
@@ -205,9 +215,10 @@ export const api = {
         summary: RatingsSummary;
       }>("/api/ratings", { method: "POST", body: JSON.stringify(input) });
     },
-    list(bookSlug: string) {
+    list(bookSlug: string, observer?: string) {
+      const q = observer ? `?observer=${encodeURIComponent(observer)}` : "";
       return authFetch<RatingsSummary>(
-        `/api/books/${encodeURIComponent(bookSlug)}/ratings`,
+        `/api/books/${encodeURIComponent(bookSlug)}/ratings${q}`,
       );
     },
   },

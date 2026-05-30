@@ -1,0 +1,29 @@
+.ratings-panel {
+  margin-bottom: 8px;
+}
+
+.rp-toggle {
+  display: inline-flex;
+  gap: 2px;
+  padding: 3px;
+  border-radius: 8px;
+  background: rgba(26, 26, 46, 0.05);
+  margin-bottom: 14px;
+}
+
+.rp-tab {
+  border: none;
+  background: none;
+  font-size: 12px;
+  font-weight: 500;
+  padding: 6px 14px;
+  border-radius: 6px;
+  color: var(--u-muted);
+  cursor: pointer;
+}
+
+.rp-tab-on {
+  background: #fff;
+  color: var(--u-ink);
+  box-shadow: 0 1px 3px rgba(26, 26, 46, 0.12);
+}
