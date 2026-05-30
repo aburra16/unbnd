@@ -4,10 +4,9 @@ import { Nav } from "../components/Nav";
 import { Footer } from "../components/Footer";
 import { Breadcrumb } from "../components/Breadcrumb";
 import { BookHeader } from "../components/BookHeader";
-import { RatingsBlock } from "../components/RatingsBlock";
+import { RatingsPanel } from "../components/RatingsPanel";
 import { RatingControl } from "../components/RatingControl";
 import { TagControl } from "../components/TagControl";
-import { ReviewsList } from "../components/ReviewsList";
 import { WhereToRead } from "../components/WhereToRead";
 import { NotFound } from "./NotFound";
 import {
@@ -15,7 +14,6 @@ import {
   ApiError,
   type BookTags,
   type PublicBook,
-  type RatingsSummary,
 } from "../lib/api";
 
 type State =
@@ -26,11 +24,9 @@ type State =
       status: "ready";
       book: PublicBook;
       tags: BookTags;
-      ratings: RatingsSummary;
     };
 
 const EMPTY_TAGS: BookTags = { genres: [], styles: [], signals: [] };
-const EMPTY_RATINGS: RatingsSummary = { count: 0, average: null, ratings: [] };
 
 export function BookDetail() {
   const { slug } = useParams<{ slug: string }>();
@@ -43,12 +39,9 @@ export function BookDetail() {
     (async () => {
       try {
         const { book } = await api.books.get(slug);
-        // Tags and ratings are best-effort; a book still renders without them.
-        const [tags, ratings] = await Promise.all([
-          api.tags.book(slug).catch(() => EMPTY_TAGS),
-          api.ratings.list(slug).catch(() => EMPTY_RATINGS),
-        ]);
-        if (!cancelled) setState({ status: "ready", book, tags, ratings });
+        // Tags are best-effort; ratings load inside RatingsPanel.
+        const tags = await api.tags.book(slug).catch(() => EMPTY_TAGS);
+        if (!cancelled) setState({ status: "ready", book, tags });
       } catch (err) {
         if (cancelled) return;
         if (err instanceof ApiError && err.status === 404) {
@@ -103,7 +96,7 @@ export function BookDetail() {
     );
   }
 
-  const { book, tags, ratings } = state;
+  const { book, tags } = state;
   const primaryGenre = tags.genres[0];
 
   return (
@@ -119,10 +112,9 @@ export function BookDetail() {
         ]}
       />
       <BookHeader book={book} genres={tags.genres} styles={tags.styles} />
-      <RatingsBlock summary={ratings} />
+      {slug && <RatingsPanel slug={slug} />}
       {slug && <RatingControl bookSlug={slug} />}
       {slug && <TagControl bookSlug={slug} tags={tags} onChanged={reloadTags} />}
-      <ReviewsList ratings={ratings.ratings} />
       {book.purchaseUrl && (
         <WhereToRead
           links={[
