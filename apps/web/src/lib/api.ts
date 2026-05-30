@@ -96,6 +96,7 @@ export type SearchHit = {
   blurb?: string;
   coverUrl?: string;
   publishYear?: number;
+  isbn13?: string;
   format: string;
   score?: number;
 };

@@ -159,3 +159,17 @@
     gap: 14px;
   }
 }
+
+.sub-back {
+  border: none;
+  background: none;
+  padding: 0;
+  margin-bottom: 16px;
+  font-size: 13px;
+  color: var(--u-muted);
+  cursor: pointer;
+}
+
+.sub-back:hover {
+  color: var(--u-ink);
+}
