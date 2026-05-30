@@ -91,6 +91,6 @@ Resolve before approving the story.
 - **Q4 (counts read cost):** these are full author-scoped scans per profile view (same cost profile as Story-19 Q3, now triggerable by any visitor on any npub). Trivial at staging volume. Flag for the Architect whether any caching/rate consideration is warranted before this is publicly reachable; not a blocker.
 
 ## Linked artifacts
-- ADR: (filled in after Architecture phase)
+- ADR: `engineering-team/decisions/0020-public-profiles.md`
 - Test plan: (filled in after Test Design phase)
 - Review: (filled in after Review phase)
