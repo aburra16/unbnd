@@ -204,7 +204,7 @@ only remaining items are Architect-level — **not blocking the gate.**
 
 ## Linked artifacts
 - ADR: `engineering-team/decisions/0018-shelves.md`
-- Test plan: (filled in after Test Design phase)
+- Test plan: `engineering-team/stories/18-shelves.test-plan.md`
 - Review: (filled in after Review phase)
 - Builds on: `@unbnd/schemas` `BookTagAssertion.ts` (the apply/retract model to
   mirror), `BookShelf.ts` (reworked to assertion-model), `concept-headers.ts`
