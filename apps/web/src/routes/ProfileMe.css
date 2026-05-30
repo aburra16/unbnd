@@ -83,3 +83,47 @@
   font-size: 12px;
   color: var(--u-muted);
 }
+
+.me-shelves {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 28px;
+}
+
+.me-shelf {
+  padding: 12px 14px;
+  border: 1px solid var(--u-border, rgba(26, 26, 46, 0.1));
+  border-radius: 10px;
+}
+
+.me-shelf-head {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.me-shelf-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--u-ink);
+}
+
+.me-shelf-count {
+  font-size: 12px;
+  color: var(--u-muted);
+}
+
+.me-shelf-books {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.me-shelf-book a {
+  font-size: 13px;
+  color: var(--u-amber);
+}

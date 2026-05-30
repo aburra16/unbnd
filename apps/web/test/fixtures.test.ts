@@ -2,11 +2,13 @@ import { describe, expect, it } from "vitest";
 import type {
   BookGenre,
   BookRecord,
-  BookShelf,
 } from "@unbnd/schemas";
 import { bookRecords } from "../src/data/book-fixtures";
 import { genreRecords } from "../src/data/genre-fixtures";
-import { profileRecords } from "../src/data/profile-fixtures";
+import {
+  profileRecords,
+  type ProfileShelfFixture,
+} from "../src/data/profile-fixtures";
 
 describe("book-fixtures conform to @unbnd/schemas BookRecord", () => {
   it("exports the orbital fixture as a BookRecord", () => {
@@ -43,12 +45,12 @@ describe("genre-fixtures conform to @unbnd/schemas BookGenre", () => {
   });
 });
 
-describe("profile-fixtures shelves conform to @unbnd/schemas BookShelf", () => {
-  it("every shelf in mira-calloway's profile is a valid BookShelf", () => {
+describe("profile-fixtures shelves are well-formed ProfileShelfFixtures", () => {
+  it("every shelf in mira-calloway's profile is z-tagged to book-shelves with parallel book arrays", () => {
     const mira = profileRecords["mira-calloway"];
     expect(mira).toBeDefined();
     for (const shelf of mira!.shelves) {
-      const s: BookShelf = shelf;
+      const s: ProfileShelfFixture = shelf;
       expect(s.parentHeader.kind).toBe(39998);
       expect(s.parentHeader.dTag).toBe("book-shelves");
       expect(s.bookSlugs.length).toBe(s.bookAddresses.length);

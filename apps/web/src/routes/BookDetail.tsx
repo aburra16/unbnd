@@ -7,6 +7,7 @@ import { BookHeader } from "../components/BookHeader";
 import { RatingsPanel } from "../components/RatingsPanel";
 import { RatingControl } from "../components/RatingControl";
 import { TagControl } from "../components/TagControl";
+import { ShelfControl } from "../components/ShelfControl";
 import { WhereToRead } from "../components/WhereToRead";
 import { NotFound } from "./NotFound";
 import {
@@ -115,6 +116,7 @@ export function BookDetail() {
       {slug && <RatingsPanel slug={slug} />}
       {slug && <RatingControl bookSlug={slug} />}
       {slug && <TagControl bookSlug={slug} tags={tags} onChanged={reloadTags} />}
+      {slug && <ShelfControl bookSlug={slug} />}
       {book.purchaseUrl && (
         <WhereToRead
           links={[
