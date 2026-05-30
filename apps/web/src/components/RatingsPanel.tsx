@@ -44,6 +44,7 @@ export function RatingsPanel({ slug }: { slug: string }) {
   let count: number;
   let reviews = active.ratings;
   let label: string;
+  let caption: string;
   let countNoun = "ratings";
   let emptyNote: string | undefined;
 
@@ -52,6 +53,7 @@ export function RatingsPanel({ slug }: { slug: string }) {
     count = w?.trustedCount ?? 0;
     reviews = w?.ratings ?? [];
     label = "Your perspective · weighted by trust";
+    caption = "Ratings weighted by your own web of trust.";
     countNoun = "trusted ratings";
     emptyNote = "No ratings from your trust network yet.";
   } else if (w) {
@@ -59,12 +61,14 @@ export function RatingsPanel({ slug }: { slug: string }) {
     count = w.trustedCount;
     reviews = w.ratings;
     label = "Unbnd house view · weighted by trust";
+    caption = "Ratings weighted by the Unbnd house web of trust.";
     countNoun = "trusted ratings";
   } else {
     average = active.average;
     count = active.count;
     reviews = active.ratings;
     label = "Unbnd house view";
+    caption = "Showing all ratings — no trust-weighted ratings for this book yet.";
   }
 
   return (
@@ -104,6 +108,7 @@ export function RatingsPanel({ slug }: { slug: string }) {
         )}
       </div>
       {error && <p className="rp-error" role="alert">{error}</p>}
+      <p className="rp-caption">{caption}</p>
       <RatingsBlock average={average} count={count} countNoun={countNoun} label={label} emptyNote={emptyNote} />
       <ReviewsList ratings={reviews} />
     </div>

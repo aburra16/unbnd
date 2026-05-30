@@ -1,17 +1,29 @@
+// Perspective bar (ADR 0014). Reflects the signed-in user's trust state and
+// hosts the Personalize trigger. Trust-weighting itself is applied to ratings
+// on book pages; here we surface the state + the entry point.
+import { useTrustView } from "../hooks/useTrustView";
 import "./PoVBar.css";
 
-type Props = {
-  state?: "anonymous" | "building" | "personalized";
-  followCount?: number;
-  lastUpdatedLabel?: string;
-};
+export function PoVBar() {
+  const { status, personalize, error } = useTrustView();
 
-export function PoVBar({
-  state = "anonymous",
-  followCount = 0,
-  lastUpdatedLabel,
-}: Props) {
-  if (state === "personalized") {
+  if (status === "building") {
+    return (
+      <div className="pov">
+        <span className="pov-dot" aria-hidden="true" />
+        <span>Building your</span>
+        <span className="pov-strong">web of trust</span>
+        <div className="pov-right">
+          <span className="pov-hint">
+            This takes a few minutes. Trust-weighted ratings turn on across the
+            site when it is ready.
+          </span>
+        </div>
+      </div>
+    );
+  }
+
+  if (status === "ready") {
     return (
       <div className="pov pov-personalized">
         <span className="pov-dot pov-dot-positive" aria-hidden="true" />
@@ -19,51 +31,24 @@ export function PoVBar({
         <span className="pov-strong">your perspective</span>
         <span className="pov-badge">personalized</span>
         <div className="pov-right">
-          <div className="pov-switcher" role="tablist">
-            <button className="pov-sw" type="button" role="tab">
-              House
-            </button>
-            <button
-              className="pov-sw pov-sw-active"
-              type="button"
-              role="tab"
-              aria-selected="true"
-            >
-              Yours
-            </button>
-          </div>
+          <span className="pov-hint">
+            Ratings are weighted by your web of trust. Toggle House / Yours on
+            any book.
+          </span>
         </div>
-        {lastUpdatedLabel && (
-          <span className="pov-hint">{lastUpdatedLabel}</span>
-        )}
       </div>
     );
   }
 
-  if (state === "building") {
-    const pct = Math.min(100, Math.round((followCount / 10) * 100));
+  if (status === "none") {
     return (
       <div className="pov">
         <span className="pov-dot" aria-hidden="true" />
         <span>Showing</span>
         <span className="pov-strong">Unbnd house view</span>
         <div className="pov-right">
-          <div
-            className="pov-progress"
-            role="progressbar"
-            aria-valuenow={followCount}
-            aria-valuemin={0}
-            aria-valuemax={10}
-          >
-            <span className="pov-progress-label">{followCount}/10</span>
-            <span className="pov-progress-track">
-              <span
-                className="pov-progress-fill"
-                style={{ width: `${pct}%` }}
-              />
-            </span>
-          </div>
-          <button className="pov-btn" type="button" disabled>
+          {error && <span className="pov-hint pov-error">{error}</span>}
+          <button className="pov-btn" type="button" onClick={personalize}>
             Personalize
           </button>
         </div>
@@ -71,16 +56,12 @@ export function PoVBar({
     );
   }
 
+  // house-only: signed-out, custodial, trust disabled, or still loading.
   return (
     <div className="pov">
       <span className="pov-dot" aria-hidden="true" />
       <span>Showing</span>
       <span className="pov-strong">Unbnd house view</span>
-      <div className="pov-right">
-        <button className="pov-btn" type="button">
-          Personalize
-        </button>
-      </div>
     </div>
   );
 }

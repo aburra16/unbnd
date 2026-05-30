@@ -49,7 +49,7 @@ export function Home() {
     <div className="page">
       <Nav />
       <Hero />
-      <PoVBar state="anonymous" />
+      <PoVBar />
       {state.status === "loading" && (
         <p className="route-status" role="status">
           Loading the catalog…
