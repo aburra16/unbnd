@@ -9,6 +9,9 @@ export const BOOK_SHELVES_HEADER_SLUG = "book-shelves";
 /** ADR 0009: the unified classification concepts. */
 export const BOOK_TAGS_HEADER_SLUG = "book-tags";
 export const BOOK_TAG_ASSERTIONS_HEADER_SLUG = "book-tag-assertions";
+/** ADR 0016: community submissions live in their own concept, separate from
+ * the librarian-seeded canonical catalog. */
+export const BOOK_SUBMISSIONS_HEADER_SLUG = "book-submissions";
 
 function header(
   librarianPubkey: HexPubkey,
@@ -63,4 +66,10 @@ export function buildBookTagAssertionsHeaderAddress(
   librarianPubkey: HexPubkey,
 ): DListAddress<39998> {
   return header(librarianPubkey, BOOK_TAG_ASSERTIONS_HEADER_SLUG);
+}
+
+export function buildBookSubmissionsHeaderAddress(
+  librarianPubkey: HexPubkey,
+): DListAddress<39998> {
+  return header(librarianPubkey, BOOK_SUBMISSIONS_HEADER_SLUG);
 }

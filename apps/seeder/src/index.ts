@@ -84,6 +84,7 @@ async function main() {
     { slug: "books", name: "books", title: "Books" },
     { slug: "book-tags", name: "book-tags", title: "Book tags" },
     { slug: "book-tag-assertions", name: "book-tag-assertions", title: "Book tag assertions" },
+    { slug: "book-submissions", name: "book-submissions", title: "Book submissions" },
   ]) {
     await publish(buildConceptHeaderTemplate({ ...h, createdAt: now() }), `header:${h.slug}`);
     await sleep(rateMs);

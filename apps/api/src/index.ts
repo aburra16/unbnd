@@ -15,6 +15,7 @@ import { buildTrustRouter } from "./routes/trust";
 import { buildHealthRouter } from "./routes/health";
 import { buildRatingsRouter } from "./routes/ratings";
 import { buildTagsRouter } from "./routes/tags";
+import { buildSubmissionsRouter } from "./routes/submissions";
 import { publishEvent } from "./nostr/publish";
 import { withUpSync } from "./nostr/propagate";
 import { resolveTrustProvider } from "./trust";
@@ -269,6 +270,7 @@ async function main() {
   app.use("/", buildTrustRouter({ sessionUser: resolveSessionUser, trust }));
   app.use("/", buildRatingsRouter(userEventDeps));
   app.use("/", buildTagsRouter(userEventDeps));
+  app.use("/", buildSubmissionsRouter(userEventDeps));
 
   app.use(errorSanitizer);
 

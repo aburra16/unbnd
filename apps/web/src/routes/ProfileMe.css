@@ -56,3 +56,30 @@
   border: 1px dashed rgba(26, 26, 46, 0.14);
   border-radius: 10px;
 }
+
+.me-subs {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.me-sub {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 12px 14px;
+  border: 1px solid var(--u-border, rgba(26, 26, 46, 0.1));
+  border-radius: 10px;
+}
+
+.me-sub-title {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--u-ink);
+}
+
+.me-sub-meta {
+  font-size: 12px;
+  color: var(--u-muted);
+}
