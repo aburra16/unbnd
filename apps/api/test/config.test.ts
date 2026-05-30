@@ -182,3 +182,43 @@ describe("loadConfig — env overrides", () => {
     ).toThrow(/SEARCH_PROVIDER/);
   });
 });
+
+describe("loadConfig — trust provider (ADR 0017)", () => {
+  const FIXTURE = JSON.stringify({ weights: { ["d".repeat(64)]: { ["a".repeat(64)]: 0.9 } } });
+
+  it("defaults TRUST_PROVIDER to 'brainstorm' with no fixture", () => {
+    const c = loadConfig({ ...ALL_REQUIRED });
+    expect(c.trustProvider).toBe("brainstorm");
+    expect(c.trustFixture).toBeUndefined();
+  });
+
+  it("throws when TRUST_PROVIDER is an unknown value", () => {
+    expect(() =>
+      loadConfig({ ...ALL_REQUIRED, TRUST_PROVIDER: "nope" }),
+    ).toThrow(/TRUST_PROVIDER/);
+  });
+
+  it("selects the fixture provider and parses TRUST_FIXTURE", () => {
+    const c = loadConfig({ ...ALL_REQUIRED, TRUST_PROVIDER: "fixture", TRUST_FIXTURE: FIXTURE });
+    expect(c.trustProvider).toBe("fixture");
+    expect(c.trustFixture?.weights["d".repeat(64)]?.["a".repeat(64)]).toBe(0.9);
+  });
+
+  it("throws when TRUST_PROVIDER=fixture but TRUST_FIXTURE is missing", () => {
+    expect(() =>
+      loadConfig({ ...ALL_REQUIRED, TRUST_PROVIDER: "fixture" }),
+    ).toThrow(/TRUST_FIXTURE/);
+  });
+
+  it("throws when TRUST_FIXTURE is not valid JSON", () => {
+    expect(() =>
+      loadConfig({ ...ALL_REQUIRED, TRUST_PROVIDER: "fixture", TRUST_FIXTURE: "{not json" }),
+    ).toThrow(/TRUST_FIXTURE must be valid JSON/);
+  });
+
+  it("throws when TRUST_FIXTURE lacks a weights map", () => {
+    expect(() =>
+      loadConfig({ ...ALL_REQUIRED, TRUST_PROVIDER: "fixture", TRUST_FIXTURE: "{}" }),
+    ).toThrow(/weights/);
+  });
+});

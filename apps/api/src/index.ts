@@ -220,16 +220,22 @@ async function main() {
         )
       : localPublish;
 
-  // Trust-weighting source (ADR 0014). Enabled when a house observer is set +
-  // the Brainstorm API/relays are configured (all have defaults).
-  const trust =
-    config.houseObserverPubkey && config.brainstormApiUrl && config.trustRelays
-      ? resolveTrustProvider({
-          provider: "brainstorm",
-          apiUrl: config.brainstormApiUrl,
-          relays: config.trustRelays,
-        })
-      : undefined;
+  // Trust-weighting source (ADR 0014/0017). Enabled when a house observer is set
+  // and the chosen provider is configured. `fixture` = deterministic, network-
+  // free (CI + the staging seed harness); `brainstorm` = live NIP-85/GrapeRank.
+  const trust = !config.houseObserverPubkey
+    ? undefined
+    : config.trustProvider === "fixture"
+      ? config.trustFixture
+        ? resolveTrustProvider({ provider: "fixture", fixture: config.trustFixture })
+        : undefined
+      : config.brainstormApiUrl && config.trustRelays
+        ? resolveTrustProvider({
+            provider: "brainstorm",
+            apiUrl: config.brainstormApiUrl,
+            relays: config.trustRelays,
+          })
+        : undefined;
 
   const resolveSessionUser = async (cookie: string | undefined) => {
     const resolved = await resolveSession(cookie);

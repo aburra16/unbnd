@@ -16,6 +16,7 @@ const LIB = asHexPubkey("1".repeat(63) + "a");
 const cfg = {
   port: 8787, strfryUrl: "ws://x", neo4jBoltUrl: "x", neo4jUser: "neo4j", neo4jPassword: "x",
   tapestryApiUrl: "x", searchUrl: "x", searchApiKey: "x", searchProvider: "meili",
+  trustProvider: "brainstorm",
   databaseUrl: "x", backupEncryptionKey: "a".repeat(64), publicOrigin: "x", librarianPubkey: LIB,
 } as Config;
 
