@@ -79,5 +79,5 @@ Stated explicitly so it does not creep:
 
 ## Linked artifacts
 - ADR: `engineering-team/decisions/0021-honest-author-scoped-counts.md`
-- Test plan: (filled in after Test Design phase)
+- Test plan: `engineering-team/stories/21-honest-author-scoped-counts.test-plan.md`
 - Review: (filled in after Review phase)
