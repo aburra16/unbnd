@@ -1,6 +1,6 @@
 # Story 17 — Fixture TrustProvider + staging seed harness
 
-**Phase:** 2, Block A (foundations). **ADR:** 0017. **Status:** in progress.
+**Phase:** 2, Block A (foundations). **ADR:** 0017. **Status:** Done.
 
 ## Why
 Phase 2's trust features (weighted display, promotion signals, accusatory gate,

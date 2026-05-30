@@ -2,7 +2,7 @@
 
 **Status:** Accepted
 **Date:** 2026-05-30
-**Story:** `engineering-team/stories/17-fixture-trust-provider.md`
+**Story:** `engineering-team/stories/done/17-fixture-trust-provider.md`
 
 ## Context
 
