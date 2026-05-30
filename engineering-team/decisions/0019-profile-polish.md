@@ -1,8 +1,8 @@
 # ADR 0019: Polish the logged-in profile — server-enriched shelves, honest activity counts, account-menu nav
 
-**Status:** Proposed
+**Status:** Accepted
 **Date:** 2026-05-30
-**Story:** `engineering-team/stories/19-profile-polish.md`
+**Story:** `engineering-team/stories/done/19-profile-polish.md`
 
 ## Context
 

@@ -1,6 +1,6 @@
 # Story 19: Polish the logged-in profile (enriched shelves, account-menu nav, honest activity counts)
 
-**Status:** Draft
+**Status:** Done
 **Created:** 2026-05-30
 **Type:** Feature
 
@@ -77,5 +77,5 @@ Resolve before approving the story.
 
 ## Linked artifacts
 - ADR: `engineering-team/decisions/0019-profile-polish.md`
-- Test plan: `engineering-team/stories/19-profile-polish.test-plan.md`
-- Review: (filled in after Review phase)
+- Test plan: `engineering-team/stories/done/19-profile-polish.test-plan.md`
+- Review: `engineering-team/reviews/19-profile-polish.md` (PASS)

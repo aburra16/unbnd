@@ -1,6 +1,6 @@
 # Test Plan: Story 19 — Polish the logged-in profile
 
-**Story:** `engineering-team/stories/19-profile-polish.md`
+**Story:** `engineering-team/stories/done/19-profile-polish.md`
 **ADR:** `engineering-team/decisions/0019-profile-polish.md`
 **Date:** 2026-05-30
 **Branch:** `feat/profile-polish`
