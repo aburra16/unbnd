@@ -24,6 +24,15 @@ type Nip07 = {
 };
 
 const POLL_MS = 20_000;
+const VIEW_KEY = "unbnd.trustView";
+
+function storedView(): TrustView {
+  try {
+    return localStorage.getItem(VIEW_KEY) === "yours" ? "yours" : "house";
+  } catch {
+    return "house";
+  }
+}
 
 export function useTrustView() {
   const session = useSession();
@@ -31,8 +40,19 @@ export function useTrustView() {
   const npub = session.status === "signed-in" ? session.user.npub : undefined;
 
   const [status, setStatus] = useState<TrustStatus>("loading");
-  const [view, setView] = useState<TrustView>("house");
+  const [view, setViewState] = useState<TrustView>(storedView);
   const [error, setError] = useState<string | null>(null);
+
+  // Persist the chosen perspective so it carries across pages (the bar on the
+  // home page and the ratings panel on book pages share it).
+  const setView = useCallback((v: TrustView) => {
+    setViewState(v);
+    try {
+      localStorage.setItem(VIEW_KEY, v);
+    } catch {
+      // ignore storage failures
+    }
+  }, []);
   const poll = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
