@@ -13,9 +13,18 @@ import { tokenToId } from "../auth/sessions";
 import { validateSignedEvent } from "../nostr/validate";
 import { buildShelfTemplate, ShelfError } from "../shelves/template";
 import { groupOwnShelves } from "../shelves/aggregate";
+import { parseBook, type PublicBook } from "./books";
 
 const COOKIE_NAME = "session";
 const KIND = 39999;
+
+/** A shelf with its books resolved to catalog records (ADR 0019 Decision 1). */
+type EnrichedShelf = {
+  readonly slug: string;
+  readonly name: string;
+  readonly count: number;
+  readonly books: PublicBook[];
+};
 
 export type ShelvesSessionUser = {
   readonly id: string;
@@ -45,6 +54,7 @@ export function buildShelvesRouter(deps: ShelvesDeps): Router {
   const router = express.Router();
   const lib = () => deps.config.librarianPubkey;
   const shelvesConcept = () => `39998:${lib()}:book-shelves`;
+  const booksConcept = () => `39998:${lib()}:books`;
 
   // Build a template for the client to sign (sovereign).
   router.post("/api/shelves/template", async (req, res, next) => {
@@ -180,7 +190,34 @@ export function buildShelvesRouter(deps: ShelvesDeps): Router {
         "#z": [shelvesConcept()],
         authors: [user.pubkeyHex],
       });
-      res.status(200).json({ shelves: groupOwnShelves(events) });
+      const shelves = groupOwnShelves(events);
+
+      // Enrich each shelf's books to PublicBook via ONE batch catalog read
+      // (ADR 0019 Decision 1). Slugs with no resolved record are omitted and
+      // the shelf count is recounted to the survivors (AC-2). No read fires
+      // when the user has no shelved books.
+      const distinctSlugs = [
+        ...new Set(shelves.flatMap((s) => s.books.map((b) => b.bookSlug))),
+      ];
+      const bySlug = new Map<string, PublicBook>();
+      if (distinctSlugs.length > 0) {
+        const bookEvents = await deps.query({
+          kinds: [KIND],
+          "#z": [booksConcept()],
+          "#d": distinctSlugs,
+        });
+        for (const e of bookEvents) {
+          const b = parseBook(e);
+          if (b && !bySlug.has(b.slug)) bySlug.set(b.slug, b);
+        }
+      }
+      const enriched: EnrichedShelf[] = shelves.map((s) => {
+        const books = s.books
+          .map((b) => bySlug.get(b.bookSlug))
+          .filter((b): b is PublicBook => Boolean(b));
+        return { slug: s.slug, name: s.name, count: books.length, books };
+      });
+      res.status(200).json({ shelves: enriched });
     } catch (err) {
       next(err);
     }

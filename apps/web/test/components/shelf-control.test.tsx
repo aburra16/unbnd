@@ -104,7 +104,7 @@ describe("ShelfControl — sovereign remove (AC-2)", () => {
     sessionMock.mockReturnValue({ status: "signed-in", user: sovereignUser, refresh: vi.fn() });
     mineMock.mockResolvedValue({
       shelves: [
-        { slug: "want-to-read", name: "Want to Read", count: 1, books: [{ bookSlug: "orbital", bookAtag: "x" }] },
+        { slug: "want-to-read", name: "Want to Read", count: 1, books: [{ slug: "orbital", title: "Orbital", authorName: "Samantha Harvey", format: "reference" }] },
       ],
     });
     templateMock.mockResolvedValue({ template: { kind: 39999, created_at: 1, tags: [], content: "" } });
@@ -164,12 +164,57 @@ describe("ShelfControl — custom shelf (AC-4)", () => {
   });
 });
 
+// Failing tests (red) for Story 19 AC-9 — ShelfControl uses the @unbnd/schemas
+// `toShelfSlug` (deduped from its local copy). The schemas version THROWS when a
+// name normalizes to empty (the old local copy returned ""), so the new-shelf
+// path must guard empty/whitespace input. These assert the control does not
+// crash and does not submit a shelf for an empty/whitespace custom name. The
+// shared-import dedupe is verified in review (an import is not directly
+// assertable from a render), but the throw-on-empty behavior change IS.
+describe("ShelfControl — toShelfSlug dedupe + empty-name guard (AC-9)", () => {
+  it("does not crash or submit when the custom shelf name is whitespace only", async () => {
+    sessionMock.mockReturnValue({ status: "signed-in", user: custodialUser, refresh: vi.fn() });
+    submitCustodialMock.mockResolvedValue({ ok: true });
+
+    renderControl();
+    fireEvent.change(await screen.findByRole("combobox"), { target: { value: "__new__" } });
+    fireEvent.change(await screen.findByLabelText(/name/i), { target: { value: "   " } });
+    // Activating Add with a whitespace-only name must be handled (guarded),
+    // never throwing out of the schemas toShelfSlug and never publishing.
+    const addButton = screen.getByRole("button", { name: /^add$/i });
+    expect(() => fireEvent.click(addButton)).not.toThrow();
+    await waitFor(() => expect(screen.getByRole("combobox")).toBeInTheDocument());
+    expect(submitCustodialMock).not.toHaveBeenCalled();
+  });
+
+  it("still derives a valid slug from a normal custom name (existing cases unchanged)", async () => {
+    sessionMock.mockReturnValue({ status: "signed-in", user: custodialUser, refresh: vi.fn() });
+    submitCustodialMock.mockResolvedValue({ ok: true });
+
+    renderControl();
+    fireEvent.change(await screen.findByRole("combobox"), { target: { value: "__new__" } });
+    fireEvent.change(await screen.findByLabelText(/name/i), { target: { value: "Beach Reads!!" } });
+    fireEvent.click(screen.getByRole("button", { name: /^add$/i }));
+
+    await waitFor(() =>
+      expect(submitCustodialMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          bookSlug: "orbital",
+          shelfSlug: "beach-reads",
+          shelfName: "Beach Reads!!",
+          polarity: 1,
+        }),
+      ),
+    );
+  });
+});
+
 describe("ShelfControl — default mutual exclusivity = move (AC-5)", () => {
   it("removes the old default then adds the new default (two writes)", async () => {
     sessionMock.mockReturnValue({ status: "signed-in", user: custodialUser, refresh: vi.fn() });
     mineMock.mockResolvedValue({
       shelves: [
-        { slug: "reading", name: "Reading", count: 1, books: [{ bookSlug: "orbital", bookAtag: "x" }] },
+        { slug: "reading", name: "Reading", count: 1, books: [{ slug: "orbital", title: "Orbital", authorName: "Samantha Harvey", format: "reference" }] },
       ],
     });
     submitCustodialMock.mockResolvedValue({ ok: true });

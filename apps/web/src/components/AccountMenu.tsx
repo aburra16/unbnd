@@ -1,6 +1,6 @@
-// Signed-in account control (ADR 0012): avatar button → dropdown with the
-// identity and Sign out. Closes on outside-click / Escape. Sign-out-only for
-// now; Settings/Profile entries are a carry-forward.
+// Signed-in account control (ADR 0012; nav added in ADR 0019): avatar button →
+// dropdown with the identity, "Your profile", "Your shelves" (deep link), and
+// Sign out. Closes on outside-click / Escape.
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { api, type PublicUser } from "../lib/api";
@@ -73,6 +73,12 @@ export function AccountMenu({ user, onSignedOut }: Props) {
               <span className="acct-name">{name}</span>
               <span className="acct-npub">{shortNpub(user.npub)}</span>
             </span>
+          </Link>
+          <Link className="acct-item" to="/profile/me" role="menuitem" onClick={() => setOpen(false)}>
+            Your profile
+          </Link>
+          <Link className="acct-item" to="/profile/me#shelves" role="menuitem" onClick={() => setOpen(false)}>
+            Your shelves
           </Link>
           <button type="button" className="acct-signout" role="menuitem" onClick={signOut} disabled={busy}>
             {busy ? "Signing out…" : "Sign out"}

@@ -61,6 +61,20 @@
   color: var(--u-muted);
 }
 
+.acct-item {
+  display: block;
+  width: 100%;
+  padding: 9px 10px;
+  border-radius: 7px;
+  font-size: 13px;
+  color: var(--u-ink);
+  text-decoration: none;
+}
+
+.acct-item:hover {
+  background: rgba(26, 26, 46, 0.04);
+}
+
 .acct-menu hr,
 .acct-signout {
   margin-top: 4px;

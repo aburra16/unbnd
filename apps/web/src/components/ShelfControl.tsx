@@ -7,6 +7,7 @@
 // AC-5).
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
+import { toShelfSlug } from "@unbnd/schemas";
 import {
   api,
   ApiError,
@@ -41,13 +42,6 @@ const DEFAULT_SLUGS = new Set<string>(DEFAULTS.map((d) => d.slug));
 
 const NEW_SHELF = "__new__";
 
-function toShelfSlug(name: string): string {
-  return name
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "");
-}
-
 export function ShelfControl({ bookSlug }: Props) {
   const session = useSession();
   const [shelves, setShelves] = useState<Shelf[]>([]);
@@ -81,7 +75,7 @@ export function ShelfControl({ bookSlug }: Props) {
 
   // Shelves this book currently sits on (membership chips + remove targets).
   const current = useMemo(
-    () => shelves.filter((s) => s.books.some((b) => b.bookSlug === bookSlug)),
+    () => shelves.filter((s) => s.books.some((b) => b.slug === bookSlug)),
     [shelves, bookSlug],
   );
 
@@ -111,8 +105,12 @@ export function ShelfControl({ bookSlug }: Props) {
     let shelfName: string | undefined;
     if (selected === NEW_SHELF) {
       const trimmed = customName.trim();
-      const slug = toShelfSlug(trimmed);
-      if (!slug) {
+      // The @unbnd/schemas toShelfSlug throws when a name normalizes to empty,
+      // so guard whitespace-only input here before calling it (AC-9).
+      let slug: string;
+      try {
+        slug = toShelfSlug(trimmed);
+      } catch {
         setErrorMsg("Give the shelf a name.");
         setStatus("error");
         return;

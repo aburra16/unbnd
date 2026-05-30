@@ -10,6 +10,7 @@ import { probeTapestry } from "./probes/tapestry";
 import { buildAuthRouter } from "./routes/auth";
 import { buildBooksRouter } from "./routes/books";
 import { buildProfileRouter } from "./routes/profile";
+import { buildProfileStatsRouter } from "./routes/profile-stats";
 import { buildSearchRouter } from "./routes/search";
 import { buildTrustRouter } from "./routes/trust";
 import { buildHealthRouter } from "./routes/health";
@@ -273,6 +274,14 @@ async function main() {
 
   app.use("/", buildBooksRouter({ config, query: userEventDeps.query }));
   app.use("/", buildProfileRouter({ config }));
+  app.use(
+    "/",
+    buildProfileStatsRouter({
+      config,
+      sessionUser: resolveSessionUser,
+      query: userEventDeps.query,
+    }),
+  );
   app.use("/", buildSearchRouter({ searchProvider }));
   app.use("/", buildTrustRouter({ sessionUser: resolveSessionUser, trust }));
   app.use("/", buildRatingsRouter(userEventDeps));

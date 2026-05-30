@@ -104,6 +104,35 @@ export function aggregateBookTags(
   return result;
 }
 
+/**
+ * Own-applied-tags count for the signed-in user's profile (ADR 0019 Decision 2,
+ * AC-7). Single-author read, so latest-wins keys on the (bookSlug, tagSlug) PAIR
+ * (author is fixed) rather than (author, tagSlug) as in `aggregateBookTags`.
+ * Counts pairs whose latest assertion has polarity +1; disputes (latest -1) and
+ * retractions are excluded by construction.
+ */
+export function countOwnAppliedTags(assertions: SignedNostrEvent[]): number {
+  const latest = new Map<string, { polarity: number; createdAt: number }>();
+  for (const e of assertions) {
+    let a;
+    try {
+      a = parseAssertion(e);
+    } catch {
+      continue;
+    }
+    const key = `${a.bookSlug}|${a.tagSlug}`;
+    const prior = latest.get(key);
+    if (!prior || e.created_at > prior.createdAt) {
+      latest.set(key, { polarity: a.polarity, createdAt: e.created_at });
+    }
+  }
+  let applied = 0;
+  for (const v of latest.values()) {
+    if (v.polarity === 1) applied++;
+  }
+  return applied;
+}
+
 export function aggregateGenreBooks(assertions: SignedNostrEvent[]): string[] {
   // Dedup by (author, book) keeping latest; net = applies - disputes per book.
   const latest = new Map<string, { polarity: number; createdAt: number; book: string }>();

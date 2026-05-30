@@ -19,11 +19,11 @@ type CoverFixture = {
 };
 
 /**
- * UI augmentation of the wire-shape `@unbnd/schemas` BookShelf. Adds
- * route-only fields (`count` for the visible "N books" label, `covers`
- * for the mini-thumbnail row). The schema's `bookSlugs` and
- * `bookAddresses` are derived from `covers` so the parallel-array
- * invariant is enforced by construction.
+ * Fixture/UI shape for the public-profile (`/profile/:handle`) Mira mock — not a
+ * `@unbnd/schemas` wire type. Carries display-only fields (`count` for the
+ * visible "N books" label, `covers` for the mini-thumbnail row) alongside
+ * `bookSlugs` / `bookAddresses`, which are derived from `covers` so the
+ * parallel-array invariant holds by construction.
  */
 export type ProfileShelfFixture = {
   slug: string;

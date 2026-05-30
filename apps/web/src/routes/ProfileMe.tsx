@@ -1,23 +1,50 @@
-// The logged-in user's own profile (ADR 0012). Real identity header (avatar /
-// name / npub from kind-0 when available); activity is honest empty states —
-// no fabricated data. Real activity is a later story.
+// The logged-in user's own profile (ADR 0012; polished in ADR 0019). Real
+// identity header (avatar / name / npub from kind-0 when available); shelves
+// render as cover/title/author cards; activity counts are honest — an absent
+// count is hidden, never a fabricated 0. No fabricated activity feed.
 import { useEffect, useState } from "react";
-import { Navigate } from "react-router-dom";
-import { api, type Shelf, type SubmittedBook } from "../lib/api";
+import { Navigate, useLocation } from "react-router-dom";
+import {
+  api,
+  type ProfileStatsResponse,
+  type Shelf,
+  type SubmittedBook,
+} from "../lib/api";
 import { Nav } from "../components/Nav";
 import { Footer } from "../components/Footer";
 import { Avatar } from "../components/Avatar";
+import { BookGrid } from "../components/BookGrid";
 import { ProfileStats } from "../components/ProfileStats";
+import { toCardBook } from "../lib/view-model";
 import { useSession } from "../hooks/useSession";
 import { useProfileMeta, displayNameOf } from "../hooks/useProfileMeta";
 import "./ProfileMe.css";
 
+// Build the stat cells from only the PRESENT fields (ADR 0019 AC-8). An absent
+// field contributes no cell (the stat is hidden); a present 0 renders 0. null
+// stats (the whole read failed) yields no cells at all.
+function statCells(
+  stats: ProfileStatsResponse | null,
+): { label: string; value: number }[] {
+  if (!stats) return [];
+  const cells: { label: string; value: number }[] = [];
+  if (stats.booksRated !== undefined)
+    cells.push({ label: "Books rated", value: stats.booksRated });
+  if (stats.reviews !== undefined)
+    cells.push({ label: "Reviews", value: stats.reviews });
+  if (stats.tagsApplied !== undefined)
+    cells.push({ label: "Tags applied", value: stats.tagsApplied });
+  return cells;
+}
+
 export function ProfileMe() {
   const session = useSession();
+  const location = useLocation();
   const npub = session.status === "signed-in" ? session.user.npub : undefined;
   const meta = useProfileMeta(npub);
   const [submissions, setSubmissions] = useState<SubmittedBook[] | null>(null);
   const [shelves, setShelves] = useState<Shelf[] | null>(null);
+  const [stats, setStats] = useState<ProfileStatsResponse | null>(null);
 
   useEffect(() => {
     if (session.status !== "signed-in") return;
@@ -30,10 +57,21 @@ export function ProfileMe() {
       .mine()
       .then((r) => !cancelled && setShelves(r.shelves))
       .catch(() => !cancelled && setShelves([]));
+    api.profile
+      .meStats()
+      .then((r) => !cancelled && setStats(r.stats))
+      .catch(() => !cancelled && setStats(null));
     return () => {
       cancelled = true;
     };
   }, [session.status]);
+
+  // Deep link to the shelves section (AC-4). Scroll on hash change AND after the
+  // async shelves load settles the section height; only when the hash matches.
+  useEffect(() => {
+    if (location.hash !== "#shelves") return;
+    document.getElementById("shelves")?.scrollIntoView({ behavior: "smooth" });
+  }, [location.hash, shelves]);
 
   if (session.status === "loading") {
     return (
@@ -68,15 +106,9 @@ export function ProfileMe() {
         </div>
       </header>
 
-      <ProfileStats
-        stats={[
-          { label: "Books rated", value: 0 },
-          { label: "Reviews", value: 0 },
-          { label: "Tags applied", value: 0 },
-        ]}
-      />
+      {statCells(stats).length > 0 && <ProfileStats stats={statCells(stats)} />}
 
-      <section className="me-activity">
+      <section className="me-activity" id="shelves">
         <h2 className="me-activity-title">Your shelves</h2>
         {shelves && shelves.length > 0 ? (
           <ul className="me-shelves">
@@ -86,13 +118,7 @@ export function ProfileMe() {
                   <span className="me-shelf-name">{s.name}</span>
                   <span className="me-shelf-count">{s.count}</span>
                 </div>
-                <ul className="me-shelf-books">
-                  {s.books.map((b) => (
-                    <li className="me-shelf-book" key={b.bookSlug}>
-                      <a href={`/book/${b.bookSlug}`}>{b.bookSlug}</a>
-                    </li>
-                  ))}
-                </ul>
+                <BookGrid books={s.books.map(toCardBook)} />
               </li>
             ))}
           </ul>

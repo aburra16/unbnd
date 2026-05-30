@@ -116,17 +116,23 @@ export type TaxonomyElement = {
   sensitivity: "normal" | "accusatory";
 };
 
-// Shelves (ADR 0018). A grouped read of the user's own membership assertions.
-export type ShelfBook = {
-  bookSlug: string;
-  bookAtag: string;
-};
-
+// Shelves (ADR 0018, enriched in ADR 0019 Decision 1). A grouped read of the
+// user's own membership assertions; each shelf book is a catalog PublicBook
+// (cover/title/author), with unresolvable slugs omitted and the count recounted.
 export type Shelf = {
   slug: string;
   name: string;
   count: number;
-  books: ShelfBook[];
+  books: PublicBook[];
+};
+
+// Honest own-profile counts (ADR 0019 Decision 2). Each field is present only
+// when its server-side read succeeded; an absent field is hidden, never a
+// fabricated 0. A genuine 0 is present.
+export type ProfileStatsResponse = {
+  booksRated?: number;
+  reviews?: number;
+  tagsApplied?: number;
 };
 
 export type ShelfInput = {
@@ -342,6 +348,11 @@ export const api = {
     get(idOrNpub: string) {
       return authFetch<{ profile: ProfileMeta }>(
         `/api/profile/${encodeURIComponent(idOrNpub)}`,
+      );
+    },
+    meStats() {
+      return authFetch<{ stats: ProfileStatsResponse }>(
+        "/api/profile/me/stats",
       );
     },
   },

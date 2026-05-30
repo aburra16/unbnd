@@ -85,6 +85,51 @@ export function dedupeRatings(events: SignedNostrEvent[]): ParsedRating[] {
   return [...latest.values()].sort((a, b) => b.createdAt - a.createdAt);
 }
 
+/**
+ * Own-ratings counts for the signed-in user's profile (ADR 0019 Decision 2,
+ * AC-5/AC-6). All events are the SAME author here, so latest-wins must key by
+ * BOOK (not pubkey, which `dedupeRatings` uses — that would collapse the user's
+ * whole history to one entry). `booksRated` = distinct books with a current
+ * rating; `reviews` = the subset whose latest rating carries non-empty trimmed
+ * review text. `dedupeRatings` is left untouched (its pubkey key is correct for
+ * the public per-book read).
+ */
+export function countOwnRatings(events: SignedNostrEvent[]): {
+  booksRated: number;
+  reviews: number;
+} {
+  const latest = new Map<
+    string,
+    { createdAt: number; reviewText?: string }
+  >();
+  for (const event of events) {
+    let bookSlug: string;
+    let reviewText: string | undefined;
+    try {
+      const rating = fromBookRatingEvent(
+        fromWireEvent({
+          kind: event.kind,
+          content: event.content,
+          tags: event.tags,
+        }) as never,
+      );
+      bookSlug = rating.bookSlug;
+      reviewText = rating.reviewText;
+    } catch {
+      continue; // skip anything that is not a well-formed rating
+    }
+    const prior = latest.get(bookSlug);
+    if (!prior || event.created_at > prior.createdAt) {
+      latest.set(bookSlug, { createdAt: event.created_at, reviewText });
+    }
+  }
+  let reviews = 0;
+  for (const v of latest.values()) {
+    if ((v.reviewText ?? "").trim() !== "") reviews++;
+  }
+  return { booksRated: latest.size, reviews };
+}
+
 export function rawFromParsed(deduped: ParsedRating[]): RatingsSummary {
   const count = deduped.length;
   const average = count === 0 ? null : deduped.reduce((s, r) => s + r.score, 0) / count;
