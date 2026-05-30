@@ -8,7 +8,7 @@
 import express, { type Request, type Router } from "express";
 import { parse as parseCookie } from "cookie";
 import type { Config } from "../config";
-import type { NostrFilter } from "../nostr/query";
+import type { NostrFilter, PagedResult } from "../nostr/query";
 import type { SignedNostrEvent } from "@unbnd/schemas";
 import { countOwnRatings } from "../ratings/summary";
 import { countOwnAppliedTags } from "../tags/aggregate";
@@ -18,7 +18,19 @@ const COOKIE_NAME = "session";
 const KIND = 39999;
 const PUBLIC_TTL_MS = 60_000;
 
-type Stats = { booksRated?: number; reviews?: number; tagsApplied?: number };
+type CappedKey = "booksRated" | "reviews" | "tagsApplied";
+
+// Three states per field: present `number` (exact, incl. a true 0), `undefined`
+// (omit-on-throw), and — newly (ADR 0021) — a capped floor (a present number
+// whose key is listed in `capped`). The parallel `capped` array is additive: the
+// present-check and omit-on-throw semantics are unchanged. Absent/empty ⇒ nothing
+// capped.
+type Stats = {
+  booksRated?: number;
+  reviews?: number;
+  tagsApplied?: number;
+  capped?: CappedKey[];
+};
 
 export type ProfileStatsSessionUser = {
   readonly id: string;
@@ -32,6 +44,9 @@ export type ProfileStatsDeps = {
     cookie: string | undefined,
   ) => Promise<ProfileStatsSessionUser | null>;
   readonly query: (filter: NostrFilter) => Promise<SignedNostrEvent[]>;
+  // Paginating author-scoped read (ADR 0021). Pages past the relay's 500 cap and
+  // returns { events, capped }; statsFor counts `.events` and flags `.capped`.
+  readonly queryPaged: (filter: NostrFilter) => Promise<PagedResult>;
   // Injectable clock for the public-twin TTL cache (ADR 0020 Decision 4).
   readonly now?: () => number;
 };
@@ -53,37 +68,47 @@ export function buildProfileStatsRouter(deps: ProfileStatsDeps): Router {
   // count (a true 0 stays present, a fabricated 0 is never sent). Shared by the
   // session-gated /me/stats and the public by-pubkey twin.
   async function statsFor(author: string): Promise<Stats> {
-    const ratingsP = (async () =>
-      countOwnRatings(
-        await deps.query({
-          kinds: [KIND],
-          "#z": [ratingsConcept()],
-          authors: [author],
-        }),
-      ))().then(
-      (r) => ({ ok: true as const, r }),
+    // Paged reads (ADR 0021): each pages past the 500 cap and reports `.capped`.
+    // A throw (e.g. total-budget exhaustion) still omits ONLY its field(s) and
+    // contributes nothing to `capped` (omit-on-throw, Story 19/20).
+    const ratingsP = (async () => {
+      const paged = await deps.queryPaged({
+        kinds: [KIND],
+        "#z": [ratingsConcept()],
+        authors: [author],
+      });
+      return { r: countOwnRatings(paged.events), capped: paged.capped };
+    })().then(
+      (v) => ({ ok: true as const, ...v }),
       () => ({ ok: false as const }),
     );
-    const tagsP = (async () =>
-      countOwnAppliedTags(
-        await deps.query({
-          kinds: [KIND],
-          "#z": [tagsConcept()],
-          authors: [author],
-        }),
-      ))().then(
-      (n) => ({ ok: true as const, n }),
+    const tagsP = (async () => {
+      const paged = await deps.queryPaged({
+        kinds: [KIND],
+        "#z": [tagsConcept()],
+        authors: [author],
+      });
+      return { n: countOwnAppliedTags(paged.events), capped: paged.capped };
+    })().then(
+      (v) => ({ ok: true as const, ...v }),
       () => ({ ok: false as const }),
     );
 
     const [ratings, tags] = await Promise.all([ratingsP, tagsP]);
 
     const stats: Stats = {};
+    const capped: CappedKey[] = [];
     if (ratings.ok) {
       stats.booksRated = ratings.r.booksRated;
       stats.reviews = ratings.r.reviews;
+      // booksRated + reviews are capped together (one ratings read).
+      if (ratings.capped) capped.push("booksRated", "reviews");
     }
-    if (tags.ok) stats.tagsApplied = tags.n;
+    if (tags.ok) {
+      stats.tagsApplied = tags.n;
+      if (tags.capped) capped.push("tagsApplied");
+    }
+    if (capped.length > 0) stats.capped = capped;
     return stats;
   }
 

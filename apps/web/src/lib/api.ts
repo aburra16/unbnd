@@ -133,6 +133,9 @@ export type ProfileStatsResponse = {
   booksRated?: number;
   reviews?: number;
   tagsApplied?: number;
+  // Keys whose underlying read hit the relay-cap ceiling (ADR 0021): their value
+  // is a floor ("N+"), not exact. Absent/empty ⇒ nothing capped.
+  capped?: ("booksRated" | "reviews" | "tagsApplied")[];
 };
 
 export type ShelfInput = {

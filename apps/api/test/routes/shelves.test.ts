@@ -71,11 +71,16 @@ function bookEvent(slug: string, title: string, author: string): SignedNostrEven
 const sovereign: ShelvesSessionUser = { id: "u", pubkeyHex: "9".repeat(64), tier: "sovereign" };
 
 function makeApp(over: Partial<ShelvesDeps> = {}) {
+  const query = over.query ?? vi.fn(async () => []);
   const deps: ShelvesDeps = {
     config: cfg,
     sessionUser: vi.fn(async () => sovereign),
     publish: vi.fn(async () => ({ ok: true as const, id: "e" })),
-    query: vi.fn(async () => []),
+    query,
+    // enrichedShelvesFor reads membership via queryPaged (ADR 0021); wrap the
+    // injected one-shot `query` into a PagedResult so these pre-Story-21 fixtures
+    // still drive it (the #d enrichment stays on `query`).
+    queryPaged: vi.fn(async (filter) => ({ events: await query(filter), capped: false })),
     custodialSign: vi.fn(async () => null),
     ...over,
   };

@@ -21,7 +21,7 @@ import { buildSubmissionsRouter } from "./routes/submissions";
 import { publishEvent } from "./nostr/publish";
 import { withUpSync } from "./nostr/propagate";
 import { resolveTrustProvider } from "./trust";
-import { queryEvents } from "./nostr/query";
+import { queryEvents, queryEventsPaged } from "./nostr/query";
 import { resolveProvider } from "@unbnd/search";
 import {
   createCustodialUser,
@@ -255,6 +255,11 @@ async function main() {
     sessionUser: resolveSessionUser,
     publish,
     query: (filter: Parameters<typeof queryEvents>[1]) => queryEvents(config, filter),
+    // Paginating sibling read (ADR 0021): pages past the relay's 500 cap for the
+    // author-scoped stats + shelf-membership reads. The one-shot `query` above
+    // still backs per-book reads, aggregateBookTags, and the #d enrichment chunks.
+    queryPaged: (filter: Parameters<typeof queryEventsPaged>[1]) =>
+      queryEventsPaged(config, filter),
     trust,
     custodialSign: async (
       sessionIdHex: string,
@@ -280,6 +285,7 @@ async function main() {
       config,
       sessionUser: resolveSessionUser,
       query: userEventDeps.query,
+      queryPaged: userEventDeps.queryPaged,
     }),
   );
   app.use("/", buildSearchRouter({ searchProvider }));

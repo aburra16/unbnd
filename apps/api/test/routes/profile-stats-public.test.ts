@@ -85,10 +85,14 @@ function queryByConcept(handlers: {
 }
 
 function makeApp(over: Partial<ProfileStatsDeps> & { now?: () => number } = {}) {
+  const query = over.query ?? vi.fn(async () => []);
   const deps: Partial<ProfileStatsDeps> & { now?: () => number } = {
     config: cfg,
     sessionUser: vi.fn(async () => null), // public route: never consulted
-    query: vi.fn(async () => []),
+    query,
+    // statsFor reads via queryPaged (ADR 0021); wrap the injected one-shot
+    // `query` into a PagedResult so these pre-Story-21 fixtures still drive it.
+    queryPaged: vi.fn(async (filter) => ({ events: await query(filter), capped: false })),
     ...over,
   };
   const app = express();
