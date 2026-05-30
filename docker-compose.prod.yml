@@ -11,8 +11,12 @@ services:
     environment:
       - SITE_ADDRESS=${SITE_ADDRESS}
       # Apex domain served ONLY for the librarian NIP-05 (all else 404s).
-      # Unset -> Caddy uses *.localhost and the apex stays inert.
-      - APEX_ADDRESS=${APEX_ADDRESS:-}
+      # MUST be a non-empty hostname: Caddy's {$APEX_ADDRESS:default} only
+      # applies its default when the var is *unset*, not when it's an empty
+      # string, and an empty site label crashes Caddy. So default to a harmless
+      # *.localhost host here (inert, internal cert) when the operator hasn't
+      # set a real apex. Set APEX_ADDRESS=unbnd.ink in .env to activate.
+      - APEX_ADDRESS=${APEX_ADDRESS:-apex.localhost}
     ports:
       - "80:80"
       - "443:443"
