@@ -203,7 +203,7 @@ only remaining items are Architect-level — **not blocking the gate.**
   Architecture gate.
 
 ## Linked artifacts
-- ADR: (filled in after Architecture phase)
+- ADR: `engineering-team/decisions/0018-shelves.md`
 - Test plan: (filled in after Test Design phase)
 - Review: (filled in after Review phase)
 - Builds on: `@unbnd/schemas` `BookTagAssertion.ts` (the apply/retract model to
