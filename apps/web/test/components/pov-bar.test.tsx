@@ -33,10 +33,22 @@ describe("PoVBar", () => {
     expect(screen.getByText(/web of trust/i)).toBeInTheDocument();
   });
 
-  it("ready: shows the personalized indicator", () => {
-    trustMock.mockReturnValue(trust({ status: "ready" }));
+  it("ready + yours: personalized indicator + House/Yours toggle", () => {
+    trustMock.mockReturnValue(trust({ status: "ready", view: "yours" }));
     render(<PoVBar />);
     expect(screen.getByText(/your perspective/i)).toBeInTheDocument();
     expect(screen.getByText(/personalized/i)).toBeInTheDocument();
+    expect(screen.getByRole("tab", { name: /house/i })).toBeInTheDocument();
+    expect(screen.getByRole("tab", { name: /yours/i })).toBeInTheDocument();
+  });
+
+  it("ready + house: shows house label; switching calls setView", () => {
+    const setView = vi.fn();
+    trustMock.mockReturnValue(trust({ status: "ready", view: "house", setView }));
+    render(<PoVBar />);
+    expect(screen.getByText(/Unbnd house view/i)).toBeInTheDocument();
+    expect(screen.queryByText(/personalized/i)).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole("tab", { name: /yours/i }));
+    expect(setView).toHaveBeenCalledWith("yours");
   });
 });

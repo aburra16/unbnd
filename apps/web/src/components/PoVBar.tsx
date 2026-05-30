@@ -5,7 +5,7 @@ import { useTrustView } from "../hooks/useTrustView";
 import "./PoVBar.css";
 
 export function PoVBar() {
-  const { status, personalize, error } = useTrustView();
+  const { status, view, setView, personalize, error } = useTrustView();
 
   if (status === "building") {
     return (
@@ -24,17 +24,34 @@ export function PoVBar() {
   }
 
   if (status === "ready") {
+    const yours = view === "yours";
     return (
       <div className="pov pov-personalized">
-        <span className="pov-dot pov-dot-positive" aria-hidden="true" />
-        <span>Showing</span>
-        <span className="pov-strong">your perspective</span>
-        <span className="pov-badge">personalized</span>
+        <span className={yours ? "pov-dot pov-dot-positive" : "pov-dot"} aria-hidden="true" />
+        <span className="pov-lead">Showing</span>
+        <span className="pov-strong">{yours ? "your perspective" : "Unbnd house view"}</span>
+        {yours && <span className="pov-badge">personalized</span>}
         <div className="pov-right">
-          <span className="pov-hint">
-            Ratings are weighted by your web of trust. Toggle House / Yours on
-            any book.
-          </span>
+          <div className="pov-switcher" role="tablist" aria-label="Rating perspective">
+            <button
+              type="button"
+              role="tab"
+              aria-selected={!yours}
+              className={!yours ? "pov-sw pov-sw-active" : "pov-sw"}
+              onClick={() => setView("house")}
+            >
+              House
+            </button>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={yours}
+              className={yours ? "pov-sw pov-sw-active" : "pov-sw"}
+              onClick={() => setView("yours")}
+            >
+              Yours
+            </button>
+          </div>
         </div>
       </div>
     );

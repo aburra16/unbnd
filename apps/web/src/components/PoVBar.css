@@ -1,14 +1,19 @@
 .pov {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 11px 16px;
-  border-radius: var(--u-radius);
+  gap: 8px;
+  padding: 12px 18px;
+  border-radius: 12px;
   border: 1px solid var(--u-border);
-  background: rgba(26, 26, 46, 0.015);
-  font-size: 12px;
+  background: rgba(26, 26, 46, 0.02);
+  font-size: 13px;
   color: var(--u-muted);
   margin-bottom: 36px;
+}
+
+.pov-lead,
+.pov-strong {
+  white-space: nowrap;
 }
 
 .pov-dot {
@@ -96,27 +101,36 @@
 }
 
 .pov-switcher {
-  display: flex;
-  border-radius: var(--u-radius);
-  border: 1px solid var(--u-border-hover);
-  overflow: hidden;
+  display: inline-flex;
+  gap: 2px;
+  padding: 3px;
+  border-radius: 9px;
+  background: rgba(26, 26, 46, 0.06);
 }
 
 .pov-sw {
   font-size: 12px;
+  font-weight: 500;
   padding: 5px 14px;
   background: transparent;
   border: none;
+  border-radius: 7px;
   color: var(--u-muted);
+  cursor: pointer;
+  transition:
+    color 120ms ease,
+    background 120ms ease;
 }
 
-.pov-sw + .pov-sw {
-  border-left: 1px solid var(--u-border-hover);
+.pov-sw:hover {
+  color: var(--u-ink);
 }
 
-.pov-sw-active {
-  background: var(--u-ink);
-  color: var(--u-parchment);
+.pov-sw-active,
+.pov-sw-active:hover {
+  background: #fff;
+  color: var(--u-ink);
+  box-shadow: 0 1px 3px rgba(26, 26, 46, 0.14);
 }
 
 .pov-hint {
