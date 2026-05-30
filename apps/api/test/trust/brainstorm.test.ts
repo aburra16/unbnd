@@ -80,3 +80,64 @@ describe("BrainstormProvider.weights", () => {
     expect((await p.weights(OBS, [T1])).get(T1)).toBeCloseTo(0.5);
   });
 });
+
+describe("BrainstormProvider.hasScores", () => {
+  it("true when the service key has ≥1 score on a relay", async () => {
+    const p = new BrainstormProvider(
+      { apiUrl: "https://api", relays: ["wss://r1"] },
+      { fetchImpl: setupFetch([["30382:rank", SVC]]), query: vi.fn(async () => [score(T1, 30)]) },
+    );
+    expect(await p.hasScores(OBS)).toBe(true);
+  });
+
+  it("false with no service key or no events", async () => {
+    const noKey = new BrainstormProvider(
+      { apiUrl: "https://api", relays: ["wss://r1"] },
+      { fetchImpl: setupFetch([["30382:followers", SVC]]), query: vi.fn(async () => []) },
+    );
+    expect(await noKey.hasScores(OBS)).toBe(false);
+    const noEvents = new BrainstormProvider(
+      { apiUrl: "https://api", relays: ["wss://r1"] },
+      { fetchImpl: setupFetch([["30382:rank", SVC]]), query: vi.fn(async () => []) },
+    );
+    expect(await noEvents.hasScores(OBS)).toBe(false);
+  });
+});
+
+describe("BrainstormProvider personalization", () => {
+  function routeFetch() {
+    return vi.fn(async (url: string, init?: RequestInit) => {
+      const u = String(url);
+      if (u.endsWith("/authChallenge/" + OBS)) {
+        return new Response(JSON.stringify({ data: { challenge: "chal-123" } }), { status: 200 });
+      }
+      if (u.endsWith("/verify")) {
+        return new Response(JSON.stringify({ data: { token: "jwt-xyz" } }), { status: 200 });
+      }
+      if (u.endsWith("/user/graperank")) {
+        const auth = new Headers(init?.headers as Record<string, string>).get("Authorization");
+        return new Response(JSON.stringify({ data: { status: "waiting" } }), {
+          status: auth === "Bearer jwt-xyz" ? 200 : 401,
+        });
+      }
+      return new Response("{}", { status: 404 });
+    }) as unknown as typeof fetch;
+  }
+
+  it("authChallenge returns the challenge string", async () => {
+    const p = new BrainstormProvider({ apiUrl: "https://api", relays: [] }, { fetchImpl: routeFetch() });
+    expect(await p.authChallenge(OBS)).toBe("chal-123");
+  });
+
+  it("personalize verifies then triggers with the bearer token", async () => {
+    const p = new BrainstormProvider({ apiUrl: "https://api", relays: [] }, { fetchImpl: routeFetch() });
+    const ev = { id: "e", pubkey: OBS, sig: "s", kind: 27235, created_at: 1, tags: [], content: "" } as never;
+    expect(await p.personalize(OBS, ev)).toBe(true);
+  });
+
+  it("personalize returns false when verify fails", async () => {
+    const fetchImpl = vi.fn(async () => new Response("{}", { status: 401 })) as unknown as typeof fetch;
+    const p = new BrainstormProvider({ apiUrl: "https://api", relays: [] }, { fetchImpl });
+    expect(await p.personalize(OBS, {} as never)).toBe(false);
+  });
+});

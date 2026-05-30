@@ -246,6 +246,22 @@ export const api = {
     if (opts.genre) p.set("genre", opts.genre);
     return authFetch<SearchResult>(`/api/search?${p.toString()}`);
   },
+  trust: {
+    status() {
+      return authFetch<{ enabled: boolean; hasScores: boolean; canPersonalize: boolean }>(
+        "/api/trust/status",
+      );
+    },
+    challenge() {
+      return authFetch<{ challenge: string }>("/api/trust/challenge");
+    },
+    personalize(event: SignedEvent) {
+      return authFetch<{ ok: true; building: boolean }>("/api/trust/personalize", {
+        method: "POST",
+        body: JSON.stringify({ event }),
+      });
+    },
+  },
   profile: {
     get(idOrNpub: string) {
       return authFetch<{ profile: ProfileMeta }>(

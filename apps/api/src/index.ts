@@ -11,6 +11,7 @@ import { buildAuthRouter } from "./routes/auth";
 import { buildBooksRouter } from "./routes/books";
 import { buildProfileRouter } from "./routes/profile";
 import { buildSearchRouter } from "./routes/search";
+import { buildTrustRouter } from "./routes/trust";
 import { buildHealthRouter } from "./routes/health";
 import { buildRatingsRouter } from "./routes/ratings";
 import { buildTagsRouter } from "./routes/tags";
@@ -218,30 +219,34 @@ async function main() {
         )
       : localPublish;
 
+  // Trust-weighting source (ADR 0014). Enabled when a house observer is set +
+  // the Brainstorm API/relays are configured (all have defaults).
+  const trust =
+    config.houseObserverPubkey && config.brainstormApiUrl && config.trustRelays
+      ? resolveTrustProvider({
+          provider: "brainstorm",
+          apiUrl: config.brainstormApiUrl,
+          relays: config.trustRelays,
+        })
+      : undefined;
+
+  const resolveSessionUser = async (cookie: string | undefined) => {
+    const resolved = await resolveSession(cookie);
+    if (!resolved) return null;
+    return {
+      id: resolved.user.id,
+      pubkeyHex: resolved.user.pubkeyHex,
+      tier: resolved.user.tier,
+    };
+  };
+
   // Shared user-event write/read deps for ratings + tag assertions (ADR 0009).
   const userEventDeps = {
     config,
-    sessionUser: async (cookie: string | undefined) => {
-      const resolved = await resolveSession(cookie);
-      if (!resolved) return null;
-      return {
-        id: resolved.user.id,
-        pubkeyHex: resolved.user.pubkeyHex,
-        tier: resolved.user.tier,
-      };
-    },
+    sessionUser: resolveSessionUser,
     publish,
     query: (filter: Parameters<typeof queryEvents>[1]) => queryEvents(config, filter),
-    // Trust-weighting source (ADR 0014). Enabled when a house observer is set
-    // + the Brainstorm API/relays are configured (all have defaults).
-    trust:
-      config.houseObserverPubkey && config.brainstormApiUrl && config.trustRelays
-        ? resolveTrustProvider({
-            provider: "brainstorm",
-            apiUrl: config.brainstormApiUrl,
-            relays: config.trustRelays,
-          })
-        : undefined,
+    trust,
     custodialSign: async (
       sessionIdHex: string,
       template: Parameters<typeof finalizeEvent>[0],
@@ -261,6 +266,7 @@ async function main() {
   app.use("/", buildBooksRouter({ config, query: userEventDeps.query }));
   app.use("/", buildProfileRouter({ config }));
   app.use("/", buildSearchRouter({ searchProvider }));
+  app.use("/", buildTrustRouter({ sessionUser: resolveSessionUser, trust }));
   app.use("/", buildRatingsRouter(userEventDeps));
   app.use("/", buildTagsRouter(userEventDeps));
 
