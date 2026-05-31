@@ -120,5 +120,5 @@ Resolve before approving the story.
 
 ## Linked artifacts
 - ADR: `engineering-team/decisions/0023-follow-kind3.md`
-- Test plan: (filled in after Test Design phase)
+- Test plan: `engineering-team/stories/23-follow-kind3.test-plan.md`
 - Review: (filled in after Review phase)
