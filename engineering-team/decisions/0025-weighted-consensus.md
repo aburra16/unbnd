@@ -83,6 +83,18 @@ as the labelled-community substrate. Cons: a tag with trusted signal on **both**
 near parity could tip on small weight deltas — acceptable (it is genuinely contested
 from that vantage), and the raw counts are still shown.
 
+> **Reconciliation note (Story 25 review, PASS).** As shipped, the weighting
+> **annotates** each surfaced tag with its `trusted` flag (and the trust-weighted
+> net) and the raw counts; it does **not** exclude or reorder tags. Which tags are
+> surfaced at all stays governed by the existing raw rule (apply > dispute,
+> accusatory hidden, unknown dropped) — "surfaced from the trusted vantage when
+> `trustedApplies > trustedDisputes`" describes the trusted-net **signal carried by
+> the flag**, not a separate tag-exclusion step. This flag-and-keep model is
+> deliberate (honest: the raw substrate stays visible, the catalog never empties).
+> A deferred enhancement (PRD Appendix C) adds a **"contested" visual treatment**
+> for tags that trusted curators net-*dispute*, which today render as a plain
+> trusted chip.
+
 #### Option B — trusted apply-count vs raw apply-count (boolean-collapse weights)
 
 Treat any `w > 0` asserter as a single trusted vote; `trustedApplies = #{apply-asserters
