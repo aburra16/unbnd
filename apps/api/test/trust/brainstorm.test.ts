@@ -124,9 +124,24 @@ describe("BrainstormProvider personalization", () => {
     }) as unknown as typeof fetch;
   }
 
-  it("authChallenge returns the challenge string", async () => {
+  // CONTRACT MIGRATION (ADR 0026 Decision 1): authChallenge now returns the full
+  // unsigned kind-27235 TEMPLATE the backend expects (was the bare challenge
+  // string). The Brainstorm adapter is the ONLY place the brainstorm_login tag
+  // and the kind-27235 shape may live, so it builds them here. Same fetched
+  // challenge value, now carried in the ["challenge", …] tag — intent preserved,
+  // contract updated.
+  it("authChallenge returns the unsigned kind-27235 template (challenge + brainstorm_login tags)", async () => {
     const p = new BrainstormProvider({ apiUrl: "https://api", relays: [] }, { fetchImpl: routeFetch() });
-    expect(await p.authChallenge(OBS)).toBe("chal-123");
+    const tmpl = await p.authChallenge(OBS);
+    expect(tmpl).toMatchObject({ kind: 27235, content: "" });
+    expect(tmpl?.tags).toContainEqual(["challenge", "chal-123"]);
+    expect(tmpl?.tags).toContainEqual(["t", "brainstorm_login"]);
+  });
+
+  it("authChallenge returns null when the backend cannot issue a challenge", async () => {
+    const fetchImpl = vi.fn(async () => new Response("{}", { status: 404 })) as unknown as typeof fetch;
+    const p = new BrainstormProvider({ apiUrl: "https://api", relays: [] }, { fetchImpl });
+    expect(await p.authChallenge(OBS)).toBeNull();
   });
 
   it("personalize verifies then triggers with the bearer token", async () => {

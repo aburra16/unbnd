@@ -48,13 +48,23 @@ describe("FixtureTrustProvider (ADR 0017)", () => {
     expect(await p.hasScores(O)).toBe(true);
   });
 
-  it("authChallenge: deterministic default, overridable value, or null", async () => {
-    expect(await new FixtureTrustProvider(spec).authChallenge(O)).toBe(
-      `fixture-challenge:${O}`,
-    );
-    expect(
-      await new FixtureTrustProvider({ ...spec, challenge: "abc" }).authChallenge(O),
-    ).toBe("abc");
+  // CONTRACT MIGRATION (ADR 0026 Decision 1): authChallenge now returns the
+  // full unsigned kind-27235 TEMPLATE to sign, not a bare challenge string. The
+  // fixture returns a GENERIC template — the deterministic challenge lives in a
+  // ["challenge", …] tag and there is NO brainstorm_login (that literal lives
+  // only in the Brainstorm adapter now). This pins the NEW contract at the same
+  // strength as the old one (deterministic default, overridable challenge value,
+  // null when disabled) — it does not weaken the intent.
+  it("authChallenge: deterministic generic template, overridable challenge, or null", async () => {
+    const def = await new FixtureTrustProvider(spec).authChallenge(O);
+    expect(def).toMatchObject({ kind: 27235, content: "" });
+    expect(def?.tags).toContainEqual(["challenge", `fixture-challenge:${O}`]);
+    expect(typeof def?.created_at).toBe("number");
+    expect(JSON.stringify(def)).not.toContain("brainstorm_login");
+
+    const over = await new FixtureTrustProvider({ ...spec, challenge: "abc" }).authChallenge(O);
+    expect(over?.tags).toContainEqual(["challenge", "abc"]);
+
     expect(
       await new FixtureTrustProvider({ ...spec, challenge: null }).authChallenge(O),
     ).toBeNull();

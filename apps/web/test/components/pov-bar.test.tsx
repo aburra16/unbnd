@@ -27,6 +27,15 @@ describe("PoVBar", () => {
     expect(personalize).toHaveBeenCalled();
   });
 
+  // ADR 0026 (AC-4): a custodial user below the follow gate sees an honest
+  // prompt and NO Personalize affordance.
+  it("gated: shows the follow-a-few-curators prompt, no Personalize button", () => {
+    trustMock.mockReturnValue(trust({ status: "gated" }));
+    render(<PoVBar />);
+    expect(screen.getByText(/follow a few curators/i)).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /personalize/i })).not.toBeInTheDocument();
+  });
+
   it("building: shows the building state", () => {
     trustMock.mockReturnValue(trust({ status: "building" }));
     render(<PoVBar />);

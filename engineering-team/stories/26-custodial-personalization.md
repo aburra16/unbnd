@@ -70,5 +70,5 @@ These are recommendations for the Architect/user to confirm; they live in the Op
 
 ## Linked artifacts
 - ADR: `engineering-team/decisions/0026-custodial-personalization.md`
-- Test plan: (filled in after Test Design phase)
+- Test plan: `engineering-team/stories/26-custodial-personalization.test-plan.md`
 - Review: (filled in after Review phase)

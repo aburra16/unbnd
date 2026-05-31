@@ -170,7 +170,10 @@ describe("GET /api/books/:slug/tags — AC-7 honest degrade", () => {
         throw new Error("trust backend down");
       }),
       hasScores: vi.fn(async () => true),
-      authChallenge: vi.fn(async () => "c"),
+      // CONTRACT MIGRATION (ADR 0026): authChallenge returns the unsigned
+      // kind-27235 template now, not a bare string. These tag tests never call
+      // it; the mock is updated to the new return type for compilation.
+      authChallenge: vi.fn(async () => ({ kind: 27235, created_at: 1, tags: [["challenge", "c"]], content: "" })),
       personalize: vi.fn(async () => true),
     };
     const { app } = makeApp({ query: queryFor(tax, asserts) as never, trust: throwing });
