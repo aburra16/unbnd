@@ -7,9 +7,11 @@ type Props = {
   book: PublicBook;
   genres: TagConsensus[];
   styles: TagConsensus[];
+  /** Section state from the tags read (ADR 0025): trusted vs community consensus. */
+  weighted?: boolean;
 };
 
-export function BookHeader({ book, genres, styles }: Props) {
+export function BookHeader({ book, genres, styles, weighted }: Props) {
   const g = coverGradient(book.slug);
   const chips = [...genres, ...styles];
   return (
@@ -40,7 +42,12 @@ export function BookHeader({ book, genres, styles }: Props) {
         {chips.length > 0 && (
           <div className="bh-tags">
             {chips.map((t) => (
-              <GenrePill key={`${t.type}:${t.slug}`} label={t.name} count={t.applies} />
+              <GenrePill
+                key={`${t.type}:${t.slug}`}
+                label={t.name}
+                count={t.applies}
+                community={weighted === true && !t.trusted}
+              />
             ))}
           </div>
         )}

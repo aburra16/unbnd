@@ -19,6 +19,15 @@
   margin-bottom: 12px;
 }
 
+.tagc-consensus {
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--u-muted);
+  margin-bottom: 8px;
+}
+
 .tagc-chips {
   display: flex;
   flex-wrap: wrap;

@@ -3,6 +3,7 @@
 // session wrap. Reads are honest raw consensus with accusatory tags hidden.
 import express, { type Request, type Router } from "express";
 import { parse as parseCookie } from "cookie";
+import { npubEncode, decode } from "nostr-tools/nip19";
 import type { Config } from "../config";
 import type { PublishResult } from "../nostr/publish";
 import type { NostrFilter } from "../nostr/query";
@@ -10,10 +11,28 @@ import type { SignedNostrEvent, NostrEventTemplate } from "@unbnd/schemas";
 import { tokenToId } from "../auth/sessions";
 import { validateSignedEvent } from "../nostr/validate";
 import { buildTagAssertionTemplate, TagError } from "../tags/template";
-import { aggregateBookTags, aggregateGenreBooks, parseTaxonomy } from "../tags/aggregate";
+import {
+  aggregateBookTagsWeighted,
+  aggregateGenreBooks,
+  parseTaxonomy,
+} from "../tags/aggregate";
+import type { TrustProvider } from "../trust";
 
 const COOKIE_NAME = "session";
 const KIND = 39999;
+const HEX64 = /^[0-9a-f]{64}$/i;
+
+/** npub or hex → lowercase hex, or null. Mirrors the ratings route. */
+function toObserverHex(id: string): string | null {
+  if (HEX64.test(id)) return id.toLowerCase();
+  try {
+    const d = decode(id);
+    if (d.type === "npub" && typeof d.data === "string") return d.data;
+  } catch {
+    // not an npub
+  }
+  return null;
+}
 
 export type TagsSessionUser = { readonly id: string; readonly pubkeyHex: string; readonly tier: string };
 
@@ -26,6 +45,8 @@ export type TagsDeps = {
     sessionIdHex: string,
     template: NostrEventTemplate,
   ) => Promise<SignedNostrEvent | null>;
+  /** Trust-weighting source (ADR 0014/0025). Absent → raw community reads. */
+  readonly trust?: TrustProvider;
 };
 
 function cookieOf(req: Request): string | undefined {
@@ -52,7 +73,12 @@ export function buildTagsRouter(deps: TagsDeps): Router {
     }
   });
 
-  // A book's classification consensus (accusatory hidden).
+  // A book's classification consensus (accusatory hidden). Observer-aware like
+  // the ratings route: `?observer=<npub|hex>` else the house observer. With a
+  // trust provider we surface the trust-weighted consensus (each tag's `trusted`
+  // flag + a section-level `weighted` flag) from that vantage; on any trust
+  // failure, no observer, or no asserters, it degrades to the raw community view
+  // (every `trusted: false`, `weighted: false`) — never throws, always 200.
   router.get("/api/books/:slug/tags", async (req, res, next) => {
     try {
       if (!lib()) return unavailable(res);
@@ -61,7 +87,37 @@ export function buildTagsRouter(deps: TagsDeps): Router {
         deps.query({ kinds: [KIND], "#z": [tagsConcept()] }),
         deps.query({ kinds: [KIND], "#z": [assertConcept()], "#a": [bookAddr] }),
       ]);
-      res.status(200).json(aggregateBookTags(assertEvents, parseTaxonomy(taxEvents)));
+      const taxonomy = parseTaxonomy(taxEvents);
+
+      // Resolve the observer: explicit param, else the house observer.
+      const observerParam =
+        typeof req.query.observer === "string" ? req.query.observer : "";
+      const observerHex = observerParam
+        ? toObserverHex(observerParam)
+        : (deps.config.houseObserverPubkey ?? null);
+
+      const asserters = [...new Set(assertEvents.map((e) => e.pubkey))];
+      let weights: Map<string, number> = new Map();
+      if (deps.trust && observerHex && asserters.length > 0) {
+        try {
+          weights = await deps.trust.weights(observerHex, asserters);
+        } catch {
+          weights = new Map(); // degrade to raw community view on any trust failure
+        }
+      }
+
+      const { genres, styles, signals, weighted } = aggregateBookTagsWeighted(
+        assertEvents,
+        taxonomy,
+        weights,
+      );
+      res.status(200).json({
+        genres,
+        styles,
+        signals,
+        weighted,
+        observer: observerHex ? npubEncode(observerHex) : undefined,
+      });
     } catch (err) {
       next(err);
     }

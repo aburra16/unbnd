@@ -22,6 +22,14 @@
   opacity: 0.7;
 }
 
+/* A community-only chip inside an otherwise trusted-consensus section (ADR
+   0025). Lighter amber fill + an inset amber ring so it reads as less settled
+   than its trusted neighbours. Depth without a drop shadow; no new hex. */
+.pill-community {
+  background: rgba(196, 118, 60, 0.05);
+  box-shadow: inset 0 0 0 1px rgba(196, 118, 60, 0.3);
+}
+
 .pill-positive {
   background: rgba(29, 158, 117, 0.1);
   color: var(--signal-positive);

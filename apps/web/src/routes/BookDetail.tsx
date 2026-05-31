@@ -9,6 +9,7 @@ import { RatingControl } from "../components/RatingControl";
 import { TagControl } from "../components/TagControl";
 import { ShelfControl } from "../components/ShelfControl";
 import { WhereToRead } from "../components/WhereToRead";
+import { useTrustView } from "../hooks/useTrustView";
 import { NotFound } from "./NotFound";
 import {
   api,
@@ -27,10 +28,14 @@ type State =
       tags: BookTags;
     };
 
-const EMPTY_TAGS: BookTags = { genres: [], styles: [], signals: [] };
+const EMPTY_TAGS: BookTags = { genres: [], styles: [], signals: [], weighted: false };
 
 export function BookDetail() {
   const { slug } = useParams<{ slug: string }>();
+  const { view, status: trustStatus, npub } = useTrustView();
+  // The tag consensus follows the same observer as the ratings panel (ADR 0025):
+  // the user's own npub on the "Yours" vantage, else the server-side house default.
+  const observer = view === "yours" && trustStatus === "ready" ? npub : undefined;
   const [state, setState] = useState<State>({ status: "loading" });
 
   useEffect(() => {
@@ -41,7 +46,7 @@ export function BookDetail() {
       try {
         const { book } = await api.books.get(slug);
         // Tags are best-effort; ratings load inside RatingsPanel.
-        const tags = await api.tags.book(slug).catch(() => EMPTY_TAGS);
+        const tags = await api.tags.book(slug, observer).catch(() => EMPTY_TAGS);
         if (!cancelled) setState({ status: "ready", book, tags });
       } catch (err) {
         if (cancelled) return;
@@ -55,12 +60,12 @@ export function BookDetail() {
     return () => {
       cancelled = true;
     };
-  }, [slug]);
+  }, [slug, observer]);
 
   const reloadTags = () => {
     if (!slug) return;
     api.tags
-      .book(slug)
+      .book(slug, observer)
       .then((tags) =>
         setState((prev) =>
           prev.status === "ready" ? { ...prev, tags } : prev,
@@ -112,7 +117,7 @@ export function BookDetail() {
           { label: book.title },
         ]}
       />
-      <BookHeader book={book} genres={tags.genres} styles={tags.styles} />
+      <BookHeader book={book} genres={tags.genres} styles={tags.styles} weighted={tags.weighted} />
       {slug && <RatingsPanel slug={slug} />}
       {slug && <RatingControl bookSlug={slug} />}
       {slug && <TagControl bookSlug={slug} tags={tags} onChanged={reloadTags} />}
