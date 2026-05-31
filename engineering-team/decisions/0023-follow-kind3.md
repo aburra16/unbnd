@@ -2,7 +2,7 @@
 
 **Status:** Proposed
 **Date:** 2026-05-31
-**Story:** `engineering-team/stories/23-follow-kind3.md`
+**Story:** `engineering-team/stories/done/23-follow-kind3.md`
 
 ## Context
 

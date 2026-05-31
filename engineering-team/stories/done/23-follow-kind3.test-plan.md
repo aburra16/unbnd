@@ -1,6 +1,6 @@
 # Test Plan: Story 23 — Follow / unfollow a user (kind-3 contact-list write, safe merge)
 
-**Story:** `engineering-team/stories/23-follow-kind3.md`
+**Story:** `engineering-team/stories/done/23-follow-kind3.md`
 **ADR:** `engineering-team/decisions/0023-follow-kind3.md`
 **Date:** 2026-05-31
 

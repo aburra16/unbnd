@@ -1,6 +1,6 @@
 # Story 23: Follow / unfollow a user — the kind-3 contact-list write (safe merge)
 
-**Status:** Draft
+**Status:** Done
 **Created:** 2026-05-31
 **Type:** Feature
 
@@ -120,5 +120,5 @@ Resolve before approving the story.
 
 ## Linked artifacts
 - ADR: `engineering-team/decisions/0023-follow-kind3.md`
-- Test plan: `engineering-team/stories/23-follow-kind3.test-plan.md`
-- Review: (filled in after Review phase)
+- Test plan: `engineering-team/stories/done/23-follow-kind3.test-plan.md`
+- Review: `engineering-team/reviews/23-follow-kind3.md` (PASS)
