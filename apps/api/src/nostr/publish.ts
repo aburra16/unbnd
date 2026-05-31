@@ -8,6 +8,17 @@ export type PublishResult =
   | { readonly ok: true; readonly id: string }
   | { readonly ok: false; readonly reason: string };
 
+/**
+ * A per-relay publisher. The default is the real {@link publishEvent}; tests
+ * inject a spy. The return shape is intentionally loose (`ok: boolean`) so an
+ * inline mock that does not narrow its `ok` literals is still assignable;
+ * {@link publishToMany} normalises whatever comes back into a `PublishResult`.
+ */
+export type Publisher = (
+  relayUrl: string,
+  event: SignedNostrEvent,
+) => Promise<{ ok: boolean; id?: string; reason?: string }>;
+
 const PUBLISH_TIMEOUT_MS = 5000;
 
 export function publishEvent(
@@ -77,15 +88,22 @@ export function publishEvent(
 export function publishToMany(
   relayUrls: readonly string[],
   event: SignedNostrEvent,
+  publish: Publisher = publishEvent,
 ): Promise<PublishResult[]> {
   return Promise.all(
     relayUrls.map((url) =>
-      Promise.resolve(publishEvent(url, event)).catch(
-        (err): PublishResult => ({
-          ok: false,
-          reason: err instanceof Error ? err.message : String(err),
-        }),
-      ),
+      Promise.resolve(publish(url, event))
+        .then((r): PublishResult =>
+          r.ok
+            ? { ok: true, id: r.id ?? event.id }
+            : { ok: false, reason: r.reason ?? "rejected by relay" },
+        )
+        .catch(
+          (err): PublishResult => ({
+            ok: false,
+            reason: err instanceof Error ? err.message : String(err),
+          }),
+        ),
     ),
   );
 }
