@@ -1,6 +1,6 @@
 # Story 24: Make user identities clickable → reach any profile (link every rater + the submitter)
 
-**Status:** Draft
+**Status:** Done
 **Created:** 2026-05-31
 **Type:** Feature
 
@@ -79,5 +79,5 @@ Resolve at the gate, before approving the story.
 
 ## Linked artifacts
 - ADR: `engineering-team/decisions/0024-clickable-profiles.md`
-- Test plan: `engineering-team/stories/24-clickable-profiles.test-plan.md`
-- Review: (filled in after Review phase)
+- Test plan: `engineering-team/stories/done/24-clickable-profiles.test-plan.md`
+- Review: `engineering-team/reviews/24-clickable-profiles.md`

@@ -2,7 +2,7 @@
 
 **Status:** Proposed
 **Date:** 2026-05-31
-**Story:** `engineering-team/stories/24-clickable-profiles.md`
+**Story:** `engineering-team/stories/done/24-clickable-profiles.md`
 
 ## Context
 

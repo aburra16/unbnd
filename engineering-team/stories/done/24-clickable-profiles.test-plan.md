@@ -1,6 +1,6 @@
 # Test Plan: Story 24 — Make user identities clickable → reach any profile
 
-**Story:** `engineering-team/stories/24-clickable-profiles.md`
+**Story:** `engineering-team/stories/done/24-clickable-profiles.md`
 **ADR:** `engineering-team/decisions/0024-clickable-profiles.md`
 **Date:** 2026-05-31
 
