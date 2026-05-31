@@ -79,5 +79,5 @@ Resolve at the gate, before approving the story.
 
 ## Linked artifacts
 - ADR: `engineering-team/decisions/0024-clickable-profiles.md`
-- Test plan: (filled in after Test Design phase)
+- Test plan: `engineering-team/stories/24-clickable-profiles.test-plan.md`
 - Review: (filled in after Review phase)
