@@ -43,3 +43,13 @@
   font-size: 12px;
   color: var(--u-muted);
 }
+
+.cs-item-submitter {
+  color: var(--u-amber);
+  text-decoration: none;
+}
+
+.cs-item-submitter:hover {
+  color: var(--u-amber-hover);
+  text-decoration: underline;
+}

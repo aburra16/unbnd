@@ -127,10 +127,11 @@ describe("RatedByRow — lazy-on-expand: overflow badges mount only after expand
   it("does not render the 6th+ rater (nor fire its kind-0 fetch) before expand", () => {
     const ratings = Array.from({ length: 8 }, (_, i) => rating(i + 1));
     renderRow(ratings);
-    // Badge for the 6th rater is absent from the DOM while collapsed.
-    expect(
-      screen.queryByRole("link", { name: new RegExp(npub(6).slice(0, 10)) }),
-    ).not.toBeInTheDocument();
+    // Badge for the 6th rater is absent from the DOM while collapsed. Asserted by
+    // exact href (collision-free): shortNpub elides the per-rater digit, so every
+    // collapsed badge shares the same accessible name — only the full npub-addressed
+    // href distinguishes one rater from another, so a by-href check is the only
+    // sound way to prove badge-6 specifically is unmounted.
     const collapsedHrefs = screen.getAllByRole("link").map((a) => a.getAttribute("href"));
     expect(collapsedHrefs).not.toContain(`/profile/${npub(6)}`);
     // The lazy guarantee is structural: useProfileMeta only fires for mounted

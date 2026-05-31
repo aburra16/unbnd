@@ -33,6 +33,14 @@ Every acceptance criterion maps to at least one test.
 expands. This is the contract that keeps a popular book from firing a burst of
 kind-0 fetches on first paint.
 
+> Test-design correction (2026-05-31): badge-6 absence while collapsed is asserted
+> by exact npub-href (`collapsedHrefs not.toContain "/profile/<npub(6)>"`), not by a
+> `queryByRole` accessible-name substring. All fixture npubs share the same `shortNpub`
+> (`slice(0,10)` = `"npub1rater"`, the per-rater digit is elided), so a by-name query
+> matched all 5 visible badges and threw "multiple elements" — un-satisfiable, not an
+> implementation gap. The exact-href check (plus the `useProfileMeta`-not-called check)
+> proves the same lazy guarantee without name collision.
+
 ## Edge cases
 - [x] Zero raters → `RatedByRow` renders nothing (AC-8).
 - [x] Exactly ≤5 raters → no "+N" chip.

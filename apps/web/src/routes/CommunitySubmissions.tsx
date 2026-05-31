@@ -1,6 +1,7 @@
 // Public, read-only list of community submissions (ADR 0016 / 16b-i). Separate
 // from the canonical catalog — these are reader-submitted and not yet promoted.
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { Nav } from "../components/Nav";
 import { Footer } from "../components/Footer";
 import { Breadcrumb } from "../components/Breadcrumb";
@@ -58,7 +59,14 @@ export function CommunitySubmissions() {
                 <span className="cs-item-meta">
                   {s.authorName}
                   {s.publishYear ? ` · ${s.publishYear}` : ""}
-                  {s.submitter ? ` · added by ${shortNpub(s.submitter)}` : ""}
+                  {s.submitter ? (
+                    <>
+                      {" · "}
+                      <Link className="cs-item-submitter" to={`/profile/${s.submitter}`}>
+                        added by {shortNpub(s.submitter)}
+                      </Link>
+                    </>
+                  ) : null}
                 </span>
               </li>
             ))}
