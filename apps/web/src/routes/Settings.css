@@ -61,7 +61,7 @@
 
 .set-error {
   font-size: 13px;
-  color: #b3261e;
+  color: var(--signal-negative);
   margin: 0;
 }
 
