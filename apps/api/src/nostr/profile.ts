@@ -35,14 +35,43 @@ function httpUrl(v: unknown): string | undefined {
   }
 }
 
-/** Pure: pick the newest kind-0 across the given events and parse its content. */
-export function parseKind0(events: SignedNostrEvent[]): ProfileMeta | null {
-  const newest = events
+/** Pure: pick the newest kind-0 across the given events (null when none). */
+export function pickNewestKind0(
+  events: SignedNostrEvent[],
+): SignedNostrEvent | null {
+  return events
     .filter((e) => e.kind === 0)
     .reduce<SignedNostrEvent | null>(
       (best, e) => (best === null || e.created_at > best.created_at ? e : best),
       null,
     );
+}
+
+/**
+ * Parse a kind-0 event's content into the RAW metadata object, untouched —
+ * every field, including ones Unbnd has no schema for (lud16, banner, website,
+ * custom client fields). Unlike the lossy `parseKind0` (which projects down to
+ * `ProfileMeta`), this preserves everything so the safe-merge write path
+ * (ADR 0022) does not clobber the user's profile. null on no-event / bad JSON.
+ */
+export function parseRawKind0Content(
+  event: SignedNostrEvent | null,
+): Record<string, unknown> | null {
+  if (!event) return null;
+  try {
+    const content = JSON.parse(event.content) as unknown;
+    if (typeof content !== "object" || content === null || Array.isArray(content)) {
+      return null;
+    }
+    return content as Record<string, unknown>;
+  } catch {
+    return null;
+  }
+}
+
+/** Pure: pick the newest kind-0 across the given events and parse its content. */
+export function parseKind0(events: SignedNostrEvent[]): ProfileMeta | null {
+  const newest = pickNewestKind0(events);
   if (!newest) return null;
   let content: Record<string, unknown>;
   try {
@@ -83,4 +112,29 @@ export async function fetchProfileMeta(
     relays.map((url) => queryFn(url, filter).catch(() => [])),
   );
   return parseKind0(results.flat());
+}
+
+/**
+ * Fan out a kind-0 read across relays and return the freshest event's RAW
+ * content object + its created_at (ADR 0022). Same best-effort fan-out as
+ * `fetchProfileMeta`, but returns the untouched content (all fields) so the
+ * safe-merge write can preserve every field the user already has. Does NOT
+ * route through `parseKind0`. Returns `{ content: null, createdAt: null }`
+ * when no relay has a kind-0.
+ */
+export async function fetchRawKind0(
+  relays: readonly string[],
+  pubkeyHex: string,
+  queryFn: RelayQuery = (url, filter) =>
+    queryRelayUrl(url, filter, KIND0_TIMEOUT_MS),
+): Promise<{ content: Record<string, unknown> | null; createdAt: number | null }> {
+  const filter: NostrFilter = { kinds: [0], authors: [pubkeyHex], limit: 1 };
+  const results = await Promise.all(
+    relays.map((url) => queryFn(url, filter).catch(() => [])),
+  );
+  const newest = pickNewestKind0(results.flat());
+  return {
+    content: parseRawKind0Content(newest),
+    createdAt: newest ? newest.created_at : null,
+  };
 }

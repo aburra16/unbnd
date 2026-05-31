@@ -8,6 +8,17 @@ export type PublishResult =
   | { readonly ok: true; readonly id: string }
   | { readonly ok: false; readonly reason: string };
 
+/**
+ * A per-relay publisher. The default is the real {@link publishEvent}; tests
+ * inject a spy. The return shape is intentionally loose (`ok: boolean`) so an
+ * inline mock that does not narrow its `ok` literals is still assignable;
+ * {@link publishToMany} normalises whatever comes back into a `PublishResult`.
+ */
+export type Publisher = (
+  relayUrl: string,
+  event: SignedNostrEvent,
+) => Promise<{ ok: boolean; id?: string; reason?: string }>;
+
 const PUBLISH_TIMEOUT_MS = 5000;
 
 export function publishEvent(
@@ -65,4 +76,34 @@ export function publishEvent(
       });
     });
   });
+}
+
+/**
+ * Best-effort fan-out of one signed event to many relays (ADR 0022). Each
+ * single-relay publish is wrapped so a thrown/failed publish becomes an
+ * `{ ok: false }` result rather than rejecting the whole batch — this is the
+ * app's first WRITE to external public relays, so one relay's failure must not
+ * sink the others. `publishEvent` is unchanged. An empty list ⇒ no attempts.
+ */
+export function publishToMany(
+  relayUrls: readonly string[],
+  event: SignedNostrEvent,
+  publish: Publisher = publishEvent,
+): Promise<PublishResult[]> {
+  return Promise.all(
+    relayUrls.map((url) =>
+      Promise.resolve(publish(url, event))
+        .then((r): PublishResult =>
+          r.ok
+            ? { ok: true, id: r.id ?? event.id }
+            : { ok: false, reason: r.reason ?? "rejected by relay" },
+        )
+        .catch(
+          (err): PublishResult => ({
+            ok: false,
+            reason: err instanceof Error ? err.message : String(err),
+          }),
+        ),
+    ),
+  );
 }

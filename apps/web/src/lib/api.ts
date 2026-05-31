@@ -355,6 +355,27 @@ export const api = {
         `/api/profile/${encodeURIComponent(idOrNpub)}`,
       );
     },
+    // Substack link write (ADR 0022). Sovereign: fetch the server-merged
+    // unsigned kind-0 template, sign it with NIP-07, submit. Custodial: the
+    // server merges + signs. An empty url clears the field.
+    substackTemplate(url: string) {
+      return authFetch<{ template: NostrEventTemplate }>(
+        "/api/profile/substack/template",
+        { method: "POST", body: JSON.stringify({ url }) },
+      );
+    },
+    setSubstack(event: SignedEvent) {
+      return authFetch<{ substack: string | null }>("/api/profile/substack", {
+        method: "POST",
+        body: JSON.stringify({ event }),
+      });
+    },
+    setSubstackCustodial(url: string) {
+      return authFetch<{ substack: string | null }>("/api/profile/substack", {
+        method: "POST",
+        body: JSON.stringify({ url }),
+      });
+    },
     meStats() {
       return authFetch<{ stats: ProfileStatsResponse }>(
         "/api/profile/me/stats",

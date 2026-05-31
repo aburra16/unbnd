@@ -9,6 +9,7 @@ import { CommunitySubmissions } from "./routes/CommunitySubmissions";
 import { Submit } from "./routes/Submit";
 import { Profile } from "./routes/Profile";
 import { ProfileMe } from "./routes/ProfileMe";
+import { Settings } from "./routes/Settings";
 import { AuthMethodSelect } from "./routes/AuthMethodSelect";
 import { AuthEmailSignup } from "./routes/AuthEmailSignup";
 import { AuthNostrConnect } from "./routes/AuthNostrConnect";
@@ -28,6 +29,7 @@ export function App() {
         <Route path="/submissions" element={<CommunitySubmissions />} />
         <Route path="/submit" element={<Submit />} />
         <Route path="/profile/me" element={<ProfileMe />} />
+        <Route path="/settings" element={<Settings />} />
         <Route path="/profile/:npub" element={<Profile />} />
         <Route path="/auth" element={<AuthMethodSelect />} />
         <Route path="/auth/email" element={<AuthEmailSignup />} />
