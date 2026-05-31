@@ -73,6 +73,6 @@ Resolve before approving the story.
 4. **Per-tag vs per-page labeling granularity.** When some tags on a book have trusted signal and others only have community/raw signal, should the label apply **per tag** (each chip carries its own trusted/community state) or **per classification block** (one banner for the section)? Recommendation: per-tag where the design supports it, with a section-level fallback if the chip UI can't carry it — but this is a design call the Architect/UX should confirm. The AC is written to allow either.
 
 ## Linked artifacts
-- ADR: (filled in after Architecture phase)
+- ADR: `engineering-team/decisions/0025-weighted-consensus.md`
 - Test plan: (filled in after Test Design phase)
 - Review: (filled in after Review phase)
