@@ -102,5 +102,5 @@ Resolve before approving the story.
 ## Linked artifacts
 - ADR: `engineering-team/decisions/0027-custodial-kind0-bootstrap.md` — see also ADR 0022 (kind-0 publisher / F2-A) and ADR 0023 (custodial kind-3 server-signing via the ephemeral wrap) for the machinery this reuses.
 - Prior story: `engineering-team/stories/done/22-substack-set.md` (custodial kind-0 merge-preserve write — the rename path's model).
-- Test plan: (filled in after Test Design phase)
+- Test plan: `engineering-team/stories/27-custodial-kind0-bootstrap.test-plan.md`
 - Review: (filled in after Review phase)
