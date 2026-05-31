@@ -53,23 +53,23 @@ export function RatingsPanel({ slug }: { slug: string }) {
     average = w?.average ?? null;
     count = w?.trustedCount ?? 0;
     reviews = w?.ratings ?? [];
-    label = "Your perspective · weighted by trust";
-    caption = "Ratings weighted by your own web of trust.";
+    label = "Your perspective";
+    caption = "Trusted consensus, weighted by your own web of trust.";
     countNoun = "trusted ratings";
     emptyNote = "No ratings from your trust network yet.";
   } else if (w) {
     average = w.average;
     count = w.trustedCount;
     reviews = w.ratings;
-    label = "Unbnd house view · weighted by trust";
-    caption = "Ratings weighted by the Unbnd house web of trust.";
+    label = "Unbnd house view";
+    caption = "Trusted consensus, weighted by the Unbnd house web of trust.";
     countNoun = "trusted ratings";
   } else {
     average = active.average;
     count = active.count;
     reviews = active.ratings;
     label = "Unbnd house view";
-    caption = "Showing all ratings — no trust-weighted ratings for this book yet.";
+    caption = "Community consensus from all ratings. No trusted ratings for this book yet.";
   }
 
   return (

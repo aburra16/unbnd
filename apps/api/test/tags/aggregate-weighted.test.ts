@@ -12,7 +12,6 @@ import { describe, expect, it } from "vitest";
 import {
   asHexPubkey,
   toBookTagAssertionEvent,
-  toBookTagEvent,
   toWireTemplate,
   type SignedNostrEvent,
   type TagType,
@@ -23,12 +22,10 @@ import { FixtureTrustProvider, type FixtureSpec } from "../../src/trust";
 import {
   aggregateBookTags,
   aggregateBookTagsWeighted,
-  parseTaxonomy,
   type TaxonomyElement,
 } from "../../src/tags/aggregate";
 
 const LIB = asHexPubkey("1".repeat(63) + "a");
-const HDR_TAGS = { kind: 39998 as const, pubkey: LIB, dTag: "book-tags" };
 const HDR_ASSERT = { kind: 39998 as const, pubkey: LIB, dTag: "book-tag-assertions" };
 
 // Named asserter keys so the weight maps read clearly.
@@ -41,19 +38,6 @@ const OBSERVER = "f".repeat(64); // the house / active observer
 
 function hex(pubkey: string) {
   return asHexPubkey(pubkey);
-}
-
-function tagElement(
-  slug: string,
-  type: TagType,
-  name: string,
-  sensitivity: "normal" | "accusatory",
-): SignedNostrEvent {
-  const t = toWireTemplate(
-    toBookTagEvent({ slug, type, name, sensitivity, parentHeader: HDR_TAGS }),
-    1,
-  );
-  return { id: "x", pubkey: LIB, sig: "x", ...t } as SignedNostrEvent;
 }
 
 function assertion(opts: {

@@ -91,6 +91,7 @@ describe("Chip marker — AC-4 community-only chip inside a trusted section", ()
     const tags: BookTags = {
       genres: [tag("literary-fiction", "genre", true), tag("space-opera", "genre", false)],
       styles: [],
+      signals: [],
       // Section is trusted overall (≥1 trusted tag) but one chip is community-only.
       weighted: true,
     };

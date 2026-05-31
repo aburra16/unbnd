@@ -101,12 +101,19 @@ export type TagConsensus = {
   type: "genre" | "style" | "signal";
   applies: number;
   disputes: number;
+  // Trust-weighted: true when ≥1 positively-trusted asserter backed this tag
+  // from the active observer's vantage (ADR 0025). False on the raw/community view.
+  trusted: boolean;
 };
 
 export type BookTags = {
   genres: TagConsensus[];
   styles: TagConsensus[];
   signals: TagConsensus[];
+  // The resolved observer (npub) the consensus was computed from, when present.
+  observer?: string;
+  // Section state: at least one surfaced tag carries trusted signal (ADR 0025).
+  weighted?: boolean;
 };
 
 export type TaxonomyElement = {
@@ -431,9 +438,10 @@ export const api = {
     list() {
       return authFetch<{ tags: TaxonomyElement[] }>("/api/tags");
     },
-    book(slug: string) {
+    book(slug: string, observer?: string) {
+      const q = observer ? `?observer=${encodeURIComponent(observer)}` : "";
       return authFetch<BookTags>(
-        `/api/books/${encodeURIComponent(slug)}/tags`,
+        `/api/books/${encodeURIComponent(slug)}/tags${q}`,
       );
     },
     genreBooks(slug: string) {

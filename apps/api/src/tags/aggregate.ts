@@ -18,19 +18,39 @@ export type TaxonomyElement = {
   readonly sensitivity: TagSensitivity;
 };
 
-/** Raw consensus for one tag on one book. */
+/**
+ * Consensus for one tag on one book. `applies`/`disputes` are the raw,
+ * unweighted polarity counts (the labelled-community substrate). `trusted` is
+ * true when ≥1 positively-trusted asserter (weight > 0) backed this tag from
+ * the active observer's vantage — false on the raw `aggregateBookTags` path and
+ * on the degraded/no-trust weighted path (ADR 0025).
+ */
 export type TagConsensus = {
   readonly slug: string;
   readonly name: string;
   readonly type: TagType;
   readonly applies: number;
   readonly disputes: number;
+  readonly trusted: boolean;
 };
 
 export type BookTags = {
   readonly genres: TagConsensus[];
   readonly styles: TagConsensus[];
   readonly signals: TagConsensus[];
+};
+
+/**
+ * Raw, unweighted consensus — the original `aggregateBookTags` shape with NO
+ * `trusted` field (ADR 0025 keeps the raw aggregate untouched; the weighted
+ * layer is the only carrier of `trusted`).
+ */
+export type RawTagConsensus = Omit<TagConsensus, "trusted">;
+
+export type RawBookTags = {
+  readonly genres: RawTagConsensus[];
+  readonly styles: RawTagConsensus[];
+  readonly signals: RawTagConsensus[];
 };
 
 function parseAssertion(event: SignedNostrEvent) {
@@ -60,10 +80,54 @@ export function parseTaxonomy(events: SignedNostrEvent[]): TaxonomyElement[] {
 export function aggregateBookTags(
   assertions: SignedNostrEvent[],
   taxonomy: TaxonomyElement[],
-): BookTags {
+): RawBookTags {
+  // Raw consensus = the weighted aggregation with no weights (every asserter is
+  // weight 0), with the `trusted` field stripped so the raw aggregate keeps its
+  // original shape. The raw applies/disputes counts are unchanged.
+  const { genres, styles, signals } = aggregateBookTagsWeighted(
+    assertions,
+    taxonomy,
+    new Map(),
+  );
+  const strip = ({ slug, name, type, applies, disputes }: TagConsensus): RawTagConsensus => ({
+    slug,
+    name,
+    type,
+    applies,
+    disputes,
+  });
+  return {
+    genres: genres.map(strip),
+    styles: styles.map(strip),
+    signals: signals.map(strip),
+  };
+}
+
+/**
+ * Trust-weighted classification consensus from an observer's vantage (ADR 0025).
+ * Mirrors `weightedRatings`: for each deduped tag, sum the trust weights of
+ * apply-asserters and dispute-asserters separately over asserters with weight
+ * > 0. A tag is `trusted` when it had ≥1 positively-trusted asserter; from that
+ * trusted vantage a tag is surfaced when `trustedApplies > trustedDisputes`,
+ * else it falls back to the raw `applies > disputes` rule. Untrusted asserters
+ * contribute weight 0, so untrusted volume cannot flip or dilute the trusted
+ * view (AC-2). Raw `applies`/`disputes` are preserved as the labelled-community
+ * substrate. `weighted` is true when any surfaced tag carries trusted signal.
+ *
+ * An empty `weights` map is the degraded / no-trust path: every tag is
+ * `trusted: false`, `weighted` is false, and surfacing is purely raw.
+ */
+export function aggregateBookTagsWeighted(
+  assertions: SignedNostrEvent[],
+  taxonomy: TaxonomyElement[],
+  weights: Map<string, number>,
+): BookTags & { weighted: boolean } {
   const tax = new Map(taxonomy.map((t) => [t.slug, t]));
   // Dedup by (author, tagSlug) keeping the latest created_at.
-  const latest = new Map<string, { slug: string; polarity: number; createdAt: number }>();
+  const latest = new Map<
+    string,
+    { author: string; slug: string; polarity: number; createdAt: number }
+  >();
   for (const e of assertions) {
     let a;
     try {
@@ -74,34 +138,53 @@ export function aggregateBookTags(
     const key = `${e.pubkey}|${a.tagSlug}`;
     const prior = latest.get(key);
     if (!prior || e.created_at > prior.createdAt) {
-      latest.set(key, { slug: a.tagSlug, polarity: a.polarity, createdAt: e.created_at });
+      latest.set(key, {
+        author: e.pubkey,
+        slug: a.tagSlug,
+        polarity: a.polarity,
+        createdAt: e.created_at,
+      });
     }
   }
 
-  const counts = new Map<string, { applies: number; disputes: number }>();
+  const acc = new Map<
+    string,
+    { applies: number; disputes: number; trustedApplies: number; trustedDisputes: number }
+  >();
   for (const v of latest.values()) {
-    const c = counts.get(v.slug) ?? { applies: 0, disputes: 0 };
-    if (v.polarity === 1) c.applies++;
-    else if (v.polarity === -1) c.disputes++;
-    counts.set(v.slug, c);
+    const c =
+      acc.get(v.slug) ?? { applies: 0, disputes: 0, trustedApplies: 0, trustedDisputes: 0 };
+    const w = weights.get(v.author) ?? 0;
+    if (v.polarity === 1) {
+      c.applies++;
+      if (w > 0) c.trustedApplies += w;
+    } else if (v.polarity === -1) {
+      c.disputes++;
+      if (w > 0) c.trustedDisputes += w;
+    }
+    acc.set(v.slug, c);
   }
 
   const result: BookTags = { genres: [], styles: [], signals: [] };
-  for (const [slug, c] of counts) {
+  let anyTrusted = false;
+  for (const [slug, c] of acc) {
     const el = tax.get(slug);
     if (!el || el.sensitivity === "accusatory") continue; // hide unknown + accusatory
+    const trusted = c.trustedApplies + c.trustedDisputes > 0;
+    if (trusted) anyTrusted = true;
     const consensus: TagConsensus = {
       slug,
       name: el.name,
       type: el.type,
       applies: c.applies,
       disputes: c.disputes,
+      trusted,
     };
     if (el.type === "genre") result.genres.push(consensus);
     else if (el.type === "style") result.styles.push(consensus);
     else result.signals.push(consensus);
   }
-  return result;
+  return { ...result, weighted: anyTrusted };
 }
 
 /**

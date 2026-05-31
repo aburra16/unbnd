@@ -69,6 +69,11 @@ export function TagControl({ bookSlug, tags, onChanged }: Props) {
   const chips = [...tags.genres, ...tags.styles];
   const isSovereign =
     session.status === "signed-in" && session.user.email === null;
+  // Section label (ADR 0025): trusted consensus when at least one surfaced tag
+  // carries trusted signal from the active observer, else community consensus.
+  // Only shown when the book has tags.
+  const sectionWeighted = tags.weighted === true;
+  const consensusLabel = sectionWeighted ? "Trusted consensus" : "Community consensus";
 
   async function write(polarity: 1 | -1) {
     const el = options.find((o) => o.slug === selected);
@@ -113,11 +118,19 @@ export function TagControl({ bookSlug, tags, onChanged }: Props) {
       {chips.length === 0 ? (
         <p className="tagc-empty">No genres or styles applied yet.</p>
       ) : (
-        <div className="tagc-chips">
-          {chips.map((t) => (
-            <GenrePill key={`${t.type}:${t.slug}`} label={t.name} count={t.applies} />
-          ))}
-        </div>
+        <>
+          <p className="tagc-consensus">{consensusLabel}</p>
+          <div className="tagc-chips">
+            {chips.map((t) => (
+              <GenrePill
+                key={`${t.type}:${t.slug}`}
+                label={t.name}
+                count={t.applies}
+                community={sectionWeighted && !t.trusted}
+              />
+            ))}
+          </div>
+        </>
       )}
 
       {session.status === "signed-out" && (
