@@ -66,3 +66,26 @@ export function publishEvent(
     });
   });
 }
+
+/**
+ * Best-effort fan-out of one signed event to many relays (ADR 0022). Each
+ * single-relay publish is wrapped so a thrown/failed publish becomes an
+ * `{ ok: false }` result rather than rejecting the whole batch — this is the
+ * app's first WRITE to external public relays, so one relay's failure must not
+ * sink the others. `publishEvent` is unchanged. An empty list ⇒ no attempts.
+ */
+export function publishToMany(
+  relayUrls: readonly string[],
+  event: SignedNostrEvent,
+): Promise<PublishResult[]> {
+  return Promise.all(
+    relayUrls.map((url) =>
+      Promise.resolve(publishEvent(url, event)).catch(
+        (err): PublishResult => ({
+          ok: false,
+          reason: err instanceof Error ? err.message : String(err),
+        }),
+      ),
+    ),
+  );
+}

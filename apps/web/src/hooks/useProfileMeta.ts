@@ -85,6 +85,21 @@ export function useProfileMeta(idOrNpub: string | undefined): ProfileMeta | null
   return meta;
 }
 
+/**
+ * Drop all caches for one id (ADR 0022 AC-9). The Settings save calls this on
+ * success so the next mount of `/profile/me` (and the AccountMenu) re-reads the
+ * freshly-written kind-0 instead of serving the stale Story-19 cache.
+ */
+export function invalidateProfileMeta(idOrNpub: string): void {
+  memCache.delete(idOrNpub);
+  fetchedThisSession.delete(idOrNpub);
+  try {
+    sessionStorage.removeItem(storageKey(idOrNpub));
+  } catch {
+    // sessionStorage unavailable — the mem-cache delete is enough.
+  }
+}
+
 /** Best display name from metadata, falling back to a session display name. */
 export function displayNameOf(
   meta: ProfileMeta | null,

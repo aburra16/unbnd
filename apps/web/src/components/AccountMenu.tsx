@@ -80,6 +80,9 @@ export function AccountMenu({ user, onSignedOut }: Props) {
           <Link className="acct-item" to="/profile/me#shelves" role="menuitem" onClick={() => setOpen(false)}>
             Your shelves
           </Link>
+          <Link className="acct-item" to="/settings" role="menuitem" onClick={() => setOpen(false)}>
+            Settings
+          </Link>
           <button type="button" className="acct-signout" role="menuitem" onClick={signOut} disabled={busy}>
             {busy ? "Signing out…" : "Sign out"}
           </button>

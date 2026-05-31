@@ -11,6 +11,7 @@ import { buildAuthRouter } from "./routes/auth";
 import { buildBooksRouter } from "./routes/books";
 import { buildProfileRouter } from "./routes/profile";
 import { buildProfileStatsRouter } from "./routes/profile-stats";
+import { buildProfileSubstackRouter } from "./routes/profile-substack";
 import { buildSearchRouter } from "./routes/search";
 import { buildTrustRouter } from "./routes/trust";
 import { buildHealthRouter } from "./routes/health";
@@ -18,7 +19,8 @@ import { buildRatingsRouter } from "./routes/ratings";
 import { buildTagsRouter } from "./routes/tags";
 import { buildShelvesRouter } from "./routes/shelves";
 import { buildSubmissionsRouter } from "./routes/submissions";
-import { publishEvent } from "./nostr/publish";
+import { publishEvent, publishToMany } from "./nostr/publish";
+import { fetchRawKind0 } from "./nostr/profile";
 import { withUpSync } from "./nostr/propagate";
 import { resolveTrustProvider } from "./trust";
 import { queryEvents, queryEventsPaged } from "./nostr/query";
@@ -222,6 +224,27 @@ async function main() {
         )
       : localPublish;
 
+  // kind-0 profile publisher (ADR 0022, F2-A). Distinct from the shared
+  // `publish` (local + dcosl): kind-0 lives on the public profile relays, so we
+  // publish to the LOCAL relay first (gates the response + read-back), then fan
+  // out best-effort to `config.profileRelays` (which already includes the four
+  // public relays + dcosl). The fan-out is fire-and-forget — a public-relay
+  // failure never fails the user's save.
+  const publishKind0 = async (event: SignedNostrEvent) => {
+    const local = await publishEvent(config.strfryUrl, event);
+    if (local.ok && config.profileRelays && config.profileRelays.length > 0) {
+      void publishToMany(config.profileRelays, event).then((rs) =>
+        rs.forEach(
+          (r) =>
+            !r.ok &&
+            // eslint-disable-next-line no-console
+            console.warn(`[profile-publish] ${r.reason}`),
+        ),
+      );
+    }
+    return local;
+  };
+
   // Trust-weighting source (ADR 0014/0017). Enabled when a house observer is set
   // and the chosen provider is configured. `fixture` = deterministic, network-
   // free (CI + the staging seed harness); `brainstorm` = live NIP-85/GrapeRank.
@@ -286,6 +309,16 @@ async function main() {
       sessionUser: resolveSessionUser,
       query: userEventDeps.query,
       queryPaged: userEventDeps.queryPaged,
+    }),
+  );
+  app.use(
+    "/",
+    buildProfileSubstackRouter({
+      config,
+      sessionUser: resolveSessionUser,
+      publish: publishKind0,
+      fetchRaw: (hex) => fetchRawKind0(config.profileRelays ?? [], hex),
+      custodialSign: userEventDeps.custodialSign,
     }),
   );
   app.use("/", buildSearchRouter({ searchProvider }));
