@@ -1,6 +1,6 @@
 # Story 22: Set your Substack link — the first kind-0 profile write (safe merge)
 
-**Status:** Draft
+**Status:** Done
 **Created:** 2026-05-30
 **Type:** Feature
 
@@ -82,5 +82,5 @@ Resolve before approving the story.
 
 ## Linked artifacts
 - ADR: `engineering-team/decisions/0022-substack-set.md`
-- Test plan: `engineering-team/stories/22-substack-set.test-plan.md`
-- Review: (filled in after Review phase)
+- Test plan: `engineering-team/stories/done/22-substack-set.test-plan.md`
+- Review: `engineering-team/reviews/22-substack-set.md` (PASS, re-verified at fix HEAD `b7e2496`)

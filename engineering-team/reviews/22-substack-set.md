@@ -2,10 +2,10 @@
 
 **Reviewer:** Claude (acting as Reviewer)
 **Date:** 2026-05-30
-**Diff:** `git diff main...feat/substack-set` (merge-base; HEAD `94daba9`)
-**Story:** `engineering-team/stories/22-substack-set.md`
+**Diff:** `git diff main...feat/substack-set` (merge-base; original review HEAD `94daba9`; re-verified at fix HEAD `b7e2496`)
+**Story:** `engineering-team/stories/done/22-substack-set.md`
 **ADR:** `engineering-team/decisions/0022-substack-set.md`
-**Test plan:** `engineering-team/stories/22-substack-set.test-plan.md`
+**Test plan:** `engineering-team/stories/done/22-substack-set.test-plan.md`
 
 ## Quality gates (run by reviewer, not trusted)
 
@@ -46,7 +46,7 @@ N/A — no DList shape touched. kind-0 is an existing NIP-01 replaceable event; 
 - [x] Copy passes the no-slop rules. No em dashes, no rhetorical contrasts, no banned verbs, no exclamation CTAs. Strings ("Add the place you publish. It shows on your profile as a link readers can follow.", "A full link, including https://.", "Enter a full http or https link, or leave it empty to clear.", "No Nostr extension found. Install one to update your profile.", "Could not save your link. Try again.", "Saving…", "Saved.") are concrete and plain.
 - [x] npub-display / hex-internal: `Settings` reads `user.npub` for the cache-bust; no hex shown.
 - [x] No trust / GrapeRank surface touched.
-- [ ] **Brand tokens — one violation.** `Settings.css` uses brand tokens for every decision EXCEPT the error color: `Settings.css:64` hardcodes `color: #b3261e`. The codebase already has a token for exactly this (`tokens.css:31` `--signal-negative: #DC3545`), used by both sibling form-error styles (`AuthForm.css:10` `.auth-field-error { color: var(--signal-negative); }`, `Submit.css:206` `.sub-error { color: var(--signal-negative, #dc3545); }`). See Blocking #1. (`#ffffff` for the input background at `Settings.css:47` is the established pattern — 8 existing components use it — and is not a finding.)
+- [x] **Brand tokens — RESOLVED (fix commit `b7e2496`).** `Settings.css:64` now uses `color: var(--signal-negative);`, matching `.auth-field-error` (`AuthForm.css:10`) and `.sub-error` (`Submit.css:206`). The prior `#b3261e` hex literal is gone (`grep #b3261e apps/web/src` returns nothing). The fix is a one-line CSS change, no logic and no test change (`git show b7e2496 --stat`: 1 file, 1 insertion, 1 deletion). (`#ffffff` for the input background at `Settings.css:47` is the established pattern — 8 existing components use it — and is correctly not a finding.)
 
 ## Things tests can't catch
 
@@ -66,9 +66,9 @@ N/A — no DList shape touched. kind-0 is an existing NIP-01 replaceable event; 
 
 ## Findings
 
-### Blocking
+### Blocking — RESOLVED
 
-1. **`apps/web/src/routes/Settings.css:64`** — the error message color is a new hardcoded hex literal (`color: #b3261e`) where a brand token already exists for the exact same semantic. `tokens.css:31` defines `--signal-negative: #DC3545`, and both sibling form-error styles use it (`AuthForm.css:10`, `Submit.css:206`). The UI-integrity house rule ("No new hex literals outside `tokens.css` and per-component genre/signal colors") and the ADR's own constraint ("no new hex literal") are breached, and the value silently diverges from the project's negative-signal color. **Asked change:** replace `color: #b3261e;` with `color: var(--signal-negative);` (matching `.auth-field-error`). One-line fix; no logic change, no test change.
+1. **`apps/web/src/routes/Settings.css:64` — RESOLVED in fix commit `b7e2496`.** The error message color previously used a new hardcoded hex literal (`color: #b3261e`) where the brand token `--signal-negative` already existed for the exact same semantic. The fix replaces it with `color: var(--signal-negative);`, matching `.auth-field-error` (`AuthForm.css:10`) and `.sub-error` (`Submit.css:206`). Re-verified: `grep #b3261e apps/web/src` returns nothing; the fix is a clean one-line CSS change (1 file, +1/-1) with no logic or test change. The UI-integrity house rule and the ADR's "no new hex literal" constraint are now satisfied.
 
 ### Non-blocking
 
@@ -76,6 +76,15 @@ N/A — no DList shape touched. kind-0 is an existing NIP-01 replaceable event; 
 
 ## Verdict
 
-**CHANGES_REQUESTED**
+**PASS** (re-verified 2026-05-30 at fix HEAD `b7e2496`)
 
-One blocking issue: `Settings.css:64` introduces a new hex literal (`#b3261e`) for the error color where the established brand token `var(--signal-negative)` exists and is used by every sibling form. This breaches a codified UI house rule and the ADR's "no new hex literal" constraint. Everything else is clean: all three gates pass (typecheck, 407+117 tests incl. the 69 new, web build), the merge-don't-clobber is verified to read raw content and never the lossy parse, the three-tier signing and the best-effort first-external-relay fan-out match the ADR, and the copy passes the no-slop rules. Fix the one CSS line (`color: var(--signal-negative);`) and this is mergeable.
+The single blocking issue from the prior CHANGES_REQUESTED review is resolved. Fix commit `b7e2496` replaces the new hex literal at `Settings.css:64` (`color: #b3261e`) with `color: var(--signal-negative);`, matching every sibling form-error style; `grep #b3261e apps/web/src` now returns nothing, and the fix is a clean one-line CSS change with no logic or test change. No other new hardcoded hex values that should be tokens were found (the `#ffffff` input background at `Settings.css:47` is the established pattern across 8 components — not a finding).
+
+All three gates re-run by the reviewer at the fix HEAD are green:
+- `pnpm -r typecheck` — **PASS.** 6 of 7 workspace projects (schemas, search, seeder, indexer, api, web) all `Done`, no errors.
+- `pnpm -r test` — **PASS.** api **407 passed | 10 skipped** (53 files passed, 2 skipped); web **117 passed** (27 files). Same totals as the prior run, including the 69 new Story-22 tests.
+- `pnpm --filter @unbnd/web build` — **PASS.** `tsc --noEmit` clean; `vite build` 427 modules, built in ~0.55s.
+
+All prior verification stands: merge-don't-clobber reads raw content and never the lossy parse, the three-tier signing (sovereign NIP-07 / custodial ephemeral-wrap / anon blocked) and the local-first + best-effort profile-relay fan-out match the ADR, the `Publisher` type / injectable publisher is correct, there is no hand-rolled crypto, the copy passes the no-slop rules, and scope is held to the single `substack` field. Mergeable.
+
+The one non-blocking note (unused `_expectedSubstack` param in `validate-kind0.ts:59`) is sanctioned by the ADR and test plan as designed; not a merge blocker.

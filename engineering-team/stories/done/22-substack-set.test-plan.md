@@ -1,6 +1,6 @@
 # Test Plan: Story 22 — Set your Substack link (the first kind-0 profile write, safe merge)
 
-**Story:** `engineering-team/stories/22-substack-set.md`
+**Story:** `engineering-team/stories/done/22-substack-set.md`
 **ADR:** `engineering-team/decisions/0022-substack-set.md`
 **Date:** 2026-05-30
 

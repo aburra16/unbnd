@@ -2,7 +2,7 @@
 
 **Status:** Proposed
 **Date:** 2026-05-30
-**Story:** `engineering-team/stories/22-substack-set.md`
+**Story:** `engineering-team/stories/done/22-substack-set.md`
 
 ## Context
 
