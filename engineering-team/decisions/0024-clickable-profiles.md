@@ -28,7 +28,7 @@ No DList shape is touched; this is presentation over data the app already fetche
 - Layout option **(a)**: reviews-prominent block stays; add a compact **"Rated by"** row.
 - "Rated by" roster scope: **ALL raters** (a complete at-a-glance roster), reviewers included. A reviewer therefore appears both as a badge in the row and in their review below — accepted.
 - Cap **5 badges + a "+N" chip**; "+N" **expands the row IN PLACE** into a wrapping grid of all raters. No new route, no dedicated "all raters" page (deferred to a possible future story at scale).
-- Review byline becomes a link. Submitter on `/submissions` becomes a link.
+- Review byline becomes a link **that resolves and shows the rater's kind-0 display name** (gate decision: name resolution is in scope now, not deferred), falling back to `shortNpub`. Submitter on `/submissions` becomes a link.
 
 ## Options considered
 
@@ -119,10 +119,19 @@ function RaterBadge({ rating, size }: { rating: PublicRating; size?: number }) {
 - Mount `<RatedByRow ratings={reviews} />` **after** `<RatingsBlock .../>` (the summary: average + count, which stays unchanged — AC-7) and **before** (or immediately around) `<ReviewsList ratings={reviews} />`. `reviews` is the already-derived active-perspective array, so the row honors House/Yours automatically (AC-6).
 - Recommended order inside `.ratings-panel`: controls → caption → `RatingsBlock` (summary, untouched) → `RatedByRow` → `ReviewsList`. The reviews block keeps its prominence (AC-7); the row is the compact roster under the summary.
 
-### 4. Review byline link — `apps/web/src/components/ReviewsList.tsx`
+### 4. Review byline link + resolved display name — `apps/web/src/components/ReviewsList.tsx`
 
-- Wrap the existing `.review-name` content in a `Link`: `<Link to={`/profile/${r.npub}`} className="review-name">{shortNpub(r.npub)}</Link>` (or wrap the inner text and keep the `div`). Keep layout/weight: the `.review-name` styling stays; just make it a link. No new fetch here — the byline already shows `shortNpub`; resolving the byline's kind-0 name is out of scope for this minimal edit (the row's badge carries the avatar).
-- Import `Link` from `react-router-dom`.
+- The byline now **resolves the rater's kind-0 display name** and links to the profile. Resolve via the **same cached `useProfileMeta`** the `RatedByRow` badges use, so a rater who appears both as a badge and in their review is a cache hit (one kind-0 resolved, not two), and resolution dedupes across reviews via the Story-19 in-memory + sessionStorage cache. Fall back to `shortNpub(r.npub)` when the rater has no kind-0 name:
+  ```tsx
+  const meta = useProfileMeta(r.npub);
+  const name = displayNameOf(meta, shortNpub(r.npub));
+  // …
+  <Link to={`/profile/${r.npub}`} className="review-name">{name}</Link>
+  ```
+  Each row already maps over `r`, so resolve per-byline in a small leaf (mirroring `RaterBadge`) to keep the hook at a stable mount. Keep layout/weight: the `.review-name` styling stays; just make it a link that shows the resolved name.
+- Import `Link` from `react-router-dom`, and `useProfileMeta` / `displayNameOf` (the same imports `RatedByRow` uses).
+
+**Cost (honest).** Each visible review byline now also resolves a kind-0 via the cached hook. This is deduped with the `RatedByRow` badges (a reviewer shown both places resolves once) and across reviews via the Story-19 cache, so the marginal cost over the row already mounted is negligible — at most one extra kind-0 per distinct reviewer not already shown as a badge, and zero on a cache hit.
 
 ### 5. Submitter link — `apps/web/src/routes/CommunitySubmissions.tsx`
 
@@ -145,6 +154,5 @@ Existing tokens only — surface/parchment background, card surface, amber accen
 - People-search / npub search (deferred).
 - Follow buttons on bylines/badges (links only this story).
 - A dedicated "all raters" route/page (the +N expands in place; a route is deferred to a possible future at-scale story).
-- Resolving the review byline's display name from kind-0 (the byline keeps `shortNpub`; the avatar lives on the row badge). Can be a thin follow-up.
 - Any change to which raters a perspective returns (trust math untouched).
 - Any API change.
