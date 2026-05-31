@@ -69,6 +69,6 @@ These are recommendations for the Architect/user to confirm; they live in the Op
 4. **Gate enforcement location for the trigger itself (defense in depth).** Should the *server* re-check the follow-count gate before signing/triggering (not just the UI), to avoid a wasted calc from a hand-crafted request? PO leans yes — the UI hides the prompt, and the endpoint enforces the same threshold (read the session user's kind-3 count server-side) so the gate is honest end to end. Confirm.
 
 ## Linked artifacts
-- ADR: (filled in after Architecture phase)
+- ADR: `engineering-team/decisions/0026-custodial-personalization.md`
 - Test plan: (filled in after Test Design phase)
 - Review: (filled in after Review phase)
