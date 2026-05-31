@@ -16,6 +16,7 @@ import { Footer } from "../components/Footer";
 import { Avatar } from "../components/Avatar";
 import { BookGrid } from "../components/BookGrid";
 import { ProfileStats } from "../components/ProfileStats";
+import { FollowButton } from "../components/FollowButton";
 import { toCardBook, shortNpub } from "../lib/view-model";
 import { useProfileMeta, displayNameOf } from "../hooks/useProfileMeta";
 import { NotFound } from "./NotFound";
@@ -36,6 +37,10 @@ function statCells(
     cells.push({ label: "Reviews", value: stats.reviews, capped: isCapped("reviews") });
   if (stats.tagsApplied !== undefined)
     cells.push({ label: "Tags applied", value: stats.tagsApplied, capped: isCapped("tagsApplied") });
+  // Following count (ADR 0023, AC-9): present-number → cell, absent → no cell;
+  // a true 0 renders 0. The target's own kind-3 `p`-tag count — never capped.
+  if (stats.followingCount !== undefined)
+    cells.push({ label: "Following", value: stats.followingCount, capped: false });
   return cells;
 }
 
@@ -108,6 +113,7 @@ export function Profile() {
               Writes on Substack ↗
             </a>
           )}
+          {npub && <FollowButton target={npub} />}
         </div>
       </header>
 

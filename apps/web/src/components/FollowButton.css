@@ -1,0 +1,110 @@
+/* The follow control on a public profile (ADR 0023 Decision 5). Tokens only,
+   no icon library — the check is hand-authored SVG. Three crafted states:
+   Follow (filled amber, the affirmative action), Following (a quiet confirmed
+   outline with a check), and the Unfollow it reveals on hover/focus (negative).
+   :focus-visible carries a ring on every interactive surface. */
+
+.follow-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  margin-top: 10px;
+}
+
+.follow-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 116px;
+  justify-content: center;
+  padding: 8px 16px;
+  border-radius: var(--u-radius);
+  font-family: var(--font-sans);
+  font-size: 0.92rem;
+  font-weight: 600;
+  line-height: 1.2;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease;
+}
+
+.follow-btn:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.follow-btn:focus-visible {
+  outline: 2px solid var(--u-amber);
+  outline-offset: 2px;
+}
+
+/* Follow — the affirmative primary action. */
+.follow-follow {
+  background: var(--u-amber);
+  color: var(--u-parchment);
+  border-color: var(--u-amber);
+}
+
+.follow-follow:hover:not(:disabled) {
+  background: var(--u-amber-hover);
+  border-color: var(--u-amber-hover);
+}
+
+/* Following — a quiet confirmed state: surface fill + a hairline border + the
+   check glyph in amber. */
+.follow-following {
+  background: var(--u-surface);
+  color: var(--u-ink);
+  border-color: var(--u-border);
+}
+
+.follow-following .follow-check {
+  color: var(--u-amber);
+}
+
+/* Revealed on hover/focus: the consequence (Unfollow) in a negative treatment
+   so it reads clearly before the click. */
+.follow-following.is-unfollow {
+  color: var(--signal-negative);
+  border-color: var(--signal-negative);
+  background: var(--u-surface);
+}
+
+.follow-following.is-unfollow:focus-visible {
+  outline-color: var(--signal-negative);
+}
+
+.follow-label {
+  white-space: nowrap;
+}
+
+/* The sign-in affordance shown to signed-out visitors. */
+.follow-signin {
+  display: inline-block;
+  margin-top: 10px;
+  color: var(--u-amber);
+  font-weight: 600;
+  font-size: 0.92rem;
+  text-decoration: none;
+}
+
+.follow-signin:hover {
+  color: var(--u-amber-hover);
+  text-decoration: underline;
+}
+
+.follow-signin:focus-visible {
+  outline: 2px solid var(--u-amber);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+.follow-error {
+  margin: 0;
+  color: var(--signal-negative);
+  font-size: 0.85rem;
+}

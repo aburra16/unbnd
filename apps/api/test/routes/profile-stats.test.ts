@@ -121,7 +121,11 @@ describe("GET /api/profile/me/stats — session gating (AC-8)", () => {
     for (const call of query.mock.calls) {
       const filter = (call[0] ?? {}) as Record<string, unknown>;
       expect(filter.authors).toEqual([USER]);
-      expect(filter.kinds).toContain(39999);
+      // Every read is author-scoped to the target. Story 23 (ADR 0023) adds a
+      // fourth parallel kind-3 read (the following-count) through this same
+      // `query` dep; the 39999 concept reads still carry kind 39999.
+      const kinds = (filter.kinds as number[]) ?? [];
+      expect(kinds.includes(39999) || kinds.includes(3)).toBe(true);
     }
   });
 });

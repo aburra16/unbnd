@@ -12,6 +12,7 @@ import { buildBooksRouter } from "./routes/books";
 import { buildProfileRouter } from "./routes/profile";
 import { buildProfileStatsRouter } from "./routes/profile-stats";
 import { buildProfileSubstackRouter } from "./routes/profile-substack";
+import { buildProfileFollowRouter } from "./routes/profile-follow";
 import { buildSearchRouter } from "./routes/search";
 import { buildTrustRouter } from "./routes/trust";
 import { buildHealthRouter } from "./routes/health";
@@ -20,7 +21,8 @@ import { buildTagsRouter } from "./routes/tags";
 import { buildShelvesRouter } from "./routes/shelves";
 import { buildSubmissionsRouter } from "./routes/submissions";
 import { publishEvent, publishToMany } from "./nostr/publish";
-import { fetchRawKind0 } from "./nostr/profile";
+import { publishPublicRelayKind } from "./nostr/publish-public-relay-kind";
+import { fetchRawKind0, fetchRawKind3 } from "./nostr/profile";
 import { withUpSync } from "./nostr/propagate";
 import { resolveTrustProvider } from "./trust";
 import { queryEvents, queryEventsPaged } from "./nostr/query";
@@ -245,6 +247,17 @@ async function main() {
     return local;
   };
 
+  // kind-3 contact-list publisher (ADR 0023, F2-A): the same public-relay
+  // propagation model as kind-0, built from the injected primitive — local
+  // awaited (gates the response + read-back), profile-relay fan-out
+  // fire-and-forget, dcosl excluded.
+  const publishKind3 = publishPublicRelayKind("profile-publish", {
+    localRelay: config.strfryUrl,
+    profileRelays: config.profileRelays ?? [],
+    publishLocal: publishEvent,
+    publishMany: publishToMany,
+  });
+
   // Trust-weighting source (ADR 0014/0017). Enabled when a house observer is set
   // and the chosen provider is configured. `fixture` = deterministic, network-
   // free (CI + the staging seed harness); `brainstorm` = live NIP-85/GrapeRank.
@@ -318,6 +331,16 @@ async function main() {
       sessionUser: resolveSessionUser,
       publish: publishKind0,
       fetchRaw: (hex) => fetchRawKind0(config.profileRelays ?? [], hex),
+      custodialSign: userEventDeps.custodialSign,
+    }),
+  );
+  app.use(
+    "/",
+    buildProfileFollowRouter({
+      config,
+      sessionUser: resolveSessionUser,
+      publish: publishKind3,
+      fetchRaw: (hex) => fetchRawKind3(config.profileRelays ?? [], hex),
       custodialSign: userEventDeps.custodialSign,
     }),
   );

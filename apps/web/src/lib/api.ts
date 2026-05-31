@@ -133,6 +133,9 @@ export type ProfileStatsResponse = {
   booksRated?: number;
   reviews?: number;
   tagsApplied?: number;
+  // The target's own kind-3 `p`-tag count (ADR 0023, AC-9). Present only when
+  // the kind-3 read succeeded (a true 0 is present); absent on omit-on-throw.
+  followingCount?: number;
   // Keys whose underlying read hit the relay-cap ceiling (ADR 0021): their value
   // is a floor ("N+"), not exact. Absent/empty ⇒ nothing capped.
   capped?: ("booksRated" | "reviews" | "tagsApplied")[];
@@ -391,6 +394,36 @@ export const api = {
     stats(npub: string) {
       return authFetch<{ stats: ProfileStatsResponse }>(
         `/api/profile/${encodeURIComponent(npub)}/stats`,
+      );
+    },
+    // Follow / unfollow the kind-3 contact list (ADR 0023). Sovereign: fetch the
+    // server-merged unsigned kind-3 template, sign it with NIP-07, submit.
+    // Custodial: the server merges + signs. Status is the viewer's own kind-3
+    // membership for the target.
+    followTemplate(input: { target: string; action: "follow" | "unfollow" }) {
+      return authFetch<{ template: NostrEventTemplate }>(
+        "/api/profile/follow/template",
+        { method: "POST", body: JSON.stringify(input) },
+      );
+    },
+    follow(
+      event: SignedEvent,
+      hint: { target: string; action: "follow" | "unfollow" },
+    ) {
+      return authFetch<{ following: boolean }>("/api/profile/follow", {
+        method: "POST",
+        body: JSON.stringify({ event, target: hint.target, action: hint.action }),
+      });
+    },
+    followCustodial(input: { target: string; action: "follow" | "unfollow" }) {
+      return authFetch<{ following: boolean }>("/api/profile/follow", {
+        method: "POST",
+        body: JSON.stringify(input),
+      });
+    },
+    followStatus(target: string) {
+      return authFetch<{ following: boolean }>(
+        `/api/profile/follows/${encodeURIComponent(target)}`,
       );
     },
   },

@@ -31,8 +31,17 @@ vi.mock("../../src/hooks/useProfileMeta", () => ({
     meta?.displayName ?? meta?.name ?? fallback,
 }));
 
+// Profile now mounts <FollowButton>, which reads useSession; settle to
+// signed-out so no follow control renders and no follow api is called (a
+// fixture-fallout update for Story 23, not a test weakening — see test-plan
+// §"Fixture / fallout notes" #1).
+vi.mock("../../src/hooks/useSession", () => ({
+  useSession: () => ({ status: "signed-out", refresh: vi.fn() }),
+}));
+
 const shelvesMock = vi.fn();
 const statsMock = vi.fn();
+const followStatusMock = vi.fn();
 vi.mock("../../src/lib/api", () => ({
   ApiError: class ApiError extends Error {},
   api: {
@@ -43,6 +52,9 @@ vi.mock("../../src/lib/api", () => ({
       get: (...a: unknown[]) => Promise.resolve({ profile: { npub: a[0] } }),
       shelves: (...a: unknown[]) => shelvesMock(...a),
       stats: (...a: unknown[]) => statsMock(...a),
+      // FollowButton's status read (signed-out never calls it, but the method
+      // must exist on the mocked api so the import resolves).
+      followStatus: (...a: unknown[]) => followStatusMock(...a),
     },
   },
 }));
@@ -65,6 +77,7 @@ beforeEach(() => {
   profileMetaMock.mockReset().mockReturnValue(null);
   shelvesMock.mockReset().mockResolvedValue({ shelves: [] });
   statsMock.mockReset().mockResolvedValue({ stats: {} });
+  followStatusMock.mockReset().mockResolvedValue({ following: false });
 });
 afterEach(() => vi.clearAllMocks());
 

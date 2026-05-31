@@ -47,6 +47,18 @@ export function pickNewestKind0(
     );
 }
 
+/** Pure: pick the newest kind-3 across the given events (null when none). */
+export function pickNewestKind3(
+  events: SignedNostrEvent[],
+): SignedNostrEvent | null {
+  return events
+    .filter((e) => e.kind === 3)
+    .reduce<SignedNostrEvent | null>(
+      (best, e) => (best === null || e.created_at > best.created_at ? e : best),
+      null,
+    );
+}
+
 /**
  * Parse a kind-0 event's content into the RAW metadata object, untouched —
  * every field, including ones Unbnd has no schema for (lud16, banner, website,
@@ -135,6 +147,33 @@ export async function fetchRawKind0(
   const newest = pickNewestKind0(results.flat());
   return {
     content: parseRawKind0Content(newest),
+    createdAt: newest ? newest.created_at : null,
+  };
+}
+
+/**
+ * Fan out a kind-3 read across relays and return the freshest event's UNTOUCHED
+ * `tags` array + `content` string + `created_at` (ADR 0023). The kind-3 twin of
+ * `fetchRawKind0` — same best-effort fan-out + 3s timeout + `limit: 1` — but the
+ * follow data lives in `tags`, so it returns the raw tags (relay-hint/petname
+ * positions and any non-`p` tags verbatim) so the safe-merge write can preserve
+ * the whole follow graph. Does NOT parse `content`. Returns
+ * `{ tags: null, content: "", createdAt: null }` when no relay has a kind-3.
+ */
+export async function fetchRawKind3(
+  relays: readonly string[],
+  pubkeyHex: string,
+  queryFn: RelayQuery = (url, filter) =>
+    queryRelayUrl(url, filter, KIND0_TIMEOUT_MS),
+): Promise<{ tags: string[][] | null; content: string; createdAt: number | null }> {
+  const filter: NostrFilter = { kinds: [3], authors: [pubkeyHex], limit: 1 };
+  const results = await Promise.all(
+    relays.map((url) => queryFn(url, filter).catch(() => [])),
+  );
+  const newest = pickNewestKind3(results.flat());
+  return {
+    tags: newest ? newest.tags : null,
+    content: newest ? newest.content : "",
     createdAt: newest ? newest.created_at : null,
   };
 }
