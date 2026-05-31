@@ -1,6 +1,6 @@
 # Story 26: Custodial personalization — the server-signed "Personalize" trigger
 
-**Status:** Draft
+**Status:** Done
 **Created:** 2026-05-31
 **Type:** Feature
 

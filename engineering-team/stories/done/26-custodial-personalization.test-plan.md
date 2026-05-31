@@ -1,6 +1,6 @@
 # Test Plan: Story 26 — Custodial personalization (the server-signed "Personalize" trigger)
 
-**Story:** `engineering-team/stories/26-custodial-personalization.md`
+**Story:** `engineering-team/stories/done/26-custodial-personalization.md`
 **ADR:** `engineering-team/decisions/0026-custodial-personalization.md` (AMENDED — `authChallenge` returns a TEMPLATE; the seam moved behind the provider; the guard gains `brainstorm_login`)
 **Date:** 2026-05-31
 

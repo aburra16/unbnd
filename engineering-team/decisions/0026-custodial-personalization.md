@@ -1,8 +1,8 @@
 # ADR 0026: Custodial personalization — the server-signed "Personalize" trigger
 
-**Status:** Proposed
+**Status:** Accepted
 **Date:** 2026-05-31
-**Story:** `engineering-team/stories/26-custodial-personalization.md`
+**Story:** `engineering-team/stories/done/26-custodial-personalization.md`
 
 ## Context
 
