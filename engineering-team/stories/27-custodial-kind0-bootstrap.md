@@ -4,6 +4,13 @@
 **Created:** 2026-05-31
 **Type:** Bug
 
+> **Gate decision (2026-05-31): AC-6 split to Story 27b.** The display-name RENAME → kind-0
+> re-publish surface (former AC-6) is carved out into `engineering-team/stories/27b-custodial-displayname-rename.md`.
+> Story 27 ships **7 active ACs (1–5, 7, 8)**. The shared kind-0 seam, the `mergeSubstack`
+> `nameFloor` refactor, the signup bootstrap, and the login reconciliation all **stay here**.
+> AC-7 holds without the rename surface (it is the `nameFloor` mechanic). See ADR 0027's
+> Amendment note.
+
 ## Background
 
 A custodial (email-signup, Tier-2) user's chosen display name never reaches nostr, so it is invisible everywhere identity is shown — in Unbnd's own badges and in any other nostr client.
@@ -25,13 +32,15 @@ This story reuses machinery that already exists, so it stays small and consisten
 
 - **`publishKind0`** — the server-relay kind-0 publisher (`apps/api/src/index.ts` ~line 236; ADR 0022, F2-A). Publishes to the LOCAL relay first (gates/awaits), then fans out best-effort to `config.profileRelays` (the public profile relays). It deliberately does **not** publish to dcosl, which rejects kind-0.
 - **Custodial server-signing via the ephemeral wrap** — `useSessionKey` (`apps/api/src/auth/ephemeral.ts` line 50) and the `custodialSign` wiring (`apps/api/src/index.ts` line 301). The signup flow already establishes a signing session immediately after creating the user (`index.ts` line 131-138: decrypt the just-stored nsec with the signup password, `rememberSessionKey`, wipe), so the user's key is available to sign a kind-0 at signup time without a second password prompt.
-- **The kind-0 merge-preserve pattern from Story 22** — raw fetch → merge → sign → publish (`profile-substack.ts`; `mergeSubstack` + `buildKind0Template` in `profile/substack-template.ts`) — is the model for the rename path.
+- **The kind-0 merge-preserve pattern from Story 22** — raw fetch → merge → sign → publish (`profile-substack.ts`; `mergeSubstack` + `buildKind0Template` in `profile/substack-template.ts`) — is the model for the signup bootstrap, the login reconciliation, and (in the follow-up Story 27b) the rename path.
 
 ## User-facing description
 
-As a **Reader** (PRD §3) who signs up with email, I want the display name I chose to be my name across Unbnd and any nostr app — shown on my ratings, reviews, and profile — so that I appear as a person, not as a string of `npub1…` characters. And when I change my display name in Settings, I want the new name to take effect everywhere without losing anything else on my profile.
+As a **Reader** (PRD §3) who signs up with email, I want the display name I chose to be my name across Unbnd and any nostr app — shown on my ratings, reviews, and profile — so that I appear as a person, not as a string of `npub1…` characters. (Editing that name later in Settings is the follow-up Story 27b.)
 
 ## Acceptance criteria
+
+**7 active ACs: 1–5, 7, 8.** (Former AC-6 — display-name rename — is deferred to Story 27b; it is listed below in place, struck from this story's scope, with a pointer.)
 
 Testable from the outside, verifiable **without hitting real relays** — the kind-0 publisher is injected (a fake/in-memory publisher capturing the published event), consistent with how prior custodial-write stories test (`profile-substack`'s injected `publish`/`fetchRaw`/`custodialSign`, `FixtureTrustProvider`, etc.). "the server signs the kind-0" means it builds the kind-0 metadata template and signs it with the session's ephemeral-wrapped key via the existing `custodialSign` / `useSessionKey` path — never hand-rolled crypto.
 
@@ -45,9 +54,9 @@ Testable from the outside, verifiable **without hitting real relays** — the ki
 
 - [ ] **AC-5 — Reconciliation path for a missed publish.** Given a custodial user whose signup kind-0 publish failed (AC-4) and who therefore has no baseline kind-0, when they next perform a profile-affecting action where the key is available in-session (the Architect picks the concrete trigger — e.g. next login, or the next merge-preserve profile write), then the server detects the missing/name-less kind-0 and publishes/repairs a name-bearing kind-0, so the user's name eventually resolves without manual intervention. (Best-effort + retriable, not a guaranteed-at-signup invariant.)
 
-- [ ] **AC-6 — Rename re-publishes, merge-preserving other fields.** Given a custodial user with an existing kind-0 that already carries other fields (e.g. `substack`/`website` from the Story-22 path), when they change their display name to `D2` in Settings, then the server fetches the freshest raw kind-0, merges the new `name` (and `display_name`) into it preserving all other fields, signs with the session key, and publishes via `publishKind0` with a `created_at` strictly newer than the fetched event (replacement wins). The published kind-0 has `name == D2` AND retains the prior `substack`/`website`/etc. unchanged. The Postgres `displayName` is updated to `D2` as well, so DB and kind-0 agree.
+- **AC-6 — Rename re-publishes, merge-preserving other fields. → DEFERRED to Story 27b** (`engineering-team/stories/27b-custodial-displayname-rename.md`). Per the 2026-05-31 gate decision, the display-name RENAME → kind-0 re-publish surface (the new `POST /api/profile/display-name` endpoint, `users.updateDisplayName`, the Settings name field, and the web `setDisplayName` client) is carved out of this story. It depends on Story 27's shared `buildProfileKind0Content` seam. **Not an active AC of Story 27.**
 
-- [ ] **AC-7 — Substack-first ordering no longer drops the name.** Given a custodial user who signed up (and therefore has a baseline `name`-bearing kind-0 from AC-1), when they then save a Substack URL via the Story-22 path, then the resulting merged kind-0 carries BOTH the `name` (preserved from the baseline) AND the `substack`/`website`, so the latent "kind-0 with website but no name" outcome described in Background no longer occurs.
+- [ ] **AC-7 — Substack-first ordering no longer drops the name.** Given a custodial user who signed up (and therefore has a baseline `name`-bearing kind-0 from AC-1), when they then save a Substack URL via the Story-22 path, then the resulting merged kind-0 carries BOTH the `name` (preserved from the baseline) AND the `substack`/`website`, so the latent "kind-0 with website but no name" outcome described in Background no longer occurs. **This holds WITHOUT the rename surface:** it is delivered by the shared `buildProfileKind0Content` builder carrying the DB `displayName` as `nameFloor` in the `mergeSubstack` delegation — it does not depend on AC-6 or any rename endpoint.
 
 - [ ] **AC-8 — Sovereign path untouched.** Given a sovereign (NIP-07) signup/login, when the auth flow runs, then the server does **not** build or publish any kind-0 on their behalf (sovereign users own their profile and already have a kind-0 on relays); all existing sovereign auth and profile tests still pass.
 
@@ -63,7 +72,8 @@ State explicitly — do not build:
 - **The C-5 profile IA / "Advanced — Nostr identity" tab refactor.** Separate web-only IA story (Appendix C-5). This story does not restructure the profile or settings surface.
 - **Provider → npub federation (C-3).** The many-to-one identity-mapping table and OAuth login providers are a Phase-3 design note (Appendix C-3). Untouched here.
 - **Any sovereign-side change.** Sovereign users already have a kind-0 on relays and own their profile writes; this story never signs or publishes on their behalf (AC-8).
-- **A general profile-edit surface beyond display-name rename.** Bio, nip05, relay-list editing, etc. are not added here. Only the display-name field's kind-0 propagation (signup bootstrap + rename) is in scope. The Substack field continues to flow through the existing Story-22 path; this story only guarantees it composes correctly with the baseline (AC-7).
+- **The display-name RENAME surface → Story 27b.** The `POST /api/profile/display-name` endpoint, `users.updateDisplayName`, the Settings name field, and the web `setDisplayName` client are deferred to `engineering-team/stories/27b-custodial-displayname-rename.md` (former AC-6). Story 27 propagates the display name into kind-0 at **signup** (AC-1) and **repairs** it at login (AC-5); it does not add an edit surface.
+- **A general profile-edit surface.** Bio, nip05, relay-list editing, etc. are not added here. The Substack field continues to flow through the existing Story-22 path; this story only guarantees it composes correctly with the baseline (AC-7).
 - **New lint/typecheck/build tooling** (CLAUDE.md house rule; requires an ADR).
 
 Re-confirmed against PRD §11.3 "Out of Scope": this story touches none of payments, file hosting/Blossom, ebook sales, bounty marketplace, print-on-demand, social feed, reading progress, federation, or email notifications.

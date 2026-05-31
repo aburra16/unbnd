@@ -4,6 +4,23 @@
 **Date:** 2026-05-31
 **Story:** `engineering-team/stories/27-custodial-kind0-bootstrap.md`
 
+> **Amendment (2026-05-31, gate decision): AC-6 rename split to Story 27b.**
+> Per the PO gate, the **display-name RENAME → kind-0 re-publish** surface (AC-6) is
+> carved out of Story 27 into a new **Story 27b** (`engineering-team/stories/27b-custodial-displayname-rename.md`).
+> Story 27 now ships **7 ACs (1–5, 7, 8)**. The shared kind-0 seam — `profile/kind0.ts`
+> (`buildProfileKind0Content`, `hasResolvableName`, `buildKind0Template`), the `mergeSubstack`
+> delegation passing the DB `displayName` as `nameFloor`, `profile/bootstrap-kind0.ts`,
+> `profile/reconcile-kind0.ts`, the privacy whitelist, and the `index.ts` signup+login
+> wiring — **stays in Story 27.** Only the net-new rename surface (`routes/profile-display-name.ts`,
+> `users.updateDisplayName`, the `Settings.tsx` name field, the web `api.profile.setDisplayName`
+> client, and the `displayName`-on-`resolveSessionUser` addition *if* needed solely for rename)
+> moves to 27b. **AC-7 holds without the rename surface:** it is satisfied entirely by the
+> `nameFloor` mechanic in the shared builder (the Substack save carries the DB `displayName` as
+> the floor), and does **not** depend on the rename endpoint. The design below is otherwise intact;
+> the Scope/Decision sections flag the deferred items inline. 27b reuses this ADR's builder seam
+> with **no new merge logic** — just the endpoint, the DB lockstep update, the UI field, and one
+> republish call through `buildProfileKind0Content`.
+
 ## Context
 
 A custodial (email-signup, Tier-2) user's chosen display name never reaches nostr, so the product shows them as a string of `npub1…` characters everywhere identity is rendered, and so does every other nostr client. The break is at signup.
@@ -136,13 +153,13 @@ We chose **F1-A, F2-A, F3-A.** Concretely:
 
 2. **Privacy whitelist (hard, AC-3).** `buildProfileKind0Content` copies patch fields ONLY from `PROFILE_KIND0_FIELDS`; `email`, `password`, `userId`, and any session token are structurally unable to enter — they are not in the patch type and not in the field set. `rawPrev`'s own unknown keys are preserved (lossless merge) but the patch surface is closed. The signup bootstrap builds the patch from `displayName` alone. The Tester asserts the signup email string appears nowhere in the published event (content or tags).
 
-3. **AC-7 name-floor.** Because the Substack save now passes the DB `displayName` as `nameFloor`, a custodial user who saves Substack first still gets a kind-0 carrying BOTH `name`/`display_name` AND `substack`. The latent "website-but-no-name" outcome is gone.
+3. **AC-7 name-floor (holds WITHOUT the rename surface).** Because the Substack save now passes the DB `displayName` as `nameFloor`, a custodial user who saves Substack first still gets a kind-0 carrying BOTH `name`/`display_name` AND `substack`. The latent "website-but-no-name" outcome is gone. **This is satisfied entirely by the `nameFloor` in the shared builder and the `mergeSubstack` delegation — it does NOT require `routes/profile-display-name.ts` or any AC-6 (rename) machinery.** AC-7 therefore ships in Story 27 even though the rename surface is deferred to 27b.
 
 4. **Signup bootstrap (AC-1, 3, 4)** lives in a small injected helper `bootstrapCustodialKind0(deps)` (DI: `sign`, `publishKind0`, and a clock). `index.ts` wires it into the `signup:` dep **after** the `rememberSessionKey` block (lines 126–139) and **before** `return` (line 140), inside `try { … } catch (e) { console.warn("[kind0-bootstrap] …"); }` — a throw or failed local publish is logged and swallowed, never rolling back the account or failing the response. A fresh signup has no prior kind-0, so the helper builds content from `buildProfileKind0Content(null, { displayName }, displayName)` directly (no raw fetch needed), `buildKind0Template(content, now)`, `sign(sessionIdHex, template)` (`null` ⇒ log + skip, never throw to the caller), `publishKind0(signed)` (await local; fan-out fire-and-forget inside it). `display_name`==`name`==`D` (Open Question 1).
 
 5. **Reconciliation (AC-5)** lives in a sibling injected helper `reconcileCustodialKind0(deps)` (DI: `fetchRaw`, `sign`, `publishKind0`, clock, and the user's `displayName`/`pubkeyHex`/`sessionIdHex`). **Primary hook: the `login:` dep** in `index.ts`, slotted **after** `rememberSessionKey` (line 169) and before `return` (line 170), best-effort and swallowed — never blocks or fails login, and only for `tier === "custodial"`. **Detection:** `const { content, createdAt } = await fetchRaw(pubkeyHex)`; if `hasResolvableName(content)` is already true, **do nothing** (idempotent). Otherwise merge `displayName` into `content` via `buildProfileKind0Content(content, { displayName }, displayName)` (preserving any `substack`/`website` already present), build with `created_at = max(now, createdAt+1)` so replacement wins, sign, publish. **Secondary catch:** the merge-preserve writes (rename, Substack) already carry the `nameFloor`, so any profile write also repairs a name-less kind-0.
 
-6. **Rename (AC-6)** is a new `POST /api/profile/display-name` in a new `apps/api/src/routes/profile-display-name.ts`, DI-shaped like `buildProfileSubstackRouter` (`config`, `sessionUser`, `publish: publishKind0`, `fetchRaw: fetchRawKind0`, `custodialSign`, plus a new `updateDisplayName(userId, name)` DB dep). Custodial: `validateDisplayName` (reuse `passwords.ts`); `fetchRaw`; `buildProfileKind0Content(content, { displayName: D2 }, D2)` (merge-preserves `substack`/`website`/etc.); `buildKind0Template` with strictly-newer `created_at`; `custodialSign` (`null` ⇒ `401 reauth_required`); `publishKind0`; **then `updateDisplayName(user.id, D2)`** so Postgres and kind-0 agree; `200 { displayName: D2 }`. Sovereign ⇒ `403` (AC-8 — they own their profile). Anonymous ⇒ `401`. A `updateDisplayName` is added to `apps/api/src/auth/users.ts`. A name field is added to `Settings.tsx` (hidden/disabled for sovereign) and `api.profile.setDisplayName(name)` to `api.ts`.
+6. **Rename (AC-6) — DEFERRED to Story 27b.** *(Design retained here for continuity; built in 27b, not 27.)* A new `POST /api/profile/display-name` in a new `apps/api/src/routes/profile-display-name.ts`, DI-shaped like `buildProfileSubstackRouter` (`config`, `sessionUser`, `publish: publishKind0`, `fetchRaw: fetchRawKind0`, `custodialSign`, plus a new `updateDisplayName(userId, name)` DB dep). Custodial: `validateDisplayName` (reuse `passwords.ts`); `fetchRaw`; `buildProfileKind0Content(content, { displayName: D2 }, D2)` (merge-preserves `substack`/`website`/etc.); `buildKind0Template` with strictly-newer `created_at`; `custodialSign` (`null` ⇒ `401 reauth_required`); `publishKind0`; **then `updateDisplayName(user.id, D2)`** so Postgres and kind-0 agree; `200 { displayName: D2 }`. Sovereign ⇒ `403` (AC-8 — they own their profile). Anonymous ⇒ `401`. A `updateDisplayName` is added to `apps/api/src/auth/users.ts`. A name field is added to `Settings.tsx` (hidden/disabled for sovereign) and `api.profile.setDisplayName(name)` to `api.ts`. **27b reuses the Story-27 `buildProfileKind0Content` seam verbatim — no new merge logic.**
 
 7. **Sovereign untouched (AC-8).** No bootstrap, no reconciliation, no rename publish runs for `tier === "sovereign"` — each helper/route guards on tier. The `nostrVerify:` dep (`index.ts` lines 193–209) is not modified.
 
@@ -155,19 +172,19 @@ Everything is unit-testable with no live relay. **Inject, do not `vi.mock` intra
 - **`apps/api/src/profile/kind0.ts`** — pure; test `buildProfileKind0Content` (whitelist enforced; email/password/userId can't enter; `nameFloor` injects `name`+`display_name` only when absent; rawPrev fields preserved), `hasResolvableName`, `buildKind0Template`. No injection needed.
 - **`bootstrapCustodialKind0`** — inject a fake `sign` (returns a canned signed event or `null`) and a fake `publishKind0` (captures the event, or throws / returns `{ ok: false }`). Assertions: AC-1 (captured event is `kind: 0`, `pubkey` = new user, parsed `name` == `display_name` == `D`); AC-3 (email string absent from content + tags); AC-4 (when `publishKind0` throws or returns `{ ok: false }` or `sign` returns `null`, the helper resolves without throwing — the caller's signup still returns 201).
 - **`reconcileCustodialKind0`** — inject `fetchRaw` (returns missing / name-less / good-name content), `sign`, `publishKind0`. Assertions: AC-5 (missing or name-less ⇒ publishes a name-bearing kind-0 seeded from `displayName`; good-name ⇒ no publish call; any failure is swallowed; `created_at` strictly newer than the fetched event).
-- **`apps/api/src/routes/profile-display-name.ts`** — DI `sessionUser`, `publish`, `fetchRaw`, `custodialSign`, `updateDisplayName` (all `vi.fn`), exactly as `profile-substack.test.ts` injects its deps. Assertions: AC-6 (merge preserves `substack`/`website`; published `name` == `D2`; `updateDisplayName` called with `D2`; `created_at` strictly newer); sovereign ⇒ 403; `custodialSign` `null` ⇒ 401; anonymous ⇒ 401.
+- **`apps/api/src/routes/profile-display-name.ts`** *(Story 27b — deferred)* — DI `sessionUser`, `publish`, `fetchRaw`, `custodialSign`, `updateDisplayName` (all `vi.fn`), exactly as `profile-substack.test.ts` injects its deps. Assertions: AC-6 (merge preserves `substack`/`website`; published `name` == `D2`; `updateDisplayName` called with `D2`; `created_at` strictly newer); sovereign ⇒ 403; `custodialSign` `null` ⇒ 401; anonymous ⇒ 401.
 - **`profile-substack.test.ts`** — add an AC-7 case: with no prior kind-0 but a `displayName` passed as floor, the Substack save's published kind-0 carries both `name` and `substack`.
 - **`GET /api/profile/:id`** (AC-2) — verified through the existing `profile.test.ts` `resolve` injection returning the published kind-0; `name`/`display_name` == `D` ⇒ `displayNameOf` returns `D`.
 
 ## Consequences
 
-- **Enables** a custodial user's chosen name to resolve in Unbnd and every nostr client immediately after signup, a name-bearing base for all later merge-preserve writes (AC-7), self-healing for missed publishes (AC-5), and a real rename path (AC-6) — the first editable kind-0 field beyond Substack.
+- **Enables** a custodial user's chosen name to resolve in Unbnd and every nostr client immediately after signup, a name-bearing base for all later merge-preserve writes (AC-7), and self-healing for missed publishes (AC-5). A real rename path (AC-6) — the first editable kind-0 field beyond Substack — is **deferred to Story 27b**, where it reuses this ADR's `buildProfileKind0Content` seam.
 - **Constrains:** signup now does one awaited local-relay publish (latency, bounded; fan-out is async). Reconciliation does one extra raw kind-0 read on each custodial login (a `limit:1` single-event read, same primitive `fetchProfileMeta`/profile-stats use; only repairs when needed). The DB↔kind-0 lockstep can drift if a user hand-edits their kind-0 on a relay (documented; we don't reconcile back into Postgres).
-- **Debt / follow-ups:** the multi-client clobber window on kind-0 (ADR 0022, merge-from-freshest) is unchanged. A general profile editor (bio/nip05/lud16/picture) is still future scope; this story adds only the `displayName` field's propagation. Reconciliation does not retry on a failed login-repair (next login is the next chance) — acceptable per AC-5's best-effort framing.
+- **Debt / follow-ups:** the multi-client clobber window on kind-0 (ADR 0022, merge-from-freshest) is unchanged. A general profile editor (bio/nip05/lud16/picture) is still future scope. The display-name **rename** path (AC-6) is **Story 27b**, depending on Story 27's builder seam. Reconciliation does not retry on a failed login-repair (next login is the next chance) — acceptable per AC-5's best-effort framing.
 - **Affects existing fixtures?** No DList fixtures. `substack-template.ts` is refactored to delegate to `kind0.ts` (its public `mergeSubstack` signature preserved); `substack-template.test.ts` keeps its assertions plus a name-floor case. No production fixture data changes.
 - **New dependency?** No. Uses `nostr-tools/pure` (`finalizeEvent` via `custodialSign`), the ADR 0006 ephemeral wrap, `fetchRawKind0`, `publishKind0`, and `validateDisplayName` — all existing.
 - **PRD section change required?** No. Implements §2.4 / §2.6 / C-1 as written; touches no §11.3 surface.
-- **Brand tokens / copy:** the only new UI is a display-name field on `/settings` (reuses the existing form/token classes from `Settings.css`; no new hex literal, no new icon library). New strings (label, hint, save states, the reauth/error messages) are reviewed against `memory/feedback_unbnd_copy_and_visual.md` — no em dashes, no declarative-negative slop, no emoji.
+- **Brand tokens / copy:** Story 27 adds **no new UI** (the signup-bootstrap and login-reconcile are server-side, and AC-7 is a server-side merge fix). The only new UI — a display-name field on `/settings` — is **deferred to Story 27b**; there it reuses the existing form/token classes from `Settings.css` (no new hex literal, no new icon library), and its new strings (label, hint, save states, reauth/error messages) are reviewed against `memory/feedback_unbnd_copy_and_visual.md` — no em dashes, no declarative-negative slop, no emoji.
 
 ## Implementation notes
 
@@ -178,25 +195,31 @@ Concrete files and boundaries for the Implementer.
 - **`apps/api/src/profile/kind0.ts`** — `PROFILE_KIND0_FIELDS`, `ProfilePatch`, `buildProfileKind0Content(rawPrev, patch, nameFloor?)`, `hasResolvableName(content)`, `buildKind0Template(content, createdAt)` (lifted from `substack-template.ts`). Pure, no I/O. The privacy whitelist is the closed patch surface.
 - **`apps/api/src/profile/bootstrap-kind0.ts`** (or co-located) — `bootstrapCustodialKind0({ sign, publishKind0, now }, { displayName, sessionIdHex })`: build from `buildProfileKind0Content(null, { displayName }, displayName)`, template at `now`, sign, publish; all internal failures logged + swallowed (returns `void`, never throws).
 - **`apps/api/src/profile/reconcile-kind0.ts`** (or co-located) — `reconcileCustodialKind0({ fetchRaw, sign, publishKind0, now }, { displayName, pubkeyHex, sessionIdHex })`: fetch raw; `hasResolvableName` ⇒ early return; else merge + `created_at = max(now, createdAt+1)` + sign + publish; swallow failures.
-- **`apps/api/src/routes/profile-display-name.ts`** — `buildProfileDisplayNameRouter(deps)`, DI like `buildProfileSubstackRouter` plus `updateDisplayName`. `POST /api/profile/display-name`, tier-branched (custodial: publish + DB lockstep; sovereign: 403; anon: 401).
 
-### Ripple files (modified)
+### Ripple files (modified) — Story 27
 
-- **`apps/api/src/profile/substack-template.ts`** — `mergeSubstack` delegates to `buildProfileKind0Content(raw, { substack: url }, nameFloor)`; `buildKind0Template` re-exported from / imported from `kind0.ts`. Pass the caller's `displayName` as `nameFloor` (the route already has `user`; thread it through, or have the route read it). Public `mergeSubstack` signature may gain an optional `nameFloor` param.
-- **`apps/api/src/routes/profile-substack.ts`** — thread the session user's `displayName` into the merge as the name floor (AC-7), for both the `/template` and custodial submit paths. (The router's `sessionUser` shape may need `displayName`; see `resolveSessionUser` below.)
-- **`apps/api/src/auth/users.ts`** — add `updateDisplayName(tx-or-db, userId, name): Promise<UserRow>` (a `users` UPDATE on `displayName` by `id`); `PublicUser` already carries `displayName`.
+- **`apps/api/src/profile/substack-template.ts`** — `mergeSubstack` delegates to `buildProfileKind0Content(raw, { substack: url }, nameFloor)`; `buildKind0Template` re-exported from / imported from `kind0.ts`. Pass the caller's `displayName` as `nameFloor` (the route already has `user`; thread it through, or have the route read it). Public `mergeSubstack` signature may gain an optional `nameFloor` param. **(This is the AC-7 fix; stays in 27.)**
+- **`apps/api/src/routes/profile-substack.ts`** — thread the session user's `displayName` into the merge as the name floor (AC-7), for both the `/template` and custodial submit paths. (The router's `sessionUser` shape may need `displayName`; see `resolveSessionUser` note in the 27b subsection.)
 - **`apps/api/src/index.ts`** —
   - `signup:` dep: after lines 126–139, before line 140 `return`, add `try { await bootstrapCustodialKind0({ sign: userEventDeps.custodialSign, publishKind0, now }, { displayName: input.displayName, sessionIdHex: tokenToId(user.session.token).toString("hex") }); } catch (e) { console.warn(...) }`. Note `publishKind0` and `userEventDeps` are defined *below* the auth router today (lines 236, 290) — the Implementer must reorder so the publisher + sign dep are constructed before `buildAuthRouter`, or pass them via a thunk. Call this out: the wiring order changes.
   - `login:` dep: after line 169 (`rememberSessionKey`), before line 170 `return`, add the best-effort `reconcileCustodialKind0(...)` call guarded on `row.tier === "custodial"`, swallowed. Same ordering caveat.
-  - Register `buildProfileDisplayNameRouter({ config, sessionUser: resolveSessionUser, publish: publishKind0, fetchRaw: (hex) => fetchRawKind0(config.profileRelays ?? [], hex), custodialSign: userEventDeps.custodialSign, updateDisplayName: (id, name) => db.transaction((tx) => updateDisplayName(tx, id, name)) })`.
-  - `resolveSessionUser` (lines 279–287): add `displayName: resolved.user.displayName` to the returned shape so the Substack and display-name routes can read the name floor / current name.
+
+### Deferred to Story 27b (the carved-out rename surface)
+
+These items are **not built in Story 27** — they are the net-new rename surface and ship in `engineering-team/stories/27b-custodial-displayname-rename.md`. 27b reuses the Story-27 `buildProfileKind0Content` seam with **no new merge logic**.
+
+- **`apps/api/src/routes/profile-display-name.ts`** *(new file, 27b)* — `buildProfileDisplayNameRouter(deps)`, DI like `buildProfileSubstackRouter` plus `updateDisplayName`. `POST /api/profile/display-name`, tier-branched (custodial: publish via `buildProfileKind0Content` + DB lockstep; sovereign: 403; anon: 401).
+- **`apps/api/src/auth/users.ts`** — add `updateDisplayName(tx-or-db, userId, name): Promise<UserRow>` (a `users` UPDATE on `displayName` by `id`); `PublicUser` already carries `displayName`.
+- **`apps/api/src/index.ts`** — register `buildProfileDisplayNameRouter({ config, sessionUser: resolveSessionUser, publish: publishKind0, fetchRaw: (hex) => fetchRawKind0(config.profileRelays ?? [], hex), custodialSign: userEventDeps.custodialSign, updateDisplayName: (id, name) => db.transaction((tx) => updateDisplayName(tx, id, name)) })`.
+- **`apps/api/src/index.ts` `resolveSessionUser`** (lines 279–287) — add `displayName: resolved.user.displayName` to the returned shape **if** it is needed solely so the display-name route can read the current name. (Note: if the Story-27 Substack `nameFloor` threading already adds `displayName` to the session-user shape, this is a no-op for 27b.)
 - **`apps/web/src/lib/api.ts`** — add `api.profile.setDisplayName(name) → POST /api/profile/display-name { displayName } → { displayName }`.
-- **`apps/web/src/routes/Settings.tsx`** — add a display-name field (prefilled from `useSession().user.displayName` or `useProfileMeta(npub)?.name`), custodial-only (hidden/disabled for sovereign), Save with honest `idle|saving|saved|error` states; on success update the session/echo and `invalidateProfileMeta(user.npub)`. Reuse existing `Settings.css` tokens.
+- **`apps/web/src/routes/Settings.tsx`** — add a display-name field (prefilled from `useSession().user.displayName` or `useProfileMeta(npub)?.name`), custodial-only (hidden/disabled for sovereign), Save with honest `idle|saving|saved|error` states; on success update the session/echo and `invalidateProfileMeta(user.npub)`. Reuse existing `Settings.css` tokens. No new hex literal, no slop copy (reviewed against `memory/feedback_unbnd_copy_and_visual.md`).
 
 ### Existing tests that change
 
 - `apps/api/test/profile/substack-template.test.ts` — assertions preserved + a name-floor case (AC-7).
-- New: `kind0.test.ts`, `bootstrap-kind0.test.ts`, `reconcile-kind0.test.ts`, `routes/profile-display-name.test.ts`.
+- New (Story 27): `kind0.test.ts`, `bootstrap-kind0.test.ts`, `reconcile-kind0.test.ts`.
+- New (Story 27b — deferred): `routes/profile-display-name.test.ts`.
 - `apps/api/test/routes/auth.test.ts` — unchanged in shape; the bootstrap/reconcile are not in the route, so the auth-router suite stays green. (If the Implementer chooses to surface a hook through the dep for an integration assertion, that is optional and must not couple the route to a live relay.)
 - `apps/api/test/routes/profile.test.ts` — reuse the injected `resolve` to assert AC-2.
 
