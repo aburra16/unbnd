@@ -1,6 +1,6 @@
 # Test Plan: Story 25 — Trust-weighted tag/genre consensus + community-vs-trusted labeling
 
-**Story:** `engineering-team/stories/25-weighted-consensus.md`
+**Story:** `engineering-team/stories/done/25-weighted-consensus.md`
 **ADR:** `engineering-team/decisions/0025-weighted-consensus.md`
 **Date:** 2026-05-31
 

@@ -2,7 +2,7 @@
 
 **Status:** Proposed
 **Date:** 2026-05-31
-**Story:** `engineering-team/stories/25-weighted-consensus.md`
+**Story:** `engineering-team/stories/done/25-weighted-consensus.md`
 
 ## Context
 

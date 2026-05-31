@@ -1,6 +1,6 @@
 # Story 25: Trust-weighted tag/genre consensus + community-vs-trusted labeling
 
-**Status:** Draft
+**Status:** Done
 **Created:** 2026-05-31
 **Type:** Feature
 
@@ -74,5 +74,5 @@ Resolve before approving the story.
 
 ## Linked artifacts
 - ADR: `engineering-team/decisions/0025-weighted-consensus.md`
-- Test plan: `engineering-team/stories/25-weighted-consensus.test-plan.md`
-- Review: (filled in after Review phase)
+- Test plan: `engineering-team/stories/done/25-weighted-consensus.test-plan.md`
+- Review: `engineering-team/reviews/25-weighted-consensus.md` (PASS)
