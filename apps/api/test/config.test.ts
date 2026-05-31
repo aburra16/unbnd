@@ -222,3 +222,25 @@ describe("loadConfig — trust provider (ADR 0017)", () => {
     ).toThrow(/weights/);
   });
 });
+
+// Story 26 / ADR 0026 Decision 2: the custodial personalize follow-count gate.
+describe("loadConfig — PERSONALIZE_MIN_FOLLOWS (ADR 0026)", () => {
+  it("defaults to 10 (PRD §9.5 'ten follows')", () => {
+    expect(loadConfig({ ...ALL_REQUIRED }).personalizeMinFollows).toBe(10);
+  });
+
+  it("respects a numeric override (staging may set 1 or 2)", () => {
+    const c = loadConfig({ ...ALL_REQUIRED, PERSONALIZE_MIN_FOLLOWS: "1" });
+    expect(c.personalizeMinFollows).toBe(1);
+    expect(typeof c.personalizeMinFollows).toBe("number");
+  });
+
+  it("throws on a non-integer / negative value (parsed like PORT)", () => {
+    expect(() =>
+      loadConfig({ ...ALL_REQUIRED, PERSONALIZE_MIN_FOLLOWS: "abc" }),
+    ).toThrow(/PERSONALIZE_MIN_FOLLOWS/);
+    expect(() =>
+      loadConfig({ ...ALL_REQUIRED, PERSONALIZE_MIN_FOLLOWS: "-3" }),
+    ).toThrow(/PERSONALIZE_MIN_FOLLOWS/);
+  });
+});

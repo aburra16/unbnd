@@ -153,7 +153,10 @@ describe("GET /api/books/:slug/ratings", () => {
       name: "brainstorm" as const,
       weights: vi.fn(async () => weights),
       hasScores: vi.fn(async () => true),
-      authChallenge: vi.fn(async () => "c"),
+      // CONTRACT MIGRATION (ADR 0026): authChallenge returns the unsigned
+      // kind-27235 template now, not a bare string. These ratings tests never
+      // call it; the mock is updated to the new return type for compilation.
+      authChallenge: vi.fn(async () => ({ kind: 27235, created_at: 1, tags: [["challenge", "c"]], content: "" })),
       personalize: vi.fn(async () => true),
     };
     const { app } = makeApp({
@@ -174,7 +177,10 @@ describe("GET /api/books/:slug/ratings", () => {
       name: "brainstorm" as const,
       weights: vi.fn(async () => new Map()),
       hasScores: vi.fn(async () => true),
-      authChallenge: vi.fn(async () => "c"),
+      // CONTRACT MIGRATION (ADR 0026): authChallenge returns the unsigned
+      // kind-27235 template now, not a bare string. These ratings tests never
+      // call it; the mock is updated to the new return type for compilation.
+      authChallenge: vi.fn(async () => ({ kind: 27235, created_at: 1, tags: [["challenge", "c"]], content: "" })),
       personalize: vi.fn(async () => true),
     };
     const { app } = makeApp({ query: vi.fn(async () => [a.event] as never), trust });

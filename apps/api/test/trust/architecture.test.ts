@@ -13,8 +13,13 @@ const REPO = resolve(__dirname, "..", "..", "..", "..");
 const RULES: Array<{ adapter: string; label: string; pattern: RegExp }> = [
   {
     adapter: "apps/api/src/trust/brainstorm.ts",
+    // ADR 0026 amendment: `brainstorm_login` joins the forbidden list. The
+    // challenge-template construction moved BEHIND the provider, so the
+    // Brainstorm-flavored kind-27235 shape (incl. the brainstorm_login tag) may
+    // live ONLY in the adapter. kind 27235 is the standard NIP-98 kind and is
+    // intentionally NOT added to the guard.
     label: "Brainstorm/NIP-85 API specifics",
-    pattern: /\/setup\/|\/authChallenge|\/user\/graperank|graperankResult|\b30382\b/,
+    pattern: /\/setup\/|\/authChallenge|\/user\/graperank|graperankResult|\b30382\b|brainstorm_login/,
   },
 ];
 

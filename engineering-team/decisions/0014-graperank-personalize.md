@@ -45,6 +45,9 @@ Deliver the "weighted by people you trust" pillar by weighting **ratings** with 
 - **Public `/setup` read path (chosen)** vs the admin API — reads need no auth; only triggering does (deferred to a UI redirect).
 
 ## Consequences
+
+> **Amended by ADR 0026 (2026-05-31):** the kind-27235 challenge-event construction moved OUT of the web (`useTrustView.ts`) and BEHIND the provider — `TrustProvider.authChallenge` now returns the full unsigned template (not just the challenge string), and both sovereign (NIP-07) and custodial (server ephemeral wrap) paths simply sign it. The architecture guard (this ADR's repo-wide test) gained the `brainstorm_login` literal to its forbidden-pattern list, so that string may appear only in `trust/brainstorm.ts`. Sovereign behavior is preserved; see ADR 0026 Decision (1).
+
 - Sovereign readers get a real trust-weighted rating view; the default is nosfabrica-curated. Books with no trusted ratings honestly show none in a weighted view (raw still available to the toggle/Yours-less states as the substrate).
 - New outbound dependency on the Brainstorm API + nip85 relays (best-effort; failure → raw). New config. No schema/migration. Adapter-isolated; the provider is swappable.
 - Index/tag weighting, custodial personalization, in-app trigger, real librarian house — all deferred.

@@ -2,9 +2,11 @@
 // only on this surface. All Brainstorm/NIP-85 specifics live in the adapter
 // (trust/brainstorm.ts) — a guard test enforces it, so the scoring source is
 // swappable.
-import type { SignedNostrEvent } from "@unbnd/schemas";
+import type { NostrEventTemplate, SignedNostrEvent } from "@unbnd/schemas";
 
 export type TrustProviderName = "brainstorm" | "fixture";
+
+export type { NostrEventTemplate };
 
 /**
  * Deterministic spec for the fixture provider (ADR 0017). No network, time, or
@@ -51,10 +53,13 @@ export interface TrustProvider {
   /** Whether the observer already has published trust scores. */
   hasScores(observerHex: string): Promise<boolean>;
   /**
-   * Fetch an auth challenge for the observer to sign (NIP-98-style), so they
-   * can self-trigger a personalization run. null if the backend can't issue one.
+   * Fetch the unsigned kind-27235 NIP-98-style challenge TEMPLATE for the
+   * observer to sign (sovereign: NIP-07 in the browser; custodial: server-signed
+   * via the ephemeral wrap), so they can self-trigger a personalization run. The
+   * provider owns the backend-specific event shape (ADR 0026); callers only sign
+   * what they're handed. null if the backend can't issue one.
    */
-  authChallenge(observerHex: string): Promise<string | null>;
+  authChallenge(observerHex: string): Promise<NostrEventTemplate | null>;
   /**
    * Verify the observer's signed challenge and trigger a personalization run.
    * Returns true when the run was queued. Best-effort; never throws.

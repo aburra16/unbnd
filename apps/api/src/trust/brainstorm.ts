@@ -5,10 +5,11 @@
 // configured relays, unioned. Raw HTTP + the shared WS read; no SDK. The
 // architecture guard test enforces that these specifics never leak past here.
 import { queryRelayUrl, type NostrFilter } from "../nostr/query";
-import type { SignedNostrEvent } from "@unbnd/schemas";
+import type { NostrEventTemplate, SignedNostrEvent } from "@unbnd/schemas";
 import type { TrustProvider, TrustProviderName } from "./types";
 
 const KIND_TRUSTED_ASSERTION = 30382;
+const KIND_NIP98_AUTH = 27235;
 const RANK_PROVIDER = "30382:rank";
 const SETUP_TTL_MS = 10 * 60_000;
 const WEIGHT_TTL_MS = 5 * 60_000;
@@ -138,12 +139,24 @@ export class BrainstormProvider implements TrustProvider {
     return false;
   }
 
-  async authChallenge(observerHex: string): Promise<string | null> {
+  async authChallenge(observerHex: string): Promise<NostrEventTemplate | null> {
     try {
       const res = await this.#fetch(`${this.#apiUrl}/authChallenge/${observerHex}`);
       if (!res.ok) return null;
       const body = (await res.json()) as { data?: { challenge?: string }; challenge?: string };
-      return body.data?.challenge ?? body.challenge ?? null;
+      const challenge = body.data?.challenge ?? body.challenge ?? null;
+      if (!challenge) return null;
+      // The Brainstorm-flavored kind-27235 shape (incl. the brainstorm_login tag
+      // Brainstorm's /verify expects) lives ONLY here — the guard enforces it.
+      return {
+        kind: KIND_NIP98_AUTH,
+        created_at: Math.floor(this.#now() / 1000),
+        tags: [
+          ["challenge", challenge],
+          ["t", "brainstorm_login"],
+        ],
+        content: "",
+      };
     } catch {
       return null;
     }

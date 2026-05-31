@@ -3,8 +3,13 @@
 // trust-consuming feature can be built and verified in CI with known weights,
 // and so staging can reproduce a House↔Yours divergence on demand. Knows
 // nothing about any backend, so the ADR 0014 architecture guard ignores it.
-import type { SignedNostrEvent } from "@unbnd/schemas";
+import type { NostrEventTemplate, SignedNostrEvent } from "@unbnd/schemas";
 import type { FixtureSpec, TrustProvider, TrustProviderName } from "./types";
+
+// NIP-98 auth kind. Standard, NOT Brainstorm-specific — safe outside the adapter.
+const KIND_NIP98_AUTH = 27235;
+// A fixed created_at keeps the fixture template deterministic (no Date.now()).
+const FIXTURE_CREATED_AT = 1;
 
 export class FixtureTrustProvider implements TrustProvider {
   readonly name: TrustProviderName = "fixture";
@@ -47,10 +52,20 @@ export class FixtureTrustProvider implements TrustProvider {
     return this.#scored.has(observerHex);
   }
 
-  async authChallenge(observerHex: string): Promise<string | null> {
-    return this.#challenge !== undefined
-      ? this.#challenge
-      : `fixture-challenge:${observerHex}`;
+  async authChallenge(observerHex: string): Promise<NostrEventTemplate | null> {
+    const challenge =
+      this.#challenge !== undefined
+        ? this.#challenge
+        : `fixture-challenge:${observerHex}`;
+    if (challenge === null) return null;
+    // A GENERIC kind-27235 template — challenge tag only, no backend-specific
+    // login tag (that lives only in the Brainstorm adapter). Deterministic.
+    return {
+      kind: KIND_NIP98_AUTH,
+      created_at: FIXTURE_CREATED_AT,
+      tags: [["challenge", challenge]],
+      content: "",
+    };
   }
 
   async personalize(
