@@ -48,6 +48,10 @@ services:
       # Write up-sync (ADR 0011): dual-publish accepted community writes to dcosl.
       - DCOSL_RELAY_URL=${DCOSL_RELAY_URL:-wss://dcosl.brainstorm.world/}
       - PROPAGATE_WRITES=${PROPAGATE_WRITES:-true}
+      # Custodial personalize follow gate (ADR 0026). Staging defaults to 1 so a
+      # fresh account can exercise the flow; raise via a .env override for real
+      # production (the code default is 10).
+      - PERSONALIZE_MIN_FOLLOWS=${PERSONALIZE_MIN_FOLLOWS:-1}
     depends_on:
       db:
         condition: service_healthy
