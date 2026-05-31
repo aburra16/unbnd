@@ -29,8 +29,29 @@ type Stats = {
   booksRated?: number;
   reviews?: number;
   tagsApplied?: number;
+  // ADR 0023 (AC-9): the count of DISTINCT `p` tags on the target's freshest
+  // kind-3 (a present 0 when they follow no one / have no kind-3). Omitted on a
+  // throwing kind-3 read (omit-on-throw, never a fabricated 0). Honest +
+  // uncapped — one user's own bounded contact list in a single event.
+  followingCount?: number;
   capped?: CappedKey[];
 };
+
+/** Count DISTINCT `p`-tag hexes on the freshest kind-3 (non-`p` tags ignored). */
+function distinctFollowCount(events: SignedNostrEvent[]): number {
+  const newest = events
+    .filter((e) => e.kind === 3)
+    .reduce<SignedNostrEvent | null>(
+      (best, e) => (best === null || e.created_at > best.created_at ? e : best),
+      null,
+    );
+  if (!newest) return 0;
+  const hexes = new Set<string>();
+  for (const tag of newest.tags) {
+    if (tag[0] === "p" && typeof tag[1] === "string") hexes.add(tag[1]);
+  }
+  return hexes.size;
+}
 
 export type ProfileStatsSessionUser = {
   readonly id: string;
@@ -94,7 +115,18 @@ export function buildProfileStatsRouter(deps: ProfileStatsDeps): Router {
       () => ({ ok: false as const }),
     );
 
-    const [ratings, tags] = await Promise.all([ratingsP, tagsP]);
+    // A fourth parallel, independently-wrapped read (ADR 0023): the target's
+    // freshest kind-3, via the one-shot `query` dep (a single event, limit:1 —
+    // no paging needed). Omit-on-throw, exactly like the other cells.
+    const followingP = (async () => {
+      const events = await deps.query({ kinds: [3], authors: [author], limit: 1 });
+      return distinctFollowCount(events);
+    })().then(
+      (n) => ({ ok: true as const, n }),
+      () => ({ ok: false as const }),
+    );
+
+    const [ratings, tags, following] = await Promise.all([ratingsP, tagsP, followingP]);
 
     const stats: Stats = {};
     const capped: CappedKey[] = [];
@@ -108,6 +140,7 @@ export function buildProfileStatsRouter(deps: ProfileStatsDeps): Router {
       stats.tagsApplied = tags.n;
       if (tags.capped) capped.push("tagsApplied");
     }
+    if (following.ok) stats.followingCount = following.n;
     if (capped.length > 0) stats.capped = capped;
     return stats;
   }

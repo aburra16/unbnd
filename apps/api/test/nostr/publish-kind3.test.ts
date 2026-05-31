@@ -103,7 +103,7 @@ describe("publishPublicRelayKind (publishKind3, AC-8)", () => {
 
   it("never publishes to dcosl: the injected fan-out relays are the profile relays only", async () => {
     const local = vi.fn(async () => ({ ok: true as const, id: "k3-evt" }));
-    const many = vi.fn(async () => []);
+    const many = vi.fn(async (_relays: readonly string[], _ev: SignedNostrEvent) => []);
     const publish = publishPublicRelayKind("profile-publish", {
       localRelay: LOCAL,
       profileRelays: PROFILE,
