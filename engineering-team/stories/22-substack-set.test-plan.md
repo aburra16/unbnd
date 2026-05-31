@@ -74,7 +74,7 @@ result fans out to the profile relays. Tests pin the ADR surface exactly:
 - Runner: Vitest. API tests under `apps/api/test/`; web tests under `apps/web/test/` (happy-dom + Testing Library, `test/setup.ts`).
 - No live relay / Docker dependency. All tests are pure unit or dependency-injected:
   - Route tests inject `sessionUser` / `publish` / `fetchRaw` / `custodialSign` (mirrors the ratings suite), so no strfry / profile-relay socket is opened.
-  - `publishToMany` tests mock the single-relay `publishEvent` primitive (no socket).
+  - `publishToMany` tests INJECT the single-relay publisher as a 3rd arg `publishToMany(relayUrls, event, publish = publishEvent)` and pass a local `vi.fn()` spy (no socket; no `vi.mock` — an export-level mock can't intercept the intra-module `publishEvent` call, a known vitest/ESM limit).
   - Signed kind-0 fixtures are built in-test with `nostr-tools/pure` `finalizeEvent` for a fresh keypair (real signatures, JSON round-tripped to drop the verifiedSymbol memo — same discipline as `apps/api/test/ratings/_fixtures.ts`). No hand-rolled crypto.
   - Web tests mock `useSession`, `useProfileMeta`/`invalidateProfileMeta`, and `api.profile.*`; NIP-07 is stubbed as `window.nostr.signEvent`.
 - No new framework, no Playwright (none introduced by ADR 0022).
