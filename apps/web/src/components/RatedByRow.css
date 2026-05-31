@@ -1,0 +1,105 @@
+.rated-by {
+  margin-bottom: 28px;
+}
+
+.rated-by-head {
+  margin-bottom: 10px;
+}
+
+.rated-by-label {
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: -0.2px;
+  color: var(--u-ink);
+}
+
+/* Collapsed: a dense, overlapping avatar pile. */
+.rated-by-pile {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.rated-by-pile .rated-by-badge {
+  margin-left: -8px;
+  border-radius: 50%;
+  box-shadow: 0 0 0 2px var(--u-parchment);
+  transition: transform 120ms ease;
+}
+
+.rated-by-pile .rated-by-badge:first-child {
+  margin-left: 0;
+}
+
+.rated-by-pile .rated-by-badge:hover {
+  transform: translateY(-2px);
+  z-index: 1;
+}
+
+.rated-by-badge {
+  display: inline-flex;
+  text-decoration: none;
+}
+
+.rated-by-more {
+  margin-left: 4px;
+  height: 30px;
+  min-width: 30px;
+  padding: 0 8px;
+  border-radius: 999px;
+  border: 1px solid var(--u-border);
+  background: var(--u-surface);
+  color: var(--u-amber);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 120ms ease, color 120ms ease;
+}
+
+.rated-by-more:hover {
+  border-color: var(--u-border-hover);
+  color: var(--u-amber-hover);
+}
+
+/* Expanded: a wrapping grid, each entry shows name + score. */
+.rated-by-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.rated-by-cell {
+  display: flex;
+}
+
+.rated-by-badge-grid {
+  align-items: center;
+  gap: 8px;
+  max-width: 220px;
+}
+
+.rated-by-detail {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.rated-by-name {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--u-ink);
+  line-height: 1.3;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rated-by-score {
+  font-size: 11px;
+  color: var(--u-amber);
+  letter-spacing: 0.5px;
+  margin-top: 2px;
+}

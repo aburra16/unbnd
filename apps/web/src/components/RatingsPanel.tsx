@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { api, type RatingsSummary } from "../lib/api";
 import { useTrustView } from "../hooks/useTrustView";
 import { RatingsBlock } from "./RatingsBlock";
+import { RatedByRow } from "./RatedByRow";
 import { ReviewsList } from "./ReviewsList";
 import "./RatingsPanel.css";
 
@@ -110,6 +111,7 @@ export function RatingsPanel({ slug }: { slug: string }) {
       {error && <p className="rp-error" role="alert">{error}</p>}
       <p className="rp-caption">{caption}</p>
       <RatingsBlock average={average} count={count} countNoun={countNoun} label={label} emptyNote={emptyNote} />
+      <RatedByRow ratings={reviews} />
       <ReviewsList ratings={reviews} />
     </div>
   );
