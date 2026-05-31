@@ -90,7 +90,7 @@ Resolve before approving the story.
 - **AC-1 writing `display_name` in addition to `name` (Open Question 1)** is a small forward-compat choice but technically expands the published payload beyond the literal `name`. Called out so the user can veto it and restrict to `name` only.
 
 ## Linked artifacts
-- ADR: (filled in after Architecture phase) — see ADR 0022 (kind-0 publisher / F2-A) and ADR 0023 (custodial kind-3 server-signing via the ephemeral wrap) for the machinery this reuses.
+- ADR: `engineering-team/decisions/0027-custodial-kind0-bootstrap.md` — see also ADR 0022 (kind-0 publisher / F2-A) and ADR 0023 (custodial kind-3 server-signing via the ephemeral wrap) for the machinery this reuses.
 - Prior story: `engineering-team/stories/done/22-substack-set.md` (custodial kind-0 merge-preserve write — the rename path's model).
 - Test plan: (filled in after Test Design phase)
 - Review: (filled in after Review phase)
