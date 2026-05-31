@@ -73,7 +73,24 @@ export function PoVBar() {
     );
   }
 
-  // house-only: signed-out, custodial, trust disabled, or still loading.
+  if (status === "gated") {
+    // Custodial below the follow gate (ADR 0026): an honest prompt for what
+    // unlocks personalization, no Personalize affordance.
+    return (
+      <div className="pov">
+        <span className="pov-dot" aria-hidden="true" />
+        <span>Showing</span>
+        <span className="pov-strong">Unbnd house view</span>
+        <div className="pov-right">
+          <span className="pov-hint">
+            Follow a few curators to personalize your view.
+          </span>
+        </div>
+      </div>
+    );
+  }
+
+  // house-only: signed-out, trust disabled, or still loading.
   return (
     <div className="pov">
       <span className="pov-dot" aria-hidden="true" />

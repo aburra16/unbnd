@@ -350,12 +350,22 @@ export const api = {
       );
     },
     challenge() {
-      return authFetch<{ challenge: string }>("/api/trust/challenge");
+      // ADR 0026: the server returns the unsigned kind-27235 TEMPLATE to sign
+      // (was a bare { challenge } string). The provider owns its shape.
+      return authFetch<{ template: NostrEventTemplate }>("/api/trust/challenge");
     },
     personalize(event: SignedEvent) {
       return authFetch<{ ok: true; building: boolean }>("/api/trust/personalize", {
         method: "POST",
         body: JSON.stringify({ event }),
+      });
+    },
+    // ADR 0026: custodial in-session trigger — empty body, the server signs the
+    // template with the session's ephemeral-wrapped key. No NIP-07 prompt.
+    personalizeCustodial() {
+      return authFetch<{ ok: true; building: boolean }>("/api/trust/personalize", {
+        method: "POST",
+        body: JSON.stringify({}),
       });
     },
   },

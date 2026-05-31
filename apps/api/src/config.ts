@@ -52,6 +52,15 @@ export type Config = {
   readonly trustFixture?: FixtureSpec;
   /** Default "house" observer pubkey (hex) whose vantage powers the default view. */
   readonly houseObserverPubkey?: string;
+  /**
+   * Minimum distinct kind-3 follow count a custodial user needs before the
+   * in-session Personalize trigger is offered/allowed (ADR 0026). Default 10
+   * (PRD §9.5 "ten follows"). Staging may override to 1 or 2
+   * (`PERSONALIZE_MIN_FOLLOWS=1`) so the flow is exercisable without recruiting
+   * ten real follows. Always set by `loadConfig`; optional here only so partial
+   * test fixtures need not set it (mirrors `propagateWrites`/`profileRelays`).
+   */
+  readonly personalizeMinFollows?: number;
 };
 
 const DEFAULT_TRUST_RELAYS = [
@@ -106,6 +115,18 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
   if (!Number.isFinite(port) || port <= 0 || !Number.isInteger(port)) {
     throw new Error(
       `config: PORT must be a positive integer; got ${JSON.stringify(portRaw)}`,
+    );
+  }
+
+  const minFollowsRaw = withDefault(env, "PERSONALIZE_MIN_FOLLOWS", "10");
+  const personalizeMinFollows = Number(minFollowsRaw);
+  if (
+    !Number.isFinite(personalizeMinFollows) ||
+    personalizeMinFollows < 0 ||
+    !Number.isInteger(personalizeMinFollows)
+  ) {
+    throw new Error(
+      `config: PERSONALIZE_MIN_FOLLOWS must be a non-negative integer; got ${JSON.stringify(minFollowsRaw)}`,
     );
   }
 
@@ -209,6 +230,7 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
     trustRelays,
     trustFixture,
     houseObserverPubkey,
+    personalizeMinFollows,
     neo4jBoltUrl: withDefault(env, "NEO4J_BOLT_URL", "bolt://localhost:7687"),
     neo4jUser: withDefault(env, "NEO4J_USER", "neo4j"),
     neo4jPassword,

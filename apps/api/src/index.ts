@@ -23,6 +23,7 @@ import { buildSubmissionsRouter } from "./routes/submissions";
 import { publishEvent, publishToMany } from "./nostr/publish";
 import { publishPublicRelayKind } from "./nostr/publish-public-relay-kind";
 import { fetchRawKind0, fetchRawKind3 } from "./nostr/profile";
+import { distinctFollowCount } from "./profile/follow-count";
 import { withUpSync } from "./nostr/propagate";
 import { resolveTrustProvider } from "./trust";
 import { queryEvents, queryEventsPaged } from "./nostr/query";
@@ -345,7 +346,22 @@ async function main() {
     }),
   );
   app.use("/", buildSearchRouter({ searchProvider }));
-  app.use("/", buildTrustRouter({ sessionUser: resolveSessionUser, trust }));
+  app.use(
+    "/",
+    buildTrustRouter({
+      sessionUser: resolveSessionUser,
+      trust,
+      config,
+      // The custodial follow gate (ADR 0026): the session user's own freshest
+      // kind-3 → distinct `p`-tag count, the same one-shot read + counter
+      // profile-stats uses (limit:1, single event).
+      followCount: async (hex) =>
+        distinctFollowCount(
+          await userEventDeps.query({ kinds: [3], authors: [hex], limit: 1 }),
+        ),
+      custodialSign: userEventDeps.custodialSign,
+    }),
+  );
   app.use("/", buildRatingsRouter(userEventDeps));
   app.use("/", buildTagsRouter(userEventDeps));
   app.use("/", buildShelvesRouter(userEventDeps));

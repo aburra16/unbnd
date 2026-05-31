@@ -13,6 +13,7 @@ import type { SignedNostrEvent } from "@unbnd/schemas";
 import { countOwnRatings } from "../ratings/summary";
 import { countOwnAppliedTags } from "../tags/aggregate";
 import { toHex } from "../nostr/npub";
+import { distinctFollowCount } from "../profile/follow-count";
 
 const COOKIE_NAME = "session";
 const KIND = 39999;
@@ -37,21 +38,6 @@ type Stats = {
   capped?: CappedKey[];
 };
 
-/** Count DISTINCT `p`-tag hexes on the freshest kind-3 (non-`p` tags ignored). */
-function distinctFollowCount(events: SignedNostrEvent[]): number {
-  const newest = events
-    .filter((e) => e.kind === 3)
-    .reduce<SignedNostrEvent | null>(
-      (best, e) => (best === null || e.created_at > best.created_at ? e : best),
-      null,
-    );
-  if (!newest) return 0;
-  const hexes = new Set<string>();
-  for (const tag of newest.tags) {
-    if (tag[0] === "p" && typeof tag[1] === "string") hexes.add(tag[1]);
-  }
-  return hexes.size;
-}
 
 export type ProfileStatsSessionUser = {
   readonly id: string;
