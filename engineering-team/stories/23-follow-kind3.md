@@ -119,6 +119,6 @@ Resolve before approving the story.
 - **Q6 (read-back freshness / optimistic settle):** Confirm the write response may echo the new follow status optimistically (so the control updates immediately) while profile-relay propagation settles, rather than blocking on an immediate re-read. PO recommends: echo optimistically; do not block the UI on a public-relay re-read (same as Story 22).
 
 ## Linked artifacts
-- ADR: (filled in after Architecture phase)
+- ADR: `engineering-team/decisions/0023-follow-kind3.md`
 - Test plan: (filled in after Test Design phase)
 - Review: (filled in after Review phase)
