@@ -77,6 +77,6 @@ Resolve at the gate, before approving the story.
 - **Q4 (label wording):** "Rated by" as the section label. Acceptable, or prefer another plain alternative? (Must pass the copy rules.)
 
 ## Linked artifacts
-- ADR: (filled in after Architecture phase)
+- ADR: `engineering-team/decisions/0024-clickable-profiles.md`
 - Test plan: (filled in after Test Design phase)
 - Review: (filled in after Review phase)
