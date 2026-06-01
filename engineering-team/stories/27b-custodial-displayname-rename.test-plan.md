@@ -30,7 +30,7 @@ signer's behavior.
 | AC-1 (rename re-publishes, merge-preserving) | `it("merges name+display_name into the freshest kind-0 and preserves substack/website, signs and publishes with a strictly-newer created_at")` | `apps/api/test/routes/profile-display-name.test.ts` | unit (route + DI) |
 | AC-2 (DB lockstep) | `it("calls updateDisplayName exactly once with (user.id, D2) on success")`; `it("does NOT update the DB when the local publish fails (publish ordered before DB)")`; `it("does NOT update the DB on a 401 / 400 / 403 failure path")` | `apps/api/test/routes/profile-display-name.test.ts` | unit |
 | AC-3 (authnz own-profile-only) | `it("401 no_session for an anonymous request, with no publish/sign/fetch/DB")`; `it("401 reauth_required when a custodial session has no live signing key (custodialSign → null), no publish/DB")`; `it("renames the SESSION user and ignores any user id in the request body (no body-id path)")` | `apps/api/test/routes/profile-display-name.test.ts` | unit |
-| AC-4 (validation + privacy) | `it("400 invalid_display_name BEFORE any fetch/sign/publish/DB on an empty/whitespace name")`; `it("400 invalid_display_name on a name over the length cap (101 chars), before any I/O")`; `it("the user's email appears NOWHERE in the published kind-0, and only whitelisted fields are present")` | `apps/api/test/routes/profile-display-name.test.ts` | unit |
+| AC-4 (validation + privacy) | `it("400 invalid_display_name BEFORE any fetch/sign/publish/DB on an empty/whitespace name")`; `it("400 invalid_display_name on a name over the length cap (101 chars), before any I/O")`; `it("the rename never introduces session/request-body PII into the published kind-0, and merge-preserves the prior whitelisted fields")` | `apps/api/test/routes/profile-display-name.test.ts` | unit |
 | AC-5 (Settings field, web) | `it("prefills the field from the resolved kind-0 name")`; `it("falls back to the session displayName when the resolved kind-0 has no name")`; `it("on success calls api.profile.setDisplayName and invalidateProfileMeta(npub), with an honest saved state")`; `it("shows an error state when the rename API rejects (no fabricated success)")`; `it("the field's labels/hints carry no em dash and no emoji")` | `apps/web/test/routes/settings-display-name.test.tsx` | component (Vitest + Testing Library) |
 | AC-6 (sovereign untouched, API) | `it("403 sovereign_self_signed and nothing built/signed/published/DB-updated")` | `apps/api/test/routes/profile-display-name.test.ts` | unit |
 | AC-6 (sovereign untouched, web field hidden) | `it("does not render a display-name field for a sovereign (email === null) user")` | `apps/web/test/routes/settings-display-name.test.tsx` | component |
@@ -48,34 +48,44 @@ signer's behavior.
 | Custodial, `updateDisplayName` throws (after publish) | 502 | `publish_failed` | `{ error: { code, message } }` |
 | Custodial success | 200 | — | `{ displayName: D2 }` |
 
-## The AC-4 no-email assertion (exact)
+## The AC-4 no-PII assertion (exact)
 
-The route is fed an email both off the session and (maliciously) inside the prior kind-0,
-and the request body also carries `email`/`password`/`userId`. After a successful publish,
-the test serializes the **whole signed event** and proves the secret strings are absent
-anywhere, and that the rename never introduces non-whitelisted keys:
+Scope (gate adjudication, Option 1 / ADR 0028 §5): AC-4 tests that the rename never
+**introduces PII from the surfaces it controls** — the **SESSION** and the **REQUEST BODY**
+— into the published kind-0. It does **not** test scrubbing of a pre-poisoned `rawPrev`
+(`rawPrev` is already-public relay data; the route reuses Story-27's
+`buildProfileKind0Content`, whose `rawPrev` passthrough is lossless by design — no new merge
+logic / whitelist here).
+
+The session the route receives carries the user's real `email`; the prior kind-0 is
+**whitelist-clean** (`{ name: "Old Name", substack, website }` — legit public fields, which
+also lets us assert merge-preserve); and the request body maliciously smuggles
+`email`/`password`/`userId`. After a successful publish, the test serializes the **whole
+signed event** and proves the session/body secrets are absent anywhere, that the rename
+introduces no PII keys, and that the prior whitelisted fields survive:
 
 ```ts
 const published = (deps.publish as ReturnType<typeof vi.fn>).mock.calls[0]![0];
 expect(JSON.stringify(published)).not.toContain(EMAIL);
 expect(JSON.stringify(published)).not.toContain("hunter2");
+expect(JSON.stringify(published)).not.toContain("leak-me");
 const content = JSON.parse((published as { content: string }).content);
+expect(content).not.toHaveProperty("email");
 expect(content).not.toHaveProperty("password");
 expect(content).not.toHaveProperty("userId");
 expect(content.name).toBe(D2);
 expect(content.display_name).toBe(D2);
 expect(content.substack).toBe("https://mira.substack.com");
+expect(content.website).toBe("https://example.com");
 ```
 
 Note on the closed patch surface: the rename's patch (`{ displayName: D2 }`) only carries
 whitelisted keys via `buildProfileKind0Content`. `rawPrev` passthrough is lossless by design
-(ADR 0027), so a `rawPrev` that *already* held `email`/`password` is not introduced by the
-rename. The test therefore feeds those secrets through the **request body and the session**
-(the surfaces the rename controls) and proves they cannot enter; it does not assert the route
-must scrub a pre-poisoned `rawPrev` (out of scope — one-directional seeding, ADR 0027 §3).
-The `content` introspection additionally confirms `password`/`userId` are absent from the
-published content. If the Implementer wants the stronger guarantee that a poisoned prior kind-0
-is also scrubbed, that is a contract change the PO/Architect must add to AC-4 first.
+(ADR 0027), so scrubbing a `rawPrev` that *already* held `email`/`password` is explicitly OUT
+OF SCOPE — that would be a contract change the PO/Architect must add to AC-4 first. The test
+therefore feeds the secrets through the **session and the request body** (the surfaces the
+rename controls) and proves they cannot enter; the assertion still fails the moment a future
+change pipes session or request-body PII into the event.
 
 ## Edge cases covered
 

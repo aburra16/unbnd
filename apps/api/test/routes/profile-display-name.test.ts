@@ -338,30 +338,33 @@ describe("POST /api/profile/display-name — AC-4 (validation + privacy)", () =>
     expect(deps.publish).not.toHaveBeenCalled();
   });
 
-  it("the user's email appears NOWHERE in the published kind-0, and only whitelisted fields are present", async () => {
+  it("the rename never introduces session/request-body PII into the published kind-0, and merge-preserves the prior whitelisted fields", async () => {
+    // Scope (gate adjudication / ADR 0028 §5): AC-4 tests that the rename never
+    // INTRODUCES PII from the surfaces it controls — the SESSION and the
+    // REQUEST BODY — into the published kind-0. It does NOT test scrubbing of a
+    // pre-poisoned `rawPrev`: `rawPrev` is already-public relay data and the
+    // route reuses Story-27's `buildProfileKind0Content`, whose `rawPrev`
+    // passthrough is lossless by design (no new merge logic / whitelist here).
     const EMAIL = "reader-secret@example.com";
     const signer = capturingSigner();
-    // The route has the email available off the session AND a prior kind-0 that
-    // (maliciously) carried the email; the closed patch surface must keep it out.
+    // The session the route receives carries the user's real email (a realistic
+    // SessionUser surface). The route must never pull it into the kind-0.
     const sessionWithEmail: SessionUser = {
       id: "u-cust",
       pubkeyHex: signer.pubkey,
       tier: "custodial",
       displayName: "Mira",
-      // Even if a future SessionUser carried an email, it must never leak.
       email: EMAIL,
     } as SessionUser & { email: string };
     const { app, deps } = makeApp({
       sessionUser: vi.fn(async () => sessionWithEmail),
+      // A WHITELIST-CLEAN prior kind-0 (legit public fields only). This also
+      // lets us assert merge-preserve keeps substack/website.
       fetchRaw: vi.fn(async () => ({
         content: {
-          name: "Mira",
+          name: "Old Name",
           substack: "https://mira.substack.com",
-          // A stray non-whitelisted field that must not be re-asserted by the
-          // patch surface (rawPrev passthrough is lossless, but no secret is
-          // introduced by the rename itself).
-          email: EMAIL,
-          password: "hunter2",
+          website: "https://example.com",
         },
         createdAt: 100,
       })),
@@ -371,26 +374,37 @@ describe("POST /api/profile/display-name — AC-4 (validation + privacy)", () =>
     const res = await request(app)
       .post("/api/profile/display-name")
       .set("Cookie", COOKIE)
-      .send({ displayName: D2, email: EMAIL, password: "hunter2", userId: "u-cust" });
+      // A malicious body smuggling extra fields: the route must use ONLY
+      // `displayName` and ignore email/password/userId entirely.
+      .send({ displayName: D2, email: EMAIL, password: "hunter2", userId: "leak-me" });
 
     expect(res.status).toBe(200);
 
-    // THE no-email assertion: serialize the WHOLE signed event and prove the
-    // email string is absent anywhere (content + tags + every field).
+    // THE no-PII assertion: serialize the WHOLE signed event and prove that
+    // neither the session email, the body password, nor the body userId appear
+    // ANYWHERE (content + tags + every field). This fails the moment a future
+    // change pipes session or request-body PII into the event.
     const published = (deps.publish as ReturnType<typeof vi.fn>).mock.calls[0]![0];
     expect(JSON.stringify(published)).not.toContain(EMAIL);
     expect(JSON.stringify(published)).not.toContain("hunter2");
+    expect(JSON.stringify(published)).not.toContain("leak-me");
 
-    // Only whitelisted profile fields are present in the published content;
-    // the rename never INTRODUCES email/password/userId/session token.
+    // The parsed content carries no PII keys: the rename never INTRODUCES
+    // email/password/userId/session token from the session or the request body.
     const content = JSON.parse(
       (published as { content: string }).content,
     ) as Record<string, unknown>;
+    expect(content).not.toHaveProperty("email");
     expect(content).not.toHaveProperty("password");
     expect(content).not.toHaveProperty("userId");
+
+    // The rename applied: name == display_name == D2.
     expect(content.name).toBe(D2);
     expect(content.display_name).toBe(D2);
+
+    // Merge-preserve: the prior whitelisted fields are retained untouched.
     expect(content.substack).toBe("https://mira.substack.com");
+    expect(content.website).toBe("https://example.com");
   });
 });
 
