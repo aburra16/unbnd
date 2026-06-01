@@ -4,6 +4,8 @@
 **Created:** 2026-06-01
 **Type:** UX Bug
 
+**Gate decisions (2026-06-01):** tier-differentiated; Settings-home; nsec-export out. See `engineering-team/decisions/0030-profile-ia-nostr-disclosure.md`.
+
 > **Type justification.** Filed as a **UX Bug**, not a Feature. The profile and
 > settings surfaces already exist and work (Stories 11/19/22/27b; ADR 0012). The
 > broken behavior is that `/profile/me` renders a raw 63-char `npub1…` string
@@ -324,7 +326,7 @@ Resolve before approving the story.
 - Copy rule: `memory/feedback_unbnd_copy_and_visual.md` (no-slop; the "Bridging
   principle" sanctioning the Advanced surface as the one place "nostr"/"npub" may
   appear).
-- ADR: (filled in after Architecture phase) — proposed
-  `engineering-team/decisions/0029-profile-ia-nostr-disclosure.md`.
+- ADR: `engineering-team/decisions/0030-profile-ia-nostr-disclosure.md` (Proposed;
+  0029 was taken by Story 28's "your rating" surface).
 - Test plan: (filled in after Test Design phase)
 - Review: (filled in after Review phase)
