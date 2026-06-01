@@ -1,6 +1,6 @@
 # Story 30: Trust-gated submission promotion (manual, with signals)
 
-**Status:** Draft
+**Status:** Done
 **Created:** 2026-06-01
 **Type:** Feature
 
@@ -331,5 +331,5 @@ Resolve before approving the story.
   `0025-weighted-consensus.md` (the weighted view reused for the trust-weighted average),
   `0026-custodial-personalization.md` (custodial observers).
 - ADR for this story: `engineering-team/decisions/0031-trust-gated-promotion.md`
-- Test plan: `engineering-team/stories/30-trust-gated-promotion.test-plan.md`
+- Test plan: `engineering-team/stories/done/30-trust-gated-promotion.test-plan.md`
 - Review: (filled in after Review phase)

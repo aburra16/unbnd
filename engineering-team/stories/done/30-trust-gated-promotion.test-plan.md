@@ -1,6 +1,6 @@
 # Test Plan: Story 30 — Trust-gated submission promotion (manual, with signals)
 
-**Story:** `engineering-team/stories/30-trust-gated-promotion.md` (8 ACs)
+**Story:** `engineering-team/stories/done/30-trust-gated-promotion.md` (8 ACs)
 **ADR:** `engineering-team/decisions/0031-trust-gated-promotion.md` (incl. the 2026-06-01 amendment: `submitted-by` provenance, `apps/promoter` worker, `CURATOR_THRESHOLD` default 0.5)
 **Date:** 2026-06-01
 **Branch:** `feat/submission-promotion`

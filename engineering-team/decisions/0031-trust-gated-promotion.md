@@ -1,8 +1,8 @@
 # ADR 0031: Trust-gated submission promotion (canonical librarian-signed, worker-fulfilled)
 
-**Status:** Proposed
+**Status:** Accepted
 **Date:** 2026-06-01
-**Story:** `engineering-team/stories/30-trust-gated-promotion.md`
+**Story:** `engineering-team/stories/done/30-trust-gated-promotion.md`
 
 ## Amendment (2026-06-01) — gate decisions pinned
 
