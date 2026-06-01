@@ -3,8 +3,13 @@
 // ProfileMe rewrite ADR 0019 specifies: shelves render via BookGrid/BookCard
 // with title+author and NO raw ol-... slug as a label; stats come from
 // api.profile.meStats() and a stat that is ABSENT from the response is hidden
-// (never a fabricated 0), while a present 0 shows. Neither api.profile.meStats
-// nor the enriched render exists yet.
+// (never a fabricated 0), while a present 0 shows.
+//
+// MIGRATED for Story 29 / ADR 0030: this file mocks a SOVEREIGN user. The bare
+// full npub that ProfileMe used to print under the name is gone; the sovereign
+// header now shows a MIDDLE-TRUNCATED shortNpub chip + a <CopyButton>. The Story
+// 19 protected behaviors below (enriched shelves, honest stats) are unchanged;
+// the header-npub expectation is added in the "nostr identity header" block.
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
@@ -38,6 +43,9 @@ const sovereignUser = {
   displayName: "Reader",
   npub: "npub1n0ewa4w877phxhqxu5v02mhmj6aanc7mm93w9attfjc5etcstkzql9rk23",
 };
+const FULL_NPUB = sovereignUser.npub;
+// shortNpub(FULL_NPUB) — slice(0,10)+"…"+slice(-4).
+const SHORT_NPUB = "npub1n0ewa…rk23";
 
 // Enriched shelf shape (PublicBook elements) per ADR 0019 Decision 1.
 const enrichedShelves = {
@@ -137,5 +145,23 @@ describe("ProfileMe — honest stats (AC-5, AC-6, AC-7, AC-8)", () => {
     expect(await screen.findByText("Orbital")).toBeInTheDocument();
     expect(screen.queryByText("Books rated")).not.toBeInTheDocument();
     expect(screen.queryByText("Tags applied")).not.toBeInTheDocument();
+  });
+});
+
+// MIGRATED (Story 29 / ADR 0030): the sovereign header no longer prints the bare
+// full npub. It now shows the middle-truncated shortNpub chip + a CopyButton.
+describe("ProfileMe — sovereign nostr-identity header (Story 29 AC-1/AC-5)", () => {
+  it("no longer prints the bare full npub under the name", async () => {
+    renderMe();
+    await screen.findByRole("heading", { name: "Reader" });
+    expect(screen.queryByText(FULL_NPUB)).not.toBeInTheDocument();
+  });
+
+  it("shows the truncated npub chip and a copy control instead", async () => {
+    renderMe();
+    expect(await screen.findByText(SHORT_NPUB)).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /copy your npub/i }),
+    ).toBeInTheDocument();
   });
 });

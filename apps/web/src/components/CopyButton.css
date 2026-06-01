@@ -1,0 +1,39 @@
+/* Ghost-button shape on existing tokens (ADR 0030 §1). Sits inline next to a
+   mono npub chip. The word "Copy" is the affordance — no icon, no emoji. */
+.copy-btn-wrap {
+  display: inline-flex;
+  align-items: center;
+}
+
+.copy-btn {
+  padding: 4px 10px;
+  font-size: 12px;
+  font-weight: 500;
+  border: 1px solid var(--u-border-hover);
+  border-radius: var(--u-radius);
+  background: transparent;
+  color: var(--u-ink);
+  cursor: pointer;
+  line-height: 1.4;
+}
+
+.copy-btn:hover {
+  border-color: var(--u-amber);
+}
+
+.copy-btn:focus-visible {
+  outline: 2px solid var(--u-amber);
+  outline-offset: 2px;
+}
+
+/* The transient feedback line. Visible inline next to the button and announced
+   to AT via role=status / aria-live. Empty when idle (no reserved noise). */
+.copy-btn-status {
+  margin-left: 8px;
+  font-size: 12px;
+  color: var(--u-muted);
+}
+
+.copy-btn-status:empty {
+  margin-left: 0;
+}

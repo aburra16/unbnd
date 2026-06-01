@@ -24,10 +24,36 @@
 }
 
 .me-npub {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 2px;
+}
+
+.me-npub-label {
+  font-size: 12px;
+  color: var(--u-muted);
+}
+
+.me-npub-chip {
   font-family: var(--font-mono);
   font-size: 12px;
   color: var(--u-muted);
-  word-break: break-all;
+  padding: 4px 8px;
+  border: 1px solid var(--u-border);
+  border-radius: var(--u-radius);
+}
+
+.me-nostr-link {
+  display: inline-block;
+  margin-top: 2px;
+  font-size: 13px;
+  color: var(--u-muted);
+}
+
+.me-nostr-link:hover {
+  color: var(--u-amber);
 }
 
 .me-about {

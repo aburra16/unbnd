@@ -112,3 +112,39 @@
   opacity: 0.55;
   cursor: default;
 }
+
+/* Nostr identity section (Story 29 / ADR 0030). Read-only npub chip + copy. */
+.set-nostr-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--u-ink);
+  margin: 0 0 6px;
+}
+
+.set-nostr-explainer {
+  max-width: 52ch;
+}
+
+.set-nostr-label {
+  display: block;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--u-ink);
+  margin-bottom: 6px;
+}
+
+.set-nostr-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.set-nostr-chip {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--u-muted);
+  padding: 4px 8px;
+  border: 1px solid var(--u-border);
+  border-radius: var(--u-radius);
+}

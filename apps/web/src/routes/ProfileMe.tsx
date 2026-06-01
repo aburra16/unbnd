@@ -3,7 +3,7 @@
 // render as cover/title/author cards; activity counts are honest — an absent
 // count is hidden, never a fabricated 0. No fabricated activity feed.
 import { useEffect, useState } from "react";
-import { Navigate, useLocation } from "react-router-dom";
+import { Navigate, useLocation, Link } from "react-router-dom";
 import {
   api,
   type ProfileStatsResponse,
@@ -15,7 +15,8 @@ import { Footer } from "../components/Footer";
 import { Avatar } from "../components/Avatar";
 import { BookGrid } from "../components/BookGrid";
 import { ProfileStats } from "../components/ProfileStats";
-import { toCardBook } from "../lib/view-model";
+import { CopyButton } from "../components/CopyButton";
+import { toCardBook, shortNpub } from "../lib/view-model";
 import { useSession } from "../hooks/useSession";
 import { useProfileMeta, displayNameOf } from "../hooks/useProfileMeta";
 import "./ProfileMe.css";
@@ -101,9 +102,21 @@ export function ProfileMe() {
         <div className="me-id">
           <h1 className="me-name">{name}</h1>
           {meta?.nip05 && <p className="me-nip05">{meta.nip05}</p>}
-          <p className="me-npub" title={user.npub}>
-            {user.npub}
-          </p>
+          {/* Tier-differentiated nostr disclosure (Story 29 / ADR 0030 §3).
+              Custodial: no npub in the header; a quiet link to where it lives.
+              Sovereign: a labeled, copyable middle-truncated chip, no explainer
+              (the teaching lives only in Settings — Amendment §4). */}
+          {user.email === null ? (
+            <p className="me-npub">
+              <span className="me-npub-label">npub</span>
+              <code className="me-npub-chip">{shortNpub(user.npub)}</code>
+              <CopyButton value={user.npub} />
+            </p>
+          ) : (
+            <Link className="me-nostr-link" to="/settings">
+              Manage your nostr identity
+            </Link>
+          )}
           {meta?.about && <p className="me-about">{meta.about}</p>}
           {meta?.substack && (
             <a
