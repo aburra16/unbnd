@@ -96,7 +96,7 @@ describe("Settings — form prefill + Substack-only (AC-1 / AC-9)", () => {
     sessionMock.mockReturnValue({ status: "signed-in", user: sovereignUser, refresh: vi.fn() });
     profileMetaMock.mockReturnValue({ npub: NPUB, substack: "https://reader.substack.com" });
     renderSettings();
-    const input = (await screen.findByLabelText(/substack/i)) as HTMLInputElement;
+    const input = (await screen.findByRole("textbox", { name: /substack/i })) as HTMLInputElement;
     expect(input.value).toBe("https://reader.substack.com");
   });
 
@@ -104,14 +104,14 @@ describe("Settings — form prefill + Substack-only (AC-1 / AC-9)", () => {
     sessionMock.mockReturnValue({ status: "signed-in", user: sovereignUser, refresh: vi.fn() });
     profileMetaMock.mockReturnValue({ npub: NPUB });
     renderSettings();
-    const input = (await screen.findByLabelText(/substack/i)) as HTMLInputElement;
+    const input = (await screen.findByRole("textbox", { name: /substack/i })) as HTMLInputElement;
     expect(input.value).toBe("");
   });
 
   it("exposes ONLY the Substack field — no name/bio/picture/nip05 inputs", async () => {
     sessionMock.mockReturnValue({ status: "signed-in", user: sovereignUser, refresh: vi.fn() });
     renderSettings();
-    await screen.findByLabelText(/substack/i);
+    await screen.findByRole("textbox", { name: /substack/i });
     expect(screen.queryByLabelText(/display name|^name/i)).not.toBeInTheDocument();
     expect(screen.queryByLabelText(/bio|about/i)).not.toBeInTheDocument();
     expect(screen.queryByLabelText(/picture|avatar/i)).not.toBeInTheDocument();
@@ -134,9 +134,9 @@ describe("Settings — sovereign save flow (AC-6)", () => {
     setSubstackMock.mockResolvedValue({ substack: "https://reader.substack.com" });
 
     renderSettings();
-    const input = await screen.findByLabelText(/substack/i);
+    const input = await screen.findByRole("textbox", { name: /substack/i });
     fireEvent.change(input, { target: { value: "https://reader.substack.com" } });
-    fireEvent.click(screen.getByRole("button", { name: /save/i }));
+    fireEvent.click(screen.getByRole("button", { name: /save substack link/i }));
 
     await waitFor(() => expect(substackTemplateMock).toHaveBeenCalled());
     await waitFor(() => expect(signEvent).toHaveBeenCalled());
@@ -150,9 +150,9 @@ describe("Settings — sovereign save flow (AC-6)", () => {
   it("shows an honest 'no extension' message and publishes nothing when window.nostr is absent", async () => {
     delete (window as unknown as { nostr?: unknown }).nostr;
     renderSettings();
-    const input = await screen.findByLabelText(/substack/i);
+    const input = await screen.findByRole("textbox", { name: /substack/i });
     fireEvent.change(input, { target: { value: "https://reader.substack.com" } });
-    fireEvent.click(screen.getByRole("button", { name: /save/i }));
+    fireEvent.click(screen.getByRole("button", { name: /save substack link/i }));
     expect(await screen.findByText(/no nostr extension/i)).toBeInTheDocument();
     expect(substackTemplateMock).not.toHaveBeenCalled();
     expect(setSubstackMock).not.toHaveBeenCalled();
@@ -160,9 +160,9 @@ describe("Settings — sovereign save flow (AC-6)", () => {
 
   it("rejects a malformed URL inline before any API call (AC-5)", async () => {
     renderSettings();
-    const input = await screen.findByLabelText(/substack/i);
+    const input = await screen.findByRole("textbox", { name: /substack/i });
     fireEvent.change(input, { target: { value: "notaurl" } });
-    fireEvent.click(screen.getByRole("button", { name: /save/i }));
+    fireEvent.click(screen.getByRole("button", { name: /save substack link/i }));
     expect(await screen.findByRole("alert")).toBeInTheDocument();
     expect(substackTemplateMock).not.toHaveBeenCalled();
     expect(signEvent).not.toHaveBeenCalled();
@@ -171,9 +171,9 @@ describe("Settings — sovereign save flow (AC-6)", () => {
   it("shows an error state when the API rejects the save (no fabricated success) (AC-9)", async () => {
     substackTemplateMock.mockRejectedValue(new Error("boom"));
     renderSettings();
-    const input = await screen.findByLabelText(/substack/i);
+    const input = await screen.findByRole("textbox", { name: /substack/i });
     fireEvent.change(input, { target: { value: "https://reader.substack.com" } });
-    fireEvent.click(screen.getByRole("button", { name: /save/i }));
+    fireEvent.click(screen.getByRole("button", { name: /save substack link/i }));
     expect(await screen.findByRole("alert")).toBeInTheDocument();
   });
 });
@@ -189,7 +189,7 @@ describe("Settings — Clear (AC-4) and custodial (AC-7)", () => {
     setSubstackMock.mockResolvedValue({ substack: null });
 
     renderSettings();
-    await screen.findByLabelText(/substack/i);
+    await screen.findByRole("textbox", { name: /substack/i });
     fireEvent.click(screen.getByRole("button", { name: /clear/i }));
     await waitFor(() => expect(substackTemplateMock).toHaveBeenCalledWith(""));
   });
@@ -198,9 +198,9 @@ describe("Settings — Clear (AC-4) and custodial (AC-7)", () => {
     sessionMock.mockReturnValue({ status: "signed-in", user: custodialUser, refresh: vi.fn() });
     setSubstackCustodialMock.mockResolvedValue({ substack: "https://reader.substack.com" });
     renderSettings();
-    const input = await screen.findByLabelText(/substack/i);
+    const input = await screen.findByRole("textbox", { name: /substack/i });
     fireEvent.change(input, { target: { value: "https://reader.substack.com" } });
-    fireEvent.click(screen.getByRole("button", { name: /save/i }));
+    fireEvent.click(screen.getByRole("button", { name: /save substack link/i }));
     await waitFor(() =>
       expect(setSubstackCustodialMock).toHaveBeenCalledWith("https://reader.substack.com"),
     );

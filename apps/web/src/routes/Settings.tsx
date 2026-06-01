@@ -12,7 +12,11 @@ import { api, ApiError, type SignedEvent } from "../lib/api";
 import { Nav } from "../components/Nav";
 import { Footer } from "../components/Footer";
 import { useSession } from "../hooks/useSession";
-import { useProfileMeta, invalidateProfileMeta } from "../hooks/useProfileMeta";
+import {
+  useProfileMeta,
+  invalidateProfileMeta,
+  displayNameOf,
+} from "../hooks/useProfileMeta";
 import "./Settings.css";
 
 type Nip07 = {
@@ -45,6 +49,13 @@ export function Settings() {
     "idle",
   );
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  // Display-name field (custodial only). Prefilled from the resolved kind-0
+  // name, falling back to the session display name.
+  const [nameValue, setNameValue] = useState<string | null>(null);
+  const [nameStatus, setNameStatus] = useState<
+    "idle" | "saving" | "saved" | "error"
+  >("idle");
+  const [nameError, setNameError] = useState<string | null>(null);
 
   if (session.status === "loading") {
     return (
@@ -65,6 +76,33 @@ export function Settings() {
   // The field shows the in-progress edit once touched, else the current value.
   const field = value ?? meta?.substack ?? "";
   const isSovereign = user.email === null;
+  // The display-name field shows the in-progress edit once touched, else the
+  // resolved name (kind-0), falling back to the session display name.
+  const nameField = nameValue ?? displayNameOf(meta, user.displayName);
+
+  async function saveName(next: string) {
+    setNameError(null);
+    const trimmed = next.trim();
+    if (trimmed === "") {
+      setNameError("Enter a display name.");
+      setNameStatus("error");
+      return;
+    }
+    setNameStatus("saving");
+    try {
+      const { displayName } = await api.profile.setDisplayName(trimmed);
+      setNameValue(displayName);
+      setNameStatus("saved");
+      invalidateProfileMeta(user.npub);
+    } catch (err) {
+      setNameError(
+        err instanceof ApiError
+          ? err.message
+          : "Could not save your name. Try again.",
+      );
+      setNameStatus("error");
+    }
+  }
 
   async function save(next: string) {
     setErrorMsg(null);
@@ -161,6 +199,7 @@ export function Settings() {
           <button
             type="submit"
             className="set-save"
+            aria-label="Save Substack link"
             disabled={status === "saving"}
           >
             Save
@@ -178,6 +217,62 @@ export function Settings() {
           </button>
         </div>
       </form>
+
+      {!isSovereign && (
+        <form
+          className="set-form"
+          noValidate
+          onSubmit={(e) => {
+            e.preventDefault();
+            void saveName(nameField);
+          }}
+        >
+          <div className="set-field">
+            <label htmlFor="set-display-name">Display name</label>
+            <input
+              id="set-display-name"
+              name="displayName"
+              type="text"
+              maxLength={100}
+              value={nameField}
+              onChange={(e) => {
+                setNameValue(e.target.value);
+                if (nameStatus !== "idle") setNameStatus("idle");
+              }}
+            />
+            <p className="set-hint">
+              The name readers see on your profile and reviews.
+            </p>
+          </div>
+
+          {nameStatus === "error" && nameError && (
+            <p className="set-error" role="alert">
+              {nameError}
+            </p>
+          )}
+          {nameStatus === "saving" && (
+            <p className="set-saving" role="status">
+              Saving…
+            </p>
+          )}
+          {nameStatus === "saved" && (
+            <p className="set-saved" role="status">
+              Saved.
+            </p>
+          )}
+
+          <div className="set-actions">
+            <button
+              type="submit"
+              className="set-save"
+              aria-label="Save display name"
+              disabled={nameStatus === "saving"}
+            >
+              Save
+            </button>
+          </div>
+        </form>
+      )}
       <Footer />
     </div>
   );

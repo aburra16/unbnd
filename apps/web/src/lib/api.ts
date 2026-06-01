@@ -396,6 +396,14 @@ export const api = {
         body: JSON.stringify({ url }),
       });
     },
+    // Custodial display-name rename (ADR 0028). The server merges the new name
+    // into the freshest kind-0, signs it, and updates the DB in lockstep.
+    setDisplayName(displayName: string) {
+      return authFetch<{ displayName: string }>("/api/profile/display-name", {
+        method: "POST",
+        body: JSON.stringify({ displayName }),
+      });
+    },
     meStats() {
       return authFetch<{ stats: ProfileStatsResponse }>(
         "/api/profile/me/stats",

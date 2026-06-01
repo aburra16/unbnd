@@ -49,6 +49,25 @@ export async function createCustodialUser(
   }
 }
 
+/**
+ * Update a user's display name (the recovery/audit copy + kind-0 republish
+ * seed). Runs on the caller's executor (full client or a live transaction) so
+ * the custodial rename can keep Postgres in lockstep with the published kind-0
+ * (Story 27b, ADR 0028). Follows the existing drizzle eq/returning idiom.
+ */
+export async function updateDisplayName(
+  executor: DbOrTx,
+  userId: string,
+  name: string,
+): Promise<UserRow> {
+  const [row] = await executor
+    .update(users)
+    .set({ displayName: name })
+    .where(eq(users.id, userId))
+    .returning();
+  return row!;
+}
+
 export async function findUserByEmail(email: string): Promise<UserRow | null> {
   const rows = await db
     .select()

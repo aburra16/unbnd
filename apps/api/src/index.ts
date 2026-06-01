@@ -12,6 +12,7 @@ import { buildBooksRouter } from "./routes/books";
 import { buildProfileRouter } from "./routes/profile";
 import { buildProfileStatsRouter } from "./routes/profile-stats";
 import { buildProfileSubstackRouter } from "./routes/profile-substack";
+import { buildProfileDisplayNameRouter } from "./routes/profile-display-name";
 import { buildProfileFollowRouter } from "./routes/profile-follow";
 import { buildSearchRouter } from "./routes/search";
 import { buildTrustRouter } from "./routes/trust";
@@ -35,6 +36,7 @@ import {
   createOrLoadSovereignUser,
   findUserByEmail,
   toPublicUser,
+  updateDisplayName,
 } from "./auth/users";
 import { decryptWithPassword } from "./auth/crypto";
 import {
@@ -390,6 +392,19 @@ async function main() {
       publish: publishKind0,
       fetchRaw: (hex) => fetchRawKind0(config.profileRelays ?? [], hex),
       custodialSign: userEventDeps.custodialSign,
+    }),
+  );
+  app.use(
+    "/",
+    buildProfileDisplayNameRouter({
+      config,
+      sessionUser: resolveSessionUser, // already returns displayName (ADR 0027)
+      publish: publishKind0,
+      fetchRaw: (hex) => fetchRawKind0(config.profileRelays ?? [], hex),
+      custodialSign: userEventDeps.custodialSign,
+      // Postgres lockstep, AFTER the canonical publish (ADR 0028 F1-A).
+      updateDisplayName: (id, name) =>
+        db.transaction((tx) => updateDisplayName(tx, id, name)),
     }),
   );
   app.use(
