@@ -4,6 +4,8 @@
 **Created:** 2026-06-01
 **Type:** Feature
 
+**Gate decisions (2026-06-01):** canonical librarian-signed; separate key-holding worker (option B); promote-only, demotion→30b; nosfabrica interim house. See ADR `engineering-team/decisions/0031-trust-gated-promotion.md`.
+
 ## Background
 
 Community submissions ship today (Stories 16a / 16b-i, ADR 0016). A submission is
