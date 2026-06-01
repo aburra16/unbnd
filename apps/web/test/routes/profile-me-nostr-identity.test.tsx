@@ -1,7 +1,7 @@
 // Failing tests (red) for Story 29 AC-1 / AC-5 — the ProfileMe tier branch.
 // ADR 0030 Decision §3 + Amendment §2/§4:
 //   - Custodial (email !== null): the raw full npub is REMOVED from the header
-//     (AC-1); a quiet "Manage your nostr identity" link → /settings is present.
+//     (AC-1); a quiet "Advanced settings" link → /settings is present.
 //   - Sovereign (email === null): a quiet on-page "npub" label + a MONOSPACE,
 //     MIDDLE-TRUNCATED shortNpub chip + a <CopyButton> in the header; the FULL
 //     npub is copied while the visible chip stays truncated; NO explainer line in
@@ -92,10 +92,10 @@ describe("ProfileMe — custodial header is clean (AC-1 / AC-5)", () => {
     expect(screen.queryByText(SHORT_NPUB)).not.toBeInTheDocument();
   });
 
-  it("offers a 'Manage your nostr identity' link to /settings", async () => {
+  it("offers an 'Advanced settings' link to /settings", async () => {
     renderMe();
     const link = await screen.findByRole("link", {
-      name: /manage your nostr identity/i,
+      name: /advanced settings/i,
     });
     expect(link).toHaveAttribute("href", "/settings");
   });
@@ -144,11 +144,11 @@ describe("ProfileMe — sovereign header keeps a labeled, copyable npub (AC-5)",
     expect(screen.queryByText(EXPLAINER)).not.toBeInTheDocument();
   });
 
-  it("does not offer the custodial 'Manage your nostr identity' link", async () => {
+  it("does not offer the custodial 'Advanced settings' link", async () => {
     renderMe();
     await screen.findByRole("heading", { name: "Reader" });
     expect(
-      screen.queryByRole("link", { name: /manage your nostr identity/i }),
+      screen.queryByRole("link", { name: /advanced settings/i }),
     ).not.toBeInTheDocument();
   });
 });

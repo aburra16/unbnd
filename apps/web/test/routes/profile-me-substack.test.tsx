@@ -5,7 +5,7 @@
 //
 // MIGRATED for Story 29 / ADR 0030: the Substack link is tier-agnostic and
 // unchanged. Added: a custodial render that confirms the Substack link still
-// shows while the bare npub is gone and the "Manage your nostr identity" link is
+// shows while the bare npub is gone and the "Advanced settings" link is
 // offered; plus a sovereign header-npub guard.
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
@@ -102,7 +102,7 @@ describe("ProfileMe — Substack link (AC-7)", () => {
 // MIGRATED (Story 29 / ADR 0030): a custodial user keeps the Substack link but
 // the header drops the npub entirely and offers the discovery link to Settings.
 describe("ProfileMe — Substack link for a custodial user (Story 29 AC-1/AC-5)", () => {
-  it("renders the Substack link with no npub and a 'Manage your nostr identity' link", async () => {
+  it("renders the Substack link with no npub and an 'Advanced settings' link", async () => {
     sessionMock.mockReturnValue({
       status: "signed-in",
       user: custodialUser,
@@ -119,7 +119,7 @@ describe("ProfileMe — Substack link for a custodial user (Story 29 AC-1/AC-5)"
     expect(screen.queryByText(FULL_NPUB)).not.toBeInTheDocument();
     expect(screen.queryByText(SHORT_NPUB)).not.toBeInTheDocument();
     expect(
-      screen.getByRole("link", { name: /manage your nostr identity/i }),
+      screen.getByRole("link", { name: /advanced settings/i }),
     ).toHaveAttribute("href", "/settings");
   });
 });
