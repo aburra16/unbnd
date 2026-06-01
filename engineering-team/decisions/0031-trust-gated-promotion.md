@@ -32,6 +32,105 @@ relevant Decision sections below; recorded here as the canonical record of the c
    possibly **no one** (even the founder npub) clears `0.5` until the threshold is calibrated
    down — promotion is librarian/operator-only until then.
 
+## Amendment (2026-06-01, remediation) — enriched `GET /api/submissions` list contract pinned
+
+A re-review (CHANGES_REQUESTED) found Story 30's web feature was **not wired
+end-to-end**: `GET /api/submissions` returns only the bare 16b-i row shape
+(`toSubmission`: `slug, title, authorName, isbn13, coverUrl, publishYear, createdAt,
+submitter`) and **never produces** the `canPromote` / `promotionStatus` / `signals`
+fields the web (`apps/web/src/routes/CommunitySubmissions.tsx`) reads per row, and
+**nothing calls** the per-slug `GET /api/submissions/:slug/signals` endpoint. The gate,
+the queue, the worker, and the signals helper all existed in isolation but the **list
+response the web actually consumes was never enriched** — the gap was masked because the
+web tests fed pre-enriched mock rows rather than the real `api.submissions.list` shape.
+
+This amendment **PINS the enriched list-response contract** so the Implementer and the web
+agree exactly, and tightens the testable seams so the gap cannot recur. Folded into the
+relevant Decision sections (§3 trust signals, new §3b list enrichment, §6 testable seams,
+§7 ripple). The remainder of ADR 0031 **stands unchanged** (canonical librarian-signed
+model; the `apps/promoter` worker; `LIBRARIAN_NSEC` API isolation; the fail-closed curator
+gate; slug idempotency; `submitted-by` provenance; promote-only this cycle / demotion →
+30b).
+
+### Pinned: `GET /api/submissions` enriches each row, server-computed
+
+The list handler must enrich the response with the three fields the web consumes, computed
+**server-side** (the web is a pure renderer of this shape — it computes nothing):
+
+1. **`canPromote: boolean` — a USER-LEVEL flag, computed ONCE per request.** It answers "is
+   the SESSION USER above the curator gate?" — it does **not** vary per row. Compute it once:
+   resolve the session user (`deps.sessionUser`), then
+   `(await deps.trust.weights(houseObserverHex, [sessionUserHex])).get(sessionUserHex) ?? 0
+   >= config.curatorThreshold`, using the **same `houseWeightOf` fail-closed degrade as the
+   promote gate** (no provider / no observer / empty map / throwing seam → weight `0` →
+   `false`). **Anon → `false`.**
+   - **Placement decision (PINNED): stamp the SAME value on every row** (`row.canPromote`).
+     Rationale: the web today reads `submission.canPromote` **per row**
+     (`CommunitySubmissions.tsx` `PromoteCell`: `if (!submission.canPromote) return null;`),
+     and the api type carries it per row (`SubmittedBook.canPromote`). The cleaner shape is
+     top-level/once, but to keep the Implementer + the **already-shipped web** in agreement
+     **without a web refactor**, the value is computed **once** and **copied onto each row**
+     — identical on every row. (The Implementer MAY additionally expose it top-level; the
+     load-bearing contract is that **the per-row field exists and is the same correct
+     once-computed value**.)
+2. **`promotionStatus: "pending" | "promoting" | "done" | "failed" | null` per row** — derived
+   from the `promotions` table (§1). `null` (or absent) when the slug was never enqueued. Read
+   it with **ONE batched query keyed by the listed slugs**, NOT N per-row queries: e.g.
+   `SELECT slug, status FROM promotions WHERE slug = ANY($1)` over the page's slugs, built into
+   a `Map<slug, status>` and looked up per row. A new injected DB seam (mirroring
+   `enqueuePromotion`), e.g. `readPromotionStatuses(slugs: string[]) =>
+   Promise<Map<string, PromotionStatus>>`, keeps it testable and the route handler pure.
+3. **`signals: SubmissionSignals | null` per row** — the existing
+   `computeSubmissionSignals` (`apps/api/src/submissions/signals.ts`) house-vantage compute
+   (curator count + identities + weighted average), honest `null` when none / degraded.
+   **Decision (v1, justified):** because submission volume is effectively zero, the list
+   handler **computes signals for the listed rows inline on the list response now** — the
+   simplest correct wiring (each row: query `{ kinds:[KIND], "#a":[39999:<lib>:<slug>] }` →
+   `computeSubmissionSignals`, exactly as the `/:slug/signals` endpoint does). Fail-closed →
+   `null` per row.
+
+#### Perf follow-up (LOGGED, not shipped now)
+
+Computing signals inline for every listed row is **O(rows) relay queries on one request** —
+fine at ~zero volume, a **known scaling edge** as submissions grow. The follow-up, recorded
+here so it is not lost: move signals off the bulk list to **LAZY per-row fetch** (the web
+hits the existing `GET /api/submissions/:slug/signals` per visible row, on demand) **or** a
+**bounded / cap'd enrichment** (compute only the first N rows, lazy-load the rest). The
+`/:slug/signals` endpoint is **kept precisely as the lazy seam for this future** — it is not
+dead code, it is the migration target. This is logged, not shipped now (no premature
+optimization at zero volume).
+
+### Pinned: the testable contract (this is what let the gap through)
+
+There MUST be a test that the **REAL `GET /api/submissions` list endpoint PRODUCES** all
+three fields, exercised against the route (DI: fixture `TrustProvider`, fake `sessionUser`,
+fake `readPromotionStatuses`, fake `query`) — **not** a component test fed pre-enriched mock
+rows:
+- **`canPromote`** is **gate-aware**: `true` for an above-gate session, `false` for a
+  below-gate session, `false` for anon, `false` on trust degrade (empty/absent provider).
+- **`promotionStatus`** reflects the `promotions` rows: a slug with a `done` row → `"done"`;
+  a slug with no row → `null`/absent; the read is the **single batched** `WHERE slug =
+  ANY(...)`, asserted as one call over the page's slugs (not N).
+- **`signals`** is **computed/honest-null**: fixture weights over a known above-gate rater
+  set → real `curatorRatingCount`/`curators`/`trustedAverage`; empty weights / no trusted
+  rater → `signals: null`.
+
+The **web tests must source rows from the real `api.submissions.list` response shape** (or a
+fixture generated from it), so a row missing `canPromote`/`promotionStatus`/`signals` fails
+the test rather than silently rendering nothing. Pre-enriched mock rows are what masked this
+gap; they are no longer sufficient on their own.
+
+### Non-blocking follow-ups the reviewer logged (recorded so they are not lost)
+
+- **`curatorTagCount` tag-signals extension** — `computeSubmissionSignals` returns
+  `curatorTagCount: 0` today (the assertions-header read is not wired; ratings + tags share
+  the kind-39999 `#a` query but tag aggregation is unimplemented). Wiring the above-threshold
+  tag-asserter count is a future, non-blocking extension. Not shipped this cycle.
+- **Worker stranded-job / `failed`-retry reaper** — a job stuck in `promoting` (a worker run
+  died mid-flight) or left `failed` has no automatic recovery; the cron's next run can retry
+  `failed` rows under a max-attempts cap, and a stranded `promoting` row needs a reaper. This
+  is a **runbook or future story** item, recorded here; not blocking Story 30.
+
 ## Context
 
 Community submissions ship today (Stories 16a / 16b-i, ADR 0016). A submission is a
@@ -296,6 +395,49 @@ Signal shape returned to the web:
 average presented as trusted. This exactly mirrors how `ratings.ts` sets `weighted = null`
 on any trust failure (`ratings.ts:291`).
 
+### 3b. The enriched `GET /api/submissions` list contract (PINNED — 2026-06-01 remediation)
+
+§3 above defines the **per-slug** signal compute (`computeSubmissionSignals`, exposed lazily
+at `GET /api/submissions/:slug/signals`). The web (`CommunitySubmissions.tsx`) renders the
+**list** route, so the **list** response — not just the per-slug endpoint — must carry the
+decision-support and gate fields. The original spec wired the gate, queue, worker, and
+signals helper in isolation but never enriched the list the web reads; this section closes
+that gap. **The web computes nothing — it renders this shape verbatim.**
+
+`GET /api/submissions` enriches each row with three server-computed fields:
+
+1. **`canPromote: boolean`** — USER-level, computed **ONCE per request** (not per row) via the
+   same `houseWeightOf(sessionUserHex) >= config.curatorThreshold` used by the promote gate
+   (§2), with the identical fail-closed degrade (no provider / no observer / empty map /
+   throw → `0` → `false`). **Anon → `false`.** PINNED placement: the once-computed value is
+   **stamped on every row** (`row.canPromote`, identical on all rows), because the shipped web
+   reads it per row (`SubmittedBook.canPromote`, `PromoteCell`). The Implementer MAY also
+   expose it top-level, but the load-bearing contract is the **per-row field carrying the same
+   correct once-computed value**. This avoids a web refactor.
+
+2. **`promotionStatus: "pending" | "promoting" | "done" | "failed" | null`** per row — derived
+   from the `promotions` table (§1) via **one batched read** keyed by the listed slugs
+   (`SELECT slug, status FROM promotions WHERE slug = ANY($1)` → `Map<slug, status>`), **never
+   N per-row queries**. Injected as a new DB seam (mirroring `enqueuePromotion`), e.g.
+   `readPromotionStatuses(slugs: string[]) => Promise<Map<string, PromotionStatus>>`. `null`
+   /absent when the slug was never enqueued. This is the same authoritative job state §4 reads
+   for the per-submission view.
+
+3. **`signals: SubmissionSignals | null`** per row — `computeSubmissionSignals` (§3) per listed
+   row, honest `null` when none/degraded. **v1 decision (justified by ~zero submission
+   volume): compute inline on the list response now** — simplest correct (each row: ratings
+   query at `39999:<lib>:<slug>` → `computeSubmissionSignals`). **Perf follow-up (logged, not
+   shipped):** inline signals is O(rows) relay queries per list request — a known scaling
+   edge. As volume grows, move signals to **lazy per-row fetch** via the existing
+   `GET /api/submissions/:slug/signals` (kept expressly as this lazy seam) **or** a bounded
+   /cap'd enrichment (first N rows inline, the rest lazy). Not optimized prematurely at zero
+   volume.
+
+**Honest degrade across all three:** trust unavailable / no observer → `canPromote:false`
+and `signals:null` on every row; the DB seam absent → `promotionStatus` absent/`null`. The
+list route never 500s on a degraded vantage — it returns honest falses/nulls (the same
+posture as the gate and the per-slug signals endpoint).
+
 ### 4. Promoted-state, idempotency, UX-pending
 
 **Idempotency key = the slug** (Story 16a collision-safe `title--author--suffix`, ISBN-13
@@ -383,6 +525,23 @@ credit *into the canonical record itself*. Ripple from this schema change is cap
   call returns `already`, enqueue not duplicated. Signals: with fixture weights over a known
   curator key set, assert `curatorRatingCount`/`curators`/`trustedAverage`; with empty weights,
   assert `signals: null`.
+- **The REAL list endpoint produces the enriched shape (§3b) — load-bearing, this is the test
+  whose absence let the gap through.** Exercise `GET /api/submissions` **against the route**
+  (DI: fixture `TrustProvider`, fake `sessionUser`, a fake `readPromotionStatuses`, fake
+  `query`) — **NOT** a component test fed pre-enriched mock rows. Assert each row carries:
+  - **`canPromote`** is **gate-aware**: above-gate session → `true` on every row; below-gate
+    session → `false`; anon → `false`; trust empty/absent → `false` (fail-closed). Assert it is
+    computed **once** (the trust seam is hit once for the session user, not once per row).
+  - **`promotionStatus`** reflects `promotions` rows: a slug with a `done` row → `"done"`; a
+    slug with no row → `null`/absent; the read is the **single batched** `WHERE slug = ANY(...)`
+    over the page's slugs (assert one `readPromotionStatuses` call, not N).
+  - **`signals`** is computed / honest-null: fixture weights over a known above-gate rater set
+    → real `curatorRatingCount`/`curators`/`trustedAverage`; empty weights / no trusted rater
+    → `signals: null`.
+- **Web tests source rows from the real `api.submissions.list` shape** (or a fixture generated
+  from it), so a row missing `canPromote`/`promotionStatus`/`signals` fails the test rather
+  than silently rendering nothing. Pre-enriched hand-written mock rows alone are **no longer
+  sufficient** — that masking is what hid the end-to-end gap.
 - **`@unbnd/schemas` (provenance tag):** a unit test on `toBookRecordEvent` asserting it emits
   exactly one `["submitted-by", <hex>]` tag when `submittedBy` is set (hex on the wire, matching
   the input), and emits **no** `submitted-by` tag when `submittedBy` is unset (seeded-record
@@ -428,14 +587,30 @@ All of the above run with **no Brainstorm call, no relay, no human** (AC-8).
 - `apps/promoter/src/build.ts` — `mapSubmissionToCatalogRecord(...)` sets `submittedBy` = the
   submission event author hex (listed under New, this is the behavior detail).
 - `apps/api/src/routes/submissions.ts` — add `POST /api/submissions/:slug/promote` (the gate +
-  enqueue), the signal read on the submission detail, and the `trust` + `enqueuePromotion` deps.
+  enqueue), the per-slug `GET /api/submissions/:slug/signals` read, and the `trust` +
+  `enqueuePromotion` deps. **Remediation (§3b): enrich the `GET /api/submissions` list handler**
+  — read the session user, compute `canPromote` **once** via `houseWeightOf`, do the **single
+  batched** `readPromotionStatuses(slugs)` read, compute `signals` per row via
+  `computeSubmissionSignals`, and stamp `canPromote`/`promotionStatus`/`signals` onto each row
+  (`toSubmission` extended, or enriched after the map). Inject a new
+  **`readPromotionStatuses(slugs: string[]) => Promise<Map<string, PromotionStatus>>`** DB seam
+  (mirroring `enqueuePromotion`).
+- `apps/api/src/db/index.ts` (+ wherever `enqueuePromotion` is wired) — back
+  `readPromotionStatuses` with the batched `WHERE slug = ANY(...)` query over `promotions`.
 - `apps/api/src/config.ts` — add `curatorThreshold` (env `CURATOR_THRESHOLD`, validated `(0,1]`,
   default `0.5`).
 - `apps/api/src/index.ts` — pass `trust` + an `enqueuePromotion` (DB-backed) into
   `buildSubmissionsRouter`.
 - `apps/web/src/routes/CommunitySubmissions.tsx` (+ a submission-detail surface) — render
-  signals, the gated Promote action, and the pending→in-catalog states.
-- `apps/web/src/lib/api.ts` — add `submissions.promote(slug)` + the signals read shape.
+  signals, the gated Promote action, and the pending→in-catalog states **from the enriched
+  list rows** (`canPromote`/`promotionStatus`/`signals` now arrive on each row — the web reads,
+  never computes).
+- `apps/web/src/lib/api.ts` — add `submissions.promote(slug)`; the `SubmittedBook` type carries
+  `canPromote?: boolean`, `promotionStatus?: string | null`, `signals?: SubmissionSignals`
+  (already present in the shipped type) — **confirm `submissions.list()` returns this enriched
+  shape from the real endpoint** (§3b), not just the bare 16b-i fields. (A lazy
+  `submissions.signals(slug)` reader against `GET /:slug/signals` is the perf-follow-up seam,
+  not wired now.)
 - **Book read path (optional `submitted-by` passthrough):** the catalog/book read (API book
   route + its web BookDetail surface) optionally surfaces the submitter (hex→npub at the API
   boundary + Story-29 display resolution) so the web can credit "submitted by …". Kept
@@ -449,8 +624,12 @@ All of the above run with **no Brainstorm call, no relay, no human** (AC-8).
   `docker compose --profile promote run --rm promoter`.
 
 **Existing tests that change:** `apps/api/test/routes/submissions*.test.ts` (new gate/enqueue/
-signals cases + DI for `trust`/`enqueuePromotion`); the trust architecture guard test stays
-green (assert, don't change); new `apps/api/test/.../no-librarian-nsec-in-api` guard; new
+signals cases + DI for `trust`/`enqueuePromotion`/`readPromotionStatuses`; **plus the
+remediation test that the REAL `GET /api/submissions` produces gate-aware `canPromote`,
+batched `promotionStatus`, and computed/honest-null `signals` — §3b/§6**); the trust
+architecture guard test stays green (assert, don't change); new
+`apps/api/test/.../no-librarian-nsec-in-api` guard; **web `CommunitySubmissions` tests sourced
+from the real `api.submissions.list` shape, not pre-enriched mock rows (§6)**; new
 `apps/promoter/test/*`.
 
 ## Consequences
@@ -464,6 +643,13 @@ green (assert, don't change); new `apps/api/test/.../no-librarian-nsec-in-api` g
   The worker's retry/backoff policy for `failed` jobs is left to the implementer within the
   shape above. The house-observer swap (`HOUSE_OBSERVER_PUBKEY` → production librarian) stays
   deferred; the gate is built/verified against the fixture provider regardless.
+  **Remediation follow-ups (2026-06-01, logged not shipped):** (a) **inline list-signals →
+  lazy/bounded** as submission volume grows (move per-row signals to the existing
+  `GET /:slug/signals` lazy fetch or a first-N cap — §3b perf note); (b) **`curatorTagCount`
+  tag-signals extension** (`computeSubmissionSignals` returns `0` until the assertions-header
+  read is wired — reviewer-logged, non-blocking); (c) **worker stranded-job / `failed`-retry
+  reaper** (a `promoting` row from a died run, or a `failed` row, has no auto-recovery — a
+  runbook/future-story item, reviewer-logged).
 - **Affects existing fixtures?** Yes (after implementation): the web `CommunitySubmissions`
   fixtures gain signal + promoted-state shapes; `apps/api/test` submission fixtures gain
   `promotions`/trust-fixture cases. `packages/schemas` gains a **new** test for the additive
