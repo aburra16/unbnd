@@ -2,41 +2,37 @@
 // (nosfabrica-weighted when there's a trusted signal, else raw so the catalog
 // never looks empty). Sovereign users with scores toggle House ⇄ Yours; those
 // without can Personalize (in-app self-serve trigger, ~5–6 min build).
-import { useEffect, useState } from "react";
-import { api, type RatingsSummary } from "../lib/api";
+//
+// Story 28 / ADR 0029 §3: CONTROLLED. The shared `useBookRatings` hook (owned by
+// BookDetail) does the fetching; this panel renders the `house`/`yours`/`status`
+// slices it is handed and keeps owning the House⇄Yours toggle chrome via
+// `useTrustView`. No self-fetch (the double-fetch race is gone).
+import { type RatingsSummary } from "../lib/api";
 import { useTrustView } from "../hooks/useTrustView";
 import { RatingsBlock } from "./RatingsBlock";
 import { RatedByRow } from "./RatedByRow";
 import { ReviewsList } from "./ReviewsList";
 import "./RatingsPanel.css";
 
-const EMPTY: RatingsSummary = { count: 0, average: null, ratings: [], weighted: null };
-
-export function RatingsPanel({ slug }: { slug: string }) {
-  const { status, view, setView, personalize, error, npub } = useTrustView();
-  const [house, setHouse] = useState<RatingsSummary | null>(null);
-  const [yours, setYours] = useState<RatingsSummary | null>(null);
-
-  useEffect(() => {
-    let cancelled = false;
-    api.ratings.list(slug)
-      .then((r) => !cancelled && setHouse(r))
-      .catch(() => !cancelled && setHouse(EMPTY));
-    return () => { cancelled = true; };
-  }, [slug]);
-
-  useEffect(() => {
-    if (view !== "yours" || !npub || yours) return;
-    let cancelled = false;
-    api.ratings.list(slug, npub)
-      .then((r) => !cancelled && setYours(r))
-      .catch(() => !cancelled && setYours(EMPTY));
-    return () => { cancelled = true; };
-  }, [view, npub, slug, yours]);
+export function RatingsPanel({
+  // `slug` is retained for prop-shape parity with BookDetail; the read now lives
+  // in the shared hook, so the panel itself never fetches.
+  slug: _slug,
+  house,
+  yours,
+  status: dataStatus,
+}: {
+  slug: string;
+  house: RatingsSummary | null;
+  yours: RatingsSummary | null;
+  status: "loading" | "ready" | "error";
+}) {
+  const { status, view, setView, personalize, error } = useTrustView();
 
   const showYours = view === "yours" && status === "ready";
   const active = showYours ? yours : house;
-  if (!active) {
+  // The shared hook is still fetching, or nothing has arrived yet.
+  if (dataStatus === "loading" || !active) {
     return <p className="route-status" role="status">Loading ratings…</p>;
   }
 

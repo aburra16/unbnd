@@ -1,23 +1,13 @@
-// FAILING TESTS — Story 25 / ADR 0025, AC-6.
+// Story 25 / ADR 0025, AC-6 — MIGRATED to the ADR 0029 controlled contract.
 // The RatingsPanel must use the SAME "trusted consensus" / "community consensus"
-// vocabulary as the tag block (copy-only change; no recompute). Intentionally
-// red until RatingsPanel's captions/labels adopt that wording.
-import { describe, expect, it, vi, beforeEach } from "vitest";
-import { render, screen, waitFor } from "@testing-library/react";
+// vocabulary as the tag block (copy-only; no recompute). Under ADR 0029 the
+// panel is CONTROLLED: BookDetail's useBookRatings hook owns the read and passes
+// the `house`/`yours`/`status` slices as props (the panel no longer self-fetches
+// via api.ratings.list). The vocabulary assertions are preserved verbatim,
+// re-expressed against the controlled `house` prop.
+import { describe, expect, it, vi } from "vitest";
+import { render, screen } from "@testing-library/react";
 import type { RatingsSummary, WeightedRatings } from "../src/lib/api";
-
-const ratingsList = vi.fn();
-
-vi.mock("../src/lib/api", async (orig) => {
-  const actual = await orig<typeof import("../src/lib/api")>();
-  return {
-    ...actual,
-    api: {
-      ...actual.api,
-      ratings: { ...actual.api.ratings, list: (...a: unknown[]) => ratingsList(...a) },
-    },
-  };
-});
 
 // House-only vantage: the panel shows the house view with no Yours toggle.
 vi.mock("../src/hooks/useTrustView", () => ({
@@ -40,8 +30,6 @@ const WEIGHTED: WeightedRatings = {
   ratings: [],
 };
 
-beforeEach(() => ratingsList.mockReset());
-
 describe("RatingsPanel — AC-6 shared trusted/community vocabulary", () => {
   it("uses 'trusted consensus' wording when a trust-weighted view exists", async () => {
     const summary: RatingsSummary = {
@@ -50,8 +38,7 @@ describe("RatingsPanel — AC-6 shared trusted/community vocabulary", () => {
       ratings: [],
       weighted: WEIGHTED,
     };
-    ratingsList.mockResolvedValue(summary);
-    render(<RatingsPanel slug="orbital" />);
+    render(<RatingsPanel slug="orbital" house={summary} yours={null} status="ready" />);
     expect(await screen.findByText(/trusted consensus/i)).toBeInTheDocument();
   });
 
@@ -62,9 +49,7 @@ describe("RatingsPanel — AC-6 shared trusted/community vocabulary", () => {
       ratings: [],
       weighted: null,
     };
-    ratingsList.mockResolvedValue(summary);
-    render(<RatingsPanel slug="orbital" />);
-    await waitFor(() => expect(ratingsList).toHaveBeenCalled());
+    render(<RatingsPanel slug="orbital" house={summary} yours={null} status="ready" />);
     expect(await screen.findByText(/community consensus/i)).toBeInTheDocument();
   });
 });

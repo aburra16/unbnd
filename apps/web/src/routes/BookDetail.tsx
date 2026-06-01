@@ -10,6 +10,7 @@ import { TagControl } from "../components/TagControl";
 import { ShelfControl } from "../components/ShelfControl";
 import { WhereToRead } from "../components/WhereToRead";
 import { useTrustView } from "../hooks/useTrustView";
+import { useBookRatings } from "../hooks/useBookRatings";
 import { NotFound } from "./NotFound";
 import {
   api,
@@ -36,6 +37,9 @@ export function BookDetail() {
   // The tag consensus follows the same observer as the ratings panel (ADR 0025):
   // the user's own npub on the "Yours" vantage, else the server-side house default.
   const observer = view === "yours" && trustStatus === "ready" ? npub : undefined;
+  // Story 28 / ADR 0029 §3: one owner of the book's rating data; the panel and
+  // the control consume slices of it instead of each self-fetching.
+  const ratings = useBookRatings(slug ?? "");
   const [state, setState] = useState<State>({ status: "loading" });
 
   useEffect(() => {
@@ -118,8 +122,21 @@ export function BookDetail() {
         ]}
       />
       <BookHeader book={book} genres={tags.genres} styles={tags.styles} weighted={tags.weighted} />
-      {slug && <RatingsPanel slug={slug} />}
-      {slug && <RatingControl bookSlug={slug} />}
+      {slug && (
+        <RatingsPanel
+          slug={slug}
+          house={ratings.house}
+          yours={ratings.yours}
+          status={ratings.status}
+        />
+      )}
+      {slug && (
+        <RatingControl
+          bookSlug={slug}
+          yourRating={ratings.yourRating}
+          applyWrite={ratings.applyWrite}
+        />
+      )}
       {slug && <TagControl bookSlug={slug} tags={tags} onChanged={reloadTags} />}
       {slug && <ShelfControl bookSlug={slug} />}
       {book.purchaseUrl && (

@@ -15,6 +15,7 @@ import {
   dedupeRatings,
   rawFromParsed,
   weightedRatings,
+  type PublicRating,
 } from "../ratings/summary";
 import type { TrustProvider } from "../trust";
 import { tokenToId } from "../auth/sessions";
@@ -71,6 +72,42 @@ function readSessionCookie(req: Request): string | undefined {
 function bookAddress(config: Config, slug: string): string | null {
   if (!config.librarianPubkey) return null;
   return `${BOOK_RATING_KIND}:${config.librarianPubkey}:${slug}`;
+}
+
+/**
+ * Story 28 / ADR 0029 §1–2: resolve the signed-in caller's OWN current rating
+ * for this book as a `PublicRating`, sourced from the deduped RAW set (never the
+ * trust-weighted subset). Returns null for anon or never-rated. When the caller's
+ * own event is absent from the (un-paginated, 500-capped) book-address read, it
+ * does ONE author-scoped fallback read so a high-traffic book can never blank a
+ * user's own rating (the honesty seam). hex matching is server-internal; the
+ * returned PublicRating carries only the npub.
+ */
+async function resolveYourRating(
+  deps: RatingsDeps,
+  cookie: string | undefined,
+  addr: string | null,
+  deduped: ReturnType<typeof dedupeRatings>,
+): Promise<PublicRating | null> {
+  if (!cookie) return null;
+  const user = await deps.sessionUser(cookie);
+  if (!user) return null;
+
+  let own = deduped.find((r) => r.pubkey === user.pubkeyHex) ?? null;
+
+  if (!own && addr) {
+    // The own event may have fallen outside the truncated book-address page.
+    // One targeted, author-scoped read guarantees presence past the 500 cap.
+    const ownEvents = await deps.query({
+      kinds: [BOOK_RATING_KIND],
+      authors: [user.pubkeyHex],
+      "#a": [addr],
+    });
+    own = dedupeRatings(ownEvents).find((r) => r.pubkey === user.pubkeyHex) ?? null;
+  }
+
+  if (!own) return null;
+  return rawFromParsed([own]).ratings[0] ?? null;
 }
 
 export function buildRatingsRouter(deps: RatingsDeps): Router {
@@ -256,7 +293,18 @@ export function buildRatingsRouter(deps: RatingsDeps): Router {
         }
       }
 
-      res.status(200).json({ ...raw, weighted });
+      // Story 28 / ADR 0029: the signed-in caller's OWN current rating, sourced
+      // from the deduped RAW set (never the trust-filtered `weighted` subset —
+      // the honesty seam), so it is observer-independent. The GET stays public:
+      // an absent/unresolvable session simply yields `yourRating: null`.
+      const yourRating = await resolveYourRating(
+        deps,
+        readSessionCookie(req),
+        addr,
+        deduped,
+      );
+
+      res.status(200).json({ ...raw, weighted, yourRating });
     } catch (err) {
       next(err);
     }
