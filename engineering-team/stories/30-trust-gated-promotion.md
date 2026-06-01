@@ -330,6 +330,6 @@ Resolve before approving the story.
   `TrustProvider` `weights`/`hasScores` seam + observer resolution),
   `0025-weighted-consensus.md` (the weighted view reused for the trust-weighted average),
   `0026-custodial-personalization.md` (custodial observers).
-- ADR for this story: (filled in after Architecture phase)
-- Test plan: (filled in after Test Design phase)
+- ADR for this story: `engineering-team/decisions/0031-trust-gated-promotion.md`
+- Test plan: `engineering-team/stories/30-trust-gated-promotion.test-plan.md`
 - Review: (filled in after Review phase)
