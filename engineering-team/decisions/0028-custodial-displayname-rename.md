@@ -1,8 +1,8 @@
 # ADR 0028: Custodial display-name rename — `POST /api/profile/display-name`
 
-**Status:** Proposed
+**Status:** Accepted
 **Date:** 2026-06-01
-**Story:** `engineering-team/stories/27b-custodial-displayname-rename.md`
+**Story:** `engineering-team/stories/done/27b-custodial-displayname-rename.md`
 
 > **Relationship to ADR 0027.** ADR 0027 (`0027-custodial-kind0-bootstrap.md`) is the
 > design-of-record for the rename's *machinery*: its Decision §6 ("Rename (AC-6) — DEFERRED to

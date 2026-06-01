@@ -1,6 +1,6 @@
 # Test Plan: Story 27b — Custodial display-name rename (re-publish kind-0, merge-preserving)
 
-**Story:** `engineering-team/stories/27b-custodial-displayname-rename.md`
+**Story:** `engineering-team/stories/done/27b-custodial-displayname-rename.md`
 **ADR:** `engineering-team/decisions/0028-custodial-displayname-rename.md`
 **Date:** 2026-06-01
 

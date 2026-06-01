@@ -1,6 +1,6 @@
 # Story 27b: Custodial display-name rename — re-publish the kind-0, merge-preserving
 
-**Status:** Draft
+**Status:** Done
 **Created:** 2026-05-31
 **Type:** Feature
 **Depends on:** Story 27 (`engineering-team/stories/done/27-custodial-kind0-bootstrap.md`) — the shared `buildProfileKind0Content` seam, `publishKind0`, `fetchRawKind0`, and the custodial server-signing wrap.
@@ -89,5 +89,5 @@ This story is intentionally thin: it is **the endpoint + the DB update + the UI 
 - Parent ADR: `engineering-team/decisions/0027-custodial-kind0-bootstrap.md` (Amendment note + Decision §6 + the "Deferred to Story 27b" implementation subsection — the seam-of-record this builds on).
 - Parent story: `engineering-team/stories/done/27-custodial-kind0-bootstrap.md` (the builder seam this reuses; ships ACs 1–5, 7, 8).
 - Model for the route shape: `engineering-team/stories/done/22-substack-set.md` and `apps/api/src/routes/profile-substack.ts` (tier-branched custodial write + injected `publish`/`fetchRaw`/`custodialSign`).
-- Test plan: `engineering-team/stories/27b-custodial-displayname-rename.test-plan.md`
+- Test plan: `engineering-team/stories/done/27b-custodial-displayname-rename.test-plan.md`
 - Review: (filled in after Review phase)
