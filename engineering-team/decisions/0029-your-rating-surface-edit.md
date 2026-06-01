@@ -1,8 +1,8 @@
 # ADR 0029: Your rating — surface the signed-in user's own rating + in-place edit
 
-**Status:** Proposed
+**Status:** Accepted
 **Date:** 2026-06-01
-**Story:** `engineering-team/stories/28-your-rating-surface-edit.md`
+**Story:** `engineering-team/stories/done/28-your-rating-surface-edit.md`
 
 > **Relationship to prior ADRs.** This ADR does **not** introduce a new write path, a new
 > read endpoint shape (see §1), a new DList shape, or any new crypto. It composes machinery

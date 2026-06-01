@@ -1,6 +1,6 @@
 # Story 28: Your rating — surface the signed-in user's own rating + in-place edit
 
-**Status:** Draft
+**Status:** Done
 **Created:** 2026-06-01
 **Type:** Bug
 
@@ -302,5 +302,5 @@ Resolve before approving the story.
   and `0025-weighted-consensus.md` (the House⇄Yours trust view and trusted/community
   labeling the honesty rule sits beside).
 - New ADR for this story: `engineering-team/decisions/0029-your-rating-surface-edit.md`
-- Test plan: `engineering-team/stories/28-your-rating-surface-edit.test-plan.md`
+- Test plan: `engineering-team/stories/done/28-your-rating-surface-edit.test-plan.md`
 - Review: (filled in after Review phase)

@@ -1,6 +1,6 @@
 # Test Plan: Story 28 — Your rating: surface the signed-in user's own rating + in-place edit
 
-**Story:** `engineering-team/stories/28-your-rating-surface-edit.md`
+**Story:** `engineering-team/stories/done/28-your-rating-surface-edit.md`
 **ADR:** `engineering-team/decisions/0029-your-rating-surface-edit.md`
 **Date:** 2026-06-01
 **Branch:** `feat/your-rating-edit`
