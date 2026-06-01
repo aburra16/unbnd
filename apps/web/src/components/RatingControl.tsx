@@ -1,11 +1,18 @@
-// Book-detail rating control. ADR 0005. Sovereign session: 1-5 stars +
-// optional review -> template -> NIP-07 signEvent -> submit. Anonymous: a
-// sign-in prompt. Custodial: a "coming for email accounts" note (5b).
-import { useEffect, useState } from "react";
+// Book-detail rating control. ADR 0005 + Story 28 / ADR 0029. CONTROLLED: the
+// shared `useBookRatings` hook (owned by BookDetail) passes `yourRating` (the
+// trust-view-independent own read) and `applyWrite` (the optimistic + reconcile
+// entry point). When the user has rated, this is the prefilled in-place editor:
+// stars filled to their score, their review, a quiet "You rated this on <date>"
+// line, and an "Update rating" button. Sovereign: template -> NIP-07 signEvent
+// -> submit. Custodial: server-side submit (ADR 0006). Anonymous: a sign-in
+// prompt. Editing republishes under the existing addressable d-tag (replace) via
+// the EXISTING per-tier write path — no new write path, no new crypto.
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import {
   api,
   ApiError,
+  type PublicRating,
   type RatingsSummary,
   type SignedEvent,
 } from "../lib/api";
@@ -39,30 +46,24 @@ function Star({ filled }: { filled: boolean }) {
   );
 }
 
-export function RatingControl({ bookSlug }: { bookSlug: string }) {
+export function RatingControl({
+  bookSlug,
+  yourRating,
+  applyWrite,
+}: {
+  bookSlug: string;
+  yourRating: PublicRating | null;
+  applyWrite: (summary: RatingsSummary, ownRating: PublicRating) => void;
+}) {
   const session = useSession();
-  const [summary, setSummary] = useState<RatingsSummary | null>(null);
-  const [score, setScore] = useState(0);
-  const [review, setReview] = useState("");
+  const hasRated = yourRating !== null;
+  // Prefill from the own read when the user has rated (AC-4); otherwise empty.
+  const [score, setScore] = useState(yourRating?.score ?? 0);
+  const [review, setReview] = useState(yourRating?.reviewText ?? "");
   const [status, setStatus] = useState<"idle" | "submitting" | "done" | "error">(
     "idle",
   );
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
-
-  useEffect(() => {
-    let cancelled = false;
-    api.ratings
-      .list(bookSlug)
-      .then((s) => {
-        if (!cancelled) setSummary(s);
-      })
-      .catch(() => {
-        if (!cancelled) setSummary(null);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [bookSlug]);
 
   // Sovereign users (no email) sign in the browser; custodial users (email)
   // have the server sign with their session-wrapped key (ADR 0006).
@@ -71,12 +72,18 @@ export function RatingControl({ bookSlug }: { bookSlug: string }) {
 
   async function onSubmit() {
     if (score < 1) return;
+    // Capture the prior own-rating slice for an honest rollback (AC-6).
+    const priorScore = yourRating?.score ?? 0;
+    const priorReview = yourRating?.reviewText ?? "";
     setStatus("submitting");
     setErrorMsg(null);
     const reviewText = review.trim() === "" ? undefined : review.trim();
     const reviewDate = todayIso();
     try {
-      let next;
+      let result: {
+        rating: { score: number; reviewText?: string; reviewDate: string };
+        summary: RatingsSummary;
+      };
       if (isSovereign) {
         const nostr = (window as unknown as { nostr?: Nip07 }).nostr;
         if (!nostr) {
@@ -91,44 +98,45 @@ export function RatingControl({ bookSlug }: { bookSlug: string }) {
           reviewDate,
         });
         const signed = await nostr.signEvent(template);
-        next = (await api.ratings.submit(signed)).summary;
+        result = await api.ratings.submit(signed);
       } else {
-        next = (
-          await api.ratings.submitCustodial({
-            bookSlug,
-            score,
-            reviewText,
-            reviewDate,
-          })
-        ).summary;
+        result = await api.ratings.submitCustodial({
+          bookSlug,
+          score,
+          reviewText,
+          reviewDate,
+        });
       }
-      setSummary(next);
+      // Reconcile both slices from the single saved source (ADR 0029 §4): the
+      // POST's refreshed aggregate + the own rating we just published.
+      const own: PublicRating = {
+        npub: session.status === "signed-in" ? session.user.npub : (yourRating?.npub ?? ""),
+        score,
+        reviewText,
+        reviewDate,
+      };
+      applyWrite(result.summary, own);
       setStatus("done");
     } catch (err) {
-      setErrorMsg(
-        err instanceof ApiError
-          ? err.message
-          : "Could not save your rating. Try again.",
-      );
+      // Rollback the optimistic state to the prior rating (AC-6); do not
+      // reconcile the shared store as if the write succeeded.
+      setScore(priorScore);
+      setReview(priorReview);
+      if (err instanceof ApiError && err.code === "reauth_required") {
+        setErrorMsg("Please sign in again to update your rating.");
+      } else {
+        setErrorMsg(
+          err instanceof ApiError
+            ? err.message
+            : "Could not save your rating. Try again.",
+        );
+      }
       setStatus("error");
     }
   }
 
-  const average =
-    summary && summary.average !== null ? summary.average.toFixed(1) : null;
-
   return (
     <section className="rate" aria-label="Rate this book">
-      {summary && (
-        <p className="rate-summary">
-          {summary.count === 0
-            ? "No ratings yet."
-            : `${average} average across ${summary.count} ${
-                summary.count === 1 ? "rating" : "ratings"
-              }.`}
-        </p>
-      )}
-
       {session.status === "signed-out" && (
         <p className="rate-gate">
           <Link to="/auth">Sign in</Link> to rate this book.
@@ -137,6 +145,11 @@ export function RatingControl({ bookSlug }: { bookSlug: string }) {
 
       {session.status === "signed-in" && (
         <div className="rate-form">
+          {hasRated && yourRating && (
+            <p className="rate-edit-note">
+              You rated this on {yourRating.reviewDate}. Saving will update it.
+            </p>
+          )}
           <div className="rate-stars" role="group" aria-label="Your rating">
             {[1, 2, 3, 4, 5].map((n) => (
               <button
@@ -165,7 +178,7 @@ export function RatingControl({ bookSlug }: { bookSlug: string }) {
           )}
           {status === "done" && (
             <p className="rate-ok" role="status">
-              Your rating is saved.
+              Your rating is in.
             </p>
           )}
           <button
@@ -174,7 +187,11 @@ export function RatingControl({ bookSlug }: { bookSlug: string }) {
             disabled={score < 1 || status === "submitting"}
             onClick={onSubmit}
           >
-            {status === "submitting" ? "Saving…" : "Submit rating"}
+            {status === "submitting"
+              ? "Saving…"
+              : hasRated
+                ? "Update rating"
+                : "Submit rating"}
           </button>
         </div>
       )}

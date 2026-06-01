@@ -1,17 +1,24 @@
-// FAILING TESTS — Story 25 / ADR 0025, AC-5 (web).
-// BookDetail must re-fetch the book's tags with `?observer=<npub>` when the
-// House⇄Yours perspective changes, mirroring how RatingsPanel re-requests
-// ratings for "Yours". Intentionally red until BookDetail passes the active
-// observer from useTrustView into api.tags.book and re-fetches on toggle.
+// MIGRATED — Story 25 / ADR 0025 AC-5 (web), now under ADR 0029's controlled wiring.
+//
+// Intent preserved: BookDetail re-fetches the book's tags with `?observer=<npub>`
+// when the House⇄Yours perspective is "Yours", so the tag consensus is computed
+// from the user's own vantage (mirroring how the ratings read follows the
+// observer). That POV/observer wiring is unchanged by ADR 0029.
+//
+// What ADR 0029 changes here: the ratings read is no longer two sibling
+// components each calling `api.ratings.list` (RatingsPanel + RatingControl).
+// BookDetail now calls the shared `useBookRatings(slug)` hook ONCE and passes
+// slices down (house/yours/status → RatingsPanel; yourRating/applyWrite →
+// RatingControl). So this test mocks `useBookRatings` (the new owner) instead of
+// `api.ratings.list`, and still asserts the tag read carries the active observer.
 import { describe, expect, it, vi, beforeEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
-import type { BookTags, PublicBook, RatingsSummary } from "../src/lib/api";
+import type { BookTags, PublicBook } from "../src/lib/api";
 
 const booksGet = vi.fn();
 const tagsBook = vi.fn();
 const tagsList = vi.fn();
-const ratingsList = vi.fn();
 
 vi.mock("../src/lib/api", async (orig) => {
   const actual = await orig<typeof import("../src/lib/api")>();
@@ -26,7 +33,6 @@ vi.mock("../src/lib/api", async (orig) => {
         book: (...a: unknown[]) => tagsBook(...a),
         list: (...a: unknown[]) => tagsList(...a),
       },
-      ratings: { ...actual.api.ratings, list: (...a: unknown[]) => ratingsList(...a) },
     },
   };
 });
@@ -45,6 +51,14 @@ vi.mock("../src/hooks/useTrustView", () => ({
   }),
 }));
 
+// ADR 0029: BookDetail owns the rating read through `useBookRatings(slug)` and
+// passes the slices to the (now controlled) RatingsPanel/RatingControl. We mock
+// the hook so the render is driven by its props, not by sibling self-fetches.
+const useBookRatingsMock = vi.fn();
+vi.mock("../src/hooks/useBookRatings", () => ({
+  useBookRatings: (...a: unknown[]) => useBookRatingsMock(...a),
+}));
+
 const ORBITAL: PublicBook = {
   slug: "orbital",
   title: "Orbital",
@@ -52,7 +66,6 @@ const ORBITAL: PublicBook = {
   format: "reference",
 };
 const TAGS: BookTags = { genres: [], styles: [], signals: [], weighted: false };
-const NO_RATINGS: RatingsSummary = { count: 0, average: null, ratings: [], weighted: null };
 
 import { BookDetail } from "../src/routes/BookDetail";
 
@@ -60,7 +73,14 @@ beforeEach(() => {
   booksGet.mockReset().mockResolvedValue({ book: ORBITAL });
   tagsBook.mockReset().mockResolvedValue(TAGS);
   tagsList.mockReset().mockResolvedValue({ tags: [] });
-  ratingsList.mockReset().mockResolvedValue(NO_RATINGS);
+  useBookRatingsMock.mockReset().mockReturnValue({
+    house: { count: 0, average: null, ratings: [], weighted: null },
+    yours: null,
+    yourRating: null,
+    status: "ready",
+    applyWrite: vi.fn(),
+    reload: vi.fn(),
+  });
 });
 
 describe("BookDetail — AC-5 tag read follows the observer (House⇄Yours)", () => {
@@ -78,5 +98,19 @@ describe("BookDetail — AC-5 tag read follows the observer (House⇄Yours)", ()
     await waitFor(() =>
       expect(tagsBook).toHaveBeenCalledWith("orbital", YOURS_NPUB),
     );
+  });
+
+  it("drives the book page from the single useBookRatings owner (one read, not sibling self-fetches)", async () => {
+    render(
+      <MemoryRouter initialEntries={["/book/orbital"]}>
+        <Routes>
+          <Route path="/book/:slug" element={<BookDetail />} />
+        </Routes>
+      </MemoryRouter>,
+    );
+    await screen.findByRole("heading", { name: "Orbital" });
+    // BookDetail calls the shared owner once with the slug; the panel/control no
+    // longer race on api.ratings.list.
+    await waitFor(() => expect(useBookRatingsMock).toHaveBeenCalledWith("orbital"));
   });
 });

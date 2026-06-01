@@ -76,6 +76,11 @@ export type RatingsSummary = {
   average: number | null;
   ratings: PublicRating[];
   weighted?: WeightedRatings | null;
+  // Story 28 / ADR 0029: the signed-in caller's own current rating, sourced
+  // server-side from the raw set (never the trust-weighted subset), cap-safe.
+  // Additive: null for anon/never-rated; absent on old responses (client then
+  // falls back to scanning `ratings` by npub).
+  yourRating?: PublicRating | null;
 };
 
 // Catalog read shapes (ADR 0010). Mirror apps/api PublicBook + tag consensus.
