@@ -46,6 +46,20 @@ function Star({ filled }: { filled: boolean }) {
   );
 }
 
+const MONTHS = [
+  "January", "February", "March", "April", "May", "June",
+  "July", "August", "September", "October", "November", "December",
+];
+
+// Format an ISO YYYY-MM-DD date for display without going through `new Date()`,
+// which would parse as UTC midnight and shift the day in negative-offset zones.
+function formatReviewDate(iso: string): string {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso);
+  if (!m) return iso;
+  const [, year, month, day] = m;
+  return `${MONTHS[Number(month) - 1]} ${Number(day)}, ${year}`;
+}
+
 export function RatingControl({
   bookSlug,
   yourRating,
@@ -147,7 +161,7 @@ export function RatingControl({
         <div className="rate-form">
           {hasRated && yourRating && (
             <p className="rate-edit-note">
-              You rated this on {yourRating.reviewDate}. Saving will update it.
+              You rated this on {formatReviewDate(yourRating.reviewDate)}.
             </p>
           )}
           <div className="rate-stars" role="group" aria-label="Your rating">
