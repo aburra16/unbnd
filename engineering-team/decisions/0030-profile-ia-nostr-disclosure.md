@@ -4,6 +4,43 @@
 **Date:** 2026-06-01
 **Story:** `engineering-team/stories/29-profile-ia-nostr-disclosure.md`
 
+## Amendment 2026-06-01 — npub presentation pinned (gate decision)
+
+A gate decision resolved the last open presentation question (the form of the npub
+value and where the explainer lives). It is **pinned** here and folded into the
+Decision sections below. Nothing else in this ADR changes; the tier-differentiated
+IA, the Settings-home canonical surface, the custodial `Manage your nostr identity`
+link, nsec-export-OUT, the shared `CopyButton` seam + a11y + clipboard-failure
+fallback, and the no-new-data/API/write/crypto firewall all stand.
+
+1. **All labels and the explainer are ALWAYS-VISIBLE on-page text — never tooltips.**
+   The core npub explainer and the field label are rendered as visible DOM text, not as
+   `title`/hover attributes. Tooltips are **explicitly ruled out** for the primary
+   explainer/label: the audience is non-nostr users, the explanation is essential
+   comprehension, and tooltips are undiscoverable, touch-hostile, and a11y-fragile —
+   load-bearing meaning must not hide on hover. A small "?"/"Learn more" affordance is
+   permissible **only** for future SECONDARY/optional detail, never for the primary npub
+   explainer or label.
+
+2. **The npub value renders as a read-only "code chip": MONOSPACE, MIDDLE-TRUNCATED**
+   (e.g. `npub1abcd…wxyz`), with the shared **`CopyButton`** inline and adjacent. The
+   **full** npub goes to the clipboard; the **visible** value is the middle-truncated
+   form. **Truncation source:** reuse **`shortNpub`** from `apps/web/src/lib/view-model.ts`
+   (lines 57–61) — confirmed it already produces a *middle*-truncated form
+   (`npub.slice(0,10) + "…" + npub.slice(-4)` → `npub1abcd…wxyz`), so **no new helper is
+   added**. Both the Settings section and the sovereign ProfileMe header import and use
+   `shortNpub`, so the two surfaces render the **same** chip treatment by construction.
+
+3. **Settings "Nostr identity" section layout (canonical, both tiers):** heading
+   `Nostr identity` (on page) → one persistent on-page description line (the explainer)
+   → the read-only monospace middle-truncated npub chip + inline `CopyButton`. Reuse the
+   `set-*` / `Settings.css` tokens; add at most a small monospace/code-chip style (no new
+   hex; existing tokens only).
+
+4. **Sovereign ProfileMe header stays minimal:** the quiet `npub` label + the monospace
+   middle-truncated chip + `CopyButton`, and **NO explainer line in the header**. The
+   teaching (the persistent description line) lives **only** in Settings.
+
 ## Context
 
 `/profile/me` prints a raw 63-char `npub1…` string directly under the display name
@@ -174,19 +211,30 @@ A new `<section className="set-form">` block on `/settings`, rendered for **both
 form (so the editable fields stay first; the read-only identity surface is last). Structure,
 mirroring the existing `set-field` pattern:
 
-- **Heading:** `<h2>Nostr identity</h2>` (the one sanctioned "nostr" placement).
-- **Field label:** `Your npub` (a `<label>`/labeled element so the bech32 string is never
-  unlabeled — AC-4). The npub renders as **read-only display text** (full string, mono,
-  `word-break` like `.me-npub`) — **not** an editable `<input>` (it is not editable; an input
-  would imply it can be changed). It is presented via a labeled element + the value, so a
-  role-scoped query can find it by its label.
-- **Explainer (one line, AC-4):** the pinned string in §4 below, in a `set-hint`-styled line.
-- **Copy control:** `<CopyButton value={user.npub} />` (full npub; default `"Copy"` label,
-  `aria-label="Copy your npub"`).
+Canonical layout, top to bottom (pinned by the Amendment, both tiers identical):
+
+- **Heading (on-page text):** `<h2>Nostr identity</h2>` (the one sanctioned "nostr"
+  placement).
+- **Persistent description line (on-page text, the explainer, AC-4):** the pinned string
+  in §4 below, rendered as visible DOM text in a `set-hint`-styled line. It is **always
+  visible** and **never a tooltip/`title` attribute** (Amendment §1). It sits directly
+  under the heading, before the chip.
+- **Field label (on-page text):** `Your npub` (a `<label>`/labeled element so the bech32
+  string is never unlabeled — AC-4).
+- **The npub value — read-only "code chip" (Amendment §2):** rendered as **read-only
+  display text**, **monospace**, showing the **middle-truncated** form
+  `shortNpub(user.npub)` (imported from `../lib/view-model`) — **not** an editable
+  `<input>` (it is not editable; an input would imply it can be changed) and **not** the
+  full 63-char string. It is presented via the labeled element + the truncated value, so a
+  role-scoped query finds it by its label.
+- **Copy control (inline, adjacent to the chip):** `<CopyButton value={user.npub} />` — the
+  **full** npub is what gets copied (default `"Copy"` label, `aria-label="Copy your npub"`),
+  even though the visible chip is the truncated form.
 
 Reuses `Settings.css` `set-form` / `set-field` / `set-hint` classes; adds at most a small
-class for the read-only npub display (mono + `word-break`, reusing `--font-mono`,
-`--u-muted`). **No new hex.** The existing Substack (Story 22) and custodial Display-name
+monospace **code-chip** class for the read-only npub display (mono via `--font-mono`,
+`--u-muted`, sitting inline next to the `CopyButton`). The chip class matches the sovereign
+header's chip treatment so both surfaces render identically (Amendment §2). **No new hex.** The existing Substack (Story 22) and custodial Display-name
 (Story 27b) forms are **untouched** (AC-6) — they keep their own `idle|saving|saved|error`
 state machines; the new section adds no write and no state machine.
 
@@ -206,24 +254,26 @@ keyed off the existing `user.email === null` check (no new data):
   went. It is one quiet link, slop-free, and it makes the relocation discoverable instead of
   invisible. (It is a `<Link to="/settings">`, matching the router idiom.)
 - **Sovereign (`user.email === null`):** render a **labeled, copyable** npub in the header
-  (AC-5). Treatment (resolves Open Question 4 to the PO's lean, **truncated + copyable**):
-  - A label so it is never bare (e.g. a visually-quiet `Nostr identity` / `npub` label, or the
-    `<CopyButton>`'s `aria-label` carrying the semantic — the Implementer renders a short
-    visible label such as `npub` next to the value; final micro-copy reviewed against the
-    no-slop file).
-  - The **displayed** value is the **truncated** form via `shortNpub(user.npub)` from
-    `view-model.ts` (matches the existing `AccountMenu` mental model and keeps the header
-    tight), rendered in the existing `.me-npub` mono style **without** the old `title`-only
-    tooltip.
-  - Beside it, `<CopyButton value={user.npub} />` — the **full** npub is copied even though a
-    truncated form is shown (the gate's explicit requirement). The full npub + explainer also
-    live in the Settings surface (§2), so the header stays compact while Settings is canonical.
+  (AC-5), minimal (Amendment §4 — no explainer line in the header). Treatment (resolves Open
+  Question 4 to **middle-truncated chip + copyable**, pinned by the Amendment):
+  - A quiet, **always-visible on-page** label `npub` beside the value (never a `title`-only
+    tooltip). It is never bare.
+  - The **displayed** value is the **monospace, middle-truncated** code chip via
+    `shortNpub(user.npub)` (imported from `../lib/view-model`) — the **same** chip treatment
+    as the Settings section (Amendment §2), rendered in the existing `.me-npub` mono style
+    **without** the old `title`-only tooltip.
+  - Inline beside it, `<CopyButton value={user.npub} />` — the **full** npub is copied even
+    though the truncated chip is shown (the gate's explicit requirement).
+  - **NO explainer / description line in the header** (Amendment §4). The teaching lives only
+    in the Settings "Nostr identity" section (§2); the header stays compact while Settings is
+    canonical.
 
-  **Justification (truncated-in-header):** a curator references their npub by recognizing its
-  head/tail and copying the whole thing; the full 63-char string under the name is the exact
-  visual noise this story fights. Truncated-display + full-copy gives recognition without the
-  wall of text, reuses the proven `shortNpub` treatment, and the canonical full string is one
-  click away in Settings.
+  **Justification (truncated chip in header, no explainer):** a curator references their npub by
+  recognizing its head/tail and copying the whole thing; the full 63-char string under the name
+  is the exact visual noise this story fights. Middle-truncated chip + full-copy gives recognition
+  without the wall of text, reuses the proven `shortNpub` treatment, and the canonical full string
+  + the one-line explanation are one click away in Settings — so the header carries no duplicated
+  teaching copy.
 
 ### 4. Pinned copy (reviewed against `memory/feedback_unbnd_copy_and_visual.md`)
 
@@ -311,20 +361,35 @@ text labels, never a timestamp).
   header (`expect(screen.queryByText(FULL_NPUB)).not.toBeInTheDocument()`), and that the
   discovery link `Manage your nostr identity` → `/settings` is present
   (`getByRole("link", { name: /manage your nostr identity/i })` with `href="/settings"`).
-- **Sovereign** (`user.email = null`): assert a **labeled, copyable** npub is in the header — the
-  truncated `shortNpub` display is present, the full raw 63-char string is **not** printed bare,
-  and a CopyButton (`getByRole("button", { name: /copy your npub/i })`) is present. Mock its
-  `writeText` and assert it copies the **full** npub.
-- Assert the old `title`-only `.me-npub` raw-string treatment is gone (no element whose text is
-  the full npub for custodial).
+- **Sovereign** (`user.email = null`): assert a **labeled, copyable** npub chip is in the header —
+  the **monospace, middle-truncated** `shortNpub` value is shown (assert the *truncated* string,
+  e.g. `npub1abcd…wxyz`, is present), the full raw 63-char string is **not** printed bare, and a
+  CopyButton (`getByRole("button", { name: /copy your npub/i })`) is present. Mock its `writeText`
+  and assert it copies the **full** npub (the truncated chip is shown, the FULL npub is copied —
+  Amendment §2).
+- **No explainer line in the sovereign header (Amendment §4):** assert the chip+Copy are present
+  but the persistent description/explainer line (the pinned §4 explainer string) does **NOT**
+  appear in the ProfileMe header (`expect(screen.queryByText(/This is your identity on nostr\./))
+  .not.toBeInTheDocument()` within the header) — the explainer lives only in Settings.
+- **No tooltip-only mechanism (Amendment §1):** assert the old `title`-only `.me-npub` raw-string
+  treatment is gone (no element whose text is the full npub for custodial; and for sovereign, the
+  label/value is real visible text, not a hover-only `title` attribute carrying the meaning).
 
 **Settings "Nostr identity" surface (extend `settings.test.tsx` / new
 `apps/web/test/routes/settings-nostr-identity.test.tsx`):**
 
-- For **both** tiers: assert the `Nostr identity` heading, the `Your npub` label, the npub value
-  rendered (full), the exact explainer copy present
-  (`getByText(/This is your identity on nostr\./)` — assert the pinned string), and a CopyButton
-  present that copies the full npub.
+- For **both** tiers, assert the canonical layout (Amendment §3): the `Nostr identity` heading,
+  the **persistent on-page description line** = the exact pinned explainer
+  (`getByText(/This is your identity on nostr\./)` — present as **visible DOM text**, not a
+  hover-only `title` attribute — Amendment §1), the `Your npub` label, the **monospace,
+  middle-truncated** npub chip rendered (assert the `shortNpub` truncated form is shown, **not**
+  the full 63-char string), and a CopyButton present.
+- **Truncated chip / full copy (Amendment §2):** mock `writeText` and assert the CopyButton copies
+  the **FULL** npub while the **visible** chip value is the middle-truncated `shortNpub` form.
+- **No tooltip carrying the explainer (Amendment §1):** assert the explainer is matched as visible
+  text via `getByText` (not via a `title`/hover attribute) — i.e. the meaning is in the DOM as
+  on-page text. A `?`/`Learn more` affordance, if ever added, is for secondary detail only and is
+  not the carrier of the primary explainer.
 - Assert the existing Substack field and (custodial) Display-name field still render unchanged
   (AC-6) — the new section does not break the existing role-scoped queries in `settings.test.tsx`
   / `settings-display-name.test.tsx`.
@@ -353,17 +418,31 @@ fails the test.
 
 - **`apps/web/src/routes/ProfileMe.tsx`** — replace lines 104–106 (the bare `.me-npub`) with the
   tier branch: custodial → the `Manage your nostr identity` `<Link to="/settings">`; sovereign →
-  a quiet `npub` label + `shortNpub(user.npub)` (imported from `../lib/view-model`) display +
-  `<CopyButton value={user.npub} />`. Import `CopyButton` and `shortNpub`.
+  a quiet on-page `npub` label + the **monospace middle-truncated chip** `shortNpub(user.npub)`
+  (imported from `../lib/view-model`) + inline `<CopyButton value={user.npub} />`, and **NO
+  explainer line** (Amendment §4). Drop the old `title` attribute. Import `CopyButton` and
+  `shortNpub`.
 - **`apps/web/src/routes/ProfileMe.css`** — adjust/repurpose `.me-npub` (drop the bare-string
-  assumption; add a small wrapper class for the labeled sovereign npub + copy row, and a muted
-  link class for the custodial discovery link). Existing tokens only.
+  assumption; add a small wrapper class for the labeled sovereign npub chip + copy row, and a
+  muted link class for the custodial discovery link). The chip is mono via `--font-mono`; reuse
+  the same code-chip treatment as Settings (Amendment §2). Existing tokens only.
 - **`apps/web/src/routes/Settings.tsx`** — add the `Nostr identity` `<section className="set-form">`
-  block (both tiers) after the existing forms: `<h2>Nostr identity</h2>`, a `set-field` with the
-  `Your npub` label + read-only npub display + `set-hint` explainer + `<CopyButton value={user.npub} />`.
-  Import `CopyButton`. No new state, no write, no API call.
-- **`apps/web/src/routes/Settings.css`** — add at most a small read-only-npub display class (mono +
-  `word-break`, reusing `--font-mono` / `--u-muted`). No new hex.
+  block (both tiers) after the existing forms, in the canonical order (Amendment §3):
+  `<h2>Nostr identity</h2>` → the persistent on-page `set-hint` explainer line → a `set-field`
+  with the `Your npub` label + the read-only **monospace middle-truncated chip**
+  `shortNpub(user.npub)` + inline `<CopyButton value={user.npub} />`. Import `CopyButton` and
+  `shortNpub` (from `../lib/view-model`). No new state, no write, no API call.
+- **`apps/web/src/routes/Settings.css`** — add a small monospace **code-chip** class for the
+  read-only npub display (mono via `--font-mono`, `--u-muted`, sized inline next to the
+  `CopyButton`), matching the ProfileMe chip treatment. No new hex.
+
+**`shortNpub` ripple (Implementer/Tester note):** `shortNpub` (`view-model.ts` lines 57–61) already
+produces the **middle-truncated** form (`npub1abcd…wxyz`), so it is reused as-is — **no new helper,
+no change to `view-model.ts`**. Both the Settings section and the sovereign ProfileMe header import
+it so the chip renders identically. The `AccountMenu` private `shortNpub` duplicate stays un-deduped
+(out of scope). **CSS-token ripple:** the only new style is the small monospace code-chip class
+(added to both `ProfileMe.css` and `Settings.css`, or a shared class) built on existing tokens
+(`--font-mono`, `--u-muted`); no new hex, no new token.
 
 ### Existing tests the Tester must migrate (note for Test Design — Tester-owned, not Implementer)
 
