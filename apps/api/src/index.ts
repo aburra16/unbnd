@@ -23,6 +23,8 @@ import { buildSubmissionsRouter } from "./routes/submissions";
 import { publishEvent, publishToMany } from "./nostr/publish";
 import { publishPublicRelayKind } from "./nostr/publish-public-relay-kind";
 import { fetchRawKind0, fetchRawKind3 } from "./nostr/profile";
+import { bootstrapCustodialKind0 } from "./profile/bootstrap-kind0";
+import { reconcileCustodialKind0 } from "./profile/reconcile-kind0";
 import { distinctFollowCount } from "./profile/follow-count";
 import { withUpSync } from "./nostr/propagate";
 import { resolveTrustProvider } from "./trust";
@@ -79,6 +81,67 @@ async function main() {
 
   const app = express();
   app.use(express.json({ limit: "256kb" }));
+
+  // --- kind-0 write seams, constructed BEFORE buildAuthRouter so the signup
+  // bootstrap + login reconciliation (ADR 0027) can use them. The publisher and
+  // the custodial signer were defined further down (for ratings/profile writes)
+  // today; we hoist them here so the auth deps can reference them. The shared
+  // `userEventDeps` below reuses these same `publish`/`publishKind0`/sign fns.
+
+  // Write path (ADR 0011): local relay is the source of truth + read path.
+  // When dcosl propagation is configured, accepted writes are also dual-
+  // published to dcosl best-effort (off the critical path); the up-sync cron
+  // is the durability backstop.
+  const localPublish = (event: SignedNostrEvent) =>
+    publishEvent(config.strfryUrl, event);
+  const publish =
+    config.propagateWrites && config.dcoslRelayUrl
+      ? withUpSync(
+          localPublish,
+          (event: SignedNostrEvent) =>
+            publishEvent(config.dcoslRelayUrl as string, event),
+          (reason, id) =>
+            console.warn(`[upsync] dcosl publish failed id=${id}: ${reason}`),
+        )
+      : localPublish;
+
+  // kind-0 profile publisher (ADR 0022, F2-A). Distinct from the shared
+  // `publish` (local + dcosl): kind-0 lives on the public profile relays, so we
+  // publish to the LOCAL relay first (gates the response + read-back), then fan
+  // out best-effort to `config.profileRelays` (which already includes the four
+  // public relays + dcosl). The fan-out is fire-and-forget — a public-relay
+  // failure never fails the user's save. NEVER dcosl (which rejects kind-0).
+  const publishKind0 = async (event: SignedNostrEvent) => {
+    const local = await publishEvent(config.strfryUrl, event);
+    if (local.ok && config.profileRelays && config.profileRelays.length > 0) {
+      void publishToMany(config.profileRelays, event).then((rs) =>
+        rs.forEach(
+          (r) =>
+            !r.ok &&
+            // eslint-disable-next-line no-console
+            console.warn(`[profile-publish] ${r.reason}`),
+        ),
+      );
+    }
+    return local;
+  };
+
+  // Custodial server-signing via the ephemeral wrap (ADR 0006). Returns null on
+  // NoSessionKeyError (post-restart / evicted) so callers degrade gracefully.
+  const custodialSign = async (
+    sessionIdHex: string,
+    template: Parameters<typeof finalizeEvent>[0],
+  ) => {
+    try {
+      return await useSessionKey(
+        sessionIdHex,
+        (secret) => finalizeEvent(template, secret) as SignedNostrEvent,
+      );
+    } catch (err) {
+      if (err instanceof NoSessionKeyError) return null; // restart/evicted
+      throw err;
+    }
+  };
 
   app.use(
     "/",
@@ -137,6 +200,22 @@ async function main() {
             secret.fill(0);
           }
         }
+        // Custodial kind-0 bootstrap (ADR 0027, AC-1/3/4). After the DB commit
+        // AND after the session key is wrapped, publish a name-bearing kind-0 so
+        // the chosen displayName resolves immediately. Fully swallowed: a throw
+        // or a failed publish must NEVER roll back the account or fail the 201.
+        try {
+          await bootstrapCustodialKind0(
+            { sign: custodialSign, publishKind0, now: () => Math.floor(Date.now() / 1000) },
+            {
+              displayName: input.displayName,
+              sessionIdHex: tokenToId(user.session.token).toString("hex"),
+            },
+          );
+        } catch (err) {
+          // eslint-disable-next-line no-console
+          console.warn("[kind0-bootstrap] signup wiring swallowed error", err);
+        }
         return {
           user: toPublicUser(user.row),
           token: user.session.token,
@@ -167,6 +246,29 @@ async function main() {
           // §8.2: wrap the just-decrypted nsec under the process-local
           // ephemeral key, bound to this session, for server-side signing.
           rememberSessionKey(tokenToId(session.token).toString("hex"), secret);
+          // Custodial kind-0 reconciliation (ADR 0027, AC-5). Best-effort, only
+          // for custodial users: repair a missing or name-less kind-0 seeded from
+          // the DB displayName. Never blocks or fails login — fully swallowed.
+          if (row.tier === "custodial") {
+            try {
+              await reconcileCustodialKind0(
+                {
+                  fetchRaw: (hex) => fetchRawKind0(config.profileRelays ?? [], hex),
+                  sign: custodialSign,
+                  publishKind0,
+                  now: () => Math.floor(Date.now() / 1000),
+                },
+                {
+                  displayName: row.displayName,
+                  pubkeyHex: row.pubkeyHex,
+                  sessionIdHex: tokenToId(session.token).toString("hex"),
+                },
+              );
+            } catch (err) {
+              // eslint-disable-next-line no-console
+              console.warn("[kind0-reconcile] login wiring swallowed error", err);
+            }
+          }
           return {
             user: toPublicUser(row),
             token: session.token,
@@ -210,43 +312,8 @@ async function main() {
     }),
   );
 
-  // Write path (ADR 0011): local relay is the source of truth + read path.
-  // When dcosl propagation is configured, accepted writes are also dual-
-  // published to dcosl best-effort (off the critical path); the up-sync cron
-  // is the durability backstop.
-  const localPublish = (event: SignedNostrEvent) =>
-    publishEvent(config.strfryUrl, event);
-  const publish =
-    config.propagateWrites && config.dcoslRelayUrl
-      ? withUpSync(
-          localPublish,
-          (event: SignedNostrEvent) =>
-            publishEvent(config.dcoslRelayUrl as string, event),
-          (reason, id) =>
-            console.warn(`[upsync] dcosl publish failed id=${id}: ${reason}`),
-        )
-      : localPublish;
-
-  // kind-0 profile publisher (ADR 0022, F2-A). Distinct from the shared
-  // `publish` (local + dcosl): kind-0 lives on the public profile relays, so we
-  // publish to the LOCAL relay first (gates the response + read-back), then fan
-  // out best-effort to `config.profileRelays` (which already includes the four
-  // public relays + dcosl). The fan-out is fire-and-forget — a public-relay
-  // failure never fails the user's save.
-  const publishKind0 = async (event: SignedNostrEvent) => {
-    const local = await publishEvent(config.strfryUrl, event);
-    if (local.ok && config.profileRelays && config.profileRelays.length > 0) {
-      void publishToMany(config.profileRelays, event).then((rs) =>
-        rs.forEach(
-          (r) =>
-            !r.ok &&
-            // eslint-disable-next-line no-console
-            console.warn(`[profile-publish] ${r.reason}`),
-        ),
-      );
-    }
-    return local;
-  };
+  // (`publish` + `publishKind0` are constructed above buildAuthRouter so the
+  // signup bootstrap + login reconciliation can reference them — ADR 0027.)
 
   // kind-3 contact-list publisher (ADR 0023, F2-A): the same public-relay
   // propagation model as kind-0, built from the injected primitive — local
@@ -283,6 +350,8 @@ async function main() {
       id: resolved.user.id,
       pubkeyHex: resolved.user.pubkeyHex,
       tier: resolved.user.tier,
+      // Threaded as the kind-0 name floor for the Substack write (ADR 0027, AC-7).
+      displayName: resolved.user.displayName,
     };
   };
 
@@ -298,20 +367,8 @@ async function main() {
     queryPaged: (filter: Parameters<typeof queryEventsPaged>[1]) =>
       queryEventsPaged(config, filter),
     trust,
-    custodialSign: async (
-      sessionIdHex: string,
-      template: Parameters<typeof finalizeEvent>[0],
-    ) => {
-      try {
-        return await useSessionKey(
-          sessionIdHex,
-          (secret) => finalizeEvent(template, secret) as SignedNostrEvent,
-        );
-      } catch (err) {
-        if (err instanceof NoSessionKeyError) return null; // restart/evicted
-        throw err;
-      }
-    },
+    // The same custodial signer hoisted above buildAuthRouter (ADR 0027).
+    custodialSign,
   };
 
   app.use("/", buildBooksRouter({ config, query: userEventDeps.query }));
