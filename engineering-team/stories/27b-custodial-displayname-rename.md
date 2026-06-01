@@ -3,7 +3,7 @@
 **Status:** Draft
 **Created:** 2026-05-31
 **Type:** Feature
-**Depends on:** Story 27 (`engineering-team/stories/27-custodial-kind0-bootstrap.md`) — the shared `buildProfileKind0Content` seam, `publishKind0`, `fetchRawKind0`, and the custodial server-signing wrap.
+**Depends on:** Story 27 (`engineering-team/stories/done/27-custodial-kind0-bootstrap.md`) — the shared `buildProfileKind0Content` seam, `publishKind0`, `fetchRawKind0`, and the custodial server-signing wrap.
 
 > **Origin: gate decision (2026-05-31).** This story is the carved-out AC-6 of Story 27. Story 27 ships the signup bootstrap, login reconciliation, and the shared kind-0 builder (with the `nameFloor` Substack fix); 27b adds the **rename** surface on top of that seam. See ADR 0027 (`engineering-team/decisions/0027-custodial-kind0-bootstrap.md`) Amendment note and its Decision §6 / "Deferred to Story 27b" implementation subsection.
 
@@ -86,7 +86,7 @@ This story is intentionally thin: it is **the endpoint + the DB update + the UI 
 
 ## Linked artifacts
 - ADR: `engineering-team/decisions/0027-custodial-kind0-bootstrap.md` (Amendment note + Decision §6 + the "Deferred to Story 27b" implementation subsection).
-- Parent story: `engineering-team/stories/27-custodial-kind0-bootstrap.md` (the builder seam this reuses; ships ACs 1–5, 7, 8).
+- Parent story: `engineering-team/stories/done/27-custodial-kind0-bootstrap.md` (the builder seam this reuses; ships ACs 1–5, 7, 8).
 - Model for the route shape: `engineering-team/stories/done/22-substack-set.md` and `apps/api/src/routes/profile-substack.ts` (tier-branched custodial write + injected `publish`/`fetchRaw`/`custodialSign`).
 - Test plan: (filled in after Test Design phase)
 - Review: (filled in after Review phase)

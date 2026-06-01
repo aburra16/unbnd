@@ -1,8 +1,8 @@
 # ADR 0027: Custodial kind-0 bootstrap — publish a name-bearing profile at signup
 
-**Status:** Proposed
+**Status:** Accepted
 **Date:** 2026-05-31
-**Story:** `engineering-team/stories/27-custodial-kind0-bootstrap.md`
+**Story:** `engineering-team/stories/done/27-custodial-kind0-bootstrap.md`
 
 > **Amendment (2026-05-31, gate decision): AC-6 rename split to Story 27b.**
 > Per the PO gate, the **display-name RENAME → kind-0 re-publish** surface (AC-6) is

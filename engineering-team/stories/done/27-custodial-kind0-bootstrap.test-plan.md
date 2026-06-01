@@ -1,6 +1,6 @@
 # Test Plan: Story 27 — Custodial kind-0 bootstrap
 
-**Story:** `engineering-team/stories/27-custodial-kind0-bootstrap.md`
+**Story:** `engineering-team/stories/done/27-custodial-kind0-bootstrap.md`
 **ADR:** `engineering-team/decisions/0027-custodial-kind0-bootstrap.md` (amended at commit `0eb7241` — AC-6 split to 27b)
 **Date:** 2026-05-31
 **Scope:** 7 active ACs — 1, 2, 3, 4, 5, 7, 8. (Former AC-6 rename surface is DEFERRED to Story 27b and is NOT tested here.)
