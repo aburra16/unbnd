@@ -149,6 +149,43 @@ describe("mergeSubstack — clear (AC-4)", () => {
   });
 });
 
+describe("mergeSubstack — name-floor (Story 27 AC-7)", () => {
+  // ADR 0027 Decision 3: mergeSubstack now delegates to buildProfileKind0Content,
+  // carrying the DB displayName as the `nameFloor`. The first-ever Substack write
+  // for a custodial user (no prior kind-0) must carry BOTH the name (from the
+  // floor) AND the substack — the latent "website-but-no-name" bug is gone.
+  // The new optional third arg is the nameFloor.
+
+  it("first Substack write with no prior kind-0 carries BOTH the name (from floor) AND substack (AC-7)", () => {
+    const merged = mergeSubstack(null, "https://mira.substack.com", "Mira Calloway");
+    expect(merged.name).toBe("Mira Calloway");
+    expect(merged.display_name).toBe("Mira Calloway");
+    expect(merged.substack).toBe("https://mira.substack.com");
+  });
+
+  it("the floor does NOT clobber an existing name in the raw content (merge-preserve still holds)", () => {
+    const merged = mergeSubstack(
+      { name: "mira-on-relay", display_name: "mira-on-relay", lud16: "m@w" },
+      "https://mira.substack.com",
+      "DB Floor Name",
+    );
+    expect(merged.name).toBe("mira-on-relay");
+    expect(merged.display_name).toBe("mira-on-relay");
+    expect(merged.substack).toBe("https://mira.substack.com");
+    expect(merged.lud16).toBe("m@w");
+  });
+
+  it("a 'clear' with a nameFloor still removes substack but keeps/sets the floored name", () => {
+    const merged = mergeSubstack(
+      { substack: "https://old.substack.com" },
+      "clear",
+      "Mira Calloway",
+    );
+    expect(merged).not.toHaveProperty("substack");
+    expect(merged.name).toBe("Mira Calloway");
+  });
+});
+
 describe("buildKind0Template (AC-1/2/6)", () => {
   it("builds a kind-0 template with stringified content, empty tags, and the given created_at", () => {
     const content = { name: "mira", substack: "https://mira.substack.com" };

@@ -27,6 +27,8 @@ export type SessionUser = {
   readonly id: string;
   readonly pubkeyHex: string;
   readonly tier: string;
+  /** The DB displayName, threaded as the kind-0 name floor (ADR 0027, AC-7). */
+  readonly displayName?: string;
 };
 
 export type ProfileSubstackDeps = {
@@ -91,7 +93,7 @@ export function buildProfileSubstackRouter(deps: ProfileSubstackDeps): Router {
       }
 
       const { content, createdAt } = await deps.fetchRaw(user.pubkeyHex);
-      const merged = mergeSubstack(content, url);
+      const merged = mergeSubstack(content, url, user.displayName);
       const template = buildKind0Template(merged, nextCreatedAt(createdAt));
       res.status(200).json({ template });
     } catch (err) {
@@ -126,7 +128,7 @@ export function buildProfileSubstackRouter(deps: ProfileSubstackDeps): Router {
         }
 
         const { content, createdAt } = await deps.fetchRaw(user.pubkeyHex);
-        const merged = mergeSubstack(content, url);
+        const merged = mergeSubstack(content, url, user.displayName);
         const template = buildKind0Template(merged, nextCreatedAt(createdAt));
 
         if (!deps.custodialSign) {

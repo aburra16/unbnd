@@ -3,7 +3,16 @@
 // error, a light URL check matching the Story-20 read side, a clone-not-mutate
 // merge that touches ONLY the `substack` key, and a flat kind-0 template build
 // (NOT `toWireTemplate` — kind-0 content is the metadata JSON and tags is []).
-import type { NostrEventTemplate } from "@unbnd/schemas";
+//
+// ADR 0027 (Decision 3): `mergeSubstack` now delegates to the shared
+// `buildProfileKind0Content` seam and accepts a `nameFloor` — the DB displayName
+// threaded through by the route — so the first-ever Substack write for a
+// custodial user (no prior kind-0) carries BOTH the name (from the floor) AND
+// the substack. The latent "website-but-no-name" outcome is gone (AC-7).
+// `buildKind0Template` is the single template builder, lifted to `kind0.ts`.
+import { buildProfileKind0Content, buildKind0Template } from "./kind0";
+
+export { buildKind0Template };
 
 export type SubstackErrorCode = "invalid_url";
 
@@ -47,32 +56,16 @@ export function validateSubstackUrl(input: unknown): string | "clear" {
  * field. `"clear"` deletes the key entirely (never "" or null). null content
  * (custodial with no kind-0 yet) starts from a fresh `{}`. The input object is
  * never mutated.
+ *
+ * Delegates to the shared `buildProfileKind0Content` seam (ADR 0027). When
+ * `nameFloor` is supplied AND the merged content has no resolvable name, the
+ * floor fills BOTH `name` and `display_name` — fixing the latent
+ * "website-but-no-name" first-write (AC-7). An existing name is never clobbered.
  */
 export function mergeSubstack(
   rawContent: Record<string, unknown> | null,
   url: string | "clear",
+  nameFloor?: string,
 ): Record<string, unknown> {
-  const result: Record<string, unknown> = { ...(rawContent ?? {}) };
-  if (url === "clear") {
-    delete result.substack;
-  } else {
-    result.substack = url;
-  }
-  return result;
-}
-
-/**
- * Build the unsigned kind-0 template from merged content. Flat metadata JSON,
- * empty tags — NOT a DList payload, so no `["json", …]` tag.
- */
-export function buildKind0Template(
-  content: Record<string, unknown>,
-  createdAt: number,
-): NostrEventTemplate {
-  return {
-    kind: 0,
-    created_at: createdAt,
-    content: JSON.stringify(content),
-    tags: [],
-  };
+  return buildProfileKind0Content(rawContent, { substack: url }, nameFloor);
 }
