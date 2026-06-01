@@ -118,7 +118,7 @@ describe("RatingControl — AC-1/AC-2: surfaces the user's own rating", () => {
     expect(screen.getByRole("textbox")).toHaveValue("A quiet marvel.");
     // A quiet date line, sourced from reviewDate (no Date.now in the assertion).
     expect(screen.getByText(/you rated this on/i)).toBeInTheDocument();
-    expect(screen.getByText(/2026-05-20/)).toBeInTheDocument();
+    expect(screen.getByText(/May 20, 2026/)).toBeInTheDocument();
   });
 
   it("signed-in + not-rated: empty interactive control, no date line, no filled own-stars", async () => {
@@ -143,7 +143,7 @@ describe("RatingControl — AC-3: 'Your rating' zone is identical under House an
     });
     const houseRender = renderControl({ yourRating: MY_RATING });
     expect(await screen.findByRole("button", { name: /rate 4 of 5/i })).toHaveAttribute("aria-pressed", "true");
-    expect(screen.getByText(/2026-05-20/)).toBeInTheDocument();
+    expect(screen.getByText(/May 20, 2026/)).toBeInTheDocument();
     expect(screen.getByRole("textbox")).toHaveValue("A quiet marvel.");
     houseRender.unmount();
 
@@ -155,7 +155,7 @@ describe("RatingControl — AC-3: 'Your rating' zone is identical under House an
     });
     renderControl({ yourRating: MY_RATING });
     expect(await screen.findByRole("button", { name: /rate 4 of 5/i })).toHaveAttribute("aria-pressed", "true");
-    expect(screen.getByText(/2026-05-20/)).toBeInTheDocument();
+    expect(screen.getByText(/May 20, 2026/)).toBeInTheDocument();
     expect(screen.getByRole("textbox")).toHaveValue("A quiet marvel.");
   });
 });
@@ -166,8 +166,9 @@ describe("RatingControl — AC-4: prefill + calm 'Update rating' framing, no mod
     renderControl({ yourRating: MY_RATING });
     expect(await screen.findByRole("button", { name: /update rating/i })).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /^submit rating$/i })).not.toBeInTheDocument();
-    // Exact calm copy (no em dash, no rhetorical contrast, no emoji).
-    expect(screen.getByText("You rated this on 2026-05-20. Saving will update it.")).toBeInTheDocument();
+    // Exact calm copy: human-formatted date, no second sentence (the prefilled
+    // stars + the "Update rating" button already signal this is an edit).
+    expect(screen.getByText("You rated this on May 20, 2026.")).toBeInTheDocument();
     // Changing the score must NOT pop a confirm/overwrite modal (calm, in-place).
     fireEvent.click(screen.getByRole("button", { name: /rate 5 of 5/i }));
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
