@@ -97,7 +97,7 @@ describe("Settings — display-name field, custodial (AC-5)", () => {
     });
     profileMetaMock.mockReturnValue({ npub: NPUB, name: "Mira" });
     renderSettings();
-    const input = (await screen.findByLabelText(/display name/i)) as HTMLInputElement;
+    const input = (await screen.findByRole("textbox", { name: /display name/i })) as HTMLInputElement;
     expect(input.value).toBe("Mira");
   });
 
@@ -109,7 +109,7 @@ describe("Settings — display-name field, custodial (AC-5)", () => {
     });
     profileMetaMock.mockReturnValue({ npub: NPUB }); // no name resolved
     renderSettings();
-    const input = (await screen.findByLabelText(/display name/i)) as HTMLInputElement;
+    const input = (await screen.findByRole("textbox", { name: /display name/i })) as HTMLInputElement;
     expect(input.value).toBe("Mira"); // session displayName seed
   });
 
@@ -123,7 +123,7 @@ describe("Settings — display-name field, custodial (AC-5)", () => {
     setDisplayNameMock.mockResolvedValue({ displayName: "Mira Reborn" });
 
     renderSettings();
-    const input = await screen.findByLabelText(/display name/i);
+    const input = await screen.findByRole("textbox", { name: /display name/i });
     fireEvent.change(input, { target: { value: "Mira Reborn" } });
     // The display-name field's own save control (not the Substack Save).
     fireEvent.click(screen.getByRole("button", { name: /save display name/i }));
@@ -146,7 +146,7 @@ describe("Settings — display-name field, custodial (AC-5)", () => {
     setDisplayNameMock.mockRejectedValue(new Error("boom"));
 
     renderSettings();
-    const input = await screen.findByLabelText(/display name/i);
+    const input = await screen.findByRole("textbox", { name: /display name/i });
     fireEvent.change(input, { target: { value: "Mira Reborn" } });
     fireEvent.click(screen.getByRole("button", { name: /save display name/i }));
 
@@ -164,7 +164,7 @@ describe("Settings — display-name field hidden for sovereign (AC-6)", () => {
     profileMetaMock.mockReturnValue({ npub: NPUB, name: "Reader" });
     renderSettings();
     // The page renders (Substack field is there), but no display-name input.
-    await screen.findByLabelText(/substack/i);
+    await screen.findByRole("textbox", { name: /substack/i });
     expect(screen.queryByLabelText(/display name/i)).not.toBeInTheDocument();
   });
 });
@@ -178,7 +178,7 @@ describe("Settings — display-name copy passes the no-slop rule (AC-5)", () => 
     });
     profileMetaMock.mockReturnValue({ npub: NPUB, name: "Mira" });
     const { container } = renderSettings();
-    await screen.findByLabelText(/display name/i);
+    await screen.findByRole("textbox", { name: /display name/i });
     const text = container.textContent ?? "";
     // No em dash (the LLM tell banned by the copy rule).
     expect(text).not.toContain("—");
