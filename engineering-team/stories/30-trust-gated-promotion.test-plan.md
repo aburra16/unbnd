@@ -27,6 +27,10 @@ Every test is fixture/DI-driven and deterministic, mirroring how the Story 25 tr
 | AC-8 (built/verified against the fixture provider in CI; no Brainstorm leak) | the whole API suite runs with the `FixtureTrustProvider` and no relay; the ADR-0014 guard stays green (`apps/api/test/trust/architecture.test.ts`) | all of the above + existing guard | CI |
 | Amendment — `submitted-by` provenance (additive `BookRecord` field) | `emits exactly one ['submitted-by', <hex>] tag when submittedBy is set, hex on the wire`; `emits NO submitted-by tag when submittedBy is unset (seeded-record shape preserved)`; payload null/hex; `round-trips submittedBy when set`; `yields no submittedBy for a record with no submitted-by tag` | `packages/schemas/test/BookRecord.test.ts` | unit |
 | Gate decision 2 — `LIBRARIAN_NSEC` never on the API | `the string LIBRARIAN_NSEC appears nowhere under apps/api/src` | `apps/api/test/security/no-librarian-nsec-in-api.test.ts` | guard |
+| **Remediation §3b — enriched `GET /api/submissions`: `canPromote` (USER-level, once)** | `above-gate session → canPromote:true, stamped identically on EVERY row`; `below-gate session → false`; `anon → false`; `canPromote is computed ONCE per request: trust.weights hit once, NOT once-per-row`; fail-closed (no provider / no observer / empty map / THROWING seam) → false, route still 200 (never 500) | `apps/api/test/routes/submissions-list-enriched.test.ts` | integration (REAL list route + fixture trust) |
+| **Remediation §3b — enriched `GET /api/submissions`: `promotionStatus` (batched, one read)** | `each row reflects the injected readPromotionStatuses map; absent slug → null`; `readPromotionStatuses is called ONCE with the BATCH of listed slugs (not N times)`; `route still 200s when readPromotionStatuses is absent (status degrades to null)` | `apps/api/test/routes/submissions-list-enriched.test.ts` | integration |
+| **Remediation §3b — enriched `GET /api/submissions`: `signals` (computed / honest null)** | `a row with an above-gate rater carries real computed signals; no raw GrapeRank leaks`; `a row with no trusted rater → signals: null`; `trust degrade (no provider) → signals: null on every row, route still 200` | `apps/api/test/routes/submissions-list-enriched.test.ts` | integration |
+| **Remediation §6 — web mock sourced from the REAL list-response TYPE (closes the masking gap)** | the `list` mock + the row factory are typed against the real `SubmittedBook` (imported from `apps/web/src/lib/api.ts`) with the three Story-30 fields made REQUIRED, so a fixture that drops `canPromote`/`promotionStatus`/`signals` fails at the TYPE level (`tsc`), not silently renders nothing. Existing rendering assertions kept (Promote gated on `canPromote`; status/signals render) | `apps/web/test/routes/community-submissions-promote.test.tsx` | component (type-tied) |
 
 ## How specific hard requirements are asserted
 
@@ -123,6 +127,80 @@ FAIL community-submissions-promote.test.tsx > renders the honest 'no trusted sig
 ✓ submissions-submitter-link.test.tsx (4 tests)
 ```
 
+## Remediation (2026-06-01) — the B1 masking gap: enriched `GET /api/submissions` contract
+
+The original gate/queue/worker/signals tests above all passed once the Implementer landed
+the `POST /promote` + `/:slug/signals` routes. But CHANGES_REQUESTED found Story 30 was **not
+wired end-to-end**: the REAL `GET /api/submissions` list handler returns only the bare
+`toSubmission` fields and **never produces** the `canPromote`/`promotionStatus`/`signals` the
+web renders per row; the web tests masked it by feeding **pre-enriched, untyped mock rows**.
+This remediation adds the **load-bearing real-list-endpoint test** + closes the web masking
+gap. **Tests only — no production code.**
+
+### New API test — the real list endpoint must enrich each row
+
+`apps/api/test/routes/submissions-list-enriched.test.ts` (new, 14 tests) drives the REAL
+`GET /api/submissions` handler via `buildSubmissionsRouter` with the fixture `TrustProvider`,
+a fake `sessionUser`, a fake `query` (dispatches: list read on `#z:[book-submissions]` → the
+submission events; per-row signals read on `#a:[39999:<lib>:<slug>]` → that slug's ratings),
+and a **fake injected `readPromotionStatuses(slugs) => Promise<Map<slug,status>>`** — the new
+batched DB seam (mirrors `enqueuePromotion`; not yet on `SubmissionsDeps`, which IS the gap).
+
+**AC ↔ contract mapping (the three enriched fields):**
+- **`canPromote` (AC-1/AC-3/AC-6)** — USER-level, computed ONCE from
+  `weights(houseObserverHex,[sessionUserHex]) >= curatorThreshold` (same fail-closed degrade
+  as the promote gate). `true` above-gate / `false` below / `false` anon / `false` on every
+  degrade (no provider / no observer / empty map / THROWING seam), route still 200 (never
+  500). **Stamped identically on every row.**
+- **`promotionStatus` (AC-7)** — per row from the injected `readPromotionStatuses` map
+  (`done`/`pending`/absent→null); the read is the SINGLE batched `WHERE slug = ANY(...)`.
+- **`signals` (AC-2/AC-6)** — per row via `computeSubmissionSignals` from the house vantage
+  (real `curatorRatingCount`/`curators`/`trustedAverage`), honest `null` when none/degraded;
+  no raw GrapeRank weight on the wire.
+
+**The two pinned anti-fanout assertions:**
+- *canPromote computed once* — `vi.spyOn(trust,"weights")`; filter the spy's calls to those
+  whose target array includes the session user's hex; assert that subset has length **1**
+  (the user-level gate is resolved once, NOT once-per-row).
+- *promotionStatus batched once* — `expect(readPromotionStatuses).toHaveBeenCalledTimes(1)`
+  and the single call's `slugs` arg equals the page's listed slugs (sorted-equal), NOT N
+  per-row calls.
+
+### Web fix — type-tie the mock to the real list-response shape (closes the masking gap)
+
+`apps/web/test/routes/community-submissions-promote.test.tsx`: imported the real
+`SubmittedBook` type from `apps/web/src/lib/api.ts` and defined `ListSubmission = SubmittedBook
+& { canPromote: boolean; promotionStatus: string | null; signals: SubmittedBook["signals"] }`
+(the three Story-30 fields made **required**) + `ListResponse = { submissions: ListSubmission[]
+}`. The row factory now returns `ListSubmission`, and every `listMock.mockResolvedValue(...)` is
+wrapped in `resolveList(r: ListResponse): ListResponse`. **Why it now catches the contract:** the
+shipped `SubmittedBook` carries the three fields *optional* (additive), so the old untyped
+factory let a row silently omit them while the server never produced them — exactly the mask.
+Requiring them in the test fixture makes a dropped server field a **`tsc` error**
+(verified: deleting `canPromote` from the factory yields `TS2322: Type 'undefined' is not
+assignable to type 'boolean'`), not a silent no-render. All existing rendering assertions are
+kept (Promote gated on `canPromote`; status/signals render; "added by" credit). The web suite
+stays GREEN (239) and `tsc --noEmit` is clean — the tightening is type-level, the runtime
+behavior is unchanged.
+
+### Confirmed RED for the right reasons (post-remediation, `pnpm -r test`)
+
+`apps/api` — `11 failed | 587 passed | 10 skipped` — the 11 reds are ALL in the new
+`submissions-list-enriched.test.ts`; the bare handler returns `canPromote`/`promotionStatus`/
+`signals` as **undefined** and there is **no `readPromotionStatuses` seam**, so:
+- `canPromote` asserts → `expected undefined to be true|false`,
+- `promotionStatus` asserts → `expected undefined to be 'done'`; `expected "spy" to be called
+  1 times, but got 0 times` (the seam is never wired/called),
+- `signals` asserts → `Cannot read properties of undefined (reading 'curatorRatingCount')`.
+
+Not test bugs — "field not produced / seam not wired." The 3 of 14 that PASS are the honest-
+degrade `?? null` cases (no-provider signals→null; absent-seam status→null) the bare handler
+satisfies trivially; they pin the degrade posture and go green when the seam lands too. All
+587 other API tests stay green (incl. `submissions.test.ts`, `submissions-promote.test.ts`,
+`submissions-signals.test.ts`, the ADR-0014 architecture guard, the `no-librarian-nsec-in-api`
+guard). Other packages: schemas 78, promoter 11, seeder 12, indexer 6, search 11, web 239 —
+all GREEN. API + web typecheck clean.
+
 ## Test file inventory
 
 | File | New/Migrated | Tests |
@@ -133,7 +211,10 @@ FAIL community-submissions-promote.test.tsx > renders the honest 'no trusted sig
 | `apps/api/test/security/no-librarian-nsec-in-api.test.ts` | new (guard) | 1 (green, must-stay-green) |
 | `apps/promoter/test/build.test.ts` | new | 5 (red — import) |
 | `apps/promoter/test/consume-loop.test.ts` | new | 8 (red — import) |
-| `apps/web/test/routes/community-submissions-promote.test.tsx` | new | 9 (4 red, 5 green) |
+| `apps/web/test/routes/community-submissions-promote.test.tsx` | new (now **type-tied** to the real `SubmittedBook` list shape — remediation) | 9 (4 red, 5 green) |
 | `apps/promoter/{package.json,tsconfig.json,vitest.config.ts}` | new scaffolding (NOT prod src) | — |
+| `apps/api/test/routes/submissions-list-enriched.test.ts` | **new (remediation §3b — the load-bearing real-list-endpoint test)** | 14 (11 red, 3 green) |
 
-**New assertions added: 47** (across 7 test files). Reds at this gate: 3 (schemas) + 19 (api) + 13 (promoter) + 4 (web) = 39.
+**New assertions added: 47** (across 7 test files). Reds at the original gate: 3 (schemas) + 19 (api) + 13 (promoter) + 4 (web) = 39.
+
+**Remediation (2026-06-01) red gate:** 11 (api, all in `submissions-list-enriched.test.ts`) — the rest of the repo green; the web masking gap is closed by type-tying the mock to the real list-response shape (no new red, but a dropped server field is now a `tsc` failure).

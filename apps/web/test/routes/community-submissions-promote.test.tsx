@@ -16,6 +16,14 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { CommunitySubmissions } from "../../src/routes/CommunitySubmissions";
+// Source the row shape from the REAL list-response contract (ADR 0031 §3b
+// remediation). The masking gap was that the mock rows were untyped, so they
+// could omit `canPromote`/`promotionStatus`/`signals` silently while the server
+// never produced them. Typing the factory + the `list` mock against the real
+// `SubmittedBook` (the type `api.submissions.list()` returns) pins the mock to the
+// server contract: a row missing a server field now fails at the type level, not
+// silently rendering nothing.
+import type { SubmittedBook } from "../../src/lib/api";
 
 const listMock = vi.fn();
 const promoteMock = vi.fn();
@@ -42,16 +50,24 @@ vi.mock("../../src/hooks/useSession", () => ({
 const SUBMITTER_NPUB = "npub1submtr0000000000000000000000000000000000000000000000000000";
 const CURATOR_NPUB = "npub1curator00000000000000000000000000000000000000000000000000";
 
-// A submission as the gate-aware list returns it: a `canPromote` flag for the
-// session user, a `promotionStatus`, and the trust `signals` (or null).
-type Sig = {
-  trustedAverage: number | null;
-  curatorRatingCount: number;
-  curatorTagCount: number;
-  curators: string[];
-} | null;
+// The list row as the REAL enriched `GET /api/submissions` produces it (ADR 0031
+// §3b): `SubmittedBook` with the three server-computed Story-30 fields made
+// REQUIRED. The shipped `SubmittedBook` carries them optional (additive, so old
+// callers keep compiling); but the enriched list ALWAYS produces them, and the
+// web renders them per row. Requiring them here is what closes the masking gap —
+// a fixture that omits any of the three no longer compiles, so the test can never
+// again pass against a list response that silently dropped a server field.
+type ListSubmission = SubmittedBook & {
+  canPromote: boolean;
+  promotionStatus: string | null;
+  signals: SubmittedBook["signals"];
+};
 
-function submission(over: Record<string, unknown> = {}) {
+// The exact shape `api.submissions.list()` resolves to (mock typed to the real
+// contract → it cannot drift from the server response).
+type ListResponse = { submissions: ListSubmission[] };
+
+function submission(over: Partial<ListSubmission> = {}): ListSubmission {
   return {
     slug: "ol-some-book",
     title: "A Submitted Book",
@@ -59,11 +75,14 @@ function submission(over: Record<string, unknown> = {}) {
     createdAt: 1_700_000_000,
     submitter: SUBMITTER_NPUB,
     canPromote: false,
-    promotionStatus: null as null | string,
-    signals: null as Sig,
+    promotionStatus: null,
+    signals: null,
     ...over,
   };
 }
+
+// Type-tie the `list` mock's resolution to the real list-response shape.
+const resolveList = (r: ListResponse): ListResponse => r;
 
 function renderPage() {
   return render(
@@ -84,7 +103,7 @@ afterEach(() => vi.clearAllMocks());
 describe("CommunitySubmissions — gated Promote affordance (AC-3)", () => {
   it("signed-out: shows NO Promote control", async () => {
     useSessionMock.mockReturnValue({ status: "signed-out", refresh: vi.fn() });
-    listMock.mockResolvedValue({ submissions: [submission({ canPromote: false })] });
+    listMock.mockResolvedValue(resolveList({ submissions: [submission({ canPromote: false })] }));
     renderPage();
     await screen.findByText("A Submitted Book");
     expect(screen.queryByRole("button", { name: /promote/i })).not.toBeInTheDocument();
@@ -96,7 +115,7 @@ describe("CommunitySubmissions — gated Promote affordance (AC-3)", () => {
       user: { npub: CURATOR_NPUB, displayName: "Reader", id: "u", email: null },
       refresh: vi.fn(),
     });
-    listMock.mockResolvedValue({ submissions: [submission({ canPromote: false })] });
+    listMock.mockResolvedValue(resolveList({ submissions: [submission({ canPromote: false })] }));
     renderPage();
     await screen.findByText("A Submitted Book");
     expect(screen.queryByRole("button", { name: /promote/i })).not.toBeInTheDocument();
@@ -108,7 +127,7 @@ describe("CommunitySubmissions — gated Promote affordance (AC-3)", () => {
       user: { npub: CURATOR_NPUB, displayName: "Curator", id: "u", email: null },
       refresh: vi.fn(),
     });
-    listMock.mockResolvedValue({ submissions: [submission({ canPromote: true })] });
+    listMock.mockResolvedValue(resolveList({ submissions: [submission({ canPromote: true })] }));
     renderPage();
     await screen.findByText("A Submitted Book");
     expect(screen.getByRole("button", { name: /promote/i })).toBeInTheDocument();
@@ -122,7 +141,7 @@ describe("CommunitySubmissions — promote flow + pending state (AC-3, AC-7)", (
       user: { npub: CURATOR_NPUB, displayName: "Curator", id: "u", email: null },
       refresh: vi.fn(),
     });
-    listMock.mockResolvedValue({ submissions: [submission({ canPromote: true })] });
+    listMock.mockResolvedValue(resolveList({ submissions: [submission({ canPromote: true })] }));
     renderPage();
     await screen.findByText("A Submitted Book");
 
@@ -137,9 +156,11 @@ describe("CommunitySubmissions — promote flow + pending state (AC-3, AC-7)", (
       user: { npub: CURATOR_NPUB, displayName: "Curator", id: "u", email: null },
       refresh: vi.fn(),
     });
-    listMock.mockResolvedValue({
-      submissions: [submission({ canPromote: true, promotionStatus: "done" })],
-    });
+    listMock.mockResolvedValue(
+      resolveList({
+        submissions: [submission({ canPromote: true, promotionStatus: "done" })],
+      }),
+    );
     renderPage();
     await screen.findByText("A Submitted Book");
     expect(screen.getByText(/in catalog/i)).toBeInTheDocument();
@@ -150,18 +171,20 @@ describe("CommunitySubmissions — promote flow + pending state (AC-3, AC-7)", (
 describe("CommunitySubmissions — trust signals render (AC-2, AC-6)", () => {
   it("renders the curator count and trust-weighted average when signals are present", async () => {
     useSessionMock.mockReturnValue({ status: "signed-out", refresh: vi.fn() });
-    listMock.mockResolvedValue({
-      submissions: [
-        submission({
-          signals: {
-            trustedAverage: 4.5,
-            curatorRatingCount: 3,
-            curatorTagCount: 1,
-            curators: [CURATOR_NPUB],
-          },
-        }),
-      ],
-    });
+    listMock.mockResolvedValue(
+      resolveList({
+        submissions: [
+          submission({
+            signals: {
+              trustedAverage: 4.5,
+              curatorRatingCount: 3,
+              curatorTagCount: 1,
+              curators: [CURATOR_NPUB],
+            },
+          }),
+        ],
+      }),
+    );
     renderPage();
     await screen.findByText("A Submitted Book");
     expect(screen.getByText(/3/)).toBeInTheDocument(); // curator count
@@ -170,7 +193,7 @@ describe("CommunitySubmissions — trust signals render (AC-2, AC-6)", () => {
 
   it("renders the honest 'no trusted signal yet' state when signals is null", async () => {
     useSessionMock.mockReturnValue({ status: "signed-out", refresh: vi.fn() });
-    listMock.mockResolvedValue({ submissions: [submission({ signals: null })] });
+    listMock.mockResolvedValue(resolveList({ submissions: [submission({ signals: null })] }));
     renderPage();
     await screen.findByText("A Submitted Book");
     expect(screen.getByText(/no trusted signal yet/i)).toBeInTheDocument();
@@ -180,7 +203,7 @@ describe("CommunitySubmissions — trust signals render (AC-2, AC-6)", () => {
 describe("CommunitySubmissions — submitted-by credit (provenance, optional)", () => {
   it("still credits the submitter ('added by') alongside the new gate/signal surface", async () => {
     useSessionMock.mockReturnValue({ status: "signed-out", refresh: vi.fn() });
-    listMock.mockResolvedValue({ submissions: [submission({ submitter: SUBMITTER_NPUB })] });
+    listMock.mockResolvedValue(resolveList({ submissions: [submission({ submitter: SUBMITTER_NPUB })] }));
     renderPage();
     await screen.findByText("A Submitted Book");
     expect(screen.getByText(/added by/i)).toBeInTheDocument();
