@@ -114,7 +114,7 @@ export function ProfileMe() {
             </p>
           ) : (
             <Link className="me-nostr-link" to="/settings">
-              Manage your nostr identity
+              Advanced settings
             </Link>
           )}
           {meta?.about && <p className="me-about">{meta.about}</p>}
