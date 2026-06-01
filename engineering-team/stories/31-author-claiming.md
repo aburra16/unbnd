@@ -4,6 +4,25 @@
 **Created:** 2026-06-01
 **Type:** Feature
 
+## Gate decisions (2026-06-01)
+
+Resolved by the user; tightened into scope below (see ADR 0032).
+
+1. **Author metadata EDITING (blurb / cover / purchase links) is gated behind verification
+   and DEFERRED to Story 32 (Verified Author).** Story 31 builds NO edit surface and NO
+   overlay-apply — only claim → "Author (claimed)" badge → "Books by this author." ADR 0032
+   defines the seam where the edit overlay + verification gate plug in; this story builds
+   none of it. **AC-3, AC-4, and AC-5 are DEFERRED to Story 32.**
+2. **Open claiming.** Any signed-in user can claim; the badge says "claimed," never
+   "verified" (copy makes "claimed ≠ verified" unmistakable). The canonical
+   librarian-signed record is never mutated.
+3. **Multiple claimants** are shown honestly — all of them ("claimed by …"), no silent
+   winner.
+
+**Active ACs after tightening:** AC-1 (claim event), AC-2 (badge + multi-claimant),
+AC-6 ("Books by this author"), AC-7 (honest states / "claimed ≠ verified"), AC-8 (both
+tiers, deterministic CI without the trust provider). AC-3/AC-4/AC-5 → Story 32.
+
 ## Background
 
 PRD §2.10 ("Author claiming + verification") splits across two lanes. The
@@ -132,8 +151,9 @@ GrapeRank number appears (CLAUDE.md).
   all claims as "claimed by," never silently pick a winner), with no fabricated single
   "the author."
 
-- [ ] **AC-3 — A claimant gets an edit surface for blurb, cover URL, and purchase links —
-  and only those.** Given a user who has claimed a book, when they open the author edit
+- [ ] **AC-3 — [DEFERRED to Story 32 (gate decision 1, 2026-06-01)] A claimant gets an edit
+  surface for blurb, cover URL, and purchase links — and only those.** Not built in Story 31.
+  Given a user who has claimed a book, when they open the author edit
   surface, then it exposes inputs for **exactly** three fields — **blurb**, **cover URL**,
   and **purchase link(s)** — pre-filled with the current effective values, and **nothing
   else**: no input for title, author name, ISBN, community tags/genres, ratings, or any
@@ -143,8 +163,11 @@ GrapeRank number appears (CLAUDE.md).
   URLs before publish (mirroring the Story 22 `httpUrl` light-validation), with an honest
   inline message on a bad value and no event published.
 
-- [ ] **AC-4 — Author edits are author-signed OVERLAY events; the librarian-signed
-  canonical record is never mutated.** Given a claimant saves an author edit, when it is
+- [ ] **AC-4 — [DEFERRED to Story 32 (gate decision 1, 2026-06-01)] Author edits are
+  author-signed OVERLAY events; the librarian-signed canonical record is never mutated.**
+  Not built in Story 31. (The "canonical record never mutated" guarantee still holds in
+  Story 31 because no edit/overlay exists at all.) Given a claimant saves an author edit,
+  when it is
   published, then it is a **claimant-signed** kind-39999 event `#a`-referencing the book
   address (the overlay), and the librarian-signed canonical `BookRecord` under the `books`
   header is **left unchanged** (the API holds no librarian secret and must not gain one for
@@ -152,8 +175,13 @@ GrapeRank number appears (CLAUDE.md).
   removes the author's value for that field (republish/replace under the overlay's stable
   d-tag, no leftover empty value), reverting the read to the canonical value.
 
-- [ ] **AC-5 — Read-time overlay merge follows the gate's edit-application decision; the
-  canonical value is always recoverable.** Given a book has both a canonical record and an
+- [ ] **AC-5 — [DEFERRED to Story 32 (gate decision 1, 2026-06-01)] Read-time overlay merge
+  follows the gate's edit-application decision; the canonical value is always recoverable.**
+  Not built in Story 31. The gate chose: editing is gated behind verification, so the
+  overlay/merge ships in Story 32. ADR 0032 defines the read-merge seam (the
+  `{ book, claimants }` assembly in `GET /api/books/:slug`) where Story 32 attaches it; in
+  Story 31 that seam is a pass-through (`effectiveBook === canonical`). Given a book has both
+  a canonical record and an
   author overlay, when the book is read, then blurb/cover/purchase-links are composed at
   read time per the **edit-application policy chosen at the gate** (see "Flags for the
   gate" — the PO recommends option (a): the author overlay is **captured and stored now**
@@ -360,6 +388,6 @@ Resolve before approving the story.
   `apps/web/src/routes/BookDetail.tsx`, `apps/web/src/components/BookHeader.tsx`,
   `apps/web/src/routes/Submit.tsx` (the existing submission-time "I am the author" toggle —
   distinct from catalog claiming), `apps/web/src/routes/Profile.tsx`.
-- ADR for this story: (filled in after Architecture phase)
+- ADR for this story: `engineering-team/decisions/0032-author-claiming.md`
 - Test plan: (filled in after Test Design phase)
 - Review: (filled in after Review phase)
