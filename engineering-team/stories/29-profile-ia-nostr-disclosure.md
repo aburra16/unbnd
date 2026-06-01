@@ -328,5 +328,5 @@ Resolve before approving the story.
   appear).
 - ADR: `engineering-team/decisions/0030-profile-ia-nostr-disclosure.md` (Proposed;
   0029 was taken by Story 28's "your rating" surface).
-- Test plan: (filled in after Test Design phase)
+- Test plan: `engineering-team/stories/29-profile-ia-nostr-disclosure.test-plan.md`
 - Review: (filled in after Review phase)

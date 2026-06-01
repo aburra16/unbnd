@@ -108,7 +108,12 @@ describe("Settings — form prefill + Substack-only (AC-1 / AC-9)", () => {
     expect(input.value).toBe("");
   });
 
-  it("exposes ONLY the Substack field — no name/bio/picture/nip05 inputs", async () => {
+  // MIGRATED (Story 29 / ADR 0030): Settings gains a read-only "Nostr identity"
+  // section. That surface is NOT an editable input (it is a labeled code chip +
+  // CopyButton), so the no-editable-field negatives below stay valid: the only
+  // editable fields are still Substack (+ custodial Display name). The npub chip
+  // is not a textbox, so it does not violate "no name/bio/picture/nip05 inputs".
+  it("exposes no editable name/bio/picture/nip05 fields (the npub surface is read-only, not an input)", async () => {
     sessionMock.mockReturnValue({ status: "signed-in", user: sovereignUser, refresh: vi.fn() });
     renderSettings();
     await screen.findByRole("textbox", { name: /substack/i });
@@ -116,6 +121,8 @@ describe("Settings — form prefill + Substack-only (AC-1 / AC-9)", () => {
     expect(screen.queryByLabelText(/bio|about/i)).not.toBeInTheDocument();
     expect(screen.queryByLabelText(/picture|avatar/i)).not.toBeInTheDocument();
     expect(screen.queryByLabelText(/nip-?05/i)).not.toBeInTheDocument();
+    // The npub is surfaced read-only (Story 29), never as an editable textbox.
+    expect(screen.queryByRole("textbox", { name: /npub/i })).not.toBeInTheDocument();
   });
 });
 

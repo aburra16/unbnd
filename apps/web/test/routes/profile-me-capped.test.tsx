@@ -1,8 +1,11 @@
-// Failing tests (red) for Story 21 AC-6 (web wiring) — the capped array flows from
-// the stats response through statCells into an honest "N+" cell on /profile/me.
-// Mirrors profile-me-polish.test.tsx. Targets the additive `capped?: string[]` on
-// ProfileStatsResponse (api.ts) and the statCells mapping that sets a cell's
-// `capped` from `stats.capped?.includes(key)` (ProfileMe.tsx). Neither exists yet.
+// Tests for Story 21 AC-6 (web wiring) — the capped array flows from the stats
+// response through statCells into an honest "N+" cell on /profile/me. Mirrors
+// profile-me-polish.test.tsx.
+//
+// MIGRATED for Story 29 / ADR 0030: this file mocks a SOVEREIGN user; the header
+// now shows the truncated shortNpub chip + CopyButton instead of the bare full
+// npub. The capped-stat behaviors below are unchanged; a header-npub guard is
+// added at the end.
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
@@ -35,6 +38,8 @@ const sovereignUser = {
   displayName: "Reader",
   npub: "npub1n0ewa4w877phxhqxu5v02mhmj6aanc7mm93w9attfjc5etcstkzql9rk23",
 };
+const FULL_NPUB = sovereignUser.npub;
+const SHORT_NPUB = "npub1n0ewa…rk23"; // shortNpub(FULL_NPUB)
 
 beforeEach(() => {
   submissionsMineMock.mockReset().mockResolvedValue({ submissions: [] });
@@ -75,5 +80,14 @@ describe("ProfileMe — capped stat renders an honest N+ (AC-6)", () => {
     await waitFor(() => expect(meStatsMock).toHaveBeenCalled());
     expect(await screen.findByText("31")).toBeInTheDocument();
     expect(screen.queryByText("31+")).not.toBeInTheDocument();
+  });
+});
+
+// MIGRATED (Story 29 / ADR 0030): sovereign header npub guard.
+describe("ProfileMe — sovereign nostr-identity header (Story 29 AC-1/AC-5)", () => {
+  it("shows the truncated npub chip, not the bare full npub", async () => {
+    renderMe();
+    expect(await screen.findByText(SHORT_NPUB)).toBeInTheDocument();
+    expect(screen.queryByText(FULL_NPUB)).not.toBeInTheDocument();
   });
 });
