@@ -301,6 +301,6 @@ Resolve before approving the story.
   ephemeral wrap, used by the custodial edit path), `0014-graperank-personalize.md`
   and `0025-weighted-consensus.md` (the House⇄Yours trust view and trusted/community
   labeling the honesty rule sits beside).
-- New ADR for this story: (filled in after Architecture phase)
+- New ADR for this story: `engineering-team/decisions/0029-your-rating-surface-edit.md`
 - Test plan: (filled in after Test Design phase)
 - Review: (filled in after Review phase)
