@@ -136,7 +136,7 @@ describe("Settings — sovereign save flow (AC-6)", () => {
     renderSettings();
     const input = await screen.findByLabelText(/substack/i);
     fireEvent.change(input, { target: { value: "https://reader.substack.com" } });
-    fireEvent.click(screen.getByRole("button", { name: /save/i }));
+    fireEvent.click(screen.getByRole("button", { name: /save substack link/i }));
 
     await waitFor(() => expect(substackTemplateMock).toHaveBeenCalled());
     await waitFor(() => expect(signEvent).toHaveBeenCalled());
@@ -152,7 +152,7 @@ describe("Settings — sovereign save flow (AC-6)", () => {
     renderSettings();
     const input = await screen.findByLabelText(/substack/i);
     fireEvent.change(input, { target: { value: "https://reader.substack.com" } });
-    fireEvent.click(screen.getByRole("button", { name: /save/i }));
+    fireEvent.click(screen.getByRole("button", { name: /save substack link/i }));
     expect(await screen.findByText(/no nostr extension/i)).toBeInTheDocument();
     expect(substackTemplateMock).not.toHaveBeenCalled();
     expect(setSubstackMock).not.toHaveBeenCalled();
@@ -162,7 +162,7 @@ describe("Settings — sovereign save flow (AC-6)", () => {
     renderSettings();
     const input = await screen.findByLabelText(/substack/i);
     fireEvent.change(input, { target: { value: "notaurl" } });
-    fireEvent.click(screen.getByRole("button", { name: /save/i }));
+    fireEvent.click(screen.getByRole("button", { name: /save substack link/i }));
     expect(await screen.findByRole("alert")).toBeInTheDocument();
     expect(substackTemplateMock).not.toHaveBeenCalled();
     expect(signEvent).not.toHaveBeenCalled();
@@ -173,7 +173,7 @@ describe("Settings — sovereign save flow (AC-6)", () => {
     renderSettings();
     const input = await screen.findByLabelText(/substack/i);
     fireEvent.change(input, { target: { value: "https://reader.substack.com" } });
-    fireEvent.click(screen.getByRole("button", { name: /save/i }));
+    fireEvent.click(screen.getByRole("button", { name: /save substack link/i }));
     expect(await screen.findByRole("alert")).toBeInTheDocument();
   });
 });
@@ -200,7 +200,7 @@ describe("Settings — Clear (AC-4) and custodial (AC-7)", () => {
     renderSettings();
     const input = await screen.findByLabelText(/substack/i);
     fireEvent.change(input, { target: { value: "https://reader.substack.com" } });
-    fireEvent.click(screen.getByRole("button", { name: /save/i }));
+    fireEvent.click(screen.getByRole("button", { name: /save substack link/i }));
     await waitFor(() =>
       expect(setSubstackCustodialMock).toHaveBeenCalledWith("https://reader.substack.com"),
     );

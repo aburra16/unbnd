@@ -126,8 +126,7 @@ describe("Settings — display-name field, custodial (AC-5)", () => {
     const input = await screen.findByLabelText(/display name/i);
     fireEvent.change(input, { target: { value: "Mira Reborn" } });
     // The display-name field's own save control (not the Substack Save).
-    const saveButtons = screen.getAllByRole("button", { name: /save/i });
-    fireEvent.click(saveButtons[saveButtons.length - 1]!);
+    fireEvent.click(screen.getByRole("button", { name: /save display name/i }));
 
     await waitFor(() =>
       expect(setDisplayNameMock).toHaveBeenCalledWith("Mira Reborn"),
@@ -149,8 +148,7 @@ describe("Settings — display-name field, custodial (AC-5)", () => {
     renderSettings();
     const input = await screen.findByLabelText(/display name/i);
     fireEvent.change(input, { target: { value: "Mira Reborn" } });
-    const saveButtons = screen.getAllByRole("button", { name: /save/i });
-    fireEvent.click(saveButtons[saveButtons.length - 1]!);
+    fireEvent.click(screen.getByRole("button", { name: /save display name/i }));
 
     expect(await screen.findByRole("alert")).toBeInTheDocument();
   });
