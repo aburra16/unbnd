@@ -75,4 +75,23 @@ export const migrations: readonly Migration[] = [
       CREATE INDEX IF NOT EXISTS idx_challenges_expires_at ON challenges(expires_at);
     `,
   },
+  {
+    name: "0003_promotions",
+    sql: `
+      CREATE TABLE IF NOT EXISTS promotions (
+        id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        slug            TEXT NOT NULL UNIQUE,
+        requested_by    CHAR(64) NOT NULL,
+        status          TEXT NOT NULL DEFAULT 'pending'
+                          CHECK (status IN ('pending','promoting','done','failed')),
+        canonical_id    TEXT,
+        error           TEXT,
+        attempts        INTEGER NOT NULL DEFAULT 0,
+        created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        updated_at      TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      );
+
+      CREATE INDEX IF NOT EXISTS idx_promotions_status ON promotions(status);
+    `,
+  },
 ];

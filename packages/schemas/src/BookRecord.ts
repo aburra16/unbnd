@@ -37,6 +37,12 @@ export type BookRecord = {
   readonly fileUrl?: string;
   readonly purchaseUrl?: string;
   readonly source: BookSource;
+  /**
+   * Original submission event's author (hex). Set only on a community record
+   * minted by promotion (ADR 0031 §5); seeded records leave it unset. When set,
+   * `toBookRecordEvent` emits a single `["submitted-by", <hex>]` tag.
+   */
+  readonly submittedBy?: HexPubkey;
   readonly parentHeader: DListAddress<39998>;
 };
 
@@ -65,6 +71,7 @@ export type BookRecordPayload = {
     readonly fileUrl: string | null;
     readonly purchaseUrl?: string;
     readonly source: BookSource;
+    readonly submittedBy?: string | null;
   };
 };
 
@@ -92,6 +99,7 @@ export function toBookRecordEvent(record: BookRecord): BookRecordEvent {
     ["author", record.authorName],
   ];
   if (record.authorPubkey) tags.push(["p", record.authorPubkey]);
+  if (record.submittedBy) tags.push(["submitted-by", record.submittedBy]);
   if (record.isbn13) tags.push(["isbn", record.isbn13]);
   if (record.isbn10) tags.push(["isbn10", record.isbn10]);
   if (record.openLibraryId)
@@ -137,6 +145,7 @@ export function toBookRecordEvent(record: BookRecord): BookRecordEvent {
       fileUrl: record.fileUrl ?? null,
       purchaseUrl: record.purchaseUrl,
       source: record.source,
+      submittedBy: record.submittedBy ?? null,
     },
   };
 
@@ -169,6 +178,7 @@ export function fromBookRecordEvent(event: BookRecordEvent): BookRecord {
     fileUrl: p.fileUrl ?? undefined,
     purchaseUrl: p.purchaseUrl,
     source: p.source,
+    submittedBy: p.submittedBy ? asHexPubkey(p.submittedBy) : undefined,
     parentHeader: event.parentHeader,
   };
 }

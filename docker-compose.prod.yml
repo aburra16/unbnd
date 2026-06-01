@@ -52,6 +52,9 @@ services:
       # fresh account can exercise the flow; raise via a .env override for real
       # production (the code default is 10).
       - PERSONALIZE_MIN_FOLLOWS=${PERSONALIZE_MIN_FOLLOWS:-1}
+      # Curator gate threshold (ADR 0031). Default 0.5; calibrated on staging.
+      # The API enqueues promotions — it does NOT hold LIBRARIAN_NSEC.
+      - CURATOR_THRESHOLD=${CURATOR_THRESHOLD:-0.5}
     depends_on:
       db:
         condition: service_healthy
@@ -105,6 +108,28 @@ services:
       - CHECKPOINT_PATH=/data/seed-checkpoint
     volumes:
       - seeder-data:/data
+    restart: "no"
+
+  # Promotion worker (ADR 0031). Never starts with the normal stack — only via
+  #   docker compose --profile promote run --rm promoter
+  # (the operator cron fires it periodically). Claims pending `promotions` rows,
+  # mints + librarian-signs the canonical catalog record, publishes to the local
+  # relay + dcosl, marks the job done. This is the ONLY service that holds
+  # LIBRARIAN_NSEC besides the seeder — off the internet-facing path.
+  promoter:
+    image: ghcr.io/aburra16/unbnd-promoter:${UNBND_IMAGE_TAG:-latest}
+    profiles: ["promote"]
+    environment:
+      - DATABASE_URL=postgres://unbnd:${POSTGRES_PASSWORD}@db:5432/unbnd
+      - STRFRY_URL=ws://tapestry/relay
+      - DCOSL_RELAY_URL=${DCOSL_RELAY_URL:-wss://dcosl.brainstorm.world/}
+      - LIBRARIAN_PUBKEY=${LIBRARIAN_PUBKEY}
+      - LIBRARIAN_NSEC=${LIBRARIAN_NSEC}
+    depends_on:
+      db:
+        condition: service_healthy
+      tapestry:
+        condition: service_started
     restart: "no"
 
   # Search indexer (ADR 0013). Never starts with the normal stack — only via

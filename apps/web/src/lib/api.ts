@@ -50,6 +50,15 @@ export type SubmissionInput = {
   isAuthor?: boolean;
 };
 
+// Per-submission trust signals (Story 30 / ADR 0031 §3). Honest counts +
+// identities + the trust-weighted average, or null ("no trusted signal yet").
+export type SubmissionSignals = {
+  trustedAverage: number | null;
+  curatorRatingCount: number;
+  curatorTagCount: number;
+  curators: string[];
+} | null;
+
 export type SubmittedBook = {
   slug: string;
   title: string;
@@ -60,6 +69,12 @@ export type SubmittedBook = {
   createdAt: number;
   /** Present on the public list: the submitter's npub. */
   submitter?: string;
+  /** Story 30: whether the session user clears the curator gate for this row. */
+  canPromote?: boolean;
+  /** Story 30: the promotion job's state, when one exists. */
+  promotionStatus?: string | null;
+  /** Story 30: trust signals as decision support, or null. */
+  signals?: SubmissionSignals;
 };
 
 // Trust-weighted view from an observer's vantage (ADR 0014); null when no
@@ -346,6 +361,15 @@ export const api = {
     },
     list() {
       return authFetch<{ submissions: SubmittedBook[] }>("/api/submissions");
+    },
+    // Story 30 / ADR 0031: a curator promotes a submission into the catalog. The
+    // server enforces the gate (anon 401, below-gate 403); a re-promote of the
+    // same slug returns `{ status: "already" }`.
+    promote(slug: string) {
+      return authFetch<{ status: "queued" | "already" }>(
+        `/api/submissions/${encodeURIComponent(slug)}/promote`,
+        { method: "POST" },
+      );
     },
   },
   trust: {

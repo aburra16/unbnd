@@ -1,10 +1,14 @@
-// Public, read-only list of community submissions (ADR 0016 / 16b-i). Separate
-// from the canonical catalog — these are reader-submitted and not yet promoted.
+// Public list of community submissions (ADR 0016 / 16b-i) + the curator-gated
+// Promote affordance, promotion state, and trust signals (Story 30 / ADR 0031).
+// The gate is server-enforced; the UI only offers Promote when the gate-aware
+// list marks a row `canPromote`. Signals are honest decision support — real
+// counts/identities + the trust-weighted average, or "no trusted signal yet".
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Nav } from "../components/Nav";
 import { Footer } from "../components/Footer";
 import { Breadcrumb } from "../components/Breadcrumb";
+import { useSession } from "../hooks/useSession";
 import { api, type SubmittedBook } from "../lib/api";
 import "./CommunitySubmissions.css";
 
@@ -18,8 +22,62 @@ function shortNpub(npub?: string): string {
   return npub.length <= 16 ? npub : `${npub.slice(0, 10)}…${npub.slice(-4)}`;
 }
 
+function Signals({ signals }: { signals: SubmittedBook["signals"] }) {
+  if (!signals) {
+    return <span className="cs-item-signal cs-item-signal-empty">No trusted signal yet</span>;
+  }
+  const avg =
+    signals.trustedAverage === null ? null : signals.trustedAverage.toFixed(1);
+  return (
+    <span className="cs-item-signal">
+      {signals.curatorRatingCount} curator
+      {signals.curatorRatingCount === 1 ? "" : "s"}
+      {avg !== null ? ` · ${avg} weighted` : ""}
+    </span>
+  );
+}
+
+function PromoteCell({
+  submission,
+  onPromoted,
+}: {
+  submission: SubmittedBook;
+  onPromoted: (slug: string) => void;
+}) {
+  const [pending, setPending] = useState(false);
+
+  if (submission.promotionStatus === "done") {
+    return <span className="cs-item-state">In catalog</span>;
+  }
+  if (submission.promotionStatus === "pending" || submission.promotionStatus === "promoting") {
+    return <span className="cs-item-state">Promotion queued</span>;
+  }
+  if (!submission.canPromote) return null;
+
+  return (
+    <button
+      type="button"
+      className="cs-promote"
+      disabled={pending}
+      onClick={async () => {
+        setPending(true);
+        try {
+          await api.submissions.promote(submission.slug);
+          onPromoted(submission.slug);
+        } catch {
+          setPending(false);
+        }
+      }}
+    >
+      Promote
+    </button>
+  );
+}
+
 export function CommunitySubmissions() {
   const [state, setState] = useState<State>({ status: "loading" });
+  // The gate render reacts to the session; the server still enforces.
+  useSession();
 
   useEffect(() => {
     let cancelled = false;
@@ -32,6 +90,19 @@ export function CommunitySubmissions() {
     };
   }, []);
 
+  const markQueued = (slug: string) => {
+    setState((prev) =>
+      prev.status === "ready"
+        ? {
+            status: "ready",
+            submissions: prev.submissions.map((s) =>
+              s.slug === slug ? { ...s, promotionStatus: "pending" } : s,
+            ),
+          }
+        : prev,
+    );
+  };
+
   return (
     <div className="page">
       <Nav />
@@ -39,8 +110,8 @@ export function CommunitySubmissions() {
       <header className="cs-head">
         <h1 className="cs-title">Community submissions</h1>
         <p className="cs-sub">
-          Books readers have added. These are not yet in the main catalog — they
-          surface here while the community vouches for them.
+          Books readers have added. They wait here for a curator to vouch for
+          them before joining the catalog.
         </p>
       </header>
 
@@ -67,6 +138,10 @@ export function CommunitySubmissions() {
                       </Link>
                     </>
                   ) : null}
+                </span>
+                <span className="cs-item-row">
+                  <Signals signals={s.signals} />
+                  <PromoteCell submission={s} onPromoted={markQueued} />
                 </span>
               </li>
             ))}

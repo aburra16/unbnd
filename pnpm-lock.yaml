@@ -121,6 +121,9 @@ importers:
       nostr-tools:
         specifier: 2.10.4
         version: 2.10.4(typescript@5.9.3)
+      postgres:
+        specifier: 3.4.9
+        version: 3.4.9
       ws:
         specifier: ^8.18.0
         version: 8.21.0

@@ -1,6 +1,7 @@
 import express from "express";
 import { loadConfig } from "./config";
 import { createDb, db, runMigrations } from "./db";
+import { promotions } from "./db/schema";
 import { retryWithBackoff, isRetryableConnError } from "./util/retry";
 import { errorSanitizer } from "./middleware/errors";
 import { probeNeo4j } from "./probes/neo4j";
@@ -437,7 +438,32 @@ async function main() {
   app.use("/", buildRatingsRouter(userEventDeps));
   app.use("/", buildTagsRouter(userEventDeps));
   app.use("/", buildShelvesRouter(userEventDeps));
-  app.use("/", buildSubmissionsRouter(userEventDeps));
+  app.use(
+    "/",
+    buildSubmissionsRouter({
+      ...userEventDeps,
+      // Enqueue a promotion (ADR 0031 §1). Idempotent on slug: the UNIQUE(slug)
+      // constraint reports a re-enqueue as `already` (no duplicate job). The
+      // off-path `apps/promoter` worker fulfills the row (mint + librarian-sign +
+      // publish); the librarian secret is NEVER on this process (ADR 0031 §2).
+      enqueuePromotion: async (slug, requestedBy) => {
+        try {
+          await db.insert(promotions).values({ slug, requestedBy });
+          return { status: "queued" as const };
+        } catch (err) {
+          if (
+            err &&
+            typeof err === "object" &&
+            "code" in err &&
+            (err as { code?: string }).code === "23505"
+          ) {
+            return { status: "already" as const };
+          }
+          throw err;
+        }
+      },
+    }),
+  );
 
   app.use(errorSanitizer);
 

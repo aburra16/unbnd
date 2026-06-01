@@ -18,9 +18,11 @@ import {
 import type { Config } from "../config";
 import type { PublishResult } from "../nostr/publish";
 import type { NostrFilter } from "../nostr/query";
+import type { TrustProvider } from "../trust";
 import { tokenToId } from "../auth/sessions";
 import { validateSignedEvent } from "../nostr/validate";
 import { buildSubmissionTemplate, SubmissionError } from "../submissions/template";
+import { computeSubmissionSignals } from "../submissions/signals";
 
 const COOKIE_NAME = "session";
 const KIND = 39999;
@@ -40,6 +42,17 @@ export type SubmissionsDeps = {
     sessionIdHex: string,
     template: NostrEventTemplate,
   ) => Promise<SignedNostrEvent | null>;
+  /** Trust-weighting source (ADR 0014/0031). Absent → gate closes, signals null. */
+  readonly trust?: TrustProvider;
+  /**
+   * Enqueue a promotion (ADR 0031). Idempotent on slug: a second enqueue of the
+   * same slug resolves `{ status: "already" }` via the UNIQUE(slug) collision.
+   * Absent in fixtures that don't exercise promote.
+   */
+  readonly enqueuePromotion?: (
+    slug: string,
+    requestedBy: string,
+  ) => Promise<{ status: "queued" | "already" }>;
 };
 
 function cookieOf(req: Request): string | undefined {
@@ -183,6 +196,75 @@ export function buildSubmissionsRouter(deps: SubmissionsDeps): Router {
         .filter((s): s is NonNullable<typeof s> => s !== null)
         .sort((a, b) => b.createdAt - a.createdAt);
       res.status(200).json({ submissions });
+    } catch (err) {
+      next(err);
+    }
+  });
+
+  // Resolve the caller's own house-PoV trust weight (ADR 0031 AC-1/AC-6). The
+  // gate is ALWAYS the house vantage over the SESSION user's own key. Any degrade
+  // (no provider, no observer, empty map, throwing seam) resolves to weight 0 so
+  // the gate CLOSES — the seam never surfaces a 500.
+  const houseWeightOf = async (callerHex: string): Promise<number> => {
+    const house = deps.config.houseObserverPubkey;
+    if (!deps.trust || !house) return 0;
+    try {
+      const map = await deps.trust.weights(house, [callerHex]);
+      return map.get(callerHex) ?? 0;
+    } catch {
+      return 0;
+    }
+  };
+
+  // Story 30 / ADR 0031 §2 — the emergent curator gate + enqueue. The gate is
+  // server-enforced (not merely UI-hidden): anon → 401; below threshold → 403
+  // below_gate; at/above → enqueue (200). UNIQUE(slug) collision → 200 `already`.
+  router.post("/api/submissions/:slug/promote", async (req, res, next) => {
+    try {
+      const user = await deps.sessionUser(cookieOf(req));
+      if (!user) {
+        return void res
+          .status(401)
+          .json({ error: { code: "no_session", message: "Not signed in." } });
+      }
+      const threshold = deps.config.curatorThreshold ?? 0.5;
+      const weight = await houseWeightOf(user.pubkeyHex);
+      if (weight < threshold) {
+        return void res
+          .status(403)
+          .json({ error: { code: "below_gate", message: "Not a curator." } });
+      }
+      if (!deps.enqueuePromotion) {
+        return void res
+          .status(501)
+          .json({ error: { code: "not_supported", message: "Promotion unavailable." } });
+      }
+      const result = await deps.enqueuePromotion(req.params.slug, user.pubkeyHex);
+      res.status(200).json({ status: result.status });
+    } catch (err) {
+      next(err);
+    }
+  });
+
+  // Story 30 / ADR 0031 §3 — per-submission trust signals (read). Computed from
+  // the HOUSE observer's vantage. Honest degrade → `signals: null` (no fabricated
+  // count, no raw-as-trusted average), never a 500.
+  router.get("/api/submissions/:slug/signals", async (req, res, next) => {
+    try {
+      const house = deps.config.houseObserverPubkey;
+      const lib = deps.config.librarianPubkey;
+      if (!deps.trust || !house || !lib) {
+        return void res.status(200).json({ signals: null });
+      }
+      const addr = `${KIND}:${lib}:${req.params.slug}`;
+      const ratingEvents = await deps.query({ kinds: [KIND], "#a": [addr] });
+      const signals = await computeSubmissionSignals({
+        trust: deps.trust,
+        houseObserverHex: house,
+        threshold: deps.config.curatorThreshold ?? 0.5,
+        ratingEvents,
+      });
+      res.status(200).json({ signals });
     } catch (err) {
       next(err);
     }
