@@ -1,8 +1,8 @@
 # ADR 0030: Profile IA — progressive disclosure of the nostr identity (npub)
 
-**Status:** Proposed
+**Status:** Accepted
 **Date:** 2026-06-01
-**Story:** `engineering-team/stories/29-profile-ia-nostr-disclosure.md`
+**Story:** `engineering-team/stories/done/29-profile-ia-nostr-disclosure.md`
 
 ## Amendment 2026-06-01 — npub presentation pinned (gate decision)
 
@@ -179,9 +179,12 @@ visible idle label, defaulting to `"Copy"`.
 - Renders a real `<button type="button">` (keyboard-focusable and Enter/Space-activatable for
   free — no `div`-with-onClick).
 - On activate: `await navigator.clipboard.writeText(value)`.
-- **Success:** visible label swaps to `"Copied"` for ~1.5s via a `setTimeout`, then reverts to
-  the idle label. (The timer is the only timing; **no `Date.now()`/timestamp** is rendered, so
-  asserted output stays deterministic — the Tester asserts the label text, not a time.)
+- **Success:** the `role="status"` region (see "Announce" below) shows `"Copied"` for ~1.5s via a
+  `setTimeout`, then clears. The button's own label stays stable (a stable accessible name is the
+  more a11y-correct pattern — see "Announce"). (The timer is the only timing; **no
+  `Date.now()`/timestamp** is rendered, so asserted output stays deterministic — the Tester asserts
+  the status text, not a time.) *(Reconciled at close-out: the transient text lives in the status
+  region, not as a swap of the button's visible label — the shipped pattern; see "Announce".)*
 - **Announce (AC-3):** the button carries a stable `aria-label` (default
   `"Copy your npub"`); the **copied** state is announced to AT via a sibling
   `<span role="status">` (an `aria-live="polite"` status region) whose text is `"Copied"`

@@ -1,6 +1,6 @@
 # Test Plan: Story 29 — Profile IA: progressive disclosure of nostr internals
 
-**Story:** `engineering-team/stories/29-profile-ia-nostr-disclosure.md`
+**Story:** `engineering-team/stories/done/29-profile-ia-nostr-disclosure.md`
 **ADR:** `engineering-team/decisions/0030-profile-ia-nostr-disclosure.md` (incl. the 2026-06-01 Amendment that pins the presentation)
 **Date:** 2026-06-01
 **Phase:** Test Design (failing tests committed; Implementer has a fixed target)

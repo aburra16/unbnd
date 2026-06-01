@@ -1,6 +1,6 @@
 # Story 29: Profile IA — progressive disclosure of nostr internals
 
-**Status:** Draft
+**Status:** Done
 **Created:** 2026-06-01
 **Type:** UX Bug
 
@@ -328,5 +328,5 @@ Resolve before approving the story.
   appear).
 - ADR: `engineering-team/decisions/0030-profile-ia-nostr-disclosure.md` (Proposed;
   0029 was taken by Story 28's "your rating" surface).
-- Test plan: `engineering-team/stories/29-profile-ia-nostr-disclosure.test-plan.md`
+- Test plan: `engineering-team/stories/done/29-profile-ia-nostr-disclosure.test-plan.md`
 - Review: (filled in after Review phase)
