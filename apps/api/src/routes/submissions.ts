@@ -18,11 +18,15 @@ import {
 import type { Config } from "../config";
 import type { PublishResult } from "../nostr/publish";
 import type { NostrFilter } from "../nostr/query";
+import type { PromotionStatus } from "../db";
 import type { TrustProvider } from "../trust";
 import { tokenToId } from "../auth/sessions";
 import { validateSignedEvent } from "../nostr/validate";
 import { buildSubmissionTemplate, SubmissionError } from "../submissions/template";
-import { computeSubmissionSignals } from "../submissions/signals";
+import {
+  computeSubmissionSignals,
+  type SubmissionSignals,
+} from "../submissions/signals";
 
 const COOKIE_NAME = "session";
 const KIND = 39999;
@@ -53,6 +57,16 @@ export type SubmissionsDeps = {
     slug: string,
     requestedBy: string,
   ) => Promise<{ status: "queued" | "already" }>;
+  /**
+   * Batched promotion-state read (ADR 0031 §3b). ONE `WHERE slug = ANY(...)`
+   * query over the page's slugs → `Map<slug, status>` (absent slug → never
+   * enqueued → the row's `promotionStatus` is null). Injected like
+   * `enqueuePromotion`; absent in fixtures that don't exercise the enriched list
+   * (every row's `promotionStatus` then degrades to null, route still 200).
+   */
+  readonly readPromotionStatuses?: (
+    slugs: string[],
+  ) => Promise<Map<string, PromotionStatus>>;
 };
 
 function cookieOf(req: Request): string | undefined {
@@ -185,16 +199,76 @@ export function buildSubmissionsRouter(deps: SubmissionsDeps): Router {
     }
   });
 
-  // Public: all community submissions (16b-i). Read-only, separate from the
-  // canonical catalog; promotion into the catalog is 16b-ii.
-  router.get("/api/submissions", async (_req, res, next) => {
+  // Public: all community submissions (16b-i), enriched per ADR 0031 §3b with the
+  // three server-computed fields the web renders per row: `canPromote` (USER-level,
+  // computed ONCE per request — the session user's own house-PoV gate, stamped
+  // identically on every row), `promotionStatus` (one batched `readPromotionStatuses`
+  // read), and `signals` (per-row `computeSubmissionSignals`, honest null). Every
+  // enrichment degrades fail-closed (false / null), never a 500.
+  router.get("/api/submissions", async (req, res, next) => {
     try {
       const addr = conceptAddr();
       const events = addr ? await deps.query({ kinds: [KIND], "#z": [addr], limit: 200 }) : [];
-      const submissions = events
+      const rows = events
         .map((e) => toSubmission(e, true))
         .filter((s): s is NonNullable<typeof s> => s !== null)
         .sort((a, b) => b.createdAt - a.createdAt);
+
+      // canPromote: resolved ONCE for the session user (not per row). Anon and
+      // every trust degrade → false (same fail-closed gate as the promote route).
+      let canPromote = false;
+      try {
+        const user = await deps.sessionUser(cookieOf(req));
+        if (user) {
+          const threshold = deps.config.curatorThreshold ?? 0.5;
+          canPromote = (await houseWeightOf(user.pubkeyHex)) >= threshold;
+        }
+      } catch {
+        canPromote = false;
+      }
+
+      // promotionStatus: ONE batched read keyed by the listed slugs (never N).
+      const slugs = rows.map((r) => r.slug);
+      let statusBySlug = new Map<string, PromotionStatus>();
+      if (deps.readPromotionStatuses && slugs.length > 0) {
+        try {
+          statusBySlug = await deps.readPromotionStatuses(slugs);
+        } catch {
+          statusBySlug = new Map();
+        }
+      }
+
+      // signals: per-row house-vantage compute, honest null on none/degrade.
+      const house = deps.config.houseObserverPubkey;
+      const lib = deps.config.librarianPubkey;
+      const threshold = deps.config.curatorThreshold ?? 0.5;
+      const submissions = await Promise.all(
+        rows.map(async (row) => {
+          let signals: SubmissionSignals | null = null;
+          if (deps.trust && house && lib) {
+            try {
+              const ratingEvents = await deps.query({
+                kinds: [KIND],
+                "#a": [`${KIND}:${lib}:${row.slug}`],
+              });
+              signals = await computeSubmissionSignals({
+                trust: deps.trust,
+                houseObserverHex: house,
+                threshold,
+                ratingEvents,
+              });
+            } catch {
+              signals = null;
+            }
+          }
+          return {
+            ...row,
+            canPromote,
+            promotionStatus: statusBySlug.get(row.slug) ?? null,
+            signals,
+          };
+        }),
+      );
       res.status(200).json({ submissions });
     } catch (err) {
       next(err);

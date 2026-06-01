@@ -1,6 +1,6 @@
 import express from "express";
 import { loadConfig } from "./config";
-import { createDb, db, runMigrations } from "./db";
+import { createDb, db, readPromotionStatuses, runMigrations } from "./db";
 import { promotions } from "./db/schema";
 import { retryWithBackoff, isRetryableConnError } from "./util/retry";
 import { errorSanitizer } from "./middleware/errors";
@@ -462,6 +462,9 @@ async function main() {
           throw err;
         }
       },
+      // Batched promotion-state read for the enriched list (ADR 0031 §3b). ONE
+      // `WHERE slug = ANY(...)` query over the page's slugs → Map<slug, status>.
+      readPromotionStatuses,
     }),
   );
 
