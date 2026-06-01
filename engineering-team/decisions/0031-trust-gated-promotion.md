@@ -4,6 +4,34 @@
 **Date:** 2026-06-01
 **Story:** `engineering-team/stories/30-trust-gated-promotion.md`
 
+## Amendment (2026-06-01) — gate decisions pinned
+
+Three gate questions left open in the original ADR are now decided. Folded into the
+relevant Decision sections below; recorded here as the canonical record of the call:
+
+1. **Explicit `submitted-by` provenance tag (additive `BookRecord` schema change) —
+   ACCEPTED.** §5 previously left "mint the original submitter into the canonical record"
+   open. Decided: yes. `@unbnd/schemas` `BookRecord` gains an OPTIONAL `submittedBy`
+   field (type + builder); when set, `toBookRecordEvent` emits a single
+   `["submitted-by", <submitterPubkeyHex>]` tag — **hex on the wire** (consistent with the
+   `["p", <hex>]` author ref and every other nostr pubkey tag ref in the codebase; the
+   API/web resolve hex→npub/name at the boundary, npub-out per the standing rule). The
+   field is **additive and optional**: omitting it emits **no** `submitted-by` tag, so the
+   seeder's catalog records (which never set `submittedBy`) and every existing record shape,
+   validator, and fixture stay valid and unchanged. The promoter populates `submittedBy` =
+   the original submission event's author (hex) when minting the canonical record. The
+   book-read/API surfaces it as an optional passthrough (npub-out + Story-29 display
+   resolution); the web optionally credits "submitted by …" as a **minimal** addition, not a
+   new heavy surface. This supersedes §5's "without a new schema field" stance.
+2. **The new `apps/promoter` app — CONFIRMED.** The separate key-holding worker app
+   (already this ADR's recommendation, Option C / §1) is accepted as-is. No change.
+3. **`CURATOR_THRESHOLD` default `0.5`, env-configurable, calibrated on staging — CONFIRMED.**
+   The exact default is **not load-bearing** because it's env-tunable (mirroring the
+   `PERSONALIZE_MIN_FOLLOWS=1` staging calibration): set it low enough on staging for an
+   end-to-end promote test, then tune. Honest caveat: on the thin nosfabrica vantage,
+   possibly **no one** (even the founder npub) clears `0.5` until the threshold is calibrated
+   down — promotion is librarian/operator-only until then.
+
 ## Context
 
 Community submissions ship today (Stories 16a / 16b-i, ADR 0016). A submission is a
@@ -300,22 +328,48 @@ library, no hex literal outside `tokens.css`; the Promote action reuses existing
 ### 5. Provenance
 
 The canonical record is **librarian-signed** (the submitter is no longer the event author), so
-provenance must be carried in the payload to stay honest. **Decision (within the existing
-`BookRecord` schema, no break):**
+provenance must be carried in the payload to stay honest. **Decision (additive `BookRecord`
+schema change — pinned in the 2026-06-01 amendment, supersedes the earlier "no new field"
+framing):**
 - Set **`source: "community"`** — already a valid `BookSource` enum value
-  (`packages/schemas/src/BookRecord.ts:11`). This is the honest signal that the book entered the
+  (`packages/schemas/src/BookRecord.ts:13`). This is the honest signal that the book entered the
   catalog by community submission + curator promotion, not the Open Library seed.
-- Carry the **original submitter** via the existing **`authorPubkey` / `p` tag** ONLY when the
-  submitter is genuinely the book's author; otherwise preserve the submitter reference via the
-  promotions row's `requested_by` (the promoter) and the submission event's own author (queryable
-  on the still-present `book-submissions` record), **without** inventing a new schema field.
+- Mint the **original submitter** directly into the canonical record via a dedicated provenance
+  tag, so the credit survives independent of the queryability of the surviving submission event
+  or the `promotions.requested_by` (the promoter, who is **not** the submitter). This is an
+  **additive, optional** schema change in `@unbnd/schemas` `BookRecord.ts`:
 
-The PO leaned toward `source:"community"` + a submitter reference; this honors that **without a
-schema break**. **Open for the gate:** if the user wants the original submitter's pubkey minted
-*into the canonical record itself* (e.g., a dedicated `submitted-by` tag) rather than left
-derivable from the surviving submission event + `requested_by`, that is a **minimal additive
-`BookRecord` field** the implementer can add — flagged below as a gate question, since it edits
-a shipped schema.
+  - **Type:** add an OPTIONAL field to the `BookRecord` domain type:
+    ```ts
+    readonly submittedBy?: HexPubkey;   // original submission event's author (hex)
+    ```
+    and a matching optional `submittedBy?: string | null` on the wire payload
+    (`BookRecordPayload["bookSubmission"]`), populated `record.submittedBy ?? null` like
+    `authorPubkey`.
+  - **Builder (`toBookRecordEvent`):** emit a single tag **only when set**, mirroring the
+    existing `["p", record.authorPubkey]` conditional:
+    ```ts
+    if (record.submittedBy) tags.push(["submitted-by", record.submittedBy]);
+    ```
+    Tag shape on the wire: `["submitted-by", <submitterPubkeyHex>]` — **HEX**, consistent with
+    the `["p", <hex>]` author ref and every other nostr pubkey tag ref in the codebase. The
+    `d`-tag (= slug, `buildBookRecordDTag`) and all existing tags are untouched; this is a clean
+    additive tag slot.
+  - **Reader (`fromBookRecordEvent`):** map the payload field back through (optional).
+  - **Additive / optional / seeded-records-unaffected:** when `submittedBy` is unset, **no**
+    `submitted-by` tag is emitted and the payload field is `null`. The seeder's catalog records
+    (`apps/seeder`, `mapWorkToBookRecord`) never set it, so they emit no `submitted-by` tag and
+    remain byte-compatible with today's shape — no validator, fixture, or existing-record break.
+- **Promoter:** `mapSubmissionToCatalogRecord(...)` sets `submittedBy` = the original submission
+  event's author (hex) when minting the canonical record. (`source:"community"` as before.)
+- **Read path (optional passthrough):** the catalog/book read can expose the submitter — hex
+  resolved to **npub** at the API boundary + Story-29 display resolution (`useProfileMeta`,
+  honest `shortNpub` fallback) — so the web can credit "submitted by …". Kept additive/optional:
+  a seeded record with no `submitted-by` tag simply has no submitter to surface.
+
+This honors the PO's lean (`source:"community"` + a real submitter reference) by minting the
+credit *into the canonical record itself*. Ripple from this schema change is captured in §6
+(testable seams) and §7 (ripple/files).
 
 ### 6. Testable seams (fixture/CI-verifiable — load-bearing)
 
@@ -329,8 +383,15 @@ a shipped schema.
   call returns `already`, enqueue not duplicated. Signals: with fixture weights over a known
   curator key set, assert `curatorRatingCount`/`curators`/`trustedAverage`; with empty weights,
   assert `signals: null`.
+- **`@unbnd/schemas` (provenance tag):** a unit test on `toBookRecordEvent` asserting it emits
+  exactly one `["submitted-by", <hex>]` tag when `submittedBy` is set (hex on the wire, matching
+  the input), and emits **no** `submitted-by` tag when `submittedBy` is unset (seeded-record
+  shape preserved). A `fromBookRecordEvent` round-trip asserting the field maps back. This pins
+  the additive/optional contract.
 - **Worker:** test the pure builder `mapSubmissionToCatalogRecord(...)` directly (correct
-  `books` header address, `source:"community"`, slug-preserving d-tag). Test the loop by
+  `books` header address, `source:"community"`, slug-preserving d-tag, and `submittedBy` set to
+  the original submission event's author hex → the minted record carries
+  `["submitted-by", <submitterHex>]`). Test the loop by
   injecting **(a)** a fake queue-reader (returns a claimed pending job), **(b)** a fake librarian
   **signer** (a deterministic stub, NO real `LIBRARIAN_NSEC`), **(c)** a fake **publisher** (no
   live relay). Assert: it builds the correct canonical record, signs it, publishes to local +
@@ -359,6 +420,13 @@ All of the above run with **no Brainstorm call, no relay, no human** (AC-8).
 - `apps/promoter/.../Dockerfile` + GHCR build wiring (CI mirrors the seeder image build).
 
 **Changed:**
+- `packages/schemas/src/BookRecord.ts` — add the OPTIONAL `submittedBy?: HexPubkey` field to the
+  `BookRecord` type + the matching `submittedBy?: string | null` wire payload field; emit
+  `["submitted-by", <hex>]` in `toBookRecordEvent` only when set; map it back in
+  `fromBookRecordEvent`. Additive/optional — seeded records (no `submittedBy`) emit no tag and are
+  unchanged. (+ a `packages/schemas` test, see §6.)
+- `apps/promoter/src/build.ts` — `mapSubmissionToCatalogRecord(...)` sets `submittedBy` = the
+  submission event author hex (listed under New, this is the behavior detail).
 - `apps/api/src/routes/submissions.ts` — add `POST /api/submissions/:slug/promote` (the gate +
   enqueue), the signal read on the submission detail, and the `trust` + `enqueuePromotion` deps.
 - `apps/api/src/config.ts` — add `curatorThreshold` (env `CURATOR_THRESHOLD`, validated `(0,1]`,
@@ -368,6 +436,11 @@ All of the above run with **no Brainstorm call, no relay, no human** (AC-8).
 - `apps/web/src/routes/CommunitySubmissions.tsx` (+ a submission-detail surface) — render
   signals, the gated Promote action, and the pending→in-catalog states.
 - `apps/web/src/lib/api.ts` — add `submissions.promote(slug)` + the signals read shape.
+- **Book read path (optional `submitted-by` passthrough):** the catalog/book read (API book
+  route + its web BookDetail surface) optionally surfaces the submitter (hex→npub at the API
+  boundary + Story-29 display resolution) so the web can credit "submitted by …". Kept
+  **minimal/optional** — not a new heavy surface; seeded records with no `submitted-by` tag
+  simply render nothing.
 - `docker-compose.prod.yml` (and `docker-compose.yml` for local) — add the `promoter` service
   (`profiles:["promote"]`, `restart:"no"`, `DATABASE_URL`, `LIBRARIAN_NSEC`, `DCOSL_RELAY_URL`,
   `STRFRY_URL`, `LIBRARIAN_PUBKEY`); add `CURATOR_THRESHOLD` to the `api` env. **Do NOT** add
@@ -393,8 +466,9 @@ green (assert, don't change); new `apps/api/test/.../no-librarian-nsec-in-api` g
   deferred; the gate is built/verified against the fixture provider regardless.
 - **Affects existing fixtures?** Yes (after implementation): the web `CommunitySubmissions`
   fixtures gain signal + promoted-state shapes; `apps/api/test` submission fixtures gain
-  `promotions`/trust-fixture cases. No `packages/schemas` fixture change (we reuse `BookRecord`
-  + `source:"community"`).
+  `promotions`/trust-fixture cases. `packages/schemas` gains a **new** test for the additive
+  `submittedBy` field / `submitted-by` tag (§6), but the change is additive/optional — existing
+  `BookRecord` fixtures and seeded-record shapes are **unchanged** (no `submittedBy` → no tag).
 - **New dependency?** No new *runtime* package — `apps/promoter` reuses `nostr-tools`, `postgres`,
   `drizzle-orm`, `ws`, `@unbnd/schemas`, esbuild (all already in the repo). A new *app*, not a
   new dependency.
@@ -408,5 +482,5 @@ Automatic threshold promotion (Phase 3); demotion / un-promote (Story 30b); the 
 write picker + reveal (§2.8); the trust-tier badge / verified-author (§2.10); trust-weighted
 search re-rank + homepage trust shelves (§2.9); a manually-assigned curator/editor role; the
 house-observer swap; any new trust-weighting math; new lint/typecheck/build tooling. The worker's
-retry/backoff tuning and the optional dedicated `submitted-by` schema tag (see §5) are deferred
-to implementation / the gate.
+retry/backoff tuning is deferred to implementation. (The dedicated `submitted-by` schema tag,
+previously flagged here as open, is now **in scope** — accepted in the 2026-06-01 amendment, §5.)

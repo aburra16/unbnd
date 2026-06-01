@@ -4,7 +4,7 @@
 **Created:** 2026-06-01
 **Type:** Feature
 
-**Gate decisions (2026-06-01):** canonical librarian-signed; separate key-holding worker (option B); promote-only, demotion→30b; nosfabrica interim house. See ADR `engineering-team/decisions/0031-trust-gated-promotion.md`.
+**Gate decisions (2026-06-01):** canonical librarian-signed; separate key-holding worker (`apps/promoter`, confirmed); promote-only, demotion→30b; nosfabrica interim house; explicit `submitted-by` provenance tag (additive optional `BookRecord` field, hex on the wire, seeded records unaffected); `CURATOR_THRESHOLD` default `0.5` env-configurable, calibrated on staging. See ADR `engineering-team/decisions/0031-trust-gated-promotion.md` (amendment).
 
 ## Background
 
