@@ -1,8 +1,13 @@
 // Postgres client + Drizzle adapter per ADR 0003.
+import { inArray } from "drizzle-orm";
 import { drizzle, type PostgresJsDatabase } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
 import * as schema from "./schema";
+import { promotions } from "./schema";
 import { migrations } from "./migrations";
+
+/** The promotion job lifecycle states (ADR 0031 §1). */
+export type PromotionStatus = "pending" | "promoting" | "done" | "failed";
 
 export type DbClient = PostgresJsDatabase<typeof schema>;
 
@@ -34,6 +39,29 @@ export function createDb(databaseUrl: string): DbClient {
   const client = postgres(databaseUrl);
   _db = drizzle(client, { schema });
   return _db;
+}
+
+/**
+ * Batched read of promotion job states for the given slugs (ADR 0031 §3b). ONE
+ * query (`WHERE slug = ANY($1)`), never N per-row reads. Returns a
+ * `Map<slug, status>` with only the slugs that have a `promotions` row — an
+ * absent slug (never enqueued) is simply not in the map (the caller reads `null`).
+ * Empty input short-circuits to an empty map (no query). Mirrors how
+ * `enqueuePromotion` wraps the `promotions` table.
+ */
+export async function readPromotionStatuses(
+  slugs: string[],
+): Promise<Map<string, PromotionStatus>> {
+  const result = new Map<string, PromotionStatus>();
+  if (slugs.length === 0) return result;
+  const rows = await db
+    .select({ slug: promotions.slug, status: promotions.status })
+    .from(promotions)
+    .where(inArray(promotions.slug, slugs));
+  for (const row of rows) {
+    result.set(row.slug, row.status as PromotionStatus);
+  }
+  return result;
 }
 
 /** Run all embedded migrations in order. Idempotent (IF NOT EXISTS guards). */

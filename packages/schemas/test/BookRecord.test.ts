@@ -132,3 +132,62 @@ describe("fromBookRecordEvent", () => {
     expect(back).toEqual(sample);
   });
 });
+
+// ── Story 30 / ADR 0031 §5 (2026-06-01 amendment): additive, optional
+// `submittedBy` provenance. When set, `toBookRecordEvent` emits exactly one
+// `["submitted-by", <hex>]` tag (HEX on the wire, like `["p", <hex>]`); when
+// unset, NO `submitted-by` tag is emitted, so seeded records stay byte-stable.
+// `fromBookRecordEvent` round-trips the field. These are RED until the schema
+// gains the field/builder/reader.
+const SUBMITTER = hex64("2".repeat(63) + "b");
+
+describe("toBookRecordEvent — submitted-by provenance (Story 30)", () => {
+  it("emits exactly one ['submitted-by', <hex>] tag when submittedBy is set, hex on the wire", () => {
+    const promoted = { ...sample, source: "community" as const, submittedBy: SUBMITTER };
+    const event = toBookRecordEvent(promoted as BookRecord);
+    const subTags = event.tags.filter((t) => t[0] === "submitted-by");
+    expect(subTags).toHaveLength(1);
+    expect(subTags[0]).toEqual(["submitted-by", SUBMITTER]);
+    // HEX on the wire, never an npub at the tag layer.
+    expect(subTags[0]![1]).not.toMatch(/^npub1/);
+  });
+
+  it("emits NO submitted-by tag when submittedBy is unset (seeded-record shape preserved)", () => {
+    const event = toBookRecordEvent(sample); // sample has no submittedBy
+    const tagNames = event.tags.map((t) => t[0]);
+    expect(tagNames).not.toContain("submitted-by");
+  });
+
+  it("carries submittedBy through the wire payload as null when unset", () => {
+    const event = toBookRecordEvent(sample);
+    expect(
+      (event.payload.bookSubmission as { submittedBy?: string | null }).submittedBy ?? null,
+    ).toBeNull();
+  });
+
+  it("carries submittedBy through the wire payload as the hex when set", () => {
+    const promoted = { ...sample, source: "community" as const, submittedBy: SUBMITTER };
+    const event = toBookRecordEvent(promoted as BookRecord);
+    expect(
+      (event.payload.bookSubmission as { submittedBy?: string | null }).submittedBy,
+    ).toBe(SUBMITTER);
+  });
+});
+
+describe("fromBookRecordEvent — submitted-by round-trip (Story 30)", () => {
+  it("round-trips submittedBy when set", () => {
+    const promoted: BookRecord = {
+      ...sample,
+      source: "community",
+      submittedBy: SUBMITTER,
+    } as BookRecord;
+    const back = fromBookRecordEvent(toBookRecordEvent(promoted));
+    expect(back.submittedBy).toBe(SUBMITTER);
+    expect(back).toEqual(promoted);
+  });
+
+  it("yields no submittedBy for a record with no submitted-by tag (additive/optional)", () => {
+    const back = fromBookRecordEvent(toBookRecordEvent(sample));
+    expect(back.submittedBy).toBeUndefined();
+  });
+});

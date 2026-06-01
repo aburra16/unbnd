@@ -61,6 +61,15 @@ export type Config = {
    * test fixtures need not set it (mirrors `propagateWrites`/`profileRelays`).
    */
   readonly personalizeMinFollows?: number;
+  /**
+   * The emergent curator gate (ADR 0031): a session user clears the gate when
+   * their own GrapeRank weight from the house observer's vantage is ≥ this
+   * threshold. Env `CURATOR_THRESHOLD`, validated in (0,1] (GrapeRank weights are
+   * clamped to that range). Default 0.5 (conservative, non-zero); calibrated on
+   * staging. Always set by `loadConfig`; optional here so partial test fixtures
+   * need not set it.
+   */
+  readonly curatorThreshold?: number;
 };
 
 const DEFAULT_TRUST_RELAYS = [
@@ -127,6 +136,15 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
   ) {
     throw new Error(
       `config: PERSONALIZE_MIN_FOLLOWS must be a non-negative integer; got ${JSON.stringify(minFollowsRaw)}`,
+    );
+  }
+
+  // Curator gate threshold (ADR 0031). Validated in (0,1]; default 0.5.
+  const curatorThresholdRaw = withDefault(env, "CURATOR_THRESHOLD", "0.5");
+  const curatorThreshold = Number(curatorThresholdRaw);
+  if (!Number.isFinite(curatorThreshold) || curatorThreshold <= 0 || curatorThreshold > 1) {
+    throw new Error(
+      `config: CURATOR_THRESHOLD must be a number in (0,1]; got ${JSON.stringify(curatorThresholdRaw)}`,
     );
   }
 
@@ -231,6 +249,7 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
     trustFixture,
     houseObserverPubkey,
     personalizeMinFollows,
+    curatorThreshold,
     neo4jBoltUrl: withDefault(env, "NEO4J_BOLT_URL", "bolt://localhost:7687"),
     neo4jUser: withDefault(env, "NEO4J_USER", "neo4j"),
     neo4jPassword,

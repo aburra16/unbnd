@@ -145,6 +145,27 @@ never runs with the normal stack.
    */5 * * * * docker exec unbnd-tapestry strfry sync wss://dcosl.brainstorm.world/ --dir down --filter '{"kinds":[39998,39999]}' >> /var/log/unbnd-sync.log 2>&1
    ```
 
+## Promotion worker (Story 30 / ADR 0031)
+
+The promoter mints librarian-signed catalog records from curator-approved
+submissions. It holds `LIBRARIAN_NSEC` (the same secret the seeder uses) and runs
+off the internet-facing path — the API never holds the secret; it only enqueues
+`promotions` rows. Like the seeder it runs under a compose profile, so it never
+starts with the normal stack.
+
+1. `LIBRARIAN_NSEC` is already in `/opt/unbnd/.env` (seeder reuses it). Optionally
+   tune `CURATOR_THRESHOLD` (default `0.5`) on the `api` service.
+2. The worker processes one batch of pending jobs per run, then exits. Fire it
+   periodically with a crontab entry on the droplet (mirroring the up-sync cron),
+   e.g. every 5 minutes:
+   ```
+   */5 * * * * cd /opt/unbnd && docker compose -f docker-compose.prod.yml --profile promote run --rm promoter >> /var/log/unbnd-promote.log 2>&1
+   ```
+   It is idempotent: each promoted book is republished under the same address
+   `39999:<librarian>:<slug>`, and a re-enqueue of the same slug collides on the
+   `promotions.slug` unique constraint, so double-promote can never duplicate a
+   catalog entry.
+
 ## Rollback
 
 Pin the app services to a previous image tag (CI tags every image with its

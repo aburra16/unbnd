@@ -38,6 +38,8 @@ jobs:
             dockerfile: apps/web/Dockerfile
           - name: seeder
             dockerfile: apps/seeder/Dockerfile
+          - name: promoter
+            dockerfile: apps/promoter/Dockerfile
           - name: indexer
             dockerfile: apps/indexer/Dockerfile
     steps:
