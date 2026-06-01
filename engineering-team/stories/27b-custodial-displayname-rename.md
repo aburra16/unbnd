@@ -85,7 +85,8 @@ kind-0 is a **public, unencrypted, broadcast** event. The rename's only user-sup
 This story is intentionally thin: it is **the endpoint + the DB update + the UI field + one republish call through Story 27's `buildProfileKind0Content`**. No new kind-0 merge logic, no new privacy whitelist, no new template builder, no hand-rolled crypto. If 27b finds itself adding merge logic, that is a smell — the shared seam already covers it.
 
 ## Linked artifacts
-- ADR: `engineering-team/decisions/0027-custodial-kind0-bootstrap.md` (Amendment note + Decision §6 + the "Deferred to Story 27b" implementation subsection).
+- ADR: `engineering-team/decisions/0028-custodial-displayname-rename.md` (the 27b design-of-record: pins the endpoint contract, the DB↔kind-0 ordering, and the failure posture; reuses Story 27's `buildProfileKind0Content` seam with no new merge logic).
+- Parent ADR: `engineering-team/decisions/0027-custodial-kind0-bootstrap.md` (Amendment note + Decision §6 + the "Deferred to Story 27b" implementation subsection — the seam-of-record this builds on).
 - Parent story: `engineering-team/stories/done/27-custodial-kind0-bootstrap.md` (the builder seam this reuses; ships ACs 1–5, 7, 8).
 - Model for the route shape: `engineering-team/stories/done/22-substack-set.md` and `apps/api/src/routes/profile-substack.ts` (tier-branched custodial write + injected `publish`/`fetchRaw`/`custodialSign`).
 - Test plan: (filled in after Test Design phase)
