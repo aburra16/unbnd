@@ -302,5 +302,5 @@ Resolve before approving the story.
   and `0025-weighted-consensus.md` (the House⇄Yours trust view and trusted/community
   labeling the honesty rule sits beside).
 - New ADR for this story: `engineering-team/decisions/0029-your-rating-surface-edit.md`
-- Test plan: (filled in after Test Design phase)
+- Test plan: `engineering-team/stories/28-your-rating-surface-edit.test-plan.md`
 - Review: (filled in after Review phase)
