@@ -11,6 +11,8 @@ import { Navigate } from "react-router-dom";
 import { api, ApiError, type SignedEvent } from "../lib/api";
 import { Nav } from "../components/Nav";
 import { Footer } from "../components/Footer";
+import { CopyButton } from "../components/CopyButton";
+import { shortNpub } from "../lib/view-model";
 import { useSession } from "../hooks/useSession";
 import {
   useProfileMeta,
@@ -273,6 +275,25 @@ export function Settings() {
           </div>
         </form>
       )}
+
+      {/* Nostr identity — the canonical home for the npub (Story 29 / ADR 0030).
+          Read-only: a persistent on-page explainer, the Your-npub label, the
+          monospace middle-truncated chip, and the shared CopyButton. Both tiers.
+          No write, no state machine, no API call. */}
+      <section className="set-form set-nostr">
+        <h2 className="set-nostr-title">Nostr identity</h2>
+        <p className="set-hint set-nostr-explainer">
+          This is your identity on nostr. It travels with you to any nostr app,
+          and it is how other people follow and reference you.
+        </p>
+        <div className="set-field">
+          <span className="set-nostr-label">Your npub</span>
+          <div className="set-nostr-row">
+            <code className="set-nostr-chip">{shortNpub(user.npub)}</code>
+            <CopyButton value={user.npub} />
+          </div>
+        </div>
+      </section>
       <Footer />
     </div>
   );
