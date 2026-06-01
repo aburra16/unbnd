@@ -18,6 +18,7 @@ import { render, screen, fireEvent, waitFor, within } from "@testing-library/rea
 import { MemoryRouter, Routes, Route } from "react-router-dom";
 import { Settings } from "../../src/routes/Settings";
 import type { UseSession } from "../../src/hooks/useSession";
+import type { PublicUser } from "../../src/lib/api";
 
 const sessionMock = vi.fn<() => UseSession>();
 vi.mock("../../src/hooks/useSession", () => ({
@@ -106,7 +107,7 @@ function renderSettings() {
 
 // The section is the canonical home for BOTH tiers. Run the structural
 // assertions against each.
-const tiers: Array<[string, typeof sovereignUser]> = [
+const tiers: Array<[string, PublicUser]> = [
   ["sovereign", sovereignUser],
   ["custodial", custodialUser],
 ];

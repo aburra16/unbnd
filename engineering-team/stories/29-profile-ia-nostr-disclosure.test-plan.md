@@ -80,7 +80,7 @@ On both Settings and the sovereign ProfileMe header: `getByText("npub1n0ewa…rk
 ## Files (new + migrated)
 
 ### New (Tester-owned)
-- `apps/web/test/components/copy-button.test.tsx` — 11 tests for the shared
+- `apps/web/test/components/copy-button.test.tsx` — 10 tests for the shared
   `CopyButton` (AC-3, AC-7). Currently a **collection error** (the
   `src/components/CopyButton` module does not exist), which is the correct
   not-implemented red.
@@ -172,7 +172,7 @@ All failures are because the feature is not built yet, not test bugs:
   Error: Failed to resolve import "../../src/components/CopyButton" from
   "test/components/copy-button.test.tsx". Does the file exist?
   ```
-  (11 tests blocked on the missing `CopyButton` module.)
+  (10 tests blocked on the missing `CopyButton` module.)
 
 - **`settings-nostr-identity.test.tsx` (14 failed)** — the `Nostr identity`
   heading, the `Your npub` label, the explainer line, the truncated chip, and the
@@ -193,5 +193,5 @@ All failures are because the feature is not built yet, not test bugs:
   `title="npub1n0ewa4w877phxhqxu5v02mhmj6aanc7mm93w9attfjc5etcstkzql9rk23"` element.
 
 When the Implementer builds `CopyButton`, the Settings section, and the ProfileMe
-tier branch per ADR 0030, all 26 (+ the 11 CopyButton) tests pass and the green
+tier branch per ADR 0030, all 26 (+ the 10 CopyButton) tests pass and the green
 suite stays green.
