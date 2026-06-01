@@ -147,7 +147,7 @@ describe("POST /api/submissions/:slug/promote — idempotent double-promote (AC-
   it("second promote of the same slug → 200 {status:'already'}, no duplicate job", async () => {
     // The enqueue seam reports the UNIQUE(slug) collision as `already`.
     const enqueuePromotion = vi
-      .fn<[string, string], Promise<EnqueueResult>>()
+      .fn<(slug: string, requestedBy: string) => Promise<EnqueueResult>>()
       .mockResolvedValueOnce({ status: "queued" })
       .mockResolvedValueOnce({ status: "already" });
     const { app } = makeApp({ enqueuePromotion: enqueuePromotion as never });
