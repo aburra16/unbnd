@@ -143,22 +143,63 @@ emoji, no celebratory toast):
 - [ ] Out of scope, NOT tested: un-rate / removal (Story 28b); any confirm modal
       (gate decision: a test asserts NO `role="dialog"` and no `/overwrite/i` appear).
 
-## Known follow-ups for the Implementer / port (not weakenings)
+## Migrated to the controlled-props contract (red set now COMPLETE)
 
-These existing tests assert the CURRENT self-fetching components and stay green now.
-ADR 0029 makes `RatingsPanel` and `RatingControl` controlled by `useBookRatings`;
-when that lands, the Implementer ports these from self-fetch to prop-driven inputs
-(ADR "Existing tests that change"). They are intentionally left untouched in this
-phase so they remain green contracts for the shipped behavior:
+The four existing test files that encoded the OLD self-fetch behavior have now
+been migrated to the ADR 0029 controlled-props contract (same prop shapes/mocks
+as `rating-control-your-rating.test.tsx` and `use-book-ratings.test.tsx` — one
+coherent contract across all web tests). They are intentionally RED until the
+Implementer lands the controlled refactor (drops the components' own
+`api.ratings.list` effects, accepts the new props, and wires `applyWrite`); the
+red is "feature not built", NOT a test bug. With these four migrated, the full
+Story-28 web red set is complete.
 
-- `apps/web/test/components/ratings-panel.test.tsx` — currently self-fetches via
-  `api.ratings.list`; becomes prop-driven (`house`/`yours`/`status`).
-- `apps/web/test/components/rating-control.test.tsx` and
-  `rating-control-custodial.test.tsx` — still pass with the new OPTIONAL props
-  (never-rated default); the prefill/"Update rating" cases live in the new
-  `rating-control-your-rating.test.tsx`.
-- `apps/web/test/book-detail-trust-view.test.tsx` — may need the new hook wired when
-  BookDetail calls `useBookRatings(slug)` once.
+- `apps/web/test/components/ratings-panel.test.tsx` — **migrated.** Old: mocked
+  `api.ratings.list`, asserted the panel fetched the house summary on mount and
+  the `yours` vantage on the toggle. New: the panel is controlled — rendered with
+  `house`/`yours`/`status` PROPS; the same render behaviors are preserved (house
+  weighted render, raw fallback, Personalize trigger, building note, Yours
+  vantage render + label, toggle → `setView`) plus a new `status="loading"`
+  case. `useTrustView` still owns the toggle chrome. RED now because the panel
+  ignores the props and renders from its own (null) self-fetch state.
+  - **Assertion moved:** the old `ready + Yours` test asserted
+    `expect(listMock).toHaveBeenCalledWith("b1", "npub1me")` — i.e. the panel
+    *fetches* the observer vantage. That fetch responsibility moved to the hook;
+    it is now covered by `use-book-ratings.test.tsx` → "fetches the 'yours'
+    vantage only when view==='yours' and an npub is present". The panel test
+    re-expresses the *guarded behavior* as: the panel RENDERS the `yours` slice
+    it is handed and labels it "Your perspective" (no fetch assertion).
+
+- `apps/web/test/components/rating-control.test.tsx` — **migrated.** Old: mocked
+  `api.ratings.list` (self-fetch on mount) and rendered `<RatingControl
+  bookSlug>` with no rating props. New: controlled — rendered with `yourRating`
+  (never-rated default `null`) + `applyWrite`. Preserved: sovereign first-rating
+  path (`template → signEvent → submit`), the signed-out sign-in prompt, and the
+  custodial-renders-control gate. Added: a reconcile-via-`applyWrite` assertion
+  (the control hands the saved summary + own rating to `applyWrite` instead of
+  `setSummary`). RED now only on the `applyWrite` reconcile test (component still
+  `setSummary`s); the three preserved-behavior tests stay GREEN.
+
+- `apps/web/test/components/rating-control-custodial.test.tsx` — **migrated.**
+  Same shape: controlled props, `list` kept in the boundary mock for parity.
+  Preserved: the custodial server-side-submit contract (`submitCustodial`, no
+  extension, no sovereign endpoints). Added: the `applyWrite` reconcile
+  assertion (RED now; the preserved submit test stays GREEN).
+
+- `apps/web/test/book-detail-trust-view.test.tsx` — **migrated.** Old: mocked
+  `api.ratings.list` (the sibling components each self-fetched). New: mocks the
+  shared `useBookRatings(slug)` owner, since BookDetail now calls it once and
+  passes slices down. POV/observer intent is preserved verbatim: the AC-5
+  assertion that the tag read carries the active observer
+  (`tagsBook` called with `("orbital", YOURS_NPUB)`) is unchanged and stays
+  GREEN. Added: an assertion that BookDetail drives the page from the single
+  `useBookRatings("orbital")` owner (one read, not sibling self-fetches) — RED
+  until BookDetail calls the hook.
+
+No assertion was silently dropped. The one fetch-on-mount assertion that no
+longer applies to the panel (its data fetch moved to the hook) was relocated to
+`use-book-ratings.test.tsx` as noted above, and the panel test re-expresses the
+behavior it ultimately guarded (rendering the right vantage slice).
 
 ## Test infrastructure
 
@@ -236,6 +277,34 @@ green.
 The full suites confirm the red is isolated: `pnpm --filter @unbnd/api test` →
 `6 failed | 558 passed | 10 skipped`; `pnpm --filter @unbnd/web test` →
 `10 failed | 170 passed` (only the two new files fail).
+
+### Web — after migrating the four existing files to the controlled contract
+
+After migrating `ratings-panel.test.tsx`, `rating-control.test.tsx`,
+`rating-control-custodial.test.tsx`, and `book-detail-trust-view.test.tsx` to the
+controlled-props contract, `pnpm --filter @unbnd/web exec vitest run` reports:
+
+```
+ Test Files  6 failed | 32 passed (38)
+      Tests  16 failed | 168 passed (184)
+```
+
+The 6 failing files are exactly the Story-28 red set: the 2 new files
+(`use-book-ratings.test.tsx` — module not built; `rating-control-your-rating.test.tsx`
+— control not controlled) plus the 4 migrated files. All 32 other (non-rating)
+web test files stay green. Per-migrated-file red reasons (all "feature not
+built", not test bugs):
+
+- `use-book-ratings.test.tsx` — `Failed to resolve import "../../src/hooks/useBookRatings"`.
+- `ratings-panel.test.tsx` — 3 red (house-only 4.5 / raw-fallback 3.0 / Yours 2.0):
+  the panel renders from its own self-fetch null state, ignoring the `house`/`yours`
+  props. 4 green (loading note, Personalize, building note, toggle→setView).
+- `rating-control.test.tsx` — 1 red (`applyWrite` not called; still `setSummary`).
+  3 green (sovereign first-rating path, signed-out prompt, custodial control renders).
+- `rating-control-custodial.test.tsx` — 1 red (`applyWrite` not called). 1 green
+  (custodial `submitCustodial` path).
+- `book-detail-trust-view.test.tsx` — 1 red (`useBookRatings("orbital")` not called
+  yet). 1 green (AC-5: tag read carries the observer — intent preserved).
 
 ### Typecheck (the two intentional not-implemented contract errors)
 
