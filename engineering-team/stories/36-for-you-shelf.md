@@ -385,6 +385,8 @@ Resolve before approving the story (PO recommendations in Flags below).
   `apps/shelves/*` (the house shelves For-You sits beside but does NOT extend),
   `apps/web/src/routes/Home.tsx` + `apps/web/src/components/{Shelf,BookCard}.tsx`,
   `apps/web/src/lib/api.ts`.
-- ADR: (filled in after Architecture phase)
+- ADR: `engineering-team/decisions/0037-for-you-shelf.md` (read-time per-request user-vantage trust
+  read; dedicated `GET /api/foryou`; candidate-limited single batched `weights`; bar 4.0 + min 2;
+  exclude-already-rated; honest empty/absent; NO per-POV cache, `homepage_shelves` untouched).
 - Test plan: (filled in after Test Design phase)
 - Review: (filled in after Review phase)
