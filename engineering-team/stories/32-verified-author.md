@@ -4,6 +4,8 @@
 **Created:** 2026-06-01
 **Type:** Feature
 
+**Gate decisions (2026-06-01):** count-gate consensus (≥N curators above floor, self-excluded, dispute symmetric); none-on-conflict + co-author→Phase 3; editing ON for verified; separate threshold env. (See ADR 0033.)
+
 ## Background
 
 This is **Lane 2 / Block C** of PRD §2.10 — the trust-DEPENDENT half that sits on top of
