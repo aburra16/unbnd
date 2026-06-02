@@ -33,6 +33,8 @@ module mocks are the web's sibling api-client + session hook (mirroring the exis
 | AC-6 | worker mints a `state:"withdrawn"` event at the SAME (book,tag) address (reversal); enqueue flip reveal→withdraw→reveal keeps ONE row | `apps/promoter/test/reveal-cycle.test.ts`, `apps/promoter/test/reveal-cli.test.ts` | unit |
 | AC-7 | write gate closes on trust unavailable / no observer / throwing seam (403, never throws); picker flag → false on degrade; reveal never auto-fires (flood of assertions does not reveal) | `apps/api/test/routes/tags-accusatory-gate.test.ts`, `apps/api/test/routes/tags-reveal-read.test.ts` | route |
 | AC-8 | whole story green under the fixture provider; `LIBRARIAN_NSEC`-not-in-`apps/api/src` guard stays green; ADR-0014 trust architecture guard stays green | (the fixture-driven suites above) + existing `apps/api/test/security/no-librarian-nsec-in-api.test.ts` + `apps/api/test/trust/architecture.test.ts` | guard |
+| Review hardening | a tag-assertion event whose wire `["t",…]` ≠ parsed payload `tagSlug` is REJECTED at the write boundary (400-class, `invalid_event`/`tag_mismatch`) and NOT published — the exploit (below-gate wire=normal/payload=accusatory), the symmetric case, and an above-gate signer | `apps/api/test/routes/tags-accusatory-gate.test.ts` | route |
+| Review hardening | a CONSISTENT event (wire `t` === payload `tagSlug`) is gated exactly as before — accusatory below→403 `below_gate`, accusatory above→published, normal→published (no regression) | `apps/api/test/routes/tags-accusatory-gate.test.ts` | route |
 
 ## How the load-bearing assertions are made
 
@@ -63,6 +65,32 @@ module mocks are the web's sibling api-client + session hook (mirroring the exis
   publish failure marks `failed` and the run still resolves.
 - **Both tiers (AC-2).** Sovereign (client-signed `{event}`) and custodial (server ephemeral-wrap
   via injected `custodialSign`) each have explicit below-gate-reject and above-gate-accept cases.
+- **Wire `t` / payload `tagSlug` divergence (review hardening, non-blocking finding folded in).**
+  The write gate resolves a tag's sensitivity from the SIGNED EVENT's wire `["t",…]` tag
+  (`tags.ts` ~line 282, `firstTTag`), while the read aggregate keys visibility off the parsed
+  JSON-payload `tagSlug` (`packages/schemas/src/BookTagAssertion.ts:108` via `wire.ts:78`). A
+  hand-crafted sovereign event can DIVERGE the two. The hardening test crafts a `finalizeEvent`-
+  signed event whose FIRST wire `["t",…]` tag is rewritten to a different slug than the JSON
+  payload's `bookTagAssertion.tagSlug` (the event remains validly signed — it passes
+  `validateSignedEvent`'s `verifyEvent` + pubkey check; only the two slug fields disagree). The
+  contract pinned: such a divergent event is REJECTED at the write boundary with a 400-class error
+  (`invalid_event` is the existing route code from `apps/api/src/nostr/validate.ts`; the test
+  accepts the documented set `{invalid_event, tag_mismatch}`) and is NOT published — regardless of
+  the signer's curator weight. Three cases: (1) THE EXPLOIT — a below-gate signer with wire
+  `t`=`literary-fiction` (normal, slips the gate) + payload=`ai-generated` (accusatory, the field
+  the read keys on) must be rejected, not silently published; (2) the SYMMETRIC case (wire=
+  accusatory / payload=normal); (3) an ABOVE-gate signer's divergent event is still rejected (it is
+  an invalid event, not a gate decision). The fix direction (Implementer's freedom on the exact
+  rejection point): resolve sensitivity from the SAME canonical field in both the write gate and the
+  read, and reject a tag-assertion event whose wire `["t",…]` and payload `tagSlug` diverge.
+- **No regression on a CONSISTENT event (review hardening).** Once divergence is rejected,
+  sensitivity must resolve from the same canonical field in the gate and the read. A CONSISTENT
+  accusatory event (wire `t` === payload `tagSlug`) is gated by `CURATOR_THRESHOLD` exactly as
+  before (below-gate → `403 below_gate`, not published; above-gate → published 200), and a
+  CONSISTENT normal genre event from a below-gate signer is unaffected (published 200). These cases
+  are GREEN today (the existing gate reads the wire `t`, which agrees with the payload on a
+  consistent event) and must STAY green after the fix — the hardening is additive and weakens
+  nothing.
 
 ## Edge cases covered
 
@@ -74,6 +102,11 @@ module mocks are the web's sibling api-client + session hook (mirroring the exis
 - [x] Idempotent operator trigger: reveal→withdraw→reveal keeps ONE `reveals` row.
 - [x] Default-empty reveal set is byte-identical to omitting the argument (every existing caller
       unchanged).
+- [x] Wire `t` / payload `tagSlug` divergence rejected at the write boundary (400-class, not
+      published), regardless of curator weight — the exploit + the symmetric case + an above-gate
+      signer (review hardening).
+- [x] A consistent event (wire `t` === payload `tagSlug`) is gated exactly as before — no
+      regression to the existing accusatory below/above gate or the normal write (review hardening).
 
 ## Migrated / co-existing tests (faithful, not weakened)
 
@@ -166,3 +199,25 @@ apps/web:         (clean)
 
 No EXISTING source or test file regresses under `tsc` — every diagnostic is in a new Story-33 test
 file and names a Story-33 symbol the Implementer will create.
+
+### Review-hardening red (wire `t` / payload `tagSlug` divergence) — added 2026-06-02
+
+The non-blocking review finding (the write gate reads the wire `["t",…]` tag while the read keys on
+the payload `tagSlug`) is folded into `apps/api/test/routes/tags-accusatory-gate.test.ts` as 3 new
+FAILING tests (divergence rejected) plus 3 GREEN no-regression tests (consistent event gated as
+before). The red is intentional and for the right reason — the divergence is currently ALLOWED:
+
+```
+apps/api: Test Files  1 failed | 81 passed | 2 skipped (84)
+          Tests       3 failed | 716 passed | 10 skipped (729)
+  FAIL test/routes/tags-accusatory-gate.test.ts
+    > THE EXPLOIT: below-gate, wire t=normal + payload=accusatory → expected 400, got 200 (PUBLISHED past the gate)
+    > SYMMETRIC: wire t=accusatory + payload=normal → expected 400, got 403 (gate-decided, not rejected as invalid)
+    > divergence from an ABOVE-gate signer → expected 400, got 200 (PUBLISHED; divergence never detected)
+```
+
+The exploit case (got 200) is the load-bearing proof: a below-gate signer publishes a spoofed
+accusatory assertion (the payload the read aggregate keys on) because the gate read only the wire
+`t`=`literary-fiction` as normal. `pnpm -r typecheck` is CLEAN (all 7 packages, exit 0). The 3
+no-regression tests and every existing Story-33 assertion stay green (716 passed); schemas (112),
+web (282), promoter (28) unchanged.

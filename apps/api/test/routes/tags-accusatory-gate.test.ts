@@ -77,6 +77,44 @@ function signedAssertion(sk: Uint8Array, bookSlug: string, tagSlug: string, tagT
   return JSON.parse(JSON.stringify(finalizeEvent(tmpl as never, sk))) as SignedNostrEvent;
 }
 
+// A SPOOFED tag-assertion event whose wire `["t", wireSlug]` tag DIVERGES from
+// its parsed JSON-payload `tagSlug` (review hardening). The write gate today
+// reads sensitivity off the wire `t` tag (`firstTTag`); the read aggregate keys
+// visibility off the payload `tagSlug` (`fromBookTagAssertionEvent`). A
+// hand-crafted sovereign event can set the wire `t` to one slug and the payload
+// `tagSlug` to another. The event is still validly SIGNED (it passes
+// validateSignedEvent's verifyEvent + pubkey check); only the two tag-slug
+// fields disagree. The write gate must REJECT such an event at the boundary.
+function divergentSignedAssertion(
+  sk: Uint8Array,
+  bookSlug: string,
+  wireSlug: string,
+  payloadSlug: string,
+  tagType: "genre" | "style" | "signal" = "genre",
+): SignedNostrEvent {
+  // Start from a well-formed assertion carrying `payloadSlug` everywhere, then
+  // rewrite ONLY the first wire `["t", …]` tag to `wireSlug`, leaving the JSON
+  // payload (and its `bookTagAssertion.tagSlug`) on `payloadSlug`. Re-sign so the
+  // signature is valid over the tampered tags.
+  const a = {
+    bookSlug, bookAddress: { kind: 39999 as const, pubkey: LIB, dTag: bookSlug },
+    tagSlug: payloadSlug, tagType, polarity: 1 as const,
+    asserterPubkey: asHexPubkey(getPublicKey(sk)), parentHeader: HDR_ASSERT,
+  };
+  const tmpl = toWireTemplate(toBookTagAssertionEvent(a), Math.floor(Date.now() / 1000));
+  // Rewrite the FIRST `t` tag (the slug the gate reads via firstTTag) to wireSlug.
+  let rewroteFirstT = false;
+  const tags = (tmpl.tags as string[][]).map((t) => {
+    if (t[0] === "t" && !rewroteFirstT) {
+      rewroteFirstT = true;
+      return ["t", wireSlug];
+    }
+    return t;
+  });
+  const tampered = { ...tmpl, tags };
+  return JSON.parse(JSON.stringify(finalizeEvent(tampered as never, sk))) as SignedNostrEvent;
+}
+
 // The taxonomy the route reads: literary-fiction (normal genre) +
 // ai-generated (accusatory signal).
 const TAXONOMY = [
@@ -346,5 +384,109 @@ describe("GET /api/books/:slug/tags — canAssertAccusatory picker flag (AC-1)",
     // One read for the session-user gate (no per-row / N+1 fan-out for the flag).
     const sessionGateCalls = weights.mock.calls.filter((c) => (c[1] as string[]).includes(ABOVE));
     expect(sessionGateCalls.length).toBe(1);
+  });
+});
+
+// ───── REVIEW HARDENING: wire `t` vs payload `tagSlug` divergence is rejected ────
+//
+// FAILING TESTS (red) — Story 33 review finding (non-blocking, folded in). The
+// write gate resolves sensitivity from the SIGNED EVENT's wire `["t", …]` tag
+// (`tags.ts` ~line 282, via `firstTTag`), while the read aggregate keys
+// visibility off the parsed JSON-payload `tagSlug`
+// (`packages/schemas/src/BookTagAssertion.ts:108` via `wire.ts:78`). A
+// hand-crafted sovereign event can DIVERGE the two — put a NORMAL slug in the
+// wire `t` (slips the write gate) but the ACCUSATORY slug in the JSON payload
+// (the field the read keys on). Today the gate reads only the wire `t`, so a
+// below-gate signer's wire=normal / payload=accusatory event is NOT rejected —
+// it publishes (200) a spoofed accusatory assertion past the gate.
+//
+// THE CONTRACT this test pins (the Implementer chooses the exact rejection
+// point with freedom): a divergent (wire `["t",…]` ≠ payload `tagSlug`)
+// tag-assertion event is REJECTED at the write boundary with a 400-class error
+// and is NOT published — regardless of the signer's curator weight. The
+// existing invalid-event code in the sovereign validation path is
+// `invalid_event` (`apps/api/src/nostr/validate.ts`); the route maps a
+// validation failure other than `pubkey_mismatch` to 400. We assert 400 and
+// accept the documented invalid-event code set (`invalid_event` is the existing
+// route code; `tag_mismatch` is the more specific alternative the Implementer
+// may add).
+const INVALID_EVENT_CODES = ["invalid_event", "tag_mismatch"] as const;
+
+describe("POST /api/tags — wire `t` / payload `tagSlug` divergence is rejected (review hardening)", () => {
+  it("THE EXPLOIT: below-gate signer, wire `t`=normal (slips the gate) + payload=accusatory → 400-class reject, NOT published", async () => {
+    const sk = generateSecretKey();
+    // wire `t` = literary-fiction (NORMAL → would slip the write gate), but the
+    // JSON payload `tagSlug` = ai-generated (ACCUSATORY → the field the read
+    // aggregate keys visibility off). Signer is absent from the house map → below.
+    const ev = divergentSignedAssertion(sk, "b1", "literary-fiction", "ai-generated", "signal");
+    const { app, deps } = makeApp({ sessionUser: vi.fn(async () => userOf(getPublicKey(sk))) });
+    const res = await request(app).post("/api/tags").send({ event: ev });
+    expect(res.status).toBe(400);
+    expect(INVALID_EVENT_CODES).toContain(res.body.error.code);
+    expect(deps.publish).not.toHaveBeenCalled();
+  });
+
+  it("SYMMETRIC: wire `t`=accusatory + payload=normal → 400-class reject, NOT published (below-gate signer)", async () => {
+    const sk = generateSecretKey();
+    const ev = divergentSignedAssertion(sk, "b1", "ai-generated", "literary-fiction", "genre");
+    const { app, deps } = makeApp({ sessionUser: vi.fn(async () => userOf(getPublicKey(sk))) });
+    const res = await request(app).post("/api/tags").send({ event: ev });
+    expect(res.status).toBe(400);
+    expect(INVALID_EVENT_CODES).toContain(res.body.error.code);
+    expect(deps.publish).not.toHaveBeenCalled();
+  });
+
+  it("divergence is rejected even from an ABOVE-gate signer (it is an invalid event, not a gate decision)", async () => {
+    const sk = generateSecretKey();
+    const ev = divergentSignedAssertion(sk, "b1", "literary-fiction", "ai-generated", "signal");
+    // Make the signer an above-gate curator: the event must STILL be rejected as
+    // invalid (the contract is about field divergence, not curator weight).
+    const trust = new FixtureTrustProvider({ weights: { [HOUSE]: { [getPublicKey(sk)]: 0.9 } } });
+    const { app, deps } = makeApp({ sessionUser: vi.fn(async () => userOf(getPublicKey(sk))), trust });
+    const res = await request(app).post("/api/tags").send({ event: ev });
+    expect(res.status).toBe(400);
+    expect(INVALID_EVENT_CODES).toContain(res.body.error.code);
+    expect(deps.publish).not.toHaveBeenCalled();
+  });
+});
+
+// ─── REVIEW HARDENING: a CONSISTENT event is gated exactly as before (no regression) ───
+//
+// Once divergence is rejected, sensitivity must be resolved from the SAME
+// canonical field in the write gate and the read. A CONSISTENT accusatory event
+// (wire `t` === payload `tagSlug`) is gated by CURATOR_THRESHOLD exactly as
+// today (below → 403 below_gate; above → published); a CONSISTENT normal event
+// is unaffected. These assert the hardening does NOT regress the existing
+// Story-33 gate behavior — they are GREEN today (the existing gate already
+// reads the wire `t`, which agrees with the payload on a consistent event) and
+// must STAY green after the fix.
+describe("POST /api/tags — a CONSISTENT event is gated exactly as before (review hardening: no regression)", () => {
+  it("consistent accusatory from a below-gate signer → 403 below_gate, NOT published (unchanged)", async () => {
+    const sk = generateSecretKey();
+    const ev = signedAssertion(sk, "b1", "ai-generated", "signal");
+    const { app, deps } = makeApp({ sessionUser: vi.fn(async () => userOf(getPublicKey(sk))) });
+    const res = await request(app).post("/api/tags").send({ event: ev });
+    expect(res.status).toBe(403);
+    expect(res.body.error.code).toBe("below_gate");
+    expect(deps.publish).not.toHaveBeenCalled();
+  });
+
+  it("consistent accusatory from an above-gate signer → published (200) (unchanged)", async () => {
+    const sk = generateSecretKey();
+    const ev = signedAssertion(sk, "b1", "ai-generated", "signal");
+    const trust = new FixtureTrustProvider({ weights: { [HOUSE]: { [getPublicKey(sk)]: 0.9 } } });
+    const { app, deps } = makeApp({ sessionUser: vi.fn(async () => userOf(getPublicKey(sk))), trust });
+    const res = await request(app).post("/api/tags").send({ event: ev });
+    expect(res.status).toBe(200);
+    expect(deps.publish).toHaveBeenCalledTimes(1);
+  });
+
+  it("consistent normal genre from a below-gate signer → published (200) (unchanged)", async () => {
+    const sk = generateSecretKey();
+    const ev = signedAssertion(sk, "b1", "literary-fiction", "genre");
+    const { app, deps } = makeApp({ sessionUser: vi.fn(async () => userOf(getPublicKey(sk))) });
+    const res = await request(app).post("/api/tags").send({ event: ev });
+    expect(res.status).toBe(200);
+    expect(deps.publish).toHaveBeenCalledTimes(1);
   });
 });
