@@ -9,6 +9,7 @@ import type { PublishResult } from "../nostr/publish";
 import type { NostrFilter } from "../nostr/query";
 import {
   fromAccusatoryRevealEvent,
+  fromBookTagAssertionEvent,
   fromWireEvent,
   type SignedNostrEvent,
   type NostrEventTemplate,
@@ -63,6 +64,24 @@ function cookieOf(req: Request): string | undefined {
  * BookTagAssertion emits `["t", tagSlug]` before `["t", tagType]`). */
 function firstTTag(tags: string[][] | undefined): string | undefined {
   return tags?.find((t) => t[0] === "t")?.[1];
+}
+
+/**
+ * The CANONICAL asserted tag slug from a signed assertion event's parsed JSON
+ * payload (`bookTagAssertion.tagSlug`) — the SAME field the read aggregate keys
+ * visibility off (`fromBookTagAssertionEvent` → `aggregate.ts`). The write gate
+ * resolves sensitivity from this so it can never diverge from the read.
+ * Returns undefined if the payload can't be parsed (malformed event).
+ */
+function payloadTagSlug(event: SignedNostrEvent): string | undefined {
+  try {
+    const assertion = fromBookTagAssertionEvent(
+      fromWireEvent({ kind: event.kind, content: event.content, tags: event.tags }) as never,
+    );
+    return assertion.tagSlug;
+  } catch {
+    return undefined;
+  }
 }
 
 /**
@@ -271,15 +290,46 @@ export function buildTagsRouter(deps: TagsDeps): Router {
       const user = await deps.sessionUser(cookie);
       if (!user) return void res.status(401).json({ error: { code: "no_session", message: "Not signed in." } });
 
+      // On the sovereign path, validate the client-signed event FIRST so the gate
+      // and the canonical-consistency check operate on a verified event. (The
+      // custodial path has no client event; the server signs the body intent.)
+      if (user.tier !== "custodial") {
+        const { event } = req.body ?? {};
+        const v = validateSignedEvent(event, user.pubkeyHex, KIND);
+        if (!v.ok) {
+          const status = v.code === "pubkey_mismatch" ? 403 : 400;
+          return void res.status(status).json({
+            error: {
+              code: v.code,
+              message: v.code === "pubkey_mismatch" ? "Must be signed by your own key." : "Invalid tag event.",
+            },
+          });
+        }
+        // Canonical-consistency (review hardening): the write gate resolves
+        // sensitivity from the parsed payload `tagSlug` (the field the READ keys
+        // on); the wire `["t", …]` tag must agree. A crafted sovereign event that
+        // diverges the two (wire `t`=normal slips the gate while payload=accusatory
+        // is what the read surfaces) is REJECTED at the write boundary as an
+        // invalid event — regardless of the signer's curator weight, NOT published.
+        const wireSlug = firstTTag((event as SignedNostrEvent).tags);
+        const canonicalSlug = payloadTagSlug(event as SignedNostrEvent);
+        if (canonicalSlug === undefined || wireSlug !== canonicalSlug) {
+          return void res.status(400).json({
+            error: { code: "tag_mismatch", message: "Invalid tag event." },
+          });
+        }
+      }
+
       // ADR 0034 §1 — the sensitivity-conditional curator gate, run BEFORE either
       // tier path so it applies identically to sovereign and custodial writes.
-      // The asserted tag slug is read off the SIGNED EVENT's `t` tag on the
-      // sovereign path (a crafted body cannot smuggle a normal slug to bypass)
-      // and off the body intent on the custodial path (no client event exists).
+      // The asserted tag slug is resolved from the SAME canonical field the read
+      // keys off: the parsed payload `tagSlug` on the sovereign path (verified
+      // above to equal the wire `t`, so the two can never diverge) and the body
+      // intent on the custodial path (no client event exists).
       const assertedTagSlug =
         user.tier === "custodial"
           ? (req.body?.tagSlug as string | undefined)
-          : firstTTag((req.body?.event as { tags?: string[][] } | undefined)?.tags);
+          : payloadTagSlug(req.body?.event as SignedNostrEvent);
       if (await isAccusatorySlug(assertedTagSlug)) {
         const weight = await houseWeightOf(user.pubkeyHex);
         if (weight < (deps.config.curatorThreshold ?? 0.5)) {
@@ -320,18 +370,8 @@ export function buildTagsRouter(deps: TagsDeps): Router {
         return void res.status(200).json({ ok: true });
       }
 
-      // sovereign: client-signed event
+      // sovereign: client-signed event (already validated + consistency-checked above)
       const { event } = req.body ?? {};
-      const v = validateSignedEvent(event, user.pubkeyHex, KIND);
-      if (!v.ok) {
-        const status = v.code === "pubkey_mismatch" ? 403 : 400;
-        return void res.status(status).json({
-          error: {
-            code: v.code,
-            message: v.code === "pubkey_mismatch" ? "Must be signed by your own key." : "Invalid tag event.",
-          },
-        });
-      }
       const published = await deps.publish(event as SignedNostrEvent);
       if (!published.ok) {
         return void res.status(502).json({ error: { code: "publish_failed", message: "Could not publish." } });
