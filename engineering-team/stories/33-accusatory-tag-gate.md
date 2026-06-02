@@ -4,6 +4,10 @@
 **Created:** 2026-06-02
 **Type:** Feature
 
+**Gate decisions (2026-06-01):** librarian-signed reveal event via worker; librarian-only reveal;
+sensitivity-conditional write gate reusing CURATOR_THRESHOLD; tag-only attributed render. See
+`engineering-team/decisions/0034-accusatory-tag-gate.md`.
+
 ## Background
 
 This is **PRD §2.8 "Accusatory-tag visibility (manual gate)"** — the decision of record
