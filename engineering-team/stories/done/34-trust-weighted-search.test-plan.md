@@ -1,6 +1,6 @@
 # Test Plan: Story 34 — Trust-weighted search re-ranking
 
-**Story:** `engineering-team/stories/34-trust-weighted-search.md`
+**Story:** `engineering-team/stories/done/34-trust-weighted-search.md`
 **ADR:** `engineering-team/decisions/0035-trust-weighted-search.md`
 **Date:** 2026-06-02
 **Branch:** `feat/search-rerank`

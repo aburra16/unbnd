@@ -1,8 +1,8 @@
 # ADR 0035: Trust-weighted search re-ranking
 
-**Status:** Proposed
+**Status:** Accepted
 **Date:** 2026-06-02
-**Story:** `engineering-team/stories/34-trust-weighted-search.md`
+**Story:** `engineering-team/stories/done/34-trust-weighted-search.md`
 
 ## Context
 

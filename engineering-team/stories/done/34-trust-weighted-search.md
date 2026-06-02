@@ -1,6 +1,6 @@
 # Story 34: Trust-weighted search re-ranking (Block D — the §2.9 SEARCH half)
 
-**Status:** Draft
+**Status:** Done
 **Created:** 2026-06-02
 **Type:** Feature
 
@@ -318,5 +318,5 @@ Resolve before approving the story (PO recommendations in Flags below).
   `apps/api/src/trust/{types,fixture,index,brainstorm}.ts`.
 - ADR for this story: `engineering-team/decisions/0035-trust-weighted-search.md` (Proposed —
   Architecture phase; 0034 was taken by the accusatory-tag-gate ADR)
-- Test plan: `engineering-team/stories/34-trust-weighted-search.test-plan.md`
+- Test plan: `engineering-team/stories/done/34-trust-weighted-search.test-plan.md`
 - Review: (filled in after Review phase)
