@@ -25,6 +25,22 @@ function bookEvent(slug: string, title: string, createdAt = 1): SignedNostrEvent
   return { id: slug, pubkey: LIB, sig: "x", ...t } as SignedNostrEvent;
 }
 
+// MIGRATED for Story 31 / ADR 0032 §2(a): GET /api/books/:slug now runs a sibling
+// claims read ({ "#z":[book-claims], "#a":[bookAtag] }) in parallel with the book
+// read and returns `claimants` alongside `book`. The existing book records would
+// be mis-parsed as claims if the same mock answered both reads, so the book-read
+// mocks now route by filter: the claims read (z = book-claims) returns []. The
+// `book`-shape assertions below are unchanged; a `claimants: []` assertion is
+// added on the no-claims path. The claimants-population paths live in the sibling
+// books-claimants.test.ts.
+function bookOnly(...books: SignedNostrEvent[]) {
+  return vi.fn(async (filter: Record<string, unknown>): Promise<SignedNostrEvent[]> => {
+    const z = ((filter["#z"] as string[]) ?? [])[0] ?? "";
+    if (z.endsWith("book-claims")) return [];
+    return books;
+  });
+}
+
 function makeApp(over: Partial<BooksDeps> = {}) {
   const deps: BooksDeps = { config: cfg, query: vi.fn(async () => []), ...over };
   const app = express();
@@ -33,12 +49,14 @@ function makeApp(over: Partial<BooksDeps> = {}) {
 }
 
 describe("GET /api/books/:slug", () => {
-  it("returns the book record", async () => {
-    const app = makeApp({ query: vi.fn(async () => [bookEvent("ol-a", "Alpha")]) });
+  it("returns the book record (with an empty claimants array when none)", async () => {
+    const app = makeApp({ query: bookOnly(bookEvent("ol-a", "Alpha")) });
     const res = await request(app).get("/api/books/ol-a");
     expect(res.status).toBe(200);
     expect(res.body.book.title).toBe("Alpha");
     expect(res.body.book.authorName).toBe("Author of Alpha");
+    // Additive (ADR 0032 §2a): the no-claims path carries an empty claimant set.
+    expect(res.body.claimants).toEqual([]);
   });
   it("404 when not found, 503 when catalog unconfigured", async () => {
     expect((await request(makeApp()).get("/api/books/ol-x")).status).toBe(404);

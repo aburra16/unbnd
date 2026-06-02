@@ -45,12 +45,17 @@ vi.mock("../src/lib/api", async (orig) => {
       },
       ratings: { ...actual.api.ratings, list: (...a: unknown[]) => ratingsList(...a) },
       submissions: { ...actual.api.submissions, list: vi.fn().mockResolvedValue({ submissions: [] }) },
+      // MIGRATED for Story 31 / ADR 0032: BookDetail wires a claim action via
+      // api.claims.* (only invoked when signed-in; the smoke test is signed-out).
+      claims: { template: vi.fn(), submit: vi.fn(), submitCustodial: vi.fn() },
       // Story 20: the public profile reads from the API by-npub twins, not the
-      // retired Mira fixture.
+      // retired Mira fixture. Story 31 adds the by-author "Books by this author"
+      // read; mock it empty so the section is absent in the smoke render.
       profile: {
         ...actual.api.profile,
         shelves: vi.fn().mockResolvedValue({ shelves: [] }),
         stats: vi.fn().mockResolvedValue({ stats: {} }),
+        claimedBooks: vi.fn().mockResolvedValue({ books: [] }),
       },
     },
   };
@@ -78,7 +83,8 @@ const TAXONOMY: TaxonomyElement[] = [
 ];
 
 beforeEach(() => {
-  booksGet.mockReset().mockResolvedValue({ book: ORBITAL });
+  // MIGRATED for Story 31 / ADR 0032 §2a: the book read returns `{ book, claimants }`.
+  booksGet.mockReset().mockResolvedValue({ book: ORBITAL, claimants: [] });
   booksList.mockReset().mockResolvedValue({ books: [ORBITAL] });
   booksRecent.mockReset().mockResolvedValue({ books: [ORBITAL] });
   tagsList.mockReset().mockResolvedValue({ tags: TAXONOMY });
