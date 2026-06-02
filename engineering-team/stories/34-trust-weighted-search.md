@@ -318,5 +318,5 @@ Resolve before approving the story (PO recommendations in Flags below).
   `apps/api/src/trust/{types,fixture,index,brainstorm}.ts`.
 - ADR for this story: `engineering-team/decisions/0035-trust-weighted-search.md` (Proposed —
   Architecture phase; 0034 was taken by the accusatory-tag-gate ADR)
-- Test plan: (filled in after Test Design phase)
+- Test plan: `engineering-team/stories/34-trust-weighted-search.test-plan.md`
 - Review: (filled in after Review phase)
