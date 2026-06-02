@@ -40,9 +40,16 @@ export function BookCard({ book, size = "shelf" }: Props) {
             background: `linear-gradient(155deg, ${book.coverFrom}, ${book.coverTo})`,
           }}
         >
-          <span className="book-cover-title" style={{ color: book.coverInk }}>
-            {book.title}
-          </span>
+          {/* Decorative spine echo of the title. Rendered via CSS
+              `content: attr(data-title)` (not a DOM text node) so the card
+              exposes exactly ONE queryable/announced title — the semantic
+              caption below — while keeping the cover's visual unchanged. */}
+          <span
+            className="book-cover-title"
+            style={{ color: book.coverInk }}
+            data-title={book.title}
+            aria-hidden="true"
+          />
         </div>
       )}
       <div className="book-meta">

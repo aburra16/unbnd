@@ -1,47 +1,30 @@
-// Aggregate rating events into an honest, raw (unweighted) summary. ADR 0005.
-// No trust-weighting, no GrapeRank number — that is a later personalization
-// cycle. Dedups by rater (latest created_at wins; strfry already keeps only
-// the latest per (author, d-tag), this is defensive).
+// Raw (unweighted) rating summary + the signed-in user's own-rating counts
+// (ADR 0005/0019). The SHARED trust-weighting helpers (`dedupeRatings`,
+// `weightedRatings`) + their rating types moved to `@unbnd/trust` (ADR 0036 A1)
+// so the off-path workers reuse one implementation; this module re-exports them
+// so apps/api callers keep importing from `../ratings/summary` unchanged. The
+// raw-summary / own-counts helpers below are apps/api-only and stay here.
 import { npubEncode } from "nostr-tools/nip19";
 import {
   fromBookRatingEvent,
   fromWireEvent,
   type SignedNostrEvent,
 } from "@unbnd/schemas";
+import {
+  dedupeRatings,
+  type ParsedRating,
+  type PublicRating,
+} from "@unbnd/trust";
 
-/** A reviewer-facing rating. npub only; hex pubkey never leaves the server. */
-export type PublicRating = {
-  readonly npub: string;
-  readonly score: number;
-  readonly reviewText?: string;
-  readonly reviewDate: string;
-};
+// Re-export the shared weighting surface (ADR 0036 A2 shim) so existing apps/api
+// import sites (`../ratings/summary`) resolve unchanged.
+export { dedupeRatings, weightedRatings } from "@unbnd/trust";
+export type { ParsedRating, PublicRating, WeightedRatings } from "@unbnd/trust";
 
 export type RatingsSummary = {
   readonly count: number;
   /** Raw arithmetic mean of scores; null when there are no ratings. */
   readonly average: number | null;
-  readonly ratings: PublicRating[];
-};
-
-/** Internal: a deduped rating with the rater's HEX pubkey (server-only). */
-export type ParsedRating = {
-  readonly pubkey: string;
-  readonly createdAt: number;
-  readonly score: number;
-  readonly reviewText?: string;
-  readonly reviewDate: string;
-};
-
-/** Trust-weighted summary (ADR 0014) — present only when ≥1 trusted rater. */
-export type WeightedRatings = {
-  /** The observer whose vantage produced this (npub for display). */
-  readonly observer: string;
-  /** Trust-weighted mean. */
-  readonly average: number;
-  /** Number of raters with a positive trust weight. */
-  readonly trustedCount: number;
-  /** Trusted reviews, ordered by reviewer trust (desc). */
   readonly ratings: PublicRating[];
 };
 
@@ -54,45 +37,13 @@ function toPublic(r: ParsedRating): PublicRating {
   };
 }
 
-/** Parse + keep the latest event per rater, newest first. */
-export function dedupeRatings(events: SignedNostrEvent[]): ParsedRating[] {
-  const latest = new Map<string, ParsedRating>();
-  for (const event of events) {
-    let parsed: ParsedRating;
-    try {
-      const rating = fromBookRatingEvent(
-        fromWireEvent({
-          kind: event.kind,
-          content: event.content,
-          tags: event.tags,
-        }) as never,
-      );
-      parsed = {
-        pubkey: event.pubkey,
-        createdAt: event.created_at,
-        score: rating.score,
-        reviewText: rating.reviewText,
-        reviewDate: rating.reviewDate,
-      };
-    } catch {
-      continue; // skip anything that is not a well-formed rating
-    }
-    const prior = latest.get(parsed.pubkey);
-    if (!prior || parsed.createdAt > prior.createdAt) {
-      latest.set(parsed.pubkey, parsed);
-    }
-  }
-  return [...latest.values()].sort((a, b) => b.createdAt - a.createdAt);
-}
-
 /**
  * Own-ratings counts for the signed-in user's profile (ADR 0019 Decision 2,
  * AC-5/AC-6). All events are the SAME author here, so latest-wins must key by
  * BOOK (not pubkey, which `dedupeRatings` uses — that would collapse the user's
  * whole history to one entry). `booksRated` = distinct books with a current
  * rating; `reviews` = the subset whose latest rating carries non-empty trimmed
- * review text. `dedupeRatings` is left untouched (its pubkey key is correct for
- * the public per-book read).
+ * review text.
  */
 export function countOwnRatings(events: SignedNostrEvent[]): {
   booksRated: number;
@@ -138,29 +89,4 @@ export function rawFromParsed(deduped: ParsedRating[]): RatingsSummary {
 
 export function summarizeRatings(events: SignedNostrEvent[]): RatingsSummary {
   return rawFromParsed(dedupeRatings(events));
-}
-
-/**
- * Trust-weighted view from an observer's vantage (ADR 0014). Weighted mean over
- * raters with weight > 0; reviews ordered by trust. Returns null when no rater
- * is trusted (honest "no ratings from this view").
- */
-export function weightedRatings(
-  deduped: ParsedRating[],
-  weights: Map<string, number>,
-  observerNpub: string,
-): WeightedRatings | null {
-  const trusted = deduped
-    .map((r) => ({ r, w: weights.get(r.pubkey) ?? 0 }))
-    .filter((x) => x.w > 0)
-    .sort((a, b) => b.w - a.w);
-  if (trusted.length === 0) return null;
-  const sumW = trusted.reduce((s, x) => s + x.w, 0);
-  const average = trusted.reduce((s, x) => s + x.w * x.r.score, 0) / sumW;
-  return {
-    observer: observerNpub,
-    average,
-    trustedCount: trusted.length,
-    ratings: trusted.map((x) => toPublic(x.r)),
-  };
 }

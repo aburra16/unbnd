@@ -1,10 +1,10 @@
 {
-  "name": "@unbnd/api",
+  "name": "@unbnd/shelves",
   "private": true,
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "tsx watch src/index.ts",
+    "dev": "tsx src/main.ts",
     "build": "tsc",
     "bundle": "node esbuild.config.mjs",
     "start": "node dist/index.js",
@@ -12,25 +12,16 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@noble/ciphers": "2.2.0",
     "@unbnd/schemas": "workspace:*",
-    "@unbnd/search": "workspace:*",
     "@unbnd/trust": "workspace:*",
-    "cookie": "1.1.1",
-    "drizzle-orm": "0.45.2",
-    "express": "^4.21.0",
-    "neo4j-driver": "^5.26.0",
+    "nostr-tools": "2.10.4",
     "postgres": "3.4.9",
     "ws": "^8.18.0"
   },
   "devDependencies": {
-    "@types/express": "^4.17.21",
     "@types/node": "^22.5.0",
-    "@types/supertest": "^6.0.2",
     "@types/ws": "^8.5.12",
-    "drizzle-kit": "0.31.10",
     "esbuild": "0.24.2",
-    "supertest": "^7.0.0",
     "tsx": "^4.19.0",
     "typescript": "^5.5.3",
     "vitest": "^2.1.0"

@@ -1,5 +1,5 @@
 // ADR 0014 architecture guard: Brainstorm / NIP-85 API specifics may appear
-// ONLY in the adapter (src/trust/brainstorm.ts). Everything else depends on the
+// ONLY in the adapter (packages/trust/src/brainstorm.ts). Everything else depends on the
 // neutral TrustProvider. The provider NAME and relay/API URLs are allowed at
 // the seam (config + factory) — what must stay in the adapter is knowledge of
 // the backend's HTTP routes and event kind (the /setup + /authChallenge +
@@ -8,11 +8,11 @@ import { describe, expect, it } from "vitest";
 import { readdirSync, readFileSync, statSync } from "node:fs";
 import { join, resolve, relative } from "node:path";
 
-const REPO = resolve(__dirname, "..", "..", "..", "..");
+const REPO = resolve(__dirname, "..", "..", "..");
 
 const RULES: Array<{ adapter: string; label: string; pattern: RegExp }> = [
   {
-    adapter: "apps/api/src/trust/brainstorm.ts",
+    adapter: "packages/trust/src/brainstorm.ts",
     // ADR 0026 amendment: `brainstorm_login` joins the forbidden list. The
     // challenge-template construction moved BEHIND the provider, so the
     // Brainstorm-flavored kind-27235 shape (incl. the brainstorm_login tag) may

@@ -230,6 +230,23 @@ export type ProfileMeta = {
   substack?: string;
 };
 
+// Homepage trust shelves (Story 35 / ADR 0036 §3). The serve API returns ordered
+// books per shelf, hydrated to PublicBook — no trust score / tier / "trusted"
+// flag on the wire (CLAUDE.md). Empty arrays = honest empty; `computedAt` is null
+// when the cache is empty. A genre row carries its slug + display name.
+export type HomepageShelfGenre = {
+  slug: string;
+  name: string;
+  books: PublicBook[];
+};
+
+export type HomepageShelves = {
+  computedAt: string | null;
+  trending: { books: PublicBook[] };
+  favorites: { books: PublicBook[] };
+  genres: HomepageShelfGenre[];
+};
+
 export class ApiError extends Error {
   constructor(
     readonly status: number,
@@ -634,6 +651,14 @@ export const api = {
         method: "POST",
         body: JSON.stringify(input),
       });
+    },
+  },
+  // Homepage trust shelves (Story 35 / ADR 0036 §3). Read-only, served from the
+  // off-path cache; never computes on the request. Distinct from the user-shelf
+  // namespace (`shelves` above).
+  homepage: {
+    shelves() {
+      return authFetch<HomepageShelves>("/api/homepage/shelves");
     },
   },
 };

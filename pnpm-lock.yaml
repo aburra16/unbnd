@@ -29,6 +29,9 @@ importers:
       '@unbnd/search':
         specifier: workspace:*
         version: link:../../packages/search
+      '@unbnd/trust':
+        specifier: workspace:*
+        version: link:../../packages/trust
       cookie:
         specifier: 1.1.1
         version: 1.1.1
@@ -178,6 +181,43 @@ importers:
         specifier: ^2.1.0
         version: 2.1.9(@types/node@22.19.19)(happy-dom@15.11.7)
 
+  apps/shelves:
+    dependencies:
+      '@unbnd/schemas':
+        specifier: workspace:*
+        version: link:../../packages/schemas
+      '@unbnd/trust':
+        specifier: workspace:*
+        version: link:../../packages/trust
+      nostr-tools:
+        specifier: 2.10.4
+        version: 2.10.4(typescript@5.9.3)
+      postgres:
+        specifier: 3.4.9
+        version: 3.4.9
+      ws:
+        specifier: ^8.18.0
+        version: 8.21.0
+    devDependencies:
+      '@types/node':
+        specifier: ^22.5.0
+        version: 22.19.19
+      '@types/ws':
+        specifier: ^8.5.12
+        version: 8.18.1
+      esbuild:
+        specifier: 0.24.2
+        version: 0.24.2
+      tsx:
+        specifier: ^4.19.0
+        version: 4.22.3
+      typescript:
+        specifier: ^5.5.3
+        version: 5.9.3
+      vitest:
+        specifier: ^2.1.0
+        version: 2.1.9(@types/node@22.19.19)(happy-dom@15.11.7)
+
   apps/web:
     dependencies:
       '@unbnd/schemas':
@@ -235,6 +275,28 @@ importers:
 
   packages/search:
     devDependencies:
+      typescript:
+        specifier: ^5.5.3
+        version: 5.9.3
+      vitest:
+        specifier: ^2.1.0
+        version: 2.1.9(@types/node@22.19.19)(happy-dom@15.11.7)
+
+  packages/trust:
+    dependencies:
+      '@unbnd/schemas':
+        specifier: workspace:*
+        version: link:../schemas
+      nostr-tools:
+        specifier: 2.10.4
+        version: 2.10.4(typescript@5.9.3)
+      ws:
+        specifier: ^8.18.0
+        version: 8.21.0
+    devDependencies:
+      '@types/ws':
+        specifier: ^8.5.12
+        version: 8.18.1
       typescript:
         specifier: ^5.5.3
         version: 5.9.3
