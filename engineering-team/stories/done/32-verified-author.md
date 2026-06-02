@@ -1,6 +1,6 @@
 # Story 32: Verified Author upgrade + gated author metadata editing (trust-dependent — Block C)
 
-**Status:** Draft
+**Status:** Done
 **Created:** 2026-06-01
 **Type:** Feature
 
@@ -425,5 +425,5 @@ Resolve before approving the story (PO recommendations in Flags below).
   `apps/web/src/components/AuthorBadge.tsx`, `apps/web/src/components/BookHeader.tsx`,
   `apps/web/src/routes/BookDetail.tsx`.
 - ADR for this story: `engineering-team/decisions/0033-verified-author.md` (filled in after Architecture phase)
-- Test plan: `engineering-team/stories/32-verified-author.test-plan.md`
+- Test plan: `engineering-team/stories/done/32-verified-author.test-plan.md`
 - Review: (filled in after Review phase)

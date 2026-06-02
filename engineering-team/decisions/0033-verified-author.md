@@ -1,8 +1,8 @@
 # ADR 0033: Verified Author — count-gate consensus + gated author-edit overlay (Block C)
 
-**Status:** Proposed
+**Status:** Accepted
 **Date:** 2026-06-01
-**Story:** `engineering-team/stories/32-verified-author.md`
+**Story:** `engineering-team/stories/done/32-verified-author.md`
 
 ## Context
 

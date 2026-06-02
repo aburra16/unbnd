@@ -1,6 +1,6 @@
 # Test Plan: Story 32 — Verified Author + gated author metadata editing (Block C)
 
-**Story:** `engineering-team/stories/32-verified-author.md`
+**Story:** `engineering-team/stories/done/32-verified-author.md`
 **ADR:** `engineering-team/decisions/0033-verified-author.md`
 **Date:** 2026-06-01
 **Branch:** `feat/verified-author`
