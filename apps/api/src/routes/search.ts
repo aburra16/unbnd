@@ -3,6 +3,11 @@
 // talks only to this route — never to the search backend directly.
 import express, { type Router } from "express";
 import type { SearchProvider } from "@unbnd/search";
+import type { SignedNostrEvent } from "@unbnd/schemas";
+import type { Config } from "../config";
+import type { NostrFilter } from "../nostr/query";
+import type { TrustProvider } from "../trust";
+import { rerankByTrust } from "../search/rerank";
 
 const MIN_Q = 2;
 const DEFAULT_LIMIT = 20;
@@ -10,6 +15,12 @@ const MAX_LIMIT = 50;
 
 export type SearchDeps = {
   readonly searchProvider: SearchProvider;
+  /** Needs `houseObserverPubkey` (vantage), `librarianPubkey`, `searchTrustBlend`. */
+  readonly config: Config;
+  /** Per-book-address rating read for the trust-weighted re-rank (ADR 0035). */
+  readonly query: (filter: NostrFilter) => Promise<SignedNostrEvent[]>;
+  /** Trust-weighting source. Absent → pure text relevance (no re-rank). */
+  readonly trust?: TrustProvider;
 };
 
 function clampInt(value: unknown, fallback: number, min: number, max: number): number {
@@ -42,7 +53,20 @@ export function buildSearchRouter(deps: SearchDeps): Router {
         offset,
         ...(genre ? { filters: { genre } } : {}),
       });
-      res.status(200).json(result);
+
+      // Story 34 / ADR 0035: blend a trust-weighted rating signal into the order
+      // AFTER the provider read (so a provider failure still 503s above). House
+      // vantage for v1 (`?observer=` is a thin later add — Story 36). The re-rank
+      // is internally degrade-safe: any trust failure returns pure text order.
+      const observerHex = deps.config.houseObserverPubkey ?? null;
+      const reranked = await rerankByTrust(result, {
+        observerHex,
+        blend: deps.config.searchTrustBlend ?? 0,
+        trust: deps.trust,
+        query: deps.query,
+        config: deps.config,
+      });
+      res.status(200).json(reranked);
     } catch (err) {
       // Backend down / index not built yet — degrade, don't 500.
       res.status(503).json({

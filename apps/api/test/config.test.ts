@@ -223,6 +223,45 @@ describe("loadConfig — trust provider (ADR 0017)", () => {
   });
 });
 
+// Story 34 / ADR 0035: the trust-vs-text search blend weight. A single legible
+// knob in [0,1]; default 0.25 (conservative, text-leaning); 0 is a meaningful
+// no-op (pure text relevance). FAILING until loadConfig parses + validates
+// SEARCH_TRUST_BLEND onto `searchTrustBlend`.
+describe("loadConfig — SEARCH_TRUST_BLEND (ADR 0035)", () => {
+  it("defaults to 0.25 (conservative, text-leaning nudge)", () => {
+    const c = loadConfig({ ...ALL_REQUIRED });
+    expect(c.searchTrustBlend).toBe(0.25);
+    expect(typeof c.searchTrustBlend).toBe("number");
+  });
+
+  it("respects an explicit numeric override", () => {
+    expect(loadConfig({ ...ALL_REQUIRED, SEARCH_TRUST_BLEND: "0.5" }).searchTrustBlend).toBe(0.5);
+  });
+
+  it("accepts the boundary values 0 and 1", () => {
+    expect(loadConfig({ ...ALL_REQUIRED, SEARCH_TRUST_BLEND: "0" }).searchTrustBlend).toBe(0);
+    expect(loadConfig({ ...ALL_REQUIRED, SEARCH_TRUST_BLEND: "1" }).searchTrustBlend).toBe(1);
+  });
+
+  it("throws when the value is below 0", () => {
+    expect(() =>
+      loadConfig({ ...ALL_REQUIRED, SEARCH_TRUST_BLEND: "-0.1" }),
+    ).toThrow(/SEARCH_TRUST_BLEND/);
+  });
+
+  it("throws when the value is above 1", () => {
+    expect(() =>
+      loadConfig({ ...ALL_REQUIRED, SEARCH_TRUST_BLEND: "1.1" }),
+    ).toThrow(/SEARCH_TRUST_BLEND/);
+  });
+
+  it("throws on a non-numeric value", () => {
+    expect(() =>
+      loadConfig({ ...ALL_REQUIRED, SEARCH_TRUST_BLEND: "lots" }),
+    ).toThrow(/SEARCH_TRUST_BLEND/);
+  });
+});
+
 // Story 26 / ADR 0026 Decision 2: the custodial personalize follow-count gate.
 describe("loadConfig — PERSONALIZE_MIN_FOLLOWS (ADR 0026)", () => {
   it("defaults to 10 (PRD §9.5 'ten follows')", () => {
