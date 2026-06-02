@@ -422,7 +422,10 @@ async function main() {
       custodialSign: userEventDeps.custodialSign,
     }),
   );
-  app.use("/", buildSearchRouter({ searchProvider }));
+  app.use(
+    "/",
+    buildSearchRouter({ searchProvider, config, query: userEventDeps.query, trust }),
+  );
   app.use(
     "/",
     buildTrustRouter({

@@ -80,6 +80,14 @@ export type Config = {
    * need not set it.
    */
   readonly verifiedAuthorMinCurators?: number;
+  /**
+   * The text-vs-trust search blend weight (Story 34 / ADR 0035). A single legible
+   * knob in [0,1]: `final = (1−w)·normText + w·normTrust`. Env `SEARCH_TRUST_BLEND`,
+   * validated in [0,1], default 0.25 (conservative, text-leaning); `w=0` is a
+   * meaningful no-op (pure text relevance). Always set by `loadConfig`; optional
+   * here only so partial test fixtures need not set it (mirrors `curatorThreshold`).
+   */
+  readonly searchTrustBlend?: number;
 };
 
 const DEFAULT_TRUST_RELAYS = [
@@ -169,6 +177,16 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
   ) {
     throw new Error(
       `config: VERIFIED_AUTHOR_MIN_CURATORS must be a positive integer ≥ 1; got ${JSON.stringify(minCuratorsRaw)}`,
+    );
+  }
+
+  // Text-vs-trust search blend weight (ADR 0035). Validated in [0,1]; default
+  // 0.25. 0 is a meaningful no-op (pure text relevance).
+  const searchTrustBlendRaw = withDefault(env, "SEARCH_TRUST_BLEND", "0.25");
+  const searchTrustBlend = Number(searchTrustBlendRaw);
+  if (!Number.isFinite(searchTrustBlend) || searchTrustBlend < 0 || searchTrustBlend > 1) {
+    throw new Error(
+      `config: SEARCH_TRUST_BLEND must be a number in [0,1]; got ${JSON.stringify(searchTrustBlendRaw)}`,
     );
   }
 
@@ -275,6 +293,7 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
     personalizeMinFollows,
     curatorThreshold,
     verifiedAuthorMinCurators,
+    searchTrustBlend,
     neo4jBoltUrl: withDefault(env, "NEO4J_BOLT_URL", "bolt://localhost:7687"),
     neo4jUser: withDefault(env, "NEO4J_USER", "neo4j"),
     neo4jPassword,
