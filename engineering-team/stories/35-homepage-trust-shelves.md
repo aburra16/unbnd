@@ -4,6 +4,9 @@
 **Created:** 2026-06-02
 **Type:** Feature
 
+**Gate decisions (2026-06-02):** scheduled worker + Postgres cache; non-trust fallback sections;
+house-PoV only; least-privilege worker (no librarian key). See `engineering-team/decisions/0036-homepage-trust-shelves.md`.
+
 ## Background
 
 The homepage ships today (`apps/web/src/routes/Home.tsx`). It renders a `Hero`, a
