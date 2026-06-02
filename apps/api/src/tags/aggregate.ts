@@ -32,6 +32,13 @@ export type TagConsensus = {
   readonly applies: number;
   readonly disputes: number;
   readonly trusted: boolean;
+  /**
+   * ADR 0034 §3: true ONLY on an accusatory tag surfaced because a live reveal
+   * exists for it (its slug was in `revealedTagSlugs`). The web renders a
+   * revealed tag attributed to a review action, never as community consensus.
+   * Absent on every normal/genre/style tag and on the default (no-reveal) path.
+   */
+  readonly revealed?: boolean;
 };
 
 export type BookTags = {
@@ -121,6 +128,10 @@ export function aggregateBookTagsWeighted(
   assertions: SignedNostrEvent[],
   taxonomy: TaxonomyElement[],
   weights: Map<string, number>,
+  // ADR 0034 §3: the slugs of accusatory tags currently revealed for THIS book.
+  // Default empty = today's behavior (every accusatory tag hidden), so every
+  // existing caller and the raw `aggregateBookTags` path are unchanged.
+  revealedTagSlugs: ReadonlySet<string> = new Set(),
 ): BookTags & { weighted: boolean } {
   const tax = new Map(taxonomy.map((t) => [t.slug, t]));
   // Dedup by (author, tagSlug) keeping the latest created_at.
@@ -169,7 +180,11 @@ export function aggregateBookTagsWeighted(
   let anyTrusted = false;
   for (const [slug, c] of acc) {
     const el = tax.get(slug);
-    if (!el || el.sensitivity === "accusatory") continue; // hide unknown + accusatory
+    if (!el) continue; // unknown still dropped
+    // Accusatory tags stay hidden UNLESS a live reveal exists for this slug
+    // (filter-at-read; the canonical assertions are never mutated — AC-3/AC-4).
+    const isAccusatory = el.sensitivity === "accusatory";
+    if (isAccusatory && !revealedTagSlugs.has(slug)) continue;
     const trusted = c.trustedApplies + c.trustedDisputes > 0;
     if (trusted) anyTrusted = true;
     const consensus: TagConsensus = {
@@ -179,6 +194,8 @@ export function aggregateBookTagsWeighted(
       applies: c.applies,
       disputes: c.disputes,
       trusted,
+      // Only a revealed accusatory tag carries the marker (AC-4/AC-5).
+      ...(isAccusatory ? { revealed: true } : {}),
     };
     if (el.type === "genre") result.genres.push(consensus);
     else if (el.type === "style") result.styles.push(consensus);

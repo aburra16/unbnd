@@ -6,6 +6,7 @@ import {
   pgTable,
   text,
   timestamp,
+  unique,
   uuid,
 } from "drizzle-orm/pg-core";
 
@@ -83,9 +84,40 @@ export const promotions = pgTable("promotions", {
     .defaultNow(),
 });
 
+// Accusatory-reveal queue (ADR 0034 §4). The operator CLI upserts a row keyed
+// on (book_slug, tag_slug); the off-path `apps/promoter` worker mints the
+// librarian-signed reveal/withdraw event and marks the row done with its id.
+// UNIQUE(book_slug, tag_slug) makes the trigger idempotent (latest intent wins).
+export const reveals = pgTable(
+  "reveals",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    bookSlug: text("book_slug").notNull(),
+    tagSlug: text("tag_slug").notNull(),
+    state: text("state").notNull(),
+    requestedBy: char("requested_by", { length: 64 }).notNull(),
+    status: text("status").notNull().default("pending"),
+    mintedId: text("minted_id"),
+    error: text("error"),
+    attempts: integer("attempts").notNull().default(0),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => ({
+    bookTagUnique: unique("reveals_book_tag_key").on(t.bookSlug, t.tagSlug),
+  }),
+);
+
 export type UserRow = typeof users.$inferSelect;
 export type NewUserRow = typeof users.$inferInsert;
 export type SessionRow = typeof sessions.$inferSelect;
 export type ChallengeRow = typeof challenges.$inferSelect;
 export type PromotionRow = typeof promotions.$inferSelect;
 export type NewPromotionRow = typeof promotions.$inferInsert;
+export type RevealRow = typeof reveals.$inferSelect;
+export type NewRevealRow = typeof reveals.$inferInsert;
+export type RevealStatus = "pending" | "minting" | "done" | "failed";

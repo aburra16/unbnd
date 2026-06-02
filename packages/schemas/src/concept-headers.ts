@@ -21,6 +21,10 @@ export const BOOK_AUTHOR_EDITS_HEADER_SLUG = "author-edits";
 /** ADR 0033 §1: trusted-curator author-verified assertions z-tag here (the
  * verification count-gate reads this concept). */
 export const BOOK_AUTHOR_VERIFIED_HEADER_SLUG = "author-verified";
+/** ADR 0034 §3: librarian-signed accusatory-tag reveal/withdraw events z-tag
+ * here. The book-tags read scans this concept (per book, #a-scoped) to surface
+ * a revealed accusatory tag at read time (filter-at-view-time). */
+export const BOOK_ACCUSATORY_REVEALS_HEADER_SLUG = "accusatory-reveals";
 
 function header(
   librarianPubkey: HexPubkey,
@@ -99,4 +103,10 @@ export function buildBookAuthorVerifiedHeaderAddress(
   librarianPubkey: HexPubkey,
 ): DListAddress<39998> {
   return header(librarianPubkey, BOOK_AUTHOR_VERIFIED_HEADER_SLUG);
+}
+
+export function buildBookAccusatoryRevealsHeaderAddress(
+  librarianPubkey: HexPubkey,
+): DListAddress<39998> {
+  return header(librarianPubkey, BOOK_ACCUSATORY_REVEALS_HEADER_SLUG);
 }

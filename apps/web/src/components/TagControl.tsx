@@ -55,18 +55,26 @@ export function TagControl({ bookSlug, tags, onChanged }: Props) {
     };
   }, []);
 
-  // Only genre + style are user-writable here; accusatory tags are excluded.
+  // Genre + style are user-writable for any signed-in user. Accusatory signal
+  // tags are offered ONLY when the server says the user clears the curator gate
+  // (ADR 0034 §2); the server-side gate is the real enforcement.
+  const canAssertAccusatory = tags.canAssertAccusatory === true;
   const options = useMemo(
     () =>
-      taxonomy.filter(
-        (t) =>
-          (t.type === "genre" || t.type === "style") &&
-          t.sensitivity !== "accusatory",
-      ),
-    [taxonomy],
+      taxonomy.filter((t) => {
+        if (t.sensitivity === "accusatory") {
+          return t.type === "signal" && canAssertAccusatory;
+        }
+        return t.type === "genre" || t.type === "style";
+      }),
+    [taxonomy, canAssertAccusatory],
   );
 
   const chips = [...tags.genres, ...tags.styles];
+  // A revealed accusatory tag was surfaced by an explicit librarian review, not
+  // by community consensus (ADR 0034 §5). Render it apart from the chips above,
+  // attributed to the review, with no curator count.
+  const revealedSignals = tags.signals.filter((s) => s.revealed === true);
   const isSovereign =
     session.status === "signed-in" && session.user.email === null;
   // Section label (ADR 0025): trusted consensus when at least one surfaced tag
@@ -133,6 +141,19 @@ export function TagControl({ bookSlug, tags, onChanged }: Props) {
         </>
       )}
 
+      {revealedSignals.length > 0 && (
+        <div className="tagc-reviewed" aria-label="Reviewed signals">
+          {revealedSignals.map((s) => (
+            <div key={`signal:${s.slug}`} className="tagc-reviewed-row">
+              <span className="tagc-reviewed-chip">{s.name}</span>
+              <span className="tagc-reviewed-note">
+                Surfaced by a librarian review.
+              </span>
+            </div>
+          ))}
+        </div>
+      )}
+
       {session.status === "signed-out" && (
         <p className="tagc-gate">
           <Link to="/auth">Sign in</Link> to apply or dispute a genre or style.
@@ -169,6 +190,17 @@ export function TagControl({ bookSlug, tags, onChanged }: Props) {
                   </option>
                 ))}
             </optgroup>
+            {canAssertAccusatory && (
+              <optgroup label="Signals">
+                {options
+                  .filter((o) => o.type === "signal")
+                  .map((o) => (
+                    <option key={o.slug} value={o.slug}>
+                      {o.name}
+                    </option>
+                  ))}
+              </optgroup>
+            )}
           </select>
           <div className="tagc-actions">
             <button

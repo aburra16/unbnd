@@ -8,5 +8,6 @@ export * from "./BookTag";
 export * from "./BookTagAssertion";
 export * from "./BookClaim";
 export * from "./AuthorVerifiedAssertion";
+export * from "./AccusatoryReveal";
 export * from "./BookAuthorOverlay";
 export * from "./BookShelf";

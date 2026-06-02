@@ -94,4 +94,31 @@ export const migrations: readonly Migration[] = [
       CREATE INDEX IF NOT EXISTS idx_promotions_status ON promotions(status);
     `,
   },
+  {
+    // ADR 0034 §4: the accusatory-reveal queue. The operator CLI upserts a row
+    // keyed on (book_slug, tag_slug); the off-path `apps/promoter` worker claims
+    // pending rows, mints + librarian-signs the reveal/withdraw event, and marks
+    // done with the minted event id. UNIQUE(book_slug, tag_slug) makes a
+    // re-trigger / reveal→withdraw→reveal flip idempotent (latest intent wins).
+    name: "0004_reveals",
+    sql: `
+      CREATE TABLE IF NOT EXISTS reveals (
+        id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        book_slug     TEXT NOT NULL,
+        tag_slug      TEXT NOT NULL,
+        state         TEXT NOT NULL CHECK (state IN ('revealed','withdrawn')),
+        requested_by  CHAR(64) NOT NULL,
+        status        TEXT NOT NULL DEFAULT 'pending'
+                        CHECK (status IN ('pending','minting','done','failed')),
+        minted_id     TEXT,
+        error         TEXT,
+        attempts      INTEGER NOT NULL DEFAULT 0,
+        created_at    TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        updated_at    TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        UNIQUE (book_slug, tag_slug)
+      );
+
+      CREATE INDEX IF NOT EXISTS idx_reveals_status ON reveals(status);
+    `,
+  },
 ];
