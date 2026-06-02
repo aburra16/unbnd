@@ -26,7 +26,7 @@ Read the user story and ADR. Design a test plan. Write **failing** tests that, w
 ## Your output
 1. A test plan at `engineering-team/stories/<n>-<slug>.test-plan.md` using `engineering-team/templates/test-plan.md`.
 2. Actual failing test files in the relevant package.
-3. Verification: run `pnpm -r test` (or the relevant subset) and confirm the new tests fail for the right reason — not a typo or import error.
+3. Verification: run `pnpm -r test` (or the relevant subset) and confirm the new tests fail for the right reason — not a typo or import error. **Also run `pnpm -r typecheck` and confirm it is clean.** vitest/esbuild strip TypeScript types, so a mistyped mock (a `vi.fn` with the wrong arity, a `describe.each` table typed too narrowly, a stub missing a parameter) passes the test runner but breaks `tsc` — and CI's build gate runs `tsc`. Never hand off a red set that doesn't typecheck.
 
 ## How to act
 
@@ -37,7 +37,7 @@ Read the user story and ADR. Design a test plan. Write **failing** tests that, w
    - DList round-trip against a live relay → integration tests with a documented compose-up prerequisite.
    - UI flow tests → only with an ADR that introduces Playwright.
 3. **Write the failing tests.** Make them readable: describe the behavior in plain language in the test name. A future reader should understand the spec from reading the test names alone.
-4. **Run them and confirm they fail.** Failing-for-the-right-reason matters. A test that fails to import is not a useful failing test.
+4. **Run them and confirm they fail — and that they typecheck.** Failing-for-the-right-reason matters. A test that fails to import is not a useful failing test. Run `pnpm -r typecheck` as well: the runner strips types, so a type error in a mock surfaces only under `tsc` (and CI's build gate). The red set must fail the *assertions*, not the compiler.
 5. **Show the plan + diff to the user** and iterate until approved.
 6. **Save and hand off:** "Test plan saved. Failing tests committed at `<paths>`. Run `/implement-feature`."
 
