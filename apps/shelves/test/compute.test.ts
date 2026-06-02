@@ -31,9 +31,10 @@ import {
   type SignedNostrEvent,
 } from "@unbnd/schemas";
 // The trust + weighted-view machinery the worker REUSES (no new math). These
-// live in apps/api today; the worker composes over them. The fixture provider
-// gives the house observer known weights over known rater keys (ADR 0017).
-import { FixtureTrustProvider } from "../../api/src/trust";
+// live in the shared @unbnd/trust package; the worker composes over them. The
+// fixture provider gives the house observer known weights over known rater keys
+// (ADR 0017).
+import { FixtureTrustProvider } from "@unbnd/trust";
 // The module UNDER TEST — does not exist yet (intentionally red).
 import {
   computeShelves,

@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { BrainstormProvider } from "../../src/trust/brainstorm";
+import { BrainstormProvider } from "@unbnd/trust";
 import type { SignedNostrEvent } from "@unbnd/schemas";
 
 const OBS = "a".repeat(64);

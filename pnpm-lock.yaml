@@ -273,6 +273,28 @@ importers:
         specifier: ^2.1.0
         version: 2.1.9(@types/node@22.19.19)(happy-dom@15.11.7)
 
+  packages/trust:
+    dependencies:
+      '@unbnd/schemas':
+        specifier: workspace:*
+        version: link:../schemas
+      nostr-tools:
+        specifier: 2.10.4
+        version: 2.10.4(typescript@5.9.3)
+      ws:
+        specifier: ^8.18.0
+        version: 8.21.0
+    devDependencies:
+      '@types/ws':
+        specifier: ^8.5.12
+        version: 8.18.1
+      typescript:
+        specifier: ^5.5.3
+        version: 5.9.3
+      vitest:
+        specifier: ^2.1.0
+        version: 2.1.9(@types/node@22.19.19)(happy-dom@15.11.7)
+
 packages:
 
   '@adobe/css-tools@4.5.0':

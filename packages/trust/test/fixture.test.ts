@@ -1,16 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { npubEncode } from "nostr-tools/nip19";
 import type { SignedNostrEvent } from "@unbnd/schemas";
 import {
   FixtureTrustProvider,
   resolveTrustProvider,
   type FixtureSpec,
-} from "../../src/trust";
-import {
-  rawFromParsed,
-  weightedRatings,
-  type ParsedRating,
-} from "../../src/ratings/summary";
+} from "@unbnd/trust";
 
 const O = "d".repeat(64); // observer
 const A = "a".repeat(64);
@@ -85,32 +79,5 @@ describe("FixtureTrustProvider (ADR 0017)", () => {
     const p = resolveTrustProvider({ provider: "fixture", fixture: spec });
     expect(p.name).toBe("fixture");
     expect(p).toBeInstanceOf(FixtureTrustProvider);
-  });
-});
-
-// The keystone deliverable: a trust-consuming feature verified end-to-end against
-// the fixture provider in CI, with a deterministic weighted-vs-raw divergence and
-// no Brainstorm/relay/network involved.
-describe("trust-consuming feature against the fixture: weightedRatings (ADR 0017)", () => {
-  it("produces a deterministic weighted average that differs from raw", async () => {
-    const deduped: ParsedRating[] = [
-      { pubkey: A, createdAt: 3, score: 5, reviewDate: "2026-01-03" },
-      { pubkey: B, createdAt: 2, score: 3, reviewDate: "2026-01-02" },
-      { pubkey: C, createdAt: 1, score: 1, reviewDate: "2026-01-01" },
-    ];
-    const weights = await new FixtureTrustProvider(spec).weights(
-      O,
-      deduped.map((r) => r.pubkey),
-    );
-
-    const raw = rawFromParsed(deduped);
-    const weighted = weightedRatings(deduped, weights, npubEncode(O));
-
-    expect(raw.average).toBe(3); // (5+3+1)/3
-    expect(weighted).not.toBeNull();
-    // trusted A(0.9), B(0.3): (0.9*5 + 0.3*3) / 1.2 = 4.5; C untrusted → excluded
-    expect(weighted?.average).toBeCloseTo(4.5, 10);
-    expect(weighted?.trustedCount).toBe(2);
-    expect(weighted?.average).not.toBe(raw.average); // divergence, deterministically
   });
 });

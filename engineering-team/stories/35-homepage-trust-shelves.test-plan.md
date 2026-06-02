@@ -200,8 +200,127 @@ Implementer fills.
 
 ## Migrated tests
 
-None. There was **no** pre-existing `Home.tsx` test, so the new
-`apps/web/test/home-trust-shelves.test.tsx` is additive (not a migration). No existing
-assertion was changed or weakened. The repo-wide ADR 0014 trust guard
-(`apps/api/test/trust/architecture.test.ts`) is unchanged; it already scans `apps/` and now
-also covers the new `apps/shelves` source once built (no edit needed).
+None for the homepage/serve/worker surfaces. There was **no** pre-existing `Home.tsx` test, so
+the new `apps/web/test/home-trust-shelves.test.tsx` is additive (not a migration). No existing
+assertion was changed or weakened.
+
+## Relocation to the `@unbnd/trust` package boundary (ADR 0036 Amendment 2026-06-02)
+
+The amendment extracts the trust seam + the shared `weightedRatings`/`dedupeRatings` helpers into
+a new `@unbnd/trust` workspace package, landed via a re-export shim. Per the amendment's test-ripple
+list (A5), the **package-internal** tests are relocated to the new package boundary so the red set
+drives the extraction. This is **pure relocation + import re-point — no assertion was changed or
+weakened.**
+
+**New package test scaffolding (test-only; the Implementer adds `packages/trust/src`):**
+`packages/trust/{package.json,tsconfig.json,vitest.config.ts}` mirroring `packages/search` —
+`@unbnd/trust` (private, `type:module`, `exports → ./src/index.ts`), deps `@unbnd/schemas`
+(`workspace:*`) + `nostr-tools` + `ws`, devDeps `@types/ws`/`typescript`/`vitest`.
+
+**Moved into `packages/trust/test/` (via `git mv`, history preserved), imports re-pointed to
+`@unbnd/trust`:**
+
+- `fixture.test.ts` (was `apps/api/test/trust/fixture.test.ts`) — `FixtureTrustProvider` /
+  `resolveTrustProvider` / `FixtureSpec` seam tests; imports re-pointed `../../src/trust` →
+  `@unbnd/trust`. The embedded `weightedRatings (ADR 0017)` divergence block was **split out** (below).
+- `brainstorm.test.ts` (was `apps/api/test/trust/brainstorm.test.ts`) — `BrainstormProvider` adapter
+  tests; import re-pointed `../../src/trust/brainstorm` → `@unbnd/trust`.
+- `architecture.test.ts` (was `apps/api/test/trust/architecture.test.ts`) — the ADR 0014 repo-wide
+  guard. Two surgical edits per A3: `REPO` recomputed for the new depth
+  (`resolve(__dirname, "..", "..", "..")`) and the sole exception path
+  `apps/api/src/trust/brainstorm.ts` → `packages/trust/src/brainstorm.ts`. It still scans
+  `apps/` ∪ `packages/` repo-wide and forbids the Brainstorm/NIP-85 specifics + `brainstorm_login`
+  everywhere except that one file. The guard's forbidden **pattern is unchanged**.
+- `weighting.test.ts` (**new file** holding the split-out `weightedRatings` divergence test from the
+  old `fixture.test.ts` block) — imports `weightedRatings` + `FixtureTrustProvider` + the `ParsedRating`
+  type from `@unbnd/trust`. The raw arithmetic mean (formerly via `rawFromParsed`, which stays
+  apps/api-only per A1) is computed inline so the same `(5+3+1)/3 = 3` raw value and the
+  weighted-vs-raw **divergence assertion are preserved verbatim**. Every `weightedRatings` assertion
+  (`average ≈ 4.5`, `trustedCount = 2`, divergence) is unchanged.
+
+**Stays in apps/api (raw-summary / own-counts are apps/api-only per A1):**
+`apps/api/test/ratings/summary.test.ts` (`summarizeRatings` raw-summary) and
+`apps/api/test/ratings/own-counts.test.ts` (`countOwnRatings`) are **left in place, untouched** —
+they were never `weightedRatings`/`dedupeRatings` tests. There is no standalone `dedupeRatings` test
+to move; the only direct `weightedRatings`/`dedupeRatings`/`rawFromParsed` assertion lived in the
+`fixture.test.ts` divergence block now split into `weighting.test.ts`.
+
+**Cross-app import re-pointed (the gate-forbidden path):**
+`apps/shelves/test/compute.test.ts` — `import { FixtureTrustProvider } from "../../api/src/trust"`
+→ `@unbnd/trust`. This is the cross-app relative source import the gate forbids; it now points at
+the shared package boundary (intended red until `packages/trust/src` exists).
+
+**apps/api route/seam tests LEFT UNTOUCHED (shim-covered, A2/A5 — re-point is optional/cosmetic for
+these under the shim, so they are left to minimize churn):** every apps/api test importing
+`FixtureTrustProvider`/`BrainstormProvider`/`TrustProvider`/`FixtureSpec` via `../../src/trust` or the
+deep `../../src/trust/fixture` path — `routes/{search,tags-weighted,tags-accusatory-gate,
+submissions-signals,submissions-promote,submissions-list-enriched,author-verified,author-edits,
+books-verified-merge,trust,trust-custodial}.test.ts`, `search/rerank.test.ts`,
+`tags/aggregate-weighted.test.ts`, `author-verified/verify.test.ts`. Verified these still resolve:
+`apps/api/src/trust/{index,fixture,types,brainstorm}.ts` is **physically untouched** by this
+relocation (only tests moved), so both the shimmed `../../src/trust` and the deep `../../src/trust/fixture`
+imports resolve against the still-present source. Confirmed live: `routes/trust.test.ts` (8 tests) and
+`routes/trust-custodial.test.ts` (14 tests) **pass**, and the whole apps/api suite typechecks with the
+only error being the not-yet-built `homepage-shelves` route — no trust-import error anywhere. Once the
+Implementer lands the shim (apps/api re-exports `@unbnd/trust`), these keep working unchanged. The
+worker-scoped guard `apps/shelves/test/architecture.test.ts` stays (subsumed by, not replaced by, the
+relocated repo-wide guard, per A3).
+
+### Red summary after the relocation (intentionally red — drives the extraction)
+
+`pnpm --filter @unbnd/trust test`:
+```
+FAIL test/fixture.test.ts     — Failed to resolve entry for package "@unbnd/trust" (no ./src yet)
+FAIL test/brainstorm.test.ts  — Failed to resolve entry for package "@unbnd/trust" (no ./src yet)
+FAIL test/weighting.test.ts   — Failed to resolve entry for package "@unbnd/trust" (no ./src yet)
+FAIL test/architecture.test.ts > Brainstorm API specifics live only in the adapter
+     → leaked outside the adapter: apps/api/src/trust/brainstorm.ts (the source has NOT
+       moved into packages/trust/src/brainstorm.ts yet — the Implementer's move turns this green)
+Test Files  4 failed (4)
+```
+
+`pnpm --filter @unbnd/shelves test`:
+```
+FAIL test/compute.test.ts       — Failed to load url @unbnd/trust (re-pointed cross-app import; no ./src yet)
+FAIL test/config.test.ts        — Failed to load url ../src/config (not-yet-built worker config)
+FAIL test/architecture.test.ts  — ENOENT scandir apps/shelves/src (worker src not built)
+Test Files  3 failed (3)
+```
+
+`pnpm --filter @unbnd/api test` — the prior Story-35 red is unchanged; **no new failure from the
+relocation** (the trust route/seam tests still RUN):
+```
+✓ test/routes/trust.test.ts (8 tests)            ← shim-path trust import resolves
+✓ test/routes/trust-custodial.test.ts (14 tests) ← shim-path trust import resolves
+FAIL test/routes/homepage-shelves.test.ts        — not-yet-built ../../src/routes/homepage-shelves
+FAIL test/db/migrations-homepage-shelves.test.ts (5 failed)  — not-yet-built 0005 migration
+Test Files  2 failed | 80 passed | 2 skipped (84)
+      Tests  5 failed | 728 passed | 10 skipped (743)
+```
+
+`pnpm --filter @unbnd/web test` — unchanged by the relocation (5 prior Story-35 component reds):
+```
+FAIL test/home-trust-shelves.test.tsx (5 failed)  — not-yet-built api.homepage.shelves / HomepageShelves
+Test Files  1 failed | 49 passed (50)
+      Tests  5 failed | 285 passed (290)
+```
+
+### Typecheck after relocation (mock-shape-clean — PR-#74 rule)
+
+`pnpm -r typecheck` — `packages/schemas`, `packages/search`, `apps/seeder`, `apps/indexer`,
+`apps/promoter` are **clean**. Every remaining error is a not-yet-built-module reference — NO
+mock-shape, NO arity, NO implicit-any:
+```
+packages/trust  test/{brainstorm,fixture,weighting}.test.ts  TS2307 Cannot find module '@unbnd/trust'
+apps/shelves    test/compute.test.ts  TS2307 Cannot find module '@unbnd/trust' / '../src/compute'
+apps/shelves    test/config.test.ts   TS2307 Cannot find module '../src/config'
+apps/api        test/routes/homepage-shelves.test.ts  TS2307 Cannot find module '../../src/routes/homepage-shelves'
+apps/web        test/home-trust-shelves.test.tsx       TS2305 '../src/lib/api' has no exported member 'HomepageShelves'
+```
+The relocated `packages/trust/test/*` and the re-pointed `apps/shelves/test/compute.test.ts` fail
+ONLY on the missing `@unbnd/trust` module — the intended red. apps/api's trust route/seam tests
+typecheck with no trust-import error (the source is still present), confirming the shim path resolves.
+
+The repo-wide ADR 0014 trust guard now lives at `packages/trust/test/architecture.test.ts` (moved with
+the code); it still scans `apps/` ∪ `packages/` and turns green once the Implementer moves
+`brainstorm.ts` into `packages/trust/src/`.
