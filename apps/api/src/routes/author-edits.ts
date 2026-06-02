@@ -18,9 +18,10 @@ import type { PublishResult } from "../nostr/publish";
 import type { NostrFilter } from "../nostr/query";
 import type { TrustProvider } from "../trust";
 import { tokenToId } from "../auth/sessions";
-import { buildAuthorEditsTemplate, AuthorEditsError } from "../author-edits/template";
+import { buildAuthorEditsTemplate, AuthorEditsError, isHttpUrl } from "../author-edits/template";
 import { validateSignedAuthorOverlay } from "../author-edits/validate";
 import { computeVerification } from "../author-verified/verify";
+import { mergeEffectiveBook, parseBook, type PublicBook } from "../books/effective";
 
 const COOKIE_NAME = "session";
 const KIND = 39999;
@@ -91,6 +92,40 @@ export function buildAuthorEditsRouter(deps: AuthorEditsDeps): Router {
       deps.trust,
     );
     return verified.includes(sessionHex);
+  }
+
+  // ADR §4 read-back: after a successful publish, compute the SAME merged effective
+  // book `GET /api/books/:slug` returns for this verified author. We read the
+  // canonical record and merge the just-published overlay (this author treated as
+  // the single verified claimant), reusing the shared merge — the canonical record
+  // is never mutated. Returns null if the catalog can't be read (the write still
+  // succeeded; the caller falls back to { ok: true }).
+  async function readEffectiveBook(
+    bookSlug: string,
+    authorHex: string,
+    published: SignedNostrEvent,
+  ): Promise<PublicBook | null> {
+    const lib = librarian();
+    if (!lib) return null;
+    const booksConcept = `39998:${lib}:books`;
+    let bookEvents: SignedNostrEvent[] = [];
+    try {
+      bookEvents = await deps.query({
+        kinds: [KIND],
+        "#z": [booksConcept],
+        "#d": [bookSlug],
+      });
+    } catch {
+      return null;
+    }
+    const canonical = bookEvents
+      .map(parseBook)
+      .find((b): b is PublicBook => b !== null);
+    if (!canonical) return null;
+    // This verified author is the single verified claimant; the just-published
+    // overlay is the latest one to merge.
+    const { effectiveBook } = mergeEffectiveBook(canonical, [authorHex], [published]);
+    return effectiveBook;
   }
 
   router.post("/api/author-edits/template", async (req, res, next) => {
@@ -183,7 +218,8 @@ export function buildAuthorEditsRouter(deps: AuthorEditsDeps): Router {
           });
           return;
         }
-        res.status(200).json({ ok: true });
+        const book = await readEffectiveBook(bookSlug, user.pubkeyHex, signed);
+        res.status(200).json(book ? { ok: true, book } : { ok: true });
         return;
       }
 
@@ -203,6 +239,23 @@ export function buildAuthorEditsRouter(deps: AuthorEditsDeps): Router {
         return;
       }
 
+      // http(s) URL validation on the WRITE for the sovereign tier too (N-1, AC-5):
+      // the same check the custodial/template path applies. A signed event can
+      // carry a hostile javascript:/data:/ftp:// coverUrl or purchaseUrl, so
+      // re-validate here — reject with 400 invalid_url and NO publish.
+      if (result.overlay.coverUrl != null && !isHttpUrl(result.overlay.coverUrl)) {
+        res.status(400).json({
+          error: { code: "invalid_url", message: "Enter a web address that starts with http or https." },
+        });
+        return;
+      }
+      if (result.overlay.purchaseUrl != null && !isHttpUrl(result.overlay.purchaseUrl)) {
+        res.status(400).json({
+          error: { code: "invalid_url", message: "Enter a web address that starts with http or https." },
+        });
+        return;
+      }
+
       // Verified-author gate on the write (AC-5).
       if (!(await isVerifiedAuthor(user.pubkeyHex, result.overlay.bookSlug))) {
         res.status(403).json({
@@ -218,7 +271,12 @@ export function buildAuthorEditsRouter(deps: AuthorEditsDeps): Router {
         });
         return;
       }
-      res.status(200).json({ ok: true });
+      const book = await readEffectiveBook(
+        result.overlay.bookSlug,
+        user.pubkeyHex,
+        event as SignedNostrEvent,
+      );
+      res.status(200).json(book ? { ok: true, book } : { ok: true });
     } catch (err) {
       next(err);
     }

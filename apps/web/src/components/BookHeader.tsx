@@ -31,6 +31,14 @@ export function BookHeader({
 }: Props) {
   const g = coverGradient(book.slug);
   const chips = [...genres, ...styles];
+  // AC-6 attribution: "From the author" applies whenever the verified author
+  // provided ANY applied overlay field — blurb, cover, or purchase link — not
+  // only the blurb (N-2).
+  const hasAuthorOverlay =
+    authorProvided !== undefined &&
+    (["blurb", "coverUrl", "purchaseUrl"] as const).some((f) =>
+      authorProvided.includes(f),
+    );
   return (
     <header className="bh">
       {book.coverUrl ? (
@@ -69,14 +77,8 @@ export function BookHeader({
             ))}
           </div>
         )}
-        {book.blurb && (
-          <>
-            <p className="bh-blurb">{book.blurb}</p>
-            {authorProvided?.includes("blurb") && (
-              <p className="bh-attribution">From the author</p>
-            )}
-          </>
-        )}
+        {book.blurb && <p className="bh-blurb">{book.blurb}</p>}
+        {hasAuthorOverlay && <p className="bh-attribution">From the author</p>}
       </div>
     </header>
   );

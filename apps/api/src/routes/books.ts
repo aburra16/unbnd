@@ -3,42 +3,19 @@
 // d-tag = slug.
 import express, { type Router } from "express";
 import { npubEncode } from "nostr-tools/nip19";
-import {
-  fromBookAuthorOverlayEvent,
-  fromBookRecordEvent,
-  fromWireEvent,
-  type BookAuthorOverlay,
-  type BookRecord,
-  type SignedNostrEvent,
-} from "@unbnd/schemas";
+import type { SignedNostrEvent } from "@unbnd/schemas";
 import type { Config } from "../config";
 import type { NostrFilter } from "../nostr/query";
 import type { TrustProvider } from "../trust";
 import { projectClaimantHexes } from "../claims/claimants";
 import { computeVerification } from "../author-verified/verify";
+import { mergeEffectiveBook, parseBook, type PublicBook } from "../books/effective";
+
+export type { PublicBook };
+export { parseBook };
 
 const KIND = 39999;
 const DEFAULT_RECENT = 24;
-const OVERLAY_FIELDS = ["blurb", "coverUrl", "purchaseUrl"] as const;
-type OverlayField = (typeof OVERLAY_FIELDS)[number];
-
-/** The book fields the UI consumes — no hex, no parent header. */
-export type PublicBook = Pick<
-  BookRecord,
-  | "slug"
-  | "title"
-  | "authorName"
-  | "blurb"
-  | "coverUrl"
-  | "publishYear"
-  | "pageCount"
-  | "language"
-  | "subjects"
-  | "openLibraryId"
-  | "isbn13"
-  | "purchaseUrl"
-  | "format"
->;
 
 export type BooksDeps = {
   readonly config: Config;
@@ -52,55 +29,6 @@ export type BooksDeps = {
  * the trust seam is wired (Story 31 reads with no trust stay `{ npub }`).
  */
 export type PublicClaimant = { readonly npub: string; readonly verified?: boolean };
-
-/** The latest author overlay per author hex (replaceable per (author, book)). */
-function parseLatestOverlays(events: SignedNostrEvent[]): Map<string, BookAuthorOverlay> {
-  const latest = new Map<string, { overlay: BookAuthorOverlay; createdAt: number }>();
-  for (const e of events) {
-    let overlay: BookAuthorOverlay;
-    try {
-      const unsigned = fromWireEvent({ kind: e.kind, content: e.content, tags: e.tags });
-      overlay = fromBookAuthorOverlayEvent(unsigned as never);
-    } catch {
-      continue;
-    }
-    const hex = overlay.authorPubkey;
-    const prior = latest.get(hex);
-    if (!prior || e.created_at > prior.createdAt) {
-      latest.set(hex, { overlay, createdAt: e.created_at });
-    }
-  }
-  const out = new Map<string, BookAuthorOverlay>();
-  for (const [hex, v] of latest) out.set(hex, v.overlay);
-  return out;
-}
-
-function toPublicBook(record: BookRecord): PublicBook {
-  return {
-    slug: record.slug,
-    title: record.title,
-    authorName: record.authorName,
-    blurb: record.blurb,
-    coverUrl: record.coverUrl,
-    publishYear: record.publishYear,
-    pageCount: record.pageCount,
-    language: record.language,
-    subjects: record.subjects,
-    openLibraryId: record.openLibraryId,
-    isbn13: record.isbn13,
-    purchaseUrl: record.purchaseUrl,
-    format: record.format,
-  };
-}
-
-export function parseBook(event: SignedNostrEvent): PublicBook | null {
-  try {
-    const unsigned = fromWireEvent({ kind: event.kind, content: event.content, tags: event.tags });
-    return toPublicBook(fromBookRecordEvent(unsigned as never));
-  } catch {
-    return null;
-  }
-}
 
 export function buildBooksRouter(deps: BooksDeps): Router {
   const router = express.Router();
@@ -144,24 +72,14 @@ export function buildBooksRouter(deps: BooksDeps): Router {
         : [];
       const verifiedSet = new Set(verifiedHexes);
 
-      // none-on-conflict (ADR 0033 D5): apply an overlay only when EXACTLY ONE
-      // claimant is verified. 0 or >1 → canonical renders, authorProvided [].
-      let effectiveBook: PublicBook = book;
-      let authorProvided: OverlayField[] = [];
-      if (verifiedHexes.length === 1) {
-        const overlay = parseLatestOverlays(overlayEvents).get(verifiedHexes[0]!);
-        if (overlay) {
-          const merged: PublicBook = { ...book };
-          for (const field of OVERLAY_FIELDS) {
-            const value = overlay[field];
-            if (value != null) {
-              (merged as Record<OverlayField, string | undefined>)[field] = value;
-              authorProvided.push(field);
-            }
-          }
-          effectiveBook = merged;
-        }
-      }
+      // none-on-conflict (ADR 0033 D5): the shared merge applies an overlay only
+      // when EXACTLY ONE claimant is verified. The canonical record is never
+      // mutated — a new effective book is derived.
+      const { effectiveBook, authorProvided } = mergeEffectiveBook(
+        book,
+        verifiedHexes,
+        overlayEvents,
+      );
 
       const claimants: PublicClaimant[] = claimantHexes.map((hex) =>
         deps.trust
