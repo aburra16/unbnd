@@ -20,6 +20,8 @@ import { buildTrustRouter } from "./routes/trust";
 import { buildHealthRouter } from "./routes/health";
 import { buildRatingsRouter } from "./routes/ratings";
 import { buildClaimsRouter } from "./routes/claims";
+import { buildAuthorVerifiedRouter } from "./routes/author-verified";
+import { buildAuthorEditsRouter } from "./routes/author-edits";
 import { buildProfileClaimsRouter } from "./routes/profile-claims";
 import { buildTagsRouter } from "./routes/tags";
 import { buildShelvesRouter } from "./routes/shelves";
@@ -376,7 +378,7 @@ async function main() {
     custodialSign,
   };
 
-  app.use("/", buildBooksRouter({ config, query: userEventDeps.query }));
+  app.use("/", buildBooksRouter({ config, query: userEventDeps.query, trust }));
   app.use("/", buildProfileRouter({ config }));
   app.use(
     "/",
@@ -439,6 +441,8 @@ async function main() {
   );
   app.use("/", buildRatingsRouter(userEventDeps));
   app.use("/", buildClaimsRouter(userEventDeps));
+  app.use("/", buildAuthorVerifiedRouter(userEventDeps));
+  app.use("/", buildAuthorEditsRouter(userEventDeps));
   app.use(
     "/",
     buildProfileClaimsRouter({

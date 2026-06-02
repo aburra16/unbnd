@@ -1,0 +1,67 @@
+.author-edit {
+  margin: 16px 0;
+  padding: 16px;
+  border: 1px solid var(--u-line, #e5e5e5);
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.author-edit-heading {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--u-ink);
+}
+
+.author-edit-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 13px;
+  color: var(--u-muted);
+}
+
+.author-edit-field input,
+.author-edit-field textarea {
+  padding: 8px 10px;
+  border: 1px solid var(--u-line, #d4d4d4);
+  border-radius: 8px;
+  font: inherit;
+  color: var(--u-ink);
+  background: var(--u-bg, #fff);
+}
+
+.author-edit-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.author-edit-save {
+  padding: 8px 18px;
+  border: none;
+  border-radius: 999px;
+  background: var(--u-ink);
+  color: var(--u-bg, #fff);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.author-edit-save:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.author-edit-ok {
+  color: var(--u-ink);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.author-edit-error {
+  margin: 0;
+  color: var(--u-danger, #b00020);
+  font-size: 13px;
+}

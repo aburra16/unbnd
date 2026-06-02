@@ -17,6 +17,16 @@ function claimantHexOf(event: SignedNostrEvent): string | null {
 }
 
 export function projectClaimants(events: SignedNostrEvent[]): PublicClaimant[] {
+  return projectClaimantHexes(events).map((hex) => ({ npub: npubEncode(hex) }));
+}
+
+/**
+ * The deduped, deterministically-ordered claimant HEXES (the same dedup +
+ * ordering as `projectClaimants`, but keeping hex so the verification count-gate
+ * can be computed before the hex is dropped at the npub projection). The hex
+ * never leaves the server — callers project to npub for the response.
+ */
+export function projectClaimantHexes(events: SignedNostrEvent[]): string[] {
   // Freshest event per claimant hex (a replaced claim collapses to one).
   const freshest = new Map<string, SignedNostrEvent>();
   for (const e of events) {
@@ -27,5 +37,5 @@ export function projectClaimants(events: SignedNostrEvent[]): PublicClaimant[] {
   }
   return [...freshest.values()]
     .sort((a, b) => a.created_at - b.created_at || claimantHexOf(a)!.localeCompare(claimantHexOf(b)!))
-    .map((e) => ({ npub: npubEncode(claimantHexOf(e)!) }));
+    .map((e) => claimantHexOf(e)!);
 }

@@ -1,3 +1,10 @@
+.bh-attribution {
+  margin: 2px 0 0;
+  font-size: 12px;
+  font-style: italic;
+  color: var(--u-muted);
+}
+
 .bh {
   display: flex;
   gap: 28px;

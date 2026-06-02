@@ -15,9 +15,12 @@ export const BOOK_SUBMISSIONS_HEADER_SLUG = "book-submissions";
 /** ADR 0032 §1: author claims against catalog books (the "Author (claimed)"
  * badge + "Books by this author"). */
 export const BOOK_CLAIMS_HEADER_SLUG = "book-claims";
-/** ADR 0032 §3: RESERVED for Story 32 (Verified Author) — the author metadata
- * overlay (blurb / cover / purchase links) z-tags here. Not built in Story 31. */
+/** ADR 0032 §3 / ADR 0033 §4: the author metadata overlay (blurb / cover /
+ * purchase links) z-tags here. Reserved in Story 31, built in Story 32. */
 export const BOOK_AUTHOR_EDITS_HEADER_SLUG = "author-edits";
+/** ADR 0033 §1: trusted-curator author-verified assertions z-tag here (the
+ * verification count-gate reads this concept). */
+export const BOOK_AUTHOR_VERIFIED_HEADER_SLUG = "author-verified";
 
 function header(
   librarianPubkey: HexPubkey,
@@ -84,4 +87,16 @@ export function buildBookClaimsHeaderAddress(
   librarianPubkey: HexPubkey,
 ): DListAddress<39998> {
   return header(librarianPubkey, BOOK_CLAIMS_HEADER_SLUG);
+}
+
+export function buildBookAuthorEditsHeaderAddress(
+  librarianPubkey: HexPubkey,
+): DListAddress<39998> {
+  return header(librarianPubkey, BOOK_AUTHOR_EDITS_HEADER_SLUG);
+}
+
+export function buildBookAuthorVerifiedHeaderAddress(
+  librarianPubkey: HexPubkey,
+): DListAddress<39998> {
+  return header(librarianPubkey, BOOK_AUTHOR_VERIFIED_HEADER_SLUG);
 }
