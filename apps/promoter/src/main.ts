@@ -19,6 +19,9 @@ import {
 import { runPromotionCycle, type PromoterDeps } from "./index";
 import { createQueue } from "./queue";
 import { connectRelay } from "./relay";
+import { createRevealQueue } from "./reveal/queue";
+import { runRevealCommand } from "./reveal/cli";
+import { runRevealCycle, type RevealDeps } from "./reveal/cycle";
 
 function env(name: string, fallback?: string): string {
   const v = process.env[name];
@@ -29,7 +32,53 @@ function env(name: string, fallback?: string): string {
   return v;
 }
 
-async function main(): Promise<void> {
+// ADR 0034 §4 (amended): the operator reveal/withdraw trigger lives here, in the
+// key-holding worker — NOT on the API and NOT in a browser. `promoter reveal
+// --book <slug> --tag <slug> [--withdraw]` upserts the `reveals` row (recording
+// the librarian hex as the actor) and runs ONE reveal cycle, minting the
+// librarian-signed event off the API.
+async function reveal(argv: string[]): Promise<void> {
+  const databaseUrl = env("DATABASE_URL");
+  const strfryUrl = env("STRFRY_URL", "ws://strfry:7777");
+  const dcoslUrl = env("DCOSL_RELAY_URL", "wss://dcosl.brainstorm.world/");
+  const nsec = env("LIBRARIAN_NSEC");
+
+  const decoded = decode(nsec);
+  if (decoded.type !== "nsec") throw new Error("LIBRARIAN_NSEC is not an nsec");
+  const sk = decoded.data as Uint8Array;
+  const librarianPubkey = asHexPubkey(getPublicKey(sk));
+
+  const queue = createRevealQueue(databaseUrl);
+  await runRevealCommand(argv, {
+    enqueueReveal: (bookSlug, tagSlug, state, requestedBy) =>
+      queue.enqueueReveal(bookSlug, tagSlug, state, requestedBy),
+    requestedBy: librarianPubkey,
+  });
+
+  const local = await connectRelay(strfryUrl);
+  const dcosl = await connectRelay(dcoslUrl);
+  const deps: RevealDeps = {
+    librarianPubkey,
+    claimPending: () => queue.claimPending(),
+    sign: (template: NostrEventTemplate) =>
+      finalizeEvent(template as never, sk) as unknown as SignedNostrEvent,
+    publishLocal: (event) => local.publish(event),
+    publishDcosl: (event) => dcosl.publish(event),
+    markDone: (job, mintedId) => queue.markDone(job, mintedId),
+    markFailed: (job, reason) => queue.markFailed(job, reason),
+    now: () => Math.floor(Date.now() / 1000),
+  };
+  try {
+    await runRevealCycle(deps);
+  } finally {
+    local.close();
+    dcosl.close();
+    await queue.close();
+  }
+  console.log("[promoter] reveal complete");
+}
+
+async function promote(): Promise<void> {
   const databaseUrl = env("DATABASE_URL");
   const strfryUrl = env("STRFRY_URL", "ws://strfry:7777");
   const dcoslUrl = env("DCOSL_RELAY_URL", "wss://dcosl.brainstorm.world/");
@@ -78,6 +127,17 @@ async function main(): Promise<void> {
     await queue.close();
   }
   console.log("[promoter] cycle complete");
+}
+
+// Arg dispatch: `promoter reveal …` runs the operator reveal trigger; the bare
+// invocation (the cron) runs the promotion cycle.
+async function main(): Promise<void> {
+  const [, , subcommand, ...rest] = process.argv;
+  if (subcommand === "reveal") {
+    await reveal(rest);
+    return;
+  }
+  await promote();
 }
 
 main().catch((err) => {

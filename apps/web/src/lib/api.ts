@@ -137,6 +137,10 @@ export type TagConsensus = {
   // Trust-weighted: true when ≥1 positively-trusted asserter backed this tag
   // from the active observer's vantage (ADR 0025). False on the raw/community view.
   trusted: boolean;
+  // ADR 0034 §5: true ONLY on an accusatory tag surfaced by a live librarian
+  // reveal. The web renders it attributed to a review action, never as
+  // community consensus, with no curator count. Absent on every other tag.
+  revealed?: boolean;
 };
 
 export type BookTags = {
@@ -147,6 +151,10 @@ export type BookTags = {
   observer?: string;
   // Section state: at least one surfaced tag carries trusted signal (ADR 0025).
   weighted?: boolean;
+  // ADR 0034 §2: once-computed, fail-closed picker affordance — true only when
+  // the session user clears the curator gate from the house vantage. Gates
+  // whether the picker offers accusatory tags (server is the real enforcement).
+  canAssertAccusatory?: boolean;
 };
 
 export type TaxonomyElement = {

@@ -7,7 +7,12 @@ import { npubEncode, decode } from "nostr-tools/nip19";
 import type { Config } from "../config";
 import type { PublishResult } from "../nostr/publish";
 import type { NostrFilter } from "../nostr/query";
-import type { SignedNostrEvent, NostrEventTemplate } from "@unbnd/schemas";
+import {
+  fromAccusatoryRevealEvent,
+  fromWireEvent,
+  type SignedNostrEvent,
+  type NostrEventTemplate,
+} from "@unbnd/schemas";
 import { tokenToId } from "../auth/sessions";
 import { validateSignedEvent } from "../nostr/validate";
 import { buildTagAssertionTemplate, TagError } from "../tags/template";
@@ -54,13 +59,93 @@ function cookieOf(req: Request): string | undefined {
   return header ? parseCookie(header)[COOKIE_NAME] : undefined;
 }
 
+/** The first `t` tag value of a signed assertion event = the tag slug (the
+ * BookTagAssertion emits `["t", tagSlug]` before `["t", tagType]`). */
+function firstTTag(tags: string[][] | undefined): string | undefined {
+  return tags?.find((t) => t[0] === "t")?.[1];
+}
+
+/**
+ * Reduce accusatory-reveal events to the set of tag slugs currently revealed
+ * (ADR 0034 §3 / AC-4/AC-6). Keep the LATEST event per (book, tag) d-tag by
+ * created_at; include a tag's slug only when that latest event's state is
+ * `revealed` (a later `withdrawn` supersedes, hiding it again). Filter-at-read:
+ * the canonical assertions are never consulted or mutated here.
+ */
+function resolveRevealedSlugs(
+  revealEvents: SignedNostrEvent[],
+): ReadonlySet<string> {
+  const latest = new Map<
+    string,
+    { slug: string; state: string; createdAt: number }
+  >();
+  for (const e of revealEvents) {
+    const dTag = e.tags.find((t) => t[0] === "d")?.[1];
+    if (!dTag) continue;
+    let reveal;
+    try {
+      reveal = fromAccusatoryRevealEvent(
+        fromWireEvent({ kind: e.kind, content: e.content, tags: e.tags }) as never,
+      );
+    } catch {
+      continue;
+    }
+    const prior = latest.get(dTag);
+    if (!prior || e.created_at > prior.createdAt) {
+      latest.set(dTag, {
+        slug: reveal.tagSlug,
+        state: reveal.state,
+        createdAt: e.created_at,
+      });
+    }
+  }
+  const revealed = new Set<string>();
+  for (const v of latest.values()) {
+    if (v.state === "revealed") revealed.add(v.slug);
+  }
+  return revealed;
+}
+
 export function buildTagsRouter(deps: TagsDeps): Router {
   const router = express.Router();
   const lib = () => deps.config.librarianPubkey;
   const tagsConcept = () => `39998:${lib()}:book-tags`;
   const assertConcept = () => `39998:${lib()}:book-tag-assertions`;
+  const revealsConcept = () => `39998:${lib()}:accusatory-reveals`;
   const unavailable = (res: express.Response) =>
     res.status(503).json({ error: { code: "feature_unavailable", message: "Tagging is not configured." } });
+
+  // The caller's own house-PoV trust weight (ADR 0034 §1, lifted from
+  // submissions.ts). The gate is ALWAYS the house vantage over the SESSION
+  // user's own key. Any degrade (no provider, no observer, empty map, throwing
+  // seam) resolves to 0 so the accusatory gate CLOSES — the seam never 500s.
+  const houseWeightOf = async (callerHex: string): Promise<number> => {
+    const house = deps.config.houseObserverPubkey;
+    if (!deps.trust || !house) return 0;
+    try {
+      const map = await deps.trust.weights(house, [callerHex]);
+      return map.get(callerHex) ?? 0;
+    } catch {
+      return 0;
+    }
+  };
+
+  // Whether a tag slug is accusatory per the librarian taxonomy. Unknown slugs
+  // (absent from the taxonomy) are treated as non-accusatory — the existing
+  // behavior (unknown tags are already dropped at read). Fail-open to
+  // non-accusatory only on a taxonomy read failure (the write gate is the
+  // accusatory branch; a missing taxonomy must not block the normal path).
+  const isAccusatorySlug = async (slug: string | undefined): Promise<boolean> => {
+    if (!slug) return false;
+    try {
+      const taxonomy = parseTaxonomy(
+        await deps.query({ kinds: [KIND], "#z": [tagsConcept()] }),
+      );
+      return taxonomy.some((t) => t.slug === slug && t.sensitivity === "accusatory");
+    } catch {
+      return false;
+    }
+  };
 
   // The taxonomy (for the apply/dispute picker).
   router.get("/api/tags", async (_req, res, next) => {
@@ -83,11 +168,29 @@ export function buildTagsRouter(deps: TagsDeps): Router {
     try {
       if (!lib()) return unavailable(res);
       const bookAddr = `${KIND}:${lib()}:${req.params.slug}`;
-      const [taxEvents, assertEvents] = await Promise.all([
+      // ONE batched, #a-scoped reveal query per book read (no N+1) alongside
+      // taxonomy + assertions (ADR 0034 §3).
+      const [taxEvents, assertEvents, revealEvents] = await Promise.all([
         deps.query({ kinds: [KIND], "#z": [tagsConcept()] }),
         deps.query({ kinds: [KIND], "#z": [assertConcept()], "#a": [bookAddr] }),
+        deps.query({ kinds: [KIND], "#z": [revealsConcept()], "#a": [bookAddr] }),
       ]);
       const taxonomy = parseTaxonomy(taxEvents);
+
+      // Reduce reveal events to the LATEST per (book, tag) d-tag; surface only
+      // those whose latest state is `revealed` (a later `withdrawn` supersedes —
+      // AC-6). The signed event is the ground truth; canonical assertions are
+      // never mutated.
+      const revealedTagSlugs = resolveRevealedSlugs(revealEvents);
+
+      // The picker affordance (AC-1): once-computed, fail-closed boolean. Anon
+      // or any trust degrade → false. No raw weight is exposed.
+      const sessionUser = await deps.sessionUser(cookieOf(req));
+      let canAssertAccusatory = false;
+      if (sessionUser) {
+        const weight = await houseWeightOf(sessionUser.pubkeyHex);
+        canAssertAccusatory = weight >= (deps.config.curatorThreshold ?? 0.5);
+      }
 
       // Resolve the observer: explicit param, else the house observer.
       const observerParam =
@@ -110,12 +213,14 @@ export function buildTagsRouter(deps: TagsDeps): Router {
         assertEvents,
         taxonomy,
         weights,
+        revealedTagSlugs,
       );
       res.status(200).json({
         genres,
         styles,
         signals,
         weighted,
+        canAssertAccusatory,
         observer: observerHex ? npubEncode(observerHex) : undefined,
       });
     } catch (err) {
@@ -165,6 +270,24 @@ export function buildTagsRouter(deps: TagsDeps): Router {
       const cookie = cookieOf(req);
       const user = await deps.sessionUser(cookie);
       if (!user) return void res.status(401).json({ error: { code: "no_session", message: "Not signed in." } });
+
+      // ADR 0034 §1 — the sensitivity-conditional curator gate, run BEFORE either
+      // tier path so it applies identically to sovereign and custodial writes.
+      // The asserted tag slug is read off the SIGNED EVENT's `t` tag on the
+      // sovereign path (a crafted body cannot smuggle a normal slug to bypass)
+      // and off the body intent on the custodial path (no client event exists).
+      const assertedTagSlug =
+        user.tier === "custodial"
+          ? (req.body?.tagSlug as string | undefined)
+          : firstTTag((req.body?.event as { tags?: string[][] } | undefined)?.tags);
+      if (await isAccusatorySlug(assertedTagSlug)) {
+        const weight = await houseWeightOf(user.pubkeyHex);
+        if (weight < (deps.config.curatorThreshold ?? 0.5)) {
+          return void res
+            .status(403)
+            .json({ error: { code: "below_gate", message: "Not a curator." } });
+        }
+      }
 
       if (user.tier === "custodial") {
         const { bookSlug, tagSlug, tagType, polarity } = req.body ?? {};

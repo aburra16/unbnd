@@ -107,3 +107,33 @@
   font-size: 13px;
   color: var(--signal-positive, #1d9e75);
 }
+
+/* A revealed accusatory signal (ADR 0034 §5): distinct from genre/style chips,
+   attributed to a librarian review, no consensus label, no curator count. */
+.tagc-reviewed {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.tagc-reviewed-row {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.tagc-reviewed-chip {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--signal-negative, #dc3545);
+  border: 1px solid var(--signal-negative, #dc3545);
+  border-radius: var(--u-radius, 8px);
+  padding: 2px 8px;
+}
+
+.tagc-reviewed-note {
+  font-size: 12px;
+  color: var(--u-muted);
+}

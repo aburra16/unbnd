@@ -166,6 +166,33 @@ starts with the normal stack.
    `promotions.slug` unique constraint, so double-promote can never duplicate a
    catalog entry.
 
+## Accusatory-tag reveal (Story 33 / ADR 0034)
+
+Revealing an accusatory tag (e.g. `ai-generated`) on a book is an operator
+action on the droplet, run through the same key-holding worker. There is no API
+endpoint and no in-app button — the librarian key never enters a browser. The
+subcommand upserts a `reveals` row (recording the librarian as the actor) and
+mints a librarian-signed reveal event off the API; the book detail page surfaces
+the tag once that event is live.
+
+```sh
+# reveal an accusatory tag for a book
+docker compose -f docker-compose.prod.yml --profile promote run --rm promoter \
+  reveal --book <book-slug> --tag <tag-slug>
+
+# withdraw a previously revealed tag (the reversal)
+docker compose -f docker-compose.prod.yml --profile promote run --rm promoter \
+  reveal --book <book-slug> --tag <tag-slug> --withdraw
+```
+
+The actor recorded as `requested_by` is the librarian identity. The effect is
+asynchronous: the tag appears on book detail once the worker has minted the live
+`revealed` event. Withdraw is the reversal (it hides the tag again). The
+operation is idempotent — `reveals` has a `UNIQUE(book_slug, tag_slug)` upsert,
+so re-running, or a reveal → withdraw → reveal flip, keeps one row with the
+latest intent winning. The canonical curator assertions are never rewritten;
+visibility is composed at read time.
+
 ## Rollback
 
 Pin the app services to a previous image tag (CI tags every image with its
