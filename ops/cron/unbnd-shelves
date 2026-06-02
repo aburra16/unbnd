@@ -1,0 +1,23 @@
+# /etc/cron.d/unbnd-shelves — homepage trust-shelf refresh (ADR 0036 §1).
+#
+# Runs the least-privilege `apps/shelves` worker on a schedule (hourly default).
+# Each run reads the local relay catalog/ratings, resolves the house observer's
+# trust weights, computes the Trending / Community Favorites / genre shelves, and
+# atomically replaces the homepage_shelves Postgres cache the API serves. The
+# refresh cadence IS the cache's invalidation story (CLAUDE.md invariant 3, the
+# §2.9-sanctioned exception). The worker holds NO LIBRARIAN_NSEC — it signs
+# nothing. A one-shot `compose run` like a manual promote, fired on a schedule.
+#
+# Retune the cadence by editing the schedule below (e.g. `0 */2 * * *` for every
+# two hours).
+#
+# Install (on the droplet):
+#   sudo cp /opt/unbnd/ops/cron/unbnd-shelves /etc/cron.d/unbnd-shelves
+#   sudo chmod 644 /etc/cron.d/unbnd-shelves && sudo systemctl restart cron
+#
+# Mirrors the off-path worker pattern of unbnd-upsync.
+
+SHELL=/bin/sh
+PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+
+0 * * * * root docker compose -f /opt/unbnd/docker-compose.prod.yml --profile shelves run --rm shelves >> /var/log/unbnd-shelves.log 2>&1

@@ -7,13 +7,15 @@
     "dev": "tsx src/main.ts",
     "build": "tsc",
     "bundle": "node esbuild.config.mjs",
-    "start": "node dist/main.js",
+    "start": "node dist/index.js",
     "typecheck": "tsc --noEmit",
     "test": "vitest run"
   },
   "dependencies": {
     "@unbnd/schemas": "workspace:*",
+    "@unbnd/trust": "workspace:*",
     "nostr-tools": "2.10.4",
+    "postgres": "3.4.9",
     "ws": "^8.18.0"
   },
   "devDependencies": {

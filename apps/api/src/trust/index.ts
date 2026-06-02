@@ -1,28 +1,17 @@
-// @unbnd trust — provider-agnostic trust-weighting (ADR 0014). Consumers depend
-// only on TrustProvider + the neutral types; backend specifics live in a single
-// adapter (brainstorm.ts today), so the scoring source is swappable.
-import { BrainstormProvider } from "./brainstorm";
-import { FixtureTrustProvider } from "./fixture";
-import type { TrustOptions, TrustProvider } from "./types";
-
-export { BrainstormProvider } from "./brainstorm";
-export { FixtureTrustProvider } from "./fixture";
+// Re-export shim (ADR 0036 A2). The trust seam now lives in the `@unbnd/trust`
+// workspace package — the single source of truth shared with the off-path
+// workers (shelves, For-You). apps/api's ~15 internal import sites keep working
+// unchanged by re-exporting the package surface here. A later mechanical sweep
+// can replace the shim with direct `@unbnd/trust` imports (no behavior change).
+export {
+  BrainstormProvider,
+  FixtureTrustProvider,
+  resolveTrustProvider,
+} from "@unbnd/trust";
 export type {
   FixtureSpec,
+  NostrEventTemplate,
   TrustOptions,
   TrustProvider,
   TrustProviderName,
-} from "./types";
-
-export function resolveTrustProvider(opts: TrustOptions): TrustProvider {
-  switch (opts.provider) {
-    case "brainstorm":
-      return new BrainstormProvider({ apiUrl: opts.apiUrl, relays: opts.relays });
-    case "fixture":
-      return new FixtureTrustProvider(opts.fixture);
-    default: {
-      const exhaustive: never = opts;
-      throw new Error(`resolveTrustProvider: unknown provider ${JSON.stringify(exhaustive)}`);
-    }
-  }
-}
+} from "@unbnd/trust";

@@ -112,6 +112,30 @@ export const reveals = pgTable(
   }),
 );
 
+// Homepage trust-shelf cache (ADR 0036 §2). The off-path `apps/shelves` worker
+// REPLACES this observer's rows in one transaction; the serve API reads them
+// (ordered slugs only) and hydrates display fields live. UNIQUE(observer_hex,
+// kind, position) is the ordered replace key. `kind` is 'trending' |
+// 'favorites' | 'genre:<slug>'. An empty shelf = zero rows for that kind.
+export const homepageShelves = pgTable(
+  "homepage_shelves",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    observerHex: char("observer_hex", { length: 64 }).notNull(),
+    kind: text("kind").notNull(),
+    position: integer("position").notNull(),
+    bookSlug: text("book_slug").notNull(),
+    computedAt: timestamp("computed_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => ({
+    observerKindPositionUnique: unique(
+      "homepage_shelves_observer_kind_position_key",
+    ).on(t.observerHex, t.kind, t.position),
+  }),
+);
+
 export type UserRow = typeof users.$inferSelect;
 export type NewUserRow = typeof users.$inferInsert;
 export type SessionRow = typeof sessions.$inferSelect;

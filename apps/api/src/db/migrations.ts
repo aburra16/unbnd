@@ -121,4 +121,32 @@ export const migrations: readonly Migration[] = [
       CREATE INDEX IF NOT EXISTS idx_reveals_status ON reveals(status);
     `,
   },
+  {
+    // ADR 0036 §2: the homepage trust-shelf cache. The off-path `apps/shelves`
+    // worker computes the house-PoV Trending / Community Favorites / genre
+    // shelves and REPLACES this observer's rows in one transaction (a refresh is
+    // atomic — a Reader never sees a half-written set). The serve API reads it
+    // and never computes. The cache stores ONLY ordered slugs (+ kind, position,
+    // observer_hex, computed_at) — the API hydrates display fields through the
+    // live book read so author overlays never go stale. `observer_hex` records
+    // whose vantage the row holds (house only today; future-proofs the swap).
+    // UNIQUE(observer_hex, kind, position) is the ordered replace key. An empty
+    // shelf = zero rows for that kind (honest empty by absence). The refresh
+    // cadence is the invalidation story (CLAUDE.md invariant 3, §2.9 exception).
+    name: "0005_homepage_shelves",
+    sql: `
+      CREATE TABLE IF NOT EXISTS homepage_shelves (
+        id           UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        observer_hex CHAR(64) NOT NULL,
+        kind         TEXT NOT NULL,
+        position     INTEGER NOT NULL,
+        book_slug    TEXT NOT NULL,
+        computed_at  TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        UNIQUE (observer_hex, kind, position)
+      );
+
+      CREATE INDEX IF NOT EXISTS idx_homepage_shelves_kind
+        ON homepage_shelves(observer_hex, kind, position);
+    `,
+  },
 ];

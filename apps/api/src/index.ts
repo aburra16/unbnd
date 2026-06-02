@@ -1,6 +1,6 @@
 import express from "express";
 import { loadConfig } from "./config";
-import { createDb, db, readPromotionStatuses, runMigrations } from "./db";
+import { createDb, db, readPromotionStatuses, readShelfCache, runMigrations } from "./db";
 import { promotions } from "./db/schema";
 import { retryWithBackoff, isRetryableConnError } from "./util/retry";
 import { errorSanitizer } from "./middleware/errors";
@@ -10,6 +10,7 @@ import { probeStrfry } from "./probes/strfry";
 import { probeTapestry } from "./probes/tapestry";
 import { buildAuthRouter } from "./routes/auth";
 import { buildBooksRouter } from "./routes/books";
+import { buildHomepageShelvesRouter } from "./routes/homepage-shelves";
 import { buildProfileRouter } from "./routes/profile";
 import { buildProfileStatsRouter } from "./routes/profile-stats";
 import { buildProfileSubstackRouter } from "./routes/profile-substack";
@@ -379,6 +380,16 @@ async function main() {
   };
 
   app.use("/", buildBooksRouter({ config, query: userEventDeps.query, trust }));
+  // Homepage trust-shelf serve API (ADR 0036 §3) — serve-from-cache only; the
+  // off-path `apps/shelves` worker computes + writes the cache. Read-only, public.
+  app.use(
+    "/",
+    buildHomepageShelvesRouter({
+      config,
+      query: userEventDeps.query,
+      readShelfCache,
+    }),
+  );
   app.use("/", buildProfileRouter({ config }));
   app.use(
     "/",

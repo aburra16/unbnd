@@ -147,6 +147,35 @@ services:
       - SEARCH_PROVIDER=${SEARCH_PROVIDER:-meili}
     restart: "no"
 
+  # Homepage trust-shelf worker (ADR 0036). Never starts with the normal stack —
+  # only via the cron (`docker compose --profile shelves run --rm shelves`).
+  # LEAST-PRIVILEGE: holds NO LIBRARIAN_NSEC — it computes + caches, it signs
+  # nothing. Reads the local relay catalog/ratings, resolves the house observer's
+  # trust weights, and atomically replaces the homepage_shelves Postgres cache.
+  shelves:
+    image: ghcr.io/aburra16/unbnd-shelves:${UNBND_IMAGE_TAG:-latest}
+    profiles: ["shelves"]
+    environment:
+      - DATABASE_URL=postgres://unbnd:${POSTGRES_PASSWORD}@db:5432/unbnd
+      - STRFRY_URL=ws://tapestry/relay
+      - LIBRARIAN_PUBKEY=${LIBRARIAN_PUBKEY}
+      - HOUSE_OBSERVER_PUBKEY=${HOUSE_OBSERVER_PUBKEY:-}
+      - TRUST_PROVIDER=${TRUST_PROVIDER:-brainstorm}
+      - BRAINSTORM_API_URL=${BRAINSTORM_API_URL:-}
+      - TRUST_RELAYS=${TRUST_RELAYS:-}
+      - TRUST_FIXTURE=${TRUST_FIXTURE:-}
+      # Shelf-definition knobs (ADR 0036 §4).
+      - SHELF_TRENDING_WINDOW_DAYS=${SHELF_TRENDING_WINDOW_DAYS:-7}
+      - SHELF_FAVORITES_MIN_RATINGS=${SHELF_FAVORITES_MIN_RATINGS:-3}
+      - SHELF_GENRE_COUNT=${SHELF_GENRE_COUNT:-5}
+      - SHELF_BOOKS_PER_ROW=${SHELF_BOOKS_PER_ROW:-10}
+    depends_on:
+      db:
+        condition: service_healthy
+      tapestry:
+        condition: service_started
+    restart: "no"
+
   search:
     container_name: unbnd-search
     image: getmeili/meilisearch:v1.10
