@@ -70,6 +70,16 @@ export type Config = {
    * need not set it.
    */
   readonly curatorThreshold?: number;
+  /**
+   * The verification count-gate head count (ADR 0033 §7): a claim is Verified
+   * when ≥ this many distinct curators (each at/above `curatorThreshold`, the
+   * author excluded) have net-asserted `author-verified`. Env
+   * `VERIFIED_AUTHOR_MIN_CURATORS`, validated as a positive integer ≥ 1, default
+   * 2. The per-curator weight floor reuses `curatorThreshold` (no new weight
+   * env). Always set by `loadConfig`; optional here so partial test fixtures
+   * need not set it.
+   */
+  readonly verifiedAuthorMinCurators?: number;
 };
 
 const DEFAULT_TRUST_RELAYS = [
@@ -145,6 +155,20 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
   if (!Number.isFinite(curatorThreshold) || curatorThreshold <= 0 || curatorThreshold > 1) {
     throw new Error(
       `config: CURATOR_THRESHOLD must be a number in (0,1]; got ${JSON.stringify(curatorThresholdRaw)}`,
+    );
+  }
+
+  // Verification count-gate head count (ADR 0033 §7). Positive integer ≥ 1;
+  // default 2. The per-curator weight floor reuses curatorThreshold.
+  const minCuratorsRaw = withDefault(env, "VERIFIED_AUTHOR_MIN_CURATORS", "2");
+  const verifiedAuthorMinCurators = Number(minCuratorsRaw);
+  if (
+    !Number.isFinite(verifiedAuthorMinCurators) ||
+    verifiedAuthorMinCurators < 1 ||
+    !Number.isInteger(verifiedAuthorMinCurators)
+  ) {
+    throw new Error(
+      `config: VERIFIED_AUTHOR_MIN_CURATORS must be a positive integer ≥ 1; got ${JSON.stringify(minCuratorsRaw)}`,
     );
   }
 
@@ -250,6 +274,7 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
     houseObserverPubkey,
     personalizeMinFollows,
     curatorThreshold,
+    verifiedAuthorMinCurators,
     neo4jBoltUrl: withDefault(env, "NEO4J_BOLT_URL", "bolt://localhost:7687"),
     neo4jUser: withDefault(env, "NEO4J_USER", "neo4j"),
     neo4jPassword,

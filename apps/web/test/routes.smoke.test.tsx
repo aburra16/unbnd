@@ -83,8 +83,10 @@ const TAXONOMY: TaxonomyElement[] = [
 ];
 
 beforeEach(() => {
-  // MIGRATED for Story 31 / ADR 0032 §2a: the book read returns `{ book, claimants }`.
-  booksGet.mockReset().mockResolvedValue({ book: ORBITAL, claimants: [] });
+  // MIGRATED for Story 31 / ADR 0032 §2a + Story 32 / ADR 0033 §5: the book read
+  // returns `{ book, claimants, authorProvided }`. Signed-out smoke render → no
+  // verified author edit surface; authorProvided empty (no overlay applied).
+  booksGet.mockReset().mockResolvedValue({ book: ORBITAL, claimants: [], authorProvided: [] });
   booksList.mockReset().mockResolvedValue({ books: [ORBITAL] });
   booksRecent.mockReset().mockResolvedValue({ books: [ORBITAL] });
   tagsList.mockReset().mockResolvedValue({ tags: TAXONOMY });

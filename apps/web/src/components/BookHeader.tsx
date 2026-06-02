@@ -1,6 +1,11 @@
 import { GenrePill } from "./Pill";
 import { AuthorBadge } from "./AuthorBadge";
-import type { BookClaimant, PublicBook, TagConsensus } from "../lib/api";
+import type {
+  AuthorProvidedField,
+  BookClaimant,
+  PublicBook,
+  TagConsensus,
+} from "../lib/api";
 import { coverGradient } from "../lib/view-model";
 import "./BookHeader.css";
 
@@ -12,11 +17,28 @@ type Props = {
   weighted?: boolean;
   /** Author claim set (Story 31 / ADR 0032). Optional — absent → no badge. */
   claimants?: BookClaimant[];
+  /** Fields the verified author provided (Story 32 / ADR 0033 §5), attributed. */
+  authorProvided?: AuthorProvidedField[];
 };
 
-export function BookHeader({ book, genres, styles, weighted, claimants }: Props) {
+export function BookHeader({
+  book,
+  genres,
+  styles,
+  weighted,
+  claimants,
+  authorProvided,
+}: Props) {
   const g = coverGradient(book.slug);
   const chips = [...genres, ...styles];
+  // AC-6 attribution: "From the author" applies whenever the verified author
+  // provided ANY applied overlay field — blurb, cover, or purchase link — not
+  // only the blurb (N-2).
+  const hasAuthorOverlay =
+    authorProvided !== undefined &&
+    (["blurb", "coverUrl", "purchaseUrl"] as const).some((f) =>
+      authorProvided.includes(f),
+    );
   return (
     <header className="bh">
       {book.coverUrl ? (
@@ -56,6 +78,7 @@ export function BookHeader({ book, genres, styles, weighted, claimants }: Props)
           </div>
         )}
         {book.blurb && <p className="bh-blurb">{book.blurb}</p>}
+        {hasAuthorOverlay && <p className="bh-attribution">From the author</p>}
       </div>
     </header>
   );

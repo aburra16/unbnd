@@ -117,9 +117,16 @@ export type PublicBook = {
 
 // A book's author claimant (Story 31 / ADR 0032). npub only — the hex pubkey
 // never crosses the wire. Resolved to a display name client-side via useProfileMeta.
+// `verified` (Story 32 / ADR 0033) is present only when the book read ran the
+// trust seam; absent/false behaves as the unverified "claimed" state.
 export type BookClaimant = {
   npub: string;
+  verified?: boolean;
 };
+
+// The author-overlaid fields applied to `effectiveBook` (Story 32 / ADR 0033 §5),
+// so the UI can attribute a blurb/cover/link as author-provided ("From the author").
+export type AuthorProvidedField = "blurb" | "coverUrl" | "purchaseUrl";
 
 export type TagConsensus = {
   slug: string;
@@ -342,11 +349,48 @@ export const api = {
       });
     },
   },
+  // Verified-author metadata overlay (Story 32 / ADR 0033 §4). The server gates
+  // the write to the Verified author of the book and accepts only blurb / cover
+  // URL / purchase link. Both tiers reuse the shipped signing paths — no new
+  // crypto, no librarian secret. A null field clears the author value (reverts to
+  // canonical at read time).
+  authorEdits: {
+    template(input: {
+      bookSlug: string;
+      blurb?: string | null;
+      coverUrl?: string | null;
+      purchaseUrl?: string | null;
+    }) {
+      return authFetch<{ template: NostrEventTemplate }>(
+        "/api/author-edits/template",
+        { method: "POST", body: JSON.stringify(input) },
+      );
+    },
+    submit(event: SignedEvent) {
+      return authFetch<{ ok: true; book: PublicBook }>("/api/author-edits", {
+        method: "POST",
+        body: JSON.stringify({ event }),
+      });
+    },
+    submitCustodial(input: {
+      bookSlug: string;
+      blurb?: string | null;
+      coverUrl?: string | null;
+      purchaseUrl?: string | null;
+    }) {
+      return authFetch<{ ok: true; book: PublicBook }>("/api/author-edits", {
+        method: "POST",
+        body: JSON.stringify(input),
+      });
+    },
+  },
   books: {
     get(slug: string) {
-      return authFetch<{ book: PublicBook; claimants: BookClaimant[] }>(
-        `/api/books/${encodeURIComponent(slug)}`,
-      );
+      return authFetch<{
+        book: PublicBook;
+        claimants: BookClaimant[];
+        authorProvided: AuthorProvidedField[];
+      }>(`/api/books/${encodeURIComponent(slug)}`);
     },
     list(slugs: string[]) {
       const q = slugs.map((s) => encodeURIComponent(s)).join(",");

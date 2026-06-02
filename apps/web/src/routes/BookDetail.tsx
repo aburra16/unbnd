@@ -9,13 +9,16 @@ import { RatingControl } from "../components/RatingControl";
 import { TagControl } from "../components/TagControl";
 import { ShelfControl } from "../components/ShelfControl";
 import { ClaimControl } from "../components/ClaimControl";
+import { AuthorEdit } from "../components/AuthorEdit";
 import { WhereToRead } from "../components/WhereToRead";
 import { useTrustView } from "../hooks/useTrustView";
 import { useBookRatings } from "../hooks/useBookRatings";
+import { useSession } from "../hooks/useSession";
 import { NotFound } from "./NotFound";
 import {
   api,
   ApiError,
+  type AuthorProvidedField,
   type BookClaimant,
   type BookTags,
   type PublicBook,
@@ -30,6 +33,7 @@ type State =
       book: PublicBook;
       tags: BookTags;
       claimants: BookClaimant[];
+      authorProvided: AuthorProvidedField[];
     };
 
 const EMPTY_TAGS: BookTags = { genres: [], styles: [], signals: [], weighted: false };
@@ -43,6 +47,7 @@ export function BookDetail() {
   // Story 28 / ADR 0029 §3: one owner of the book's rating data; the panel and
   // the control consume slices of it instead of each self-fetching.
   const ratings = useBookRatings(slug ?? "");
+  const session = useSession();
   const [state, setState] = useState<State>({ status: "loading" });
 
   useEffect(() => {
@@ -51,10 +56,17 @@ export function BookDetail() {
     setState({ status: "loading" });
     (async () => {
       try {
-        const { book, claimants } = await api.books.get(slug);
+        const { book, claimants, authorProvided } = await api.books.get(slug);
         // Tags are best-effort; ratings load inside RatingsPanel.
         const tags = await api.tags.book(slug, observer).catch(() => EMPTY_TAGS);
-        if (!cancelled) setState({ status: "ready", book, tags, claimants: claimants ?? [] });
+        if (!cancelled)
+          setState({
+            status: "ready",
+            book,
+            tags,
+            claimants: claimants ?? [],
+            authorProvided: authorProvided ?? [],
+          });
       } catch (err) {
         if (cancelled) return;
         if (err instanceof ApiError && err.status === 404) {
@@ -109,13 +121,30 @@ export function BookDetail() {
     );
   }
 
-  const { book, tags, claimants } = state;
+  const { book, tags, claimants, authorProvided } = state;
   const primaryGenre = tags.genres[0];
 
   const onClaimed = (next: BookClaimant[]) =>
     setState((prev) =>
       prev.status === "ready" ? { ...prev, claimants: next } : prev,
     );
+
+  const onSaved = (next: PublicBook) =>
+    setState((prev) =>
+      prev.status === "ready" ? { ...prev, book: next } : prev,
+    );
+
+  // The verified-author edit surface is revealed ONLY when the session user is the
+  // Verified author of THIS book — their npub is a claimant marked verified:true.
+  const sessionNpub =
+    session.status === "signed-in" ? session.user.npub : undefined;
+  const isVerifiedAuthor =
+    sessionNpub != null &&
+    claimants.some((c) => c.verified && c.npub === sessionNpub);
+  // Sovereign users (no email) sign in the browser; custodial users (email) have
+  // the server sign with their session-wrapped key (ADR 0006).
+  const isSovereign =
+    session.status === "signed-in" && session.user.email === null;
 
   return (
     <div className="page">
@@ -135,7 +164,16 @@ export function BookDetail() {
         styles={tags.styles}
         weighted={tags.weighted}
         claimants={claimants}
+        authorProvided={authorProvided}
       />
+      {slug && isVerifiedAuthor && (
+        <AuthorEdit
+          bookSlug={slug}
+          book={book}
+          isSovereign={isSovereign}
+          onSaved={onSaved}
+        />
+      )}
       {slug && <ClaimControl bookSlug={slug} onClaimed={onClaimed} />}
       {slug && (
         <RatingsPanel

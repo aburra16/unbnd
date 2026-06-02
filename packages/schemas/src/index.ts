@@ -7,4 +7,6 @@ export * from "./BookRating";
 export * from "./BookTag";
 export * from "./BookTagAssertion";
 export * from "./BookClaim";
+export * from "./AuthorVerifiedAssertion";
+export * from "./BookAuthorOverlay";
 export * from "./BookShelf";

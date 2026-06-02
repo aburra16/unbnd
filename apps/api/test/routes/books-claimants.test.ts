@@ -62,17 +62,21 @@ function freshHex(): string {
 }
 
 // A query that routes by filter: the book read (#d present) returns the record;
-// the claims read (#z = book-claims) returns the supplied claim set.
+// the claims read (#z = book-claims) returns the supplied claim set. MIGRATED for
+// Story 32 / ADR 0033 §5: the route also runs author-verified + author-edits reads
+// in parallel; both return [] here so this file stays focused on the claimant set
+// (the verified read-merge lives in books-verified-merge.test.ts).
 function routedQuery(book: SignedNostrEvent | null, claims: SignedNostrEvent[]) {
   return vi.fn(async (filter: Record<string, unknown>): Promise<SignedNostrEvent[]> => {
     const z = ((filter["#z"] as string[]) ?? [])[0] ?? "";
     if (z.endsWith("book-claims")) return claims;
+    if (z.endsWith("author-verified") || z.endsWith("author-edits")) return [];
     return book ? [book] : [];
   });
 }
 
 function makeApp(query: BooksDeps["query"]) {
-  const deps: BooksDeps = { config: cfg, query };
+  const deps = { config: cfg, query } as unknown as BooksDeps;
   const app = express();
   app.use("/", buildBooksRouter(deps));
   return app;

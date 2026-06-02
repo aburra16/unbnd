@@ -21,3 +21,22 @@
 .author-badge-more {
   color: var(--u-muted);
 }
+
+.author-badge-set {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.author-badge-verified .author-badge-mark {
+  display: inline-block;
+  margin-right: 6px;
+  padding: 1px 8px;
+  border-radius: 999px;
+  background: var(--u-ink);
+  color: var(--u-bg, #fff);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
