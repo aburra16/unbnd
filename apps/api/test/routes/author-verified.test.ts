@@ -112,14 +112,16 @@ describe("POST /api/author-verified/template — curator gate (AC-1)", () => {
 describe("POST /api/author-verified — sovereign curator (AC-1)", () => {
   it("above-floor curator with a valid signed assertion → publishes once + {ok}", async () => {
     const { event, curatorPubkey } = signedAuthorVerified({ authorPubkey: AUTHOR });
+    // The signer must be above the floor — give them weight from the house.
     const { app, deps } = makeApp(
-      { sessionUser: vi.fn(async () => curatorAbove(curatorPubkey)) },
+      {
+        sessionUser: vi.fn(async () => curatorAbove(curatorPubkey)),
+        trust: new FixtureTrustProvider({
+          weights: { [HOUSE]: { [curatorPubkey]: 0.9 } },
+        }),
+      },
       cfg({ houseObserverPubkey: HOUSE }),
     );
-    // The signer must be above the floor — give them weight from the house.
-    (deps as { trust: FixtureTrustProvider }).trust = new FixtureTrustProvider({
-      weights: { [HOUSE]: { [curatorPubkey]: 0.9 } },
-    });
     const res = await request(app)
       .post("/api/author-verified")
       .set("Cookie", COOKIE)
