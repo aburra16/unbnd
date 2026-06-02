@@ -3,6 +3,7 @@
 **Status:** Proposed
 **Date:** 2026-06-02
 **Story:** `engineering-team/stories/35-homepage-trust-shelves.md`
+**Amended:** 2026-06-02 — extract `@unbnd/trust` shared package (see "Amendment 2026-06-02" below).
 
 ## Context
 
@@ -135,7 +136,9 @@ writer, plain `postgres` like `apps/promoter/src/queue.ts` — no drizzle in the
 **Per cycle:**
 1. Resolve `LIBRARIAN_PUBKEY` (hex, runtime — never hardcoded, CLAUDE.md), the house observer
    (`HOUSE_OBSERVER_PUBKEY` / `DEFAULT_HOUSE_OBSERVER`), and the trust provider (`resolveTrustProvider`
-   from `@unbnd/trust`, selected by `TRUST_PROVIDER` + `TRUST_FIXTURE`).
+   from `@unbnd/trust`, selected by `TRUST_PROVIDER` + `TRUST_FIXTURE`). **`@unbnd/trust` is the new
+   shared package extracted by the 2026-06-02 amendment — see "Amendment 2026-06-02" below; the worker
+   imports the seam + `weightedRatings`/`dedupeRatings` from it, never via a cross-app source import.**
 2. Read, each via `queryAllPages` (cap-safe, ADR 0021): the catalog book records
    (`buildBookRecordsHeaderAddress`), all ratings (`buildBookRatingsHeaderAddress`), the genre taxonomy
    (`buildBookTagsHeaderAddress`, keep `type==="genre"`), and the genre membership assertions
@@ -357,12 +360,22 @@ copy are reviewed against `memory/feedback_unbnd_copy_and_visual.md`.
 - **Affects existing fixtures?** No existing fixtures change. New fixtures are added by the Tester
   (the fake-relay event set + a `TRUST_FIXTURE` with known house weights over known raters across
   genres in a known window). The `Home.tsx` test gains a mocked `api.homepage.shelves()`.
-- **New dependency?** No. The worker reuses `postgres` (already a dep of the API/promoter), `ws` (the
-  indexer's relay client), and `@unbnd/{schemas,trust}`. No new runtime package.
+- **New dependency?** No new *third-party* runtime dep. The worker reuses `postgres` (already a dep of
+  the API/promoter), `ws` (the indexer's relay client), and `@unbnd/{schemas,trust}`. **`@unbnd/trust`
+  is a NEW first-party workspace package** extracted from `apps/api/src` by the 2026-06-02 amendment
+  (the trust seam + the shared `weightedRatings`/`dedupeRatings` helpers) — see "Amendment 2026-06-02".
 - **PRD section change required?** No. This implements PRD §2.9 (shelves half) as written.
 
 ## Implementation notes
 
+- **New package `packages/trust/` (`@unbnd/trust`)** (per the 2026-06-02 amendment): `package.json`,
+  `tsconfig.json`, `vitest.config.ts` mirroring `packages/search`; `src/{types,fixture,brainstorm,
+  ratings,index}.ts` (the moved seam + the shared `weightedRatings`/`dedupeRatings`); deps
+  `@unbnd/schemas` + `nostr-tools` + `ws` only, **no apps/api dep**. Add `@unbnd/trust: workspace:*` to
+  `apps/api/package.json` and `apps/shelves/package.json`. Land via the **re-export shim** (A2): leave
+  `apps/api/src/trust/index.ts` + a `ratings/summary.ts` re-export as thin re-exports of `@unbnd/trust`.
+  Relocate the ADR-0014 guard to `packages/trust/test/architecture.test.ts` (A3), pointing the exception
+  at `packages/trust/src/brainstorm.ts`.
 - **New app `apps/shelves/`:** `package.json`, `Dockerfile`, `esbuild.config.mjs`, `tsconfig.json`,
   `vitest.config.ts` (all mirroring `apps/indexer`/`apps/promoter`); `src/main.ts` (entrypoint: env →
   deps → one `runShelvesCycle`, exit), `src/compute.ts` (`computeShelves(deps): ShelfSet` — the pure,
@@ -387,6 +400,167 @@ copy are reviewed against `memory/feedback_unbnd_copy_and_visual.md`.
 - **Cron:** add `ops/cron/unbnd-shelves` (hourly default) per §1.
 - **No DList shapes touched** — the worker reads existing kind-39998/39999 events and writes only the
   internal `homepage_shelves` Postgres cache. It signs and publishes nothing.
+
+## Amendment 2026-06-02 — extract the trust seam + weighting into `@unbnd/trust` (gate decision)
+
+**Why this amendment.** The body above already names `@unbnd/trust` as the worker's trust dependency
+(§1 step 1 `resolveTrustProvider from @unbnd/trust`; "Affects existing fixtures? / New dependency?"
+note; §7 AC-8 "the worker depends only on the neutral `@unbnd/trust` surface"). **That package does
+not exist.** Today the trust seam and the weighting helpers live in **`apps/api/src`**
+(`apps/api/src/trust/{types,fixture,index,brainstorm}.ts` + `weightedRatings`/`dedupeRatings` in
+`apps/api/src/ratings/summary.ts`). The Story-35 scaffold reached for them with a **cross-app relative
+source import** — `apps/shelves/test/compute.test.ts` does `import { FixtureTrustProvider } from
+"../../api/src/trust"`. **Gate decision:** the `apps/shelves` worker (and the upcoming Story-36 For-You
+worker) must reuse apps/api's trust-weighting via a **shared package**, NOT a relative cross-app source
+import. This amendment specifies that extraction, scoped to bound the blast radius. It is a **pure
+refactor + a new package** — no behavior change, only relocation.
+
+### A1. New package `packages/trust` (`@unbnd/trust`)
+
+A new workspace package mirroring `packages/search` / `packages/schemas` (the `private`, `type:module`,
+`main`/`types`/`exports → ./src/index.ts`, `tsc --noEmit` + `vitest` conventions). It contains:
+
+- **The trust SEAM**, moved verbatim from `apps/api/src/trust/`:
+  - `src/types.ts` — `TrustProvider` interface, `TrustProviderName`, `FixtureSpec`, the discriminated
+    `TrustOptions`.
+  - `src/fixture.ts` — `FixtureTrustProvider`.
+  - `src/brainstorm.ts` — `BrainstormProvider` (the SOLE Brainstorm/NIP-85 file, see A3).
+  - `src/index.ts` — the barrel: re-exports `BrainstormProvider`, `FixtureTrustProvider`, the types,
+    and `resolveTrustProvider`.
+- **The shared pure trust-weighting helpers**, moved from `apps/api/src/ratings/summary.ts`:
+  - `weightedRatings` + `dedupeRatings` and the **minimal rating types they need**: `ParsedRating`,
+    `PublicRating`, `WeightedRatings`, and the `toPublic` helper. Placed in `src/ratings.ts` (or
+    `src/weighting.ts`) and re-exported from the barrel.
+  - **Stays in apps/api (NOT moved):** `summarizeRatings`, `rawFromParsed`, `RatingsSummary`, and
+    `countOwnRatings` are apps/api-only (the raw per-book summary read + the profile-stats own-counts).
+    They are **not** part of the shared surface; apps/api keeps them, importing `dedupeRatings` /
+    `ParsedRating` / `PublicRating` from `@unbnd/trust`.
+
+**Exports surface (`@unbnd/trust`):**
+```
+// seam
+BrainstormProvider, FixtureTrustProvider, resolveTrustProvider           (values)
+TrustProvider, TrustProviderName, TrustOptions, FixtureSpec, NostrEventTemplate  (types)
+// weighting
+weightedRatings, dedupeRatings                                           (values)
+ParsedRating, PublicRating, WeightedRatings                              (types)
+```
+
+**Dependencies.** `@unbnd/trust` depends ONLY on:
+- `@unbnd/schemas` (`workspace:*`) — for `NostrEventTemplate`, `SignedNostrEvent`, `fromBookRatingEvent`,
+  `fromWireEvent`.
+- `nostr-tools` (`npubEncode` for `toPublic`) — already a leaf dep.
+- `ws` — only for the relay-query primitive the `BrainstormProvider` needs.
+
+It must **NOT** depend on `apps/api` (one-way: apps/api → package, never the reverse).
+
+**The relay-query primitive (decision: keep it injected, do NOT move `nostr/query`).** `BrainstormProvider`
+already takes `query` as an injectable dep (`deps.query`, defaulting to `queryRelayUrl`). The default
+`queryRelayUrl` lives in `apps/api/src/nostr/query.ts`, which imports apps/api's `Config` type — so moving
+that file wholesale would drag an apps/api type into the package. **We do not move `nostr/query`.** Instead
+the package ships a **tiny self-contained relay-query default** inside `src/brainstorm.ts` (a `ws` REQ→EOSE
+read taking only a URL + `NostrFilter` + timeout — no apps/api `Config`), preserving the existing injectable
+`query` seam. apps/api callers and the workers may still inject their own `queryRelayUrl`. This keeps the
+package's only runtime deps `@unbnd/schemas` + `nostr-tools` + `ws` and severs the apps/api `Config` edge.
+(`NostrFilter` is a structural type; the package defines its own minimal copy.)
+
+### A2. Blast-radius decision — **RE-EXPORT SHIM (chosen)**
+
+Two ways to land the move:
+
+- **(a) FULL MIGRATION** — move the source into `@unbnd/trust`, then update **every** `apps/api/src`
+  import of the moved symbols to `@unbnd/trust` and **delete** `apps/api/src/trust/` + the moved parts of
+  `ratings/summary.ts`. Cleanest end state; **widest diff**: **15** apps/api/src import sites change — 14
+  `./trust` / `../trust` importers (`config.ts`, `index.ts`, `author-verified/verify.ts`,
+  `search/rerank.ts`, `submissions/signals.ts`, and the routes `ratings/search/submissions/books/
+  author-edits/trust/author-verified/tags`) plus the 2 weighting importers (`search/rerank.ts`,
+  `submissions/signals.ts` — `rerank` is in both counts) and `ratings/summary.ts` itself splitting.
+- **(b) RE-EXPORT SHIM (CHOSEN)** — move the source into `@unbnd/trust`; leave
+  `apps/api/src/trust/index.ts` as a **thin re-export** of `@unbnd/trust` (and a one-line
+  `apps/api/src/ratings/summary.ts` re-export of `dedupeRatings`/`weightedRatings`/the moved types from
+  `@unbnd/trust`, keeping `summarizeRatings`/`rawFromParsed`/`countOwnRatings` local). apps/api's existing
+  ~15 internal imports keep working unchanged. **Bounded diff**, slightly less pure (one indirection hop
+  inside apps/api).
+
+**Chosen: (b) the re-export shim — it best balances clean + bounded for THIS story.** The story's purpose
+is to give the workers ONE source of truth, not to re-point 15 apps/api import sites. The shim makes the
+package the single source of truth (apps/api re-exports it, doesn't re-implement it) while keeping the
+apps/api diff to the two shim files. Note (a) as the cleaner long-term alternative — a later mechanical
+sweep can replace the shim with direct `@unbnd/trust` imports and delete the shim files, with no behavior
+change. Either way there is **ONE implementation** of the seam + weighting (in the package).
+
+### A3. ADR-0014 architecture guard relocation
+
+Brainstorm/NIP-85 specifics + the `brainstorm_login` tag now live in
+**`packages/trust/src/brainstorm.ts`** (the moved adapter). The ADR-0014 guard
+(`apps/api/test/trust/architecture.test.ts`) already **scans the whole repo** (`apps` ∪ `packages`,
+skipping `node_modules`/`dist`/`.git`/`engineering-team`) and asserts the forbidden pattern
+(`/setup/`, `/authChallenge`, `/user/graperank`, `graperankResult`, `30382`, `brainstorm_login`) appears
+in **no file except** the one declared adapter. The amendment changes **only the declared exception path**:
+`adapter: "apps/api/src/trust/brainstorm.ts"` → `adapter: "packages/trust/src/brainstorm.ts"`. It still
+catches a leak anywhere in `apps/` or `packages/` (incl. the new package and both workers), with
+`packages/trust/src/brainstorm.ts` as the **sole** allowed file.
+
+**Where the guard test lives now:** it moves with the moved code into the package —
+**`packages/trust/test/architecture.test.ts`** — and computes `REPO` as the repo root from there
+(`resolve(__dirname, "..", "..", "..")`). It keeps scanning `apps` ∪ `packages` repo-wide. The
+**worker-scoped** guard the Story-35 scaffold added (`apps/shelves/test/architecture.test.ts`, which
+walks only the worker's `src/`) **stays** as a fast local belt-and-suspenders check on the worker — it is
+subsumed by, but not replaced by, the repo-wide guard.
+
+### A4. Both workers + apps/api consume `@unbnd/trust` (one source of truth)
+
+- `apps/shelves` imports the provider + `weightedRatings`/`dedupeRatings` from `@unbnd/trust` —
+  **no cross-app source import** (the `../../api/src/trust` import in
+  `apps/shelves/test/compute.test.ts` becomes `@unbnd/trust`). Add `@unbnd/trust: workspace:*` to
+  `apps/shelves/package.json` (alongside its existing `@unbnd/schemas`).
+- Story-36 For-You worker will import the same package — same seam, same weighting, no re-implementation.
+- `apps/api` also consumes the package (via the A2 shim), so there is exactly **ONE** implementation of
+  the trust seam + weighting in the repo.
+
+### A5. Test ripple (for the Tester — mechanical import re-points, NOT assertion changes)
+
+These are **import-path moves only**; no assertions change.
+
+- **Moves into the package** (relocate with the moved source): `apps/api/test/trust/fixture.test.ts`,
+  `apps/api/test/trust/brainstorm.test.ts`, `apps/api/test/trust/architecture.test.ts` →
+  `packages/trust/test/` (importing from the package's `../src/...` or `@unbnd/trust`), and the
+  weighting tests `apps/api/test/ratings/summary.test.ts` (the `weightedRatings`/`dedupeRatings`
+  portions) — the `countOwnRatings`/`summarizeRatings` assertions stay with apps/api
+  (`own-counts.test.ts`, the raw-summary parts).
+- **Re-point to `@unbnd/trust`** (stay in apps/api, just change the import line): everything importing
+  `FixtureTrustProvider`/`BrainstormProvider`/`TrustProvider`/`FixtureSpec` from `../../src/trust[/fixture]`
+  — `routes/search.test.ts`, `routes/tags-weighted.test.ts`, `routes/tags-accusatory-gate.test.ts`,
+  `routes/submissions-signals.test.ts`, `routes/submissions-promote.test.ts`,
+  `routes/submissions-list-enriched.test.ts`, `routes/author-verified.test.ts`,
+  `routes/author-edits.test.ts`, `routes/books-verified-merge.test.ts`, `routes/trust.test.ts`,
+  `routes/trust-custodial.test.ts`, `search/rerank.test.ts`, `tags/aggregate-weighted.test.ts`,
+  `author-verified/verify.test.ts`. (With the A2 shim these would even keep compiling against
+  `../../src/trust`, but the Tester re-points them to `@unbnd/trust` so the tests assert the real
+  package boundary; under the shim this is optional/cosmetic for the apps/api tests but **required** for
+  the shelves test, which must drop the cross-app `../../api/src/trust` path.)
+- **`apps/shelves/test/compute.test.ts`:** `../../api/src/trust` → `@unbnd/trust` (the cross-app import
+  the gate forbids).
+- **No assertion changes anywhere** — the seam's behavior, the weighting math, and the guard's pattern
+  are unchanged; only where the symbols are imported from moves.
+
+### A6. Unchanged
+
+Everything else in this ADR stands: the least-privilege `apps/shelves` worker structure (§1), the
+`0005_homepage_shelves` cache + migration (§2), `GET /api/homepage/shelves` serve-from-cache route (§3),
+the shelf definitions + envs (§4), the honest non-trust fallback (§5), honest degrade (§6), and the
+bounded/batched single `weights` call (§1.4/§7 AC-7). No behavior changes — this amendment only relocates
+the trust seam + the two shared weighting helpers into `@unbnd/trust` and points consumers at it.
+
+### A7. Confirmed at the gate
+
+- `@unbnd/trust` depends only on `@unbnd/schemas` (+ `nostr-tools` + the `ws` relay primitive); **no
+  apps/api dependency** (the apps/api `Config` edge is severed by keeping `query` injected and shipping a
+  self-contained default).
+- **One source of truth** for the trust seam + weighting (the package; apps/api re-exports via the shim).
+- The ADR-0014 guard still catches Brainstorm leaks **repo-wide** with `packages/trust/src/brainstorm.ts`
+  as the sole exception file.
+- **No behavior change** — a pure refactor + the new package, relocation only.
 
 ## Out of scope
 

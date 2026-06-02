@@ -373,6 +373,10 @@ Resolve before approving the story (PO recommendations in Flags below).
   `apps/api/src/routes/tags.ts` (`GET /api/genres/:slug/books`, `GET /api/tags`),
   `apps/api/src/trust/{types,fixture,index,brainstorm}.ts`, `apps/api/src/db/migrations.ts`,
   `apps/promoter/{main,queue}.ts`, `ops/cron/unbnd-upsync`.
-- ADR for this story: (filled in after Architecture phase — `0036-homepage-trust-shelves.md`)
+- ADR for this story: `engineering-team/decisions/0036-homepage-trust-shelves.md` (incl. the
+  **2026-06-02 amendment** extracting `@unbnd/trust` — the shared package holding the `TrustProvider`
+  seam + `weightedRatings`/`dedupeRatings`, so the shelves/For-You workers reuse apps/api's
+  trust-weighting via a workspace package, not a cross-app source import; landed via a re-export shim,
+  with the ADR-0014 guard relocated to `packages/trust/test/architecture.test.ts`).
 - Test plan: `engineering-team/stories/35-homepage-trust-shelves.test-plan.md`
 - Review: (filled in after Review phase)
