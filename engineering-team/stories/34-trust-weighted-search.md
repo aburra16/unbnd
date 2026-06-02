@@ -4,6 +4,11 @@
 **Created:** 2026-06-02
 **Type:** Feature
 
+> **Gate decisions (2026-06-02):** linear `SEARCH_TRUST_BLEND` (∈ [0,1], default 0.25,
+> `final = (1−w)·normText + w·normTrust`); weighted-avg signal `(avg−1)/4` + neutral midpoint
+> 0.5 for no trusted signal; house-only v1 (observer seam ready for `?observer=`); thin-graph
+> no-op accepted. See ADR `engineering-team/decisions/0035-trust-weighted-search.md`.
+
 ## Background
 
 Catalog search ships today (Story 12 / ADR 0013). `GET /api/search?q=&limit=&offset=&genre=`
@@ -311,7 +316,7 @@ Resolve before approving the story (PO recommendations in Flags below).
   `apps/api/src/ratings/summary.ts` (`weightedRatings`/`dedupeRatings`),
   `apps/api/src/routes/ratings.ts` (the `?observer=` resolution + degrade-to-raw pattern),
   `apps/api/src/trust/{types,fixture,index,brainstorm}.ts`.
-- ADR for this story: `engineering-team/decisions/0034-trust-weighted-search.md` (filled in after
-  Architecture phase)
+- ADR for this story: `engineering-team/decisions/0035-trust-weighted-search.md` (Proposed —
+  Architecture phase; 0034 was taken by the accusatory-tag-gate ADR)
 - Test plan: (filled in after Test Design phase)
 - Review: (filled in after Review phase)
