@@ -374,5 +374,5 @@ Resolve before approving the story (PO recommendations in Flags below).
   `apps/api/src/trust/{types,fixture,index,brainstorm}.ts`, `apps/api/src/db/migrations.ts`,
   `apps/promoter/{main,queue}.ts`, `ops/cron/unbnd-upsync`.
 - ADR for this story: (filled in after Architecture phase — `0036-homepage-trust-shelves.md`)
-- Test plan: (filled in after Test Design phase)
+- Test plan: `engineering-team/stories/35-homepage-trust-shelves.test-plan.md`
 - Review: (filled in after Review phase)
