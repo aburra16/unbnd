@@ -202,6 +202,37 @@ The Story-31 `apps/web/test/components/author-badge.test.tsx` is **not** migrate
 its claimants carry no `verified` flag, so the optional flag defaults to the
 unverified "Claimed by" state and its "never verified" assertions still hold.
 
+## Remediation — CHANGES_REQUESTED de-masking (B-1 / N-1 / N-2)
+
+The first green pass masked three real contract gaps the independent review caught.
+These FAILING tests pin the genuine contracts (no ADR change; all against ADR 0033
+§4 / AC-5 / AC-6). They do not weaken any existing Story-32 assertion.
+
+| Finding | Test name | Test file | Why it was masked / red reason |
+|---|---|---|---|
+| **B-1** (blocking, ADR §4): the write must return `{ ok: true, book: effectiveBook }` — the merged effective book, not bare `{ ok: true }`. Web `api.ts` types it `{ ok; book }`; `AuthorEdit.onSaved(result.book)` → `BookDetail.setBook` → `BookHeader` crashes if `book` is undefined. | `sovereign: responds { ok: true, book } with the author's edits applied onto canonical` / `custodial: responds { ok: true, book } with the edits applied onto canonical` | `apps/api/test/routes/author-edits.test.ts` (route, DI) | The masked tests only asserted `res.body.ok`. New tests route a canonical book read into the DI'd `query` and assert `res.body.book` is the merged effective book (edited blurb/cover onto canonical). Red: `expected undefined to be defined` (server returns no `book`). Both tiers. |
+| **B-1** (web de-mask): the `authorEdits.save` mock is now typed to the REAL `lib/api.ts` return shape so a contract dropping `book` breaks at tsc; a save re-renders the read-back book in the header without `book` going undefined. | `re-renders the updated book from the write read-back without crashing (B-1)` (passes once wired) + the typed `vi.fn<…Promise<AuthorEditsResult>>` mock (`Awaited<ReturnType<typeof api.authorEdits.submit>>`) | `apps/web/test/routes/book-detail-author-edit.test.tsx` (component) | The prior mock fabricated `book` through an UNTYPED `vi.fn`, so a server omitting `book` slipped past. The mock return is now typed to `{ ok: true; book: PublicBook }` — the durable de-mask (a dropped `book` fails `pnpm -r typecheck`). The runtime API omission is pinned red by the API tests above. |
+| **N-1** (validation/security, AC-5): the SOVEREIGN signed-event write path does NOT re-validate `coverUrl`/`purchaseUrl` (only the custodial/template path does), so a verified author can publish a `javascript:` / `data:` / `ftp://` URL directly. | `a non-http(s) coverUrl on the sovereign path → 400 invalid_url, no publish` / `a data: coverUrl … → 400 invalid_url` / `a non-http(s) purchaseUrl … → 400 invalid_url` | `apps/api/test/routes/author-edits.test.ts` (route, DI) | The schema does not validate URLs, so `signedAuthorOverlay({ coverUrl: "javascript:alert(1)" })` produces a validly-signed hostile event — the real attack. Red: `expected 200 to be 400` and `deps.publish` still called (sovereign path passes it straight through `validateSignedAuthorOverlay`, which never checks the URL protocol). Mirrors the existing custodial/template invalid-url case. |
+| **N-2** (AC-6 completeness): only `blurb` renders the "From the author" attribution; applied `coverUrl`/`purchaseUrl` overlays are tracked in `authorProvided[]` but unlabeled. | `attributes an applied author-provided coverUrl (not only blurb) (N-2, AC-6)` / `attributes an applied author-provided purchaseUrl (N-2, AC-6)` | `apps/web/test/routes/book-detail-author-edit.test.tsx` (component) | The book read returns `authorProvided` containing `coverUrl` / `purchaseUrl` (no `blurb`); the test asserts the "From the author" attribution renders. Red: `Unable to find … /from the author/i` (BookHeader attributes only `blurb`). |
+
+### Remediation red summary (confirmed)
+
+```
+API:  Test Files  1 failed | 78 passed | 2 skipped (81)
+      Tests       5 failed | 677 passed | 10 skipped (692)
+      (author-edits.test.ts: 2 B-1 write-response + 3 N-1 sovereign URL — right reasons)
+
+WEB:  Test Files  1 failed | 47 passed (48)
+      Tests       2 failed | 274 passed (276)
+      (book-detail-author-edit.test.tsx: 2 N-2 attribution — right reasons)
+
+SCHEMAS / SEARCH / INDEXER / SEEDER / PROMOTER:  all green.
+```
+
+`pnpm -r typecheck` — **CLEAN** (all 7 projects "Done", zero errors). The typed
+web mock (`Awaited<ReturnType<typeof api.authorEdits.submit>>`) compiles against the
+real `lib/api.ts` contract — the de-mask is type-level, not a fabricated literal.
+
 ## New files (Tester-owned)
 
 **Schema (`packages/schemas/test/`):**

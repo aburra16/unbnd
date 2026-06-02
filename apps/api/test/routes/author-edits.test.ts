@@ -22,7 +22,13 @@
 import express from "express";
 import request from "supertest";
 import { describe, expect, it, vi } from "vitest";
-import type { SignedNostrEvent } from "@unbnd/schemas";
+import {
+  buildBookRecordsHeaderAddress,
+  toBookRecordEvent,
+  toWireTemplate,
+  type BookRecord,
+  type SignedNostrEvent,
+} from "@unbnd/schemas";
 import type { Config } from "../../src/config";
 import { FixtureTrustProvider } from "../../src/trust/fixture";
 import {
@@ -80,6 +86,52 @@ function verifiedQueryFor(authorHex: string): AuthorEditsDeps["query"] {
     const z = ((filter["#z"] as string[]) ?? [])[0] ?? "";
     if (z.endsWith("author-verified")) return assertions;
     return [];
+  });
+}
+
+// ── B-1: write-response contract — the canonical book the read-back merges onto ──
+//
+// The ADR §4 write returns `{ ok: true, book: effectiveBook }` — the canonical
+// record with the author's edited fields applied. To exercise that read-back the
+// routed query must serve BOTH the canonical book read (#z books / #d slug) AND
+// the verification assertions (#z author-verified). The masked green tests only
+// asserted `res.body.ok`; these pin the missing merged `book` (B-1).
+const CANONICAL_BLURB = "Librarian-seeded canonical blurb.";
+const CANONICAL_COVER = "https://catalog.example/canonical.jpg";
+const BOOK_HDR = buildBookRecordsHeaderAddress(LIBRARIAN);
+
+function canonicalBookEvent(slug = "orbital", createdAt = 1): SignedNostrEvent {
+  const rec: BookRecord = {
+    slug,
+    title: "Orbital",
+    authorName: "Samantha Harvey",
+    format: "reference",
+    source: "openlibrary",
+    parentHeader: BOOK_HDR,
+    blurb: CANONICAL_BLURB,
+    coverUrl: CANONICAL_COVER,
+    publishYear: 2000,
+  };
+  const t = toWireTemplate(toBookRecordEvent(rec), createdAt);
+  return { id: slug, pubkey: LIBRARIAN, sig: "x", ...t } as SignedNostrEvent;
+}
+
+// A routed query that returns the two verifying curator assertions for `authorHex`
+// (so the gate clears N=2) AND the canonical book record (so the route can read it
+// back and merge). Routed by the filter's #z concept.
+function verifyingQueryWithBook(authorHex: string): AuthorEditsDeps["query"] {
+  const mk = (curatorHex: string, created: number): SignedNostrEvent => {
+    const a = signedAuthorVerified({ authorPubkey: authorHex, createdAt: created });
+    return { ...a.event, pubkey: curatorHex } as unknown as SignedNostrEvent;
+  };
+  const assertions = [mk(CUR1, 10), mk(CUR2, 11)];
+  return vi.fn(async (filter: Record<string, unknown>): Promise<SignedNostrEvent[]> => {
+    const z = ((filter["#z"] as string[]) ?? [])[0] ?? "";
+    if (z.endsWith("author-verified")) return assertions;
+    if (z.endsWith("author-edits")) return [];
+    if (z.endsWith("book-claims")) return [];
+    // The canonical book read (#z books / #d slug).
+    return [canonicalBookEvent()];
   });
 }
 
@@ -262,6 +314,128 @@ describe("POST /api/author-edits — sovereign verified author (AC-5)", () => {
       .send({ event: overlay.event });
     expect(res.status).toBe(502);
     expect(res.body.error.code).toBe("publish_failed");
+  });
+});
+
+// ── B-1: the write-response contract — { ok: true, book: effectiveBook } ──
+//
+// ADR §4: the write returns the MERGED effective book (the canonical record with
+// the author's edited blurb/cover/purchase applied) so the page reflects the
+// overlay without a re-fetch. The web (api.ts → AuthorEdit.onSaved → BookDetail
+// setBook → BookHeader) crashes if `book` is undefined. The prior green tests only
+// asserted `res.body.ok` and never `res.body.book`, masking the omission. These
+// pin the SHAPE the server actually returns — both tiers.
+
+describe("POST /api/author-edits — write returns the merged effective book (B-1, ADR §4)", () => {
+  it("sovereign: responds { ok: true, book } with the author's edits applied onto canonical", async () => {
+    const overlay = signedAuthorOverlay({
+      blurb: "The author's own blurb.",
+      coverUrl: "https://author.example/cover.jpg",
+    });
+    const author = overlay.authorPubkey;
+    const { app } = makeApp({
+      sessionUser: vi.fn(async () => sovereign(author)),
+      query: verifyingQueryWithBook(author),
+    });
+    const res = await request(app)
+      .post("/api/author-edits")
+      .set("Cookie", COOKIE)
+      .send({ event: overlay.event });
+    expect(res.status).toBe(200);
+    expect(res.body.ok).toBe(true);
+    // The merged effective book — NOT undefined (the masked contract gap).
+    expect(res.body.book).toBeDefined();
+    expect(res.body.book.slug).toBe("orbital");
+    expect(res.body.book.blurb).toBe("The author's own blurb.");
+    expect(res.body.book.coverUrl).toBe("https://author.example/cover.jpg");
+  });
+
+  it("custodial: responds { ok: true, book } with the edits applied onto canonical", async () => {
+    const overlay = signedAuthorOverlay({
+      blurb: "Custodial author's blurb.",
+      coverUrl: "https://author.example/c2.jpg",
+    });
+    const author = overlay.authorPubkey;
+    const { app } = makeApp({
+      sessionUser: vi.fn(async () => custodial(author)),
+      custodialSign: vi.fn(async () => overlay.event as never),
+      query: verifyingQueryWithBook(author),
+    });
+    const res = await request(app)
+      .post("/api/author-edits")
+      .set("Cookie", COOKIE)
+      .send({
+        bookSlug: "orbital",
+        blurb: "Custodial author's blurb.",
+        coverUrl: "https://author.example/c2.jpg",
+      });
+    expect(res.status).toBe(200);
+    expect(res.body.ok).toBe(true);
+    expect(res.body.book).toBeDefined();
+    expect(res.body.book.slug).toBe("orbital");
+    expect(res.body.book.blurb).toBe("Custodial author's blurb.");
+    expect(res.body.book.coverUrl).toBe("https://author.example/c2.jpg");
+  });
+});
+
+// ── N-1: the SOVEREIGN signed-event write must ALSO http(s)-validate the URLs ──
+//
+// AC-5 requires http(s) validation on the WRITE for BOTH tiers. The custodial path
+// validates via buildAuthorEditsTemplate (isHttpUrl); the sovereign path passes the
+// client-signed event straight to validateSignedAuthorOverlay, which checks the
+// key-whitelist + signature but NOT the URL protocol — so a verified author can
+// publish a `javascript:` / `data:` / `ftp://` coverUrl or purchaseUrl directly.
+// These pin that the sovereign path rejects a non-http(s) URL with 400 invalid_url
+// and never publishes. (The schema does not validate URLs, so signedAuthorOverlay
+// produces a validly-signed event carrying the hostile URL — the real attack.)
+
+describe("POST /api/author-edits — sovereign signed-event URL validation (N-1, AC-5)", () => {
+  it("a non-http(s) coverUrl on the sovereign path → 400 invalid_url, no publish", async () => {
+    const overlay = signedAuthorOverlay({ coverUrl: "javascript:alert(1)" });
+    const author = overlay.authorPubkey;
+    const { app, deps } = makeApp({
+      sessionUser: vi.fn(async () => sovereign(author)),
+      query: verifiedQueryFor(author),
+    });
+    const res = await request(app)
+      .post("/api/author-edits")
+      .set("Cookie", COOKIE)
+      .send({ event: overlay.event });
+    expect(res.status).toBe(400);
+    expect(res.body.error.code).toBe("invalid_url");
+    expect(deps.publish).not.toHaveBeenCalled();
+  });
+
+  it("a data: coverUrl on the sovereign path → 400 invalid_url, no publish", async () => {
+    const overlay = signedAuthorOverlay({ coverUrl: "data:text/html,<script>1</script>" });
+    const author = overlay.authorPubkey;
+    const { app, deps } = makeApp({
+      sessionUser: vi.fn(async () => sovereign(author)),
+      query: verifiedQueryFor(author),
+    });
+    const res = await request(app)
+      .post("/api/author-edits")
+      .set("Cookie", COOKIE)
+      .send({ event: overlay.event });
+    expect(res.status).toBe(400);
+    expect(res.body.error.code).toBe("invalid_url");
+    expect(deps.publish).not.toHaveBeenCalled();
+  });
+
+  it("a non-http(s) purchaseUrl on the sovereign path → 400 invalid_url, no publish", async () => {
+    const overlay = signedAuthorOverlay({ purchaseUrl: "ftp://nope.example/buy" });
+    const author = overlay.authorPubkey;
+    const { app, deps } = makeApp({
+      sessionUser: vi.fn(async () => sovereign(author)),
+      query: verifiedQueryFor(author),
+    });
+    const res = await request(app)
+      .post("/api/author-edits")
+      .set("Cookie", COOKIE)
+      .send({ event: overlay.event });
+    expect(res.status).toBe(400);
+    expect(res.body.error.code).toBe("invalid_url");
+    expect(deps.publish).not.toHaveBeenCalled();
   });
 });
 

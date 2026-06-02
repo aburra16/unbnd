@@ -17,15 +17,25 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { render, screen, fireEvent, waitFor, within } from "@testing-library/react";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
-import type { BookTags, PublicBook } from "../../src/lib/api";
+import type { api as realApi, BookTags, PublicBook } from "../../src/lib/api";
 import type { UseSession } from "../../src/hooks/useSession";
 
 // ── api boundary ──
+// The author-edits write mocks are typed to the REAL lib/api.ts return contract
+// (B-1): `{ ok: true; book: PublicBook }`. A server/contract that omits `book`
+// must now break — the prior mock fabricated `book` through an untyped vi.fn,
+// masking the omission. Typing the mock-return here pins it to the real shape.
+type AuthorEditsResult = Awaited<ReturnType<typeof realApi.authorEdits.submit>>;
+type AuthorEditsCustodialResult = Awaited<
+  ReturnType<typeof realApi.authorEdits.submitCustodial>
+>;
+
 const booksGet = vi.fn();
 const tagsBook = vi.fn();
 const authorEditsTemplate = vi.fn();
-const authorEditsSubmit = vi.fn();
-const authorEditsSubmitCustodial = vi.fn();
+const authorEditsSubmit = vi.fn<(...a: unknown[]) => Promise<AuthorEditsResult>>();
+const authorEditsSubmitCustodial =
+  vi.fn<(...a: unknown[]) => Promise<AuthorEditsCustodialResult>>();
 vi.mock("../../src/lib/api", () => ({
   ApiError: class ApiError extends Error {
     code?: string;
@@ -88,6 +98,14 @@ const ORBITAL: PublicBook = {
   format: "reference",
 };
 const TAGS: BookTags = { genres: [], styles: [], signals: [], weighted: false };
+
+// The merged effective book the write returns (ADR §4 read-back): the canonical
+// record with the author's saved edits applied. BookDetail must re-render THIS
+// (onSaved → setBook) without `book` going undefined / crashing BookHeader (B-1).
+const EDITED_BOOK: PublicBook = {
+  ...ORBITAL,
+  blurb: "My updated blurb.",
+};
 
 // The Verified author's identity, present in claimants with verified:true.
 const VERIFIED_NPUB = "npub1n0ewa4w877phxhqxu5v02mhmj6aanc7mm93w9attfjc5etcstkzql9rk23";
@@ -194,6 +212,33 @@ describe("BookDetail author edit — save flow (AC-5)", () => {
     delete (window as unknown as { nostr?: unknown }).nostr;
   });
 
+  it("re-renders the updated book from the write read-back without crashing (B-1)", async () => {
+    // The write returns { ok: true, book: effectiveBook }; BookDetail re-renders
+    // that merged book (onSaved → setBook → BookHeader). If `book` were undefined
+    // (the server omitting it), setBook(undefined) would crash BookHeader. The
+    // typed mock returns the real contract; the assertion proves the re-render.
+    sessionMock.mockReturnValue({ status: "signed-in", user: verifiedSelf, refresh: vi.fn() });
+    authorEditsSubmit.mockResolvedValue({ ok: true, book: EDITED_BOOK });
+    const signEvent = vi.fn(async () => ({
+      id: "x", pubkey: "p", created_at: 1, kind: 39999, tags: [], content: "", sig: "s",
+    }));
+    (window as unknown as { nostr: unknown }).nostr = { signEvent };
+    renderBook();
+    const surface = await screen.findByRole("region", { name: /your book details/i });
+    fireEvent.change(within(surface).getByLabelText(/blurb/i), {
+      target: { value: "My updated blurb." },
+    });
+    fireEvent.click(within(surface).getByRole("button", { name: /save/i }));
+    await waitFor(() => expect(authorEditsSubmit).toHaveBeenCalledTimes(1));
+    // The header re-renders with the read-back book (the rendered blurb paragraph,
+    // not the textarea); no crash, no undefined book. Scoped to the rendered <p>.
+    expect(
+      await screen.findByText(/my updated blurb\./i, { selector: "p.bh-blurb" }),
+    ).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Orbital" })).toBeInTheDocument();
+    delete (window as unknown as { nostr?: unknown }).nostr;
+  });
+
   it("custodial verified author saves via the server-signed path (no NIP-07)", async () => {
     sessionMock.mockReturnValue({ status: "signed-in", user: verifiedSelfCustodial, refresh: vi.fn() });
     renderBook();
@@ -238,6 +283,36 @@ describe("BookDetail author edit — save flow (AC-5)", () => {
 describe("BookDetail author edit — author-provided attribution (AC-6)", () => {
   it("labels an applied author-provided field as attributed in the UI", async () => {
     // authorProvided includes "blurb" → the rendered blurb carries an attribution.
+    sessionMock.mockReturnValue({ status: "signed-out", refresh: vi.fn() });
+    renderBook();
+    await screen.findByRole("heading", { name: "Orbital" });
+    expect(await screen.findByText(/from the author/i)).toBeInTheDocument();
+  });
+
+  it("attributes an applied author-provided coverUrl (not only blurb) (N-2, AC-6)", async () => {
+    // The author overlaid the cover (not the blurb). AC-6 completeness: an applied
+    // cover overlay is tracked in authorProvided and must carry the "From the
+    // author" attribution. Today only `blurb` renders it (BookHeader), so a
+    // cover-only authorProvided shows NO attribution → red.
+    booksGet.mockResolvedValue({
+      book: { ...ORBITAL, blurb: undefined, coverUrl: "https://author.example/cover.jpg" },
+      claimants: [{ npub: VERIFIED_NPUB, verified: true }],
+      authorProvided: ["coverUrl"],
+    });
+    sessionMock.mockReturnValue({ status: "signed-out", refresh: vi.fn() });
+    renderBook();
+    await screen.findByRole("heading", { name: "Orbital" });
+    expect(await screen.findByText(/from the author/i)).toBeInTheDocument();
+  });
+
+  it("attributes an applied author-provided purchaseUrl (N-2, AC-6)", async () => {
+    // The author overlaid the purchase link only. An applied purchase overlay must
+    // be attributed too (AC-6). Today no purchase attribution exists → red.
+    booksGet.mockResolvedValue({
+      book: { ...ORBITAL, blurb: undefined, purchaseUrl: "https://author.example/buy" },
+      claimants: [{ npub: VERIFIED_NPUB, verified: true }],
+      authorProvided: ["purchaseUrl"],
+    });
     sessionMock.mockReturnValue({ status: "signed-out", refresh: vi.fn() });
     renderBook();
     await screen.findByRole("heading", { name: "Orbital" });
