@@ -42,6 +42,11 @@ vi.mock("../../src/lib/api", () => ({
       submit: (...a: unknown[]) => claimsSubmit(...a),
       submitCustodial: (...a: unknown[]) => claimsSubmitCustodial(...a),
     },
+    // MIGRATED for Story 32 / ADR 0033 §6: BookDetail mounts the verified-only
+    // author-edit surface, which reads api.authorEdits.*. Stub the methods so the
+    // import resolves; the surface is hidden here (no claimant has verified:true
+    // matching the session), so none are invoked.
+    authorEdits: { template: vi.fn(), submit: vi.fn(), submitCustodial: vi.fn() },
     // BookDetail mounts ShelfControl (signed-in) which reads api.shelves.mine;
     // stub it so its effect resolves and never throws an unhandled error.
     shelves: { mine: vi.fn().mockResolvedValue({ shelves: [] }) },
@@ -93,7 +98,10 @@ const sovereign = { id: "u1", email: null, displayName: "Reader", npub: "npub1so
 const custodial = { id: "u2", email: "a@b.com", displayName: "Reader", npub: "npub1cust" };
 
 beforeEach(() => {
-  booksGet.mockReset().mockResolvedValue({ book: ORBITAL, claimants: [] });
+  // MIGRATED for Story 32 / ADR 0033 §5: the book read returns
+  // `{ book, claimants, authorProvided }` (additive). The claim-action assertions
+  // are unchanged; authorProvided is empty (no verified author / no overlay).
+  booksGet.mockReset().mockResolvedValue({ book: ORBITAL, claimants: [], authorProvided: [] });
   tagsBook.mockReset().mockResolvedValue(TAGS);
   claimsTemplate.mockReset().mockResolvedValue({
     template: { kind: 39999, created_at: 1, tags: [], content: "" },

@@ -425,5 +425,5 @@ Resolve before approving the story (PO recommendations in Flags below).
   `apps/web/src/components/AuthorBadge.tsx`, `apps/web/src/components/BookHeader.tsx`,
   `apps/web/src/routes/BookDetail.tsx`.
 - ADR for this story: `engineering-team/decisions/0033-verified-author.md` (filled in after Architecture phase)
-- Test plan: (filled in after Test Design phase)
+- Test plan: `engineering-team/stories/32-verified-author.test-plan.md`
 - Review: (filled in after Review phase)

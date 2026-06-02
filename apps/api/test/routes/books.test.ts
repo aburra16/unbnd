@@ -25,24 +25,28 @@ function bookEvent(slug: string, title: string, createdAt = 1): SignedNostrEvent
   return { id: slug, pubkey: LIB, sig: "x", ...t } as SignedNostrEvent;
 }
 
-// MIGRATED for Story 31 / ADR 0032 §2(a): GET /api/books/:slug now runs a sibling
-// claims read ({ "#z":[book-claims], "#a":[bookAtag] }) in parallel with the book
-// read and returns `claimants` alongside `book`. The existing book records would
-// be mis-parsed as claims if the same mock answered both reads, so the book-read
-// mocks now route by filter: the claims read (z = book-claims) returns []. The
-// `book`-shape assertions below are unchanged; a `claimants: []` assertion is
-// added on the no-claims path. The claimants-population paths live in the sibling
-// books-claimants.test.ts.
+// MIGRATED for Story 31 / ADR 0032 §2(a) and Story 32 / ADR 0033 §5: GET
+// /api/books/:slug now runs FOUR sibling reads (book, claims, author-verified
+// assertions, author overlays) in parallel and returns `{ book: effectiveBook,
+// claimants, authorProvided }`. The existing book records would be mis-parsed as
+// claims/assertions/overlays if the same mock answered all reads, so the book-read
+// mocks route by filter: the claims / author-verified / author-edits reads all
+// return []. The `book`-shape assertions below are unchanged; a `claimants: []` +
+// `authorProvided: []` assertion is added on the no-claims path. The verified
+// read-merge paths live in the sibling books-verified-merge.test.ts; the
+// claimants-population paths in books-claimants.test.ts.
 function bookOnly(...books: SignedNostrEvent[]) {
   return vi.fn(async (filter: Record<string, unknown>): Promise<SignedNostrEvent[]> => {
     const z = ((filter["#z"] as string[]) ?? [])[0] ?? "";
-    if (z.endsWith("book-claims")) return [];
+    if (z.endsWith("book-claims") || z.endsWith("author-verified") || z.endsWith("author-edits")) {
+      return [];
+    }
     return books;
   });
 }
 
 function makeApp(over: Partial<BooksDeps> = {}) {
-  const deps: BooksDeps = { config: cfg, query: vi.fn(async () => []), ...over };
+  const deps = { config: cfg, query: vi.fn(async () => []), ...over } as unknown as BooksDeps;
   const app = express();
   app.use("/", buildBooksRouter(deps));
   return app;
@@ -57,6 +61,10 @@ describe("GET /api/books/:slug", () => {
     expect(res.body.book.authorName).toBe("Author of Alpha");
     // Additive (ADR 0032 §2a): the no-claims path carries an empty claimant set.
     expect(res.body.claimants).toEqual([]);
+    // Additive (ADR 0033 §5): no verified author → no overlay applied.
+    expect(res.body.authorProvided).toEqual([]);
+    // The canonical blurb (no overlay) is unchanged.
+    expect(res.body.book.blurb).toBe("x");
   });
   it("404 when not found, 503 when catalog unconfigured", async () => {
     expect((await request(makeApp()).get("/api/books/ol-x")).status).toBe(404);

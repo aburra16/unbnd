@@ -86,9 +86,11 @@ const TAGS: BookTags = { genres: [], styles: [], signals: [], weighted: false };
 import { BookDetail } from "../src/routes/BookDetail";
 
 beforeEach(() => {
-  // MIGRATED for Story 31 / ADR 0032 §2a: the book read now returns
-  // `{ book, claimants }`. Typed to the new shape so a dropped `claimants` fails.
-  booksGet.mockReset().mockResolvedValue({ book: ORBITAL, claimants: [] });
+  // MIGRATED for Story 31 / ADR 0032 §2a + Story 32 / ADR 0033 §5: the book read
+  // returns `{ book, claimants, authorProvided }`. Typed to the new shape so a
+  // dropped field fails. This test settles signed-out, so no verified author edit
+  // surface mounts; authorProvided is empty (no overlay applied).
+  booksGet.mockReset().mockResolvedValue({ book: ORBITAL, claimants: [], authorProvided: [] });
   tagsBook.mockReset().mockResolvedValue(TAGS);
   tagsList.mockReset().mockResolvedValue({ tags: [] });
   useBookRatingsMock.mockReset().mockReturnValue({
