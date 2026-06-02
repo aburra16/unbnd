@@ -1,8 +1,8 @@
 # ADR 0032: Author claiming — the trust-independent core (claim + "claimed" badge + Books by this author)
 
-**Status:** Proposed
+**Status:** Accepted
 **Date:** 2026-06-01
-**Story:** `engineering-team/stories/31-author-claiming.md`
+**Story:** `engineering-team/stories/done/31-author-claiming.md`
 
 ## Context
 

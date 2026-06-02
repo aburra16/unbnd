@@ -1,6 +1,6 @@
 # Story 31: Author claiming + "Author" badge + author edit access (trust-independent core)
 
-**Status:** Draft
+**Status:** Done
 **Created:** 2026-06-01
 **Type:** Feature
 
@@ -389,5 +389,5 @@ Resolve before approving the story.
   `apps/web/src/routes/Submit.tsx` (the existing submission-time "I am the author" toggle —
   distinct from catalog claiming), `apps/web/src/routes/Profile.tsx`.
 - ADR for this story: `engineering-team/decisions/0032-author-claiming.md`
-- Test plan: `engineering-team/stories/31-author-claiming.test-plan.md`
+- Test plan: `engineering-team/stories/done/31-author-claiming.test-plan.md`
 - Review: (filled in after Review phase)

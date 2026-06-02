@@ -1,6 +1,6 @@
 # Test Plan: Story 31 — Author claiming (trust-independent core)
 
-**Story:** `engineering-team/stories/31-author-claiming.md`
+**Story:** `engineering-team/stories/done/31-author-claiming.md`
 **ADR:** `engineering-team/decisions/0032-author-claiming.md`
 **Date:** 2026-06-01
 **Branch:** `feat/author-claiming`
