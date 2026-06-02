@@ -8,6 +8,14 @@
 sensitivity-conditional write gate reusing CURATOR_THRESHOLD; tag-only attributed render. See
 `engineering-team/decisions/0034-accusatory-tag-gate.md`.
 
+**Amendment (2026-06-02):** the reveal/withdraw **trigger is ops-only** — an operator-run worker
+subcommand / CLI on the droplet (mirroring the promoter cron), **not** a librarian-session API
+endpoint and **not** an in-app reveal button. The librarian key never enters a browser; the worker
+holds it and mints off the API. No `POST /api/tags/reveal` / `…/withdraw` route, no reveal UI. The
+write gate, picker signal, `AccusatoryReveal` schema + `accusatory-reveals` header, the read-filter
++ batched reveal lookup, the honest render, the `reveals` table + the worker reveal job-kind are all
+unchanged. See the Amendment block in `engineering-team/decisions/0034-accusatory-tag-gate.md`.
+
 ## Background
 
 This is **PRD §2.8 "Accusatory-tag visibility (manual gate)"** — the decision of record

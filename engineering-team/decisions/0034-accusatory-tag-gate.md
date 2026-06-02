@@ -4,6 +4,35 @@
 **Date:** 2026-06-02
 **Story:** `engineering-team/stories/33-accusatory-tag-gate.md`
 
+## Amendment 2026-06-02 — reveal trigger is ops-only (no librarian-session API endpoint, no in-app reveal UI)
+
+A subsequent gate decision changed the **reveal/withdraw trigger** only. The original draft chose
+trigger Option A (a `POST /api/tags/reveal` + `…/withdraw` API endpoint gated to a session whose
+pubkey equals the librarian pubkey, with an optional in-app reveal UI). That is **superseded**:
+
+**The reveal/withdraw trigger is OPERATOR-ONLY for v1.** There is **no** `POST /api/tags/reveal`,
+**no** `POST /api/tags/withdraw`, and **no** in-app reveal button. The rationale is key hygiene:
+keep the librarian key out of any browser entirely. The user keeps the librarian identity offline;
+the worker already holds `LIBRARIAN_NSEC`. Requiring the operator to hold a *browser session as the
+librarian pubkey* (trigger Option A) put the librarian identity on the public session path; the
+ops-only trigger removes that.
+
+This amendment promotes what was recorded as **trigger Option B (Ops/worker-only trigger)** to the
+chosen design. The trigger is now an **operator action on the droplet** — a worker subcommand / small
+CLI, mirroring how the promoter is operator-run — that upserts the `reveals` row and lets the worker
+mint the librarian-signed event off the API. See the **Amended trigger** block folded into the
+Decision below (§4), the updated Options/Decision, and the updated testable-seams + ripple list.
+
+**Unchanged by this amendment** (everything except the trigger): the sensitivity-conditional write
+gate on `POST /api/tags` (§1), the `canAssertAccusatory` picker signal (§2), the `AccusatoryReveal`
+event schema + `accusatory-reveals` concept header and the read-filter in `aggregate.ts` (§3) —
+including the `GET /api/books/:slug/tags` batched reveal lookup, which **stays** (it is how a revealed
+tag surfaces, independent of how the reveal was triggered) — the honest tag-only attributed render
+(§5), honest degrade (§6), the `reveals` table + migration `0004`, the worker reveal job-kind in
+`apps/promoter`, `LIBRARIAN_NSEC` worker-only, fixture-verifiability, and the defamation/moderation
+rationale. Net surface change: the **API/web reveal surface shrinks** (no reveal endpoint, no reveal
+UI); the **worker/ops surface carries the trigger**.
+
 ## Gate decisions (2026-06-01, baked in)
 
 The user resolved the story's four open gate questions before this ADR. They are decisions of
@@ -15,7 +44,10 @@ record here, not options:
    reveal event exists. Reversible (withdraw → the read path hides it again). Filter-at-read; the
    underlying curator assertions are never mutated.
 2. **Librarian-only reveal** — only the librarian/operator identity can trigger a
-   reveal/withdraw; the librarian key stays in the worker.
+   reveal/withdraw; the librarian key stays in the worker. **(Amended 2026-06-02:** the trigger is
+   an **operator action on the droplet** — a worker subcommand / CLI — **not** a librarian-session
+   API endpoint. No reveal endpoint, no in-app reveal UI; the librarian key never enters a browser.
+   See Amendment above and §4.**)**
 3. **Write gate = sensitivity-conditional** server-side curator gate on `POST /api/tags`: an
    accusatory write requires `houseWeightOf(session) ≥ CURATOR_THRESHOLD` (fail-closed,
    server-enforced, both tiers); a normal genre/style write is unchanged. Reuse
@@ -183,9 +215,9 @@ A second key-holding worker dedicated to reveals.
   sensitive credential. Rejected — extending the existing single key-holder is the safer,
   simpler call.
 
-### The librarian-only trigger auth
+### The librarian-only trigger auth (amended 2026-06-02 — Option B is now CHOSEN; Option A superseded)
 
-#### Option A — API enqueue gated to a session whose pubkey === `config.librarianPubkey` (CHOSEN)
+#### Option A — API enqueue gated to a session whose pubkey === `config.librarianPubkey` (SUPERSEDED — was CHOSEN in the original draft)
 
 A new `POST /api/tags/reveal` (and `…/withdraw`) resolves the session user and enqueues a `reveal`
 job **only if** the session pubkey equals the configured librarian pubkey
@@ -199,30 +231,47 @@ enqueues a row exactly like promotion.
   public key. The librarian signs in with their own session (the same NIP-07 / custodial session
   every user has) and the operator identity is the librarian pubkey — clean and self-consistent
   with "the librarian is one author among many."
-- **Con:** requires the operator to hold a session as the librarian pubkey to trigger from the UI.
-  Acceptable — it is the cleanest auditable v1 and keeps the trigger on the standard session path.
+- **Con (the decisive one):** requires the operator to hold a **browser session as the librarian
+  pubkey** to trigger. That puts the librarian identity on the public session path / in a browser,
+  for a credential the user keeps offline. The Amendment 2026-06-02 gate decision ruled this out:
+  the librarian key must never enter a browser. **Superseded.**
 
-#### Option B — Ops/worker-only trigger (no API route; the operator inserts the queue row directly) (REJECTED for v1)
+#### Option B — Ops/worker-only trigger: a worker subcommand / CLI on the droplet (CHOSEN — amended 2026-06-02)
 
-The reveal is enqueued by an operator CLI / direct DB insert; no API surface at all.
+The reveal/withdraw is triggered by an **operator action on the droplet**, mirroring how the
+promoter cron is operator-run. There is **no** API route and **no** in-app UI. The operator runs a
+worker subcommand / small CLI that **upserts the `reveals` row** (`book_slug`, `tag_slug`,
+`state: revealed|withdrawn`, `requested_by` = the recorded librarian hex actor); the worker then
+mints the librarian-signed `accusatory-reveal` / withdraw event (`finalizeEvent` with
+`LIBRARIAN_NSEC`, off the API) and publishes to local + dcosl, exactly as the promote cycle does.
 
-- **Pro:** zero new API attack surface.
-- **Con:** no in-product affordance, no session-attributed `requested_by` provenance through the
-  app, harder to test as a route, and it pushes the trigger outside the audited request path.
-  Recorded as the fallback if we ever want a pure-ops trigger; **not** chosen for v1.
+- **Pro:** **zero** new API attack surface and the librarian key never touches a browser — it stays
+  worker-side, decoded at runtime exactly as the promoter already does it. The trigger and the
+  signer live in the same operator-run, off-internet-facing process. Still fully auditable: the
+  `reveals` row records `requested_by` + timestamps and the **signed event** on the wire is the
+  durable, attributable record (the ground truth the read path consults). Idempotent via the
+  `reveals` `UNIQUE(book_slug, tag_slug)` upsert. Testable as a pure enqueue/upsert + a worker mint
+  with a fake signer and fake publisher — no route harness needed.
+- **Con:** no in-product affordance — the reveal is an ops runbook step, not a UI button. Accepted:
+  for a rare, accountable, defamation-bearing operator action, an ops trigger is the correct and
+  safest v1 shape (it matches how promotion is effectively operator-run today), and it keeps the
+  most sensitive credential entirely off the browser/session path.
 
 ## Decision
 
 We chose: **(reveal) Option A — a librarian-signed `accusatory-reveal` kind-39999 event per
 (book, tag), worker-minted; (worker) Option A — extend `apps/promoter` with a reveal job-kind;
-(trigger) Option A — an API enqueue gated to `session.pubkey === config.librarianPubkey`.**
+(trigger) Option B (amended 2026-06-02) — an operator-run worker subcommand / CLI on the droplet
+that upserts the `reveals` row, with the worker minting the signed event off the API. No reveal API
+endpoint, no in-app reveal UI.** (The original draft chose trigger Option A — a librarian-session
+API endpoint; that is superseded by the Amendment above.)
 
 This is the only combination that satisfies every gate decision: a durable signed auditable
-reversible reveal, `LIBRARIAN_NSEC` never on the API, librarian-only reveal, the canonical
-assertions never mutated, the write gate reusing `CURATOR_THRESHOLD` fail-closed for both tiers,
-and an honest tag-only render — all by reusing shipped seams (the ADR-0031 gate + queue + worker,
-the ADR-0033 dedicated-header precedent, the ADR-0009 aggregate, the ADR-0014/0017 trust fixture)
-and introducing **no** new crypto and **no** new trust math.
+reversible reveal, `LIBRARIAN_NSEC` never on the API **and never in a browser**, librarian-only
+reveal, the canonical assertions never mutated, the write gate reusing `CURATOR_THRESHOLD`
+fail-closed for both tiers, and an honest tag-only render — all by reusing shipped seams (the
+ADR-0031 gate + queue + worker, the ADR-0033 dedicated-header precedent, the ADR-0009 aggregate,
+the ADR-0014/0017 trust fixture) and introducing **no** new crypto and **no** new trust math.
 
 ### 1. The write gate — `POST /api/tags`, sensitivity-conditional, both tiers
 
@@ -354,19 +403,54 @@ Reduce the returned reveal events to the latest per (book, tag) d-tag, keep thos
 `aggregateBookTagsWeighted`. This is **one batched filter per book read** (not per tag), authored
 by the librarian only — N+1-free by construction.
 
-### 4. The reveal trigger (librarian-only) + worker
+### 4. The reveal trigger (operator-only, on the droplet) + worker
 
-**API trigger** (`apps/api/src/routes/tags.ts`, new):
+**Amended 2026-06-02.** The original draft put the trigger on the API as a librarian-session
+endpoint (`POST /api/tags/reveal` / `…/withdraw`). That is **superseded**: the trigger is now an
+**operator action on the droplet**, mirroring how the promoter cron is operator-run, and the
+librarian key never enters a browser. **There is no reveal/withdraw API route and no in-app reveal
+UI in v1.**
 
-- `POST /api/tags/reveal` and `POST /api/tags/withdraw`, body `{ bookSlug, tagSlug }`.
-- Resolve session (`deps.sessionUser`): anon → `401 no_session`.
-- **Librarian-only gate:** `user.pubkeyHex !== asHexPubkey(config.librarianPubkey)` →
-  `403 not_librarian`. (Identity equality against the public key the API already holds — the API
-  never holds the librarian secret.)
-- Enqueue a job via a new injected `enqueueReveal(bookSlug, tagSlug, state, requestedBy)` seam
-  (mirroring `enqueuePromotion`): insert/replace a `reveals` queue row keyed on (book, tag) so a
-  re-trigger is idempotent. `requested_by = user.pubkeyHex` (= the librarian) for provenance.
-  Respond `200 { status: "queued" | "already" }`.
+**Operator trigger** — a worker subcommand / small CLI run on the droplet (mirroring the promoter
+cron pattern; concrete invocation shape, finalized in `docs/DEPLOY.md` at implementation time):
+
+```sh
+# reveal an accusatory tag for a book
+docker compose -f docker-compose.prod.yml --profile promote run --rm promoter \
+  reveal --book <book-slug> --tag <tag-slug>
+
+# withdraw a previously revealed tag (same command, --withdraw)
+docker compose -f docker-compose.prod.yml --profile promote run --rm promoter \
+  reveal --book <book-slug> --tag <tag-slug> --withdraw
+```
+
+(The exact subcommand name / flag spelling and whether it rides the existing `--profile promote`
+service or a sibling `--profile reveal` one are the implementer's call **within this shape**; the
+load-bearing contract is: operator-run, on the droplet, in the key-holding worker, no API, no UI.)
+
+What the subcommand does — **two steps, mirroring `enqueuePromotion` → mint**:
+
+1. **Upsert the `reveals` row** (the same `enqueueReveal(bookSlug, tagSlug, state, requestedBy)`
+   upsert seam the draft already specified — now invoked from the CLI, not an HTTP route): insert /
+   replace the `reveals` queue row keyed on (book, tag) with `state ∈ revealed|withdrawn` and
+   `requested_by` = the **librarian hex** (the recorded operator/actor for audit/provenance). The
+   `UNIQUE(book_slug, tag_slug)` upsert makes a re-trigger and reveal→withdraw→reveal flips
+   idempotent — the latest intent wins.
+2. **The worker mints + publishes** (unchanged from the draft): the reveal cycle claims the pending
+   `reveals` row, builds the librarian-signed `accusatory-reveal` (or withdraw) kind-39999 event
+   (`finalizeEvent` with `LIBRARIAN_NSEC`, decoded worker-side at runtime — **off the API, off the
+   browser**), and publishes to local + dcosl, then marks the row `done` with `minted_id`. A
+   withdraw is the same path with `state:"withdrawn"` minted at the same on-the-wire address.
+
+The CLI may invoke the upsert-then-run-cycle inline (a single operator command that both upserts and
+mints in one process run), or upsert + let the next cron tick mint — either satisfies the shape; the
+upsert is idempotent and the cycle is `FOR UPDATE SKIP LOCKED`-safe regardless.
+
+**Operator runbook note** (to be written into `docs/DEPLOY.md` at implementation time): document the
+reveal/withdraw invocations above; that the actor is the librarian identity (recorded as
+`requested_by`); that the effect is asynchronous through the worker mint (the tag surfaces on book
+detail once the live `revealed` event exists); that withdraw is the reversal; and that the operation
+is idempotent (safe to re-run).
 
 **Queue** — extend the existing Postgres queue rather than a new table is acceptable, but for
 clarity this ADR specifies a **sibling `reveals` table** (migration `0004_reveals`, same embedded
@@ -457,11 +541,13 @@ BookDetail classification block) renders it:
   shows nothing until the live reveal event exists, which is the honest state); the book-tags read
   gains one more parallel relay query (the reveal scan, batched per book — no N+1); the worker
   grows a second job-kind and the DB a second queue table.
-- **Debt / follow-ups:** the operator must hold a librarian-pubkey session to trigger a reveal
-  from the UI (Option A) — an ops CLI / pure-worker trigger (reveal Option B) is the recorded
-  fallback if that proves awkward. Worker retry/backoff for `failed` reveal jobs follows the
-  promoter's existing posture (a future reaper, ADR-0031-logged). Phase-3 emergent reveal remains
-  explicitly unbuilt.
+- **Debt / follow-ups:** (amended 2026-06-02) the reveal/withdraw trigger is an **ops runbook step**
+  — an operator-run worker subcommand / CLI on the droplet (trigger Option B), **not** an in-app
+  action; there is no reveal endpoint or button in v1. An in-product affordance (e.g. a future
+  librarian-session API route, the superseded trigger Option A) is a possible later addition **only**
+  if the librarian-key-off-the-browser constraint is revisited — not planned. Worker retry/backoff for
+  `failed` reveal jobs follows the promoter's existing posture (a future reaper, ADR-0031-logged).
+  Phase-3 emergent reveal remains explicitly unbuilt.
 - **Affects existing fixtures?** Yes (after implementation): `apps/api/test` tag-route fixtures
   gain the reveal-query DI, the sensitivity-branch cases, and the `canAssertAccusatory` flag;
   `apps/web` `TagControl` tests gain the offered-accusatory and revealed-render cases sourced from
@@ -516,9 +602,15 @@ identical before and after a reveal/withdraw; reveal changes only the injected s
 writes/deletes a `BookTagAssertion` during reveal — assert the reveal route/worker never touches
 the assertions header.)
 
-**Librarian-only trigger (AC-4):** `POST /api/tags/reveal` — anon → `401`; a signed-in
-non-librarian session → `403 not_librarian`, **no** enqueue; a session whose pubkey ===
-`config.librarianPubkey` → enqueue called once + `200`. Same for `…/withdraw`.
+**Operator trigger (AC-4) — amended 2026-06-02 (no API route).** The trigger is no longer an HTTP
+route, so there are **no** reveal/withdraw API-route tests. Instead test the trigger as its two
+seams: **(a)** the `enqueueReveal(bookSlug, tagSlug, state, requestedBy)` **upsert** — a fresh
+(book, tag) inserts a `pending` row with `state:"revealed"` and `requested_by` = the librarian hex;
+a re-trigger / a `withdrawn` flip **upserts the same row** (idempotent via
+`UNIQUE(book_slug, tag_slug)`), the latest intent winning — verified against a real/fake DB; **(b)**
+the CLI subcommand parsing/dispatch (reveal vs. `--withdraw` → the correct `state`, book/tag slug
+threading) as a pure function. No session, no `config.librarianPubkey` equality check, no
+`403 not_librarian` path — those were properties of the removed API route.
 
 **Worker reveal-mint (AC-4/AC-6):** test the pure `buildAccusatoryRevealEvent(...)` (correct
 header address, `#a` book, `#t` tag, `state`, slug-deterministic d-tag). Test `runRevealCycle` by
@@ -544,42 +636,68 @@ holds only the public key). The **ADR-0014 architecture guard**
 - `apps/api/src/db/migrations.ts` — append migration `0004_reveals` (the table above);
   `apps/api/src/db/schema.ts` — the `reveals` drizzle table + `RevealRow`/`RevealStatus` types;
   `apps/api/src/db/index.ts` — back `enqueueReveal(bookSlug, tagSlug, state, requestedBy)` (upsert
-  on the unique key) and (if the read uses it) any reveal-status read.
+  on the unique key) and (if the read uses it) any reveal-status read. (The `reveals` table /
+  migration / `enqueueReveal` upsert are **unchanged by the 2026-06-02 amendment**; only the
+  *caller* moves from an API route to the operator CLI.)
 - `apps/promoter/src/reveal/{build,queue,cycle}.ts` — the reveal job-kind (pure builder, queue
-  claim/mark, `runRevealCycle`); `apps/promoter/test/reveal/*`.
+  claim/mark, `runRevealCycle`); `apps/promoter/test/reveal/*`. **(Amended 2026-06-02)** the worker
+  also carries the **operator trigger**: a `reveal` subcommand / CLI entry (e.g.
+  `apps/promoter/src/reveal/cli.ts` + a `main.ts` arg dispatch) that parses `--book` / `--tag` /
+  `--withdraw`, calls the `enqueueReveal` upsert, and runs the reveal cycle. This is where the
+  reveal/withdraw trigger lives now — not on the API.
 
 **Changed:**
-- `apps/api/src/routes/tags.ts` — (a) inject `trust: TrustProvider` + `enqueueReveal` into
-  `TagsDeps`; (b) add the `houseWeightOf` helper (lift from `submissions.ts`); (c) add the
-  **sensitivity-conditional gate** in `POST /api/tags` (resolve sensitivity from the taxonomy;
-  accusatory → curator-gated both tiers, normal → unchanged); (d) compute `canAssertAccusatory`
-  once and include it on the book-tags read response; (e) add the **third parallel reveal query**
-  to `GET /api/books/:slug/tags`, reduce to the live revealed slug set, pass it to the aggregate;
-  (f) add `POST /api/tags/reveal` + `POST /api/tags/withdraw` (librarian-only enqueue).
+- `apps/api/src/routes/tags.ts` — (a) inject `trust: TrustProvider` into `TagsDeps` (the
+  `enqueueReveal` injection is **dropped** — the API no longer triggers reveals; per the 2026-06-02
+  amendment the upsert is called from the worker CLI, not a route); (b) add the `houseWeightOf`
+  helper (lift from `submissions.ts`); (c) add the **sensitivity-conditional gate** in
+  `POST /api/tags` (resolve sensitivity from the taxonomy; accusatory → curator-gated both tiers,
+  normal → unchanged); (d) compute `canAssertAccusatory` once and include it on the book-tags read
+  response; (e) add the **third parallel reveal query** to `GET /api/books/:slug/tags`, reduce to
+  the live revealed slug set, pass it to the aggregate. **(f) is REMOVED** by the 2026-06-02
+  amendment: **no** `POST /api/tags/reveal` / `POST /api/tags/withdraw` route is added.
 - `apps/api/src/tags/aggregate.ts` — `aggregateBookTagsWeighted` gains the optional
   `revealedTagSlugs: ReadonlySet<string> = new Set()` arg; line 172 becomes the conditional
   (unknown dropped; accusatory dropped **unless** revealed). Add the revealed marker on the
   surfaced `TagConsensus` (or a `revealedSignals` array). `aggregateBookTags` (raw) passes the
   default-empty set — unchanged.
-- `apps/api/src/index.ts` — pass `trust` + a DB-backed `enqueueReveal` into `buildTagsRouter`.
+- `apps/api/src/index.ts` — pass `trust` into `buildTagsRouter` (the DB-backed `enqueueReveal` is
+  **no longer wired into the router** per the 2026-06-02 amendment; the upsert is invoked by the
+  worker CLI instead — wire it into the `apps/promoter` CLI entry, not the API).
 - `apps/web/src/components/TagControl.tsx` — read `canAssertAccusatory`; when true, offer the
   accusatory signal tags in a new "Signals" optgroup; render a revealed accusatory tag with the
   honest "reviewed" treatment (distinct from genre/style chips, brand tokens only, no consensus
-  label, no count); copy reviewed against the no-slop rule.
+  label, no count); copy reviewed against the no-slop rule. **(No reveal button / in-app reveal UI
+  is added** — the 2026-06-02 amendment makes the trigger ops-only; the web is read/render +
+  the write picker only.**)**
 - `apps/web/src/lib/api.ts` — `BookTags`/read type carries `canAssertAccusatory?: boolean` and the
-  revealed marker; add `tags.reveal(bookSlug, tagSlug)` / `tags.withdraw(...)` callers for the
-  librarian UI affordance (optional minimal surface).
+  revealed marker. **(Amended 2026-06-02:** the `tags.reveal(...)` / `tags.withdraw(...)` web
+  callers and the librarian UI affordance are **REMOVED** — there is no reveal endpoint for the web
+  to call.**)**
 - `docker-compose.prod.yml` / `docker-compose.yml` — the existing `promoter` service's cron also
   runs the reveal cycle (no new service, no new `LIBRARIAN_NSEC` env beyond the promoter's). The
-  `api` service gains **no** `LIBRARIAN_NSEC`.
+  `api` service gains **no** `LIBRARIAN_NSEC`. **(Amended 2026-06-02)** the same `promoter` service
+  also hosts the operator reveal subcommand, run on demand via
+  `docker compose -f docker-compose.prod.yml --profile promote run --rm promoter reveal --book <slug> --tag <slug> [--withdraw]`
+  (mirroring the promote cron run pattern) — document the invocation in `docs/DEPLOY.md`.
+- `docs/DEPLOY.md` — **(added by the 2026-06-02 amendment)** the operator runbook note for the
+  reveal/withdraw CLI: the invocations above, the librarian as recorded actor (`requested_by`), the
+  asynchronous worker-mint effect, withdraw as the reversal, and the idempotent (safe-to-re-run)
+  property. Written at implementation time.
 
 **Existing tests that change:** `apps/api/test/routes/tags*.test.ts` (new sensitivity-gate cases
-both tiers + the normal-unaffected case + DI for `trust`/`enqueueReveal`; the reveal-query read;
-the librarian-only trigger; `canAssertAccusatory`); `apps/api/test/tags/aggregate*.test.ts` (the
-revealed-set conditional, default-empty unchanged, latest-per-d-tag reveal reduction);
-`apps/web` `TagControl` tests (offered-accusatory + revealed-render, sourced from the real read
-shape); the `LIBRARIAN_NSEC`-not-in-API guard and the ADR-0014 guard **stay green** (assert, don't
-change); new `packages/schemas` + `apps/promoter` reveal tests.
+both tiers + the normal-unaffected case + DI for `trust` **only** — the `enqueueReveal` router DI is
+dropped; the reveal-query read; `canAssertAccusatory`). **(Amended 2026-06-02)** the **reveal/withdraw
+API-route tests are REMOVED** (no `POST /api/tags/reveal` route, no `403 not_librarian` /
+session-equality cases); the trigger is instead covered by **worker/ops tests** in `apps/promoter` —
+the `enqueueReveal` upsert (idempotent on the unique key), the CLI arg dispatch (reveal vs.
+`--withdraw`), and the existing `runRevealCycle` mint with a fake signer + fake publisher.
+`apps/api/test/tags/aggregate*.test.ts` (the revealed-set conditional, default-empty unchanged,
+latest-per-d-tag reveal reduction) is **unchanged**; `apps/web` `TagControl` tests (offered-accusatory
++ revealed-render, sourced from the real read shape) are **unchanged**, with **no reveal-UI test**
+(there is no reveal UI); the `LIBRARIAN_NSEC`-not-in-API guard and the ADR-0014 guard **stay green**
+(assert, don't change); new `packages/schemas` + `apps/promoter` reveal tests (now including the CLI
++ upsert seams).
 
 ## Out of scope
 
