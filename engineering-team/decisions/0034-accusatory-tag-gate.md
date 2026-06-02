@@ -1,8 +1,8 @@
 # ADR 0034: Accusatory-tag gate — sensitivity-conditional curator write gate + librarian-signed reveal
 
-**Status:** Proposed
+**Status:** Accepted
 **Date:** 2026-06-02
-**Story:** `engineering-team/stories/33-accusatory-tag-gate.md`
+**Story:** `engineering-team/stories/done/33-accusatory-tag-gate.md`
 
 ## Amendment 2026-06-02 — reveal trigger is ops-only (no librarian-session API endpoint, no in-app reveal UI)
 

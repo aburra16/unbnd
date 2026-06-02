@@ -1,6 +1,6 @@
 # Test Plan: Story 33 — Accusatory-tag gate (curator-gated write + ops reveal + filter-at-read)
 
-**Story:** `engineering-team/stories/33-accusatory-tag-gate.md`
+**Story:** `engineering-team/stories/done/33-accusatory-tag-gate.md`
 **ADR:** `engineering-team/decisions/0034-accusatory-tag-gate.md` (incl. the 2026-06-02 ops-only-trigger Amendment)
 **Date:** 2026-06-02
 
