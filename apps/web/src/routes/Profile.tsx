@@ -9,6 +9,7 @@ import { useParams } from "react-router-dom";
 import {
   api,
   type ProfileStatsResponse,
+  type PublicBook,
   type Shelf,
 } from "../lib/api";
 import { Nav } from "../components/Nav";
@@ -53,6 +54,8 @@ export function Profile() {
   const meta = useProfileMeta(npub);
   const [shelves, setShelves] = useState<Shelf[] | null>(null);
   const [stats, setStats] = useState<ProfileStatsResponse | null>(null);
+  // Story 31 / ADR 0032: catalog books this author has claimed. Absent when empty.
+  const [claimedBooks, setClaimedBooks] = useState<PublicBook[]>([]);
   // NotFound only when the npub is unresolvable — the twins answer 404 (AC-6).
   // A valid-but-empty profile leaves this false and renders the empty states.
   const [notFound, setNotFound] = useState(false);
@@ -77,6 +80,11 @@ export function Profile() {
         if (is404(err)) setNotFound(true);
         setStats(null);
       });
+    // Read by the PATH npub, never the viewer's session (ADR 0020).
+    api.profile
+      .claimedBooks(npub)
+      .then((r) => !cancelled && setClaimedBooks(r.books))
+      .catch(() => !cancelled && setClaimedBooks([]));
     return () => {
       cancelled = true;
     };
@@ -118,6 +126,13 @@ export function Profile() {
       </header>
 
       {cells.length > 0 && <ProfileStats stats={cells} />}
+
+      {claimedBooks.length > 0 && (
+        <section className="me-activity">
+          <h2 className="me-activity-title">Books by this author</h2>
+          <BookGrid books={claimedBooks.map(toCardBook)} />
+        </section>
+      )}
 
       <section className="me-activity">
         <h2 className="me-activity-title">Shelves</h2>

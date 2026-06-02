@@ -115,6 +115,12 @@ export type PublicBook = {
   format: string;
 };
 
+// A book's author claimant (Story 31 / ADR 0032). npub only — the hex pubkey
+// never crosses the wire. Resolved to a display name client-side via useProfileMeta.
+export type BookClaimant = {
+  npub: string;
+};
+
 export type TagConsensus = {
   slug: string;
   name: string;
@@ -313,9 +319,32 @@ export const api = {
       );
     },
   },
+  // Author claiming (Story 31 / ADR 0032). Both tiers reuse the shipped
+  // template→sign→submit (sovereign) / server-signed (custodial) paths — no new
+  // crypto. The librarian secret is never involved; the author signs their claim.
+  claims: {
+    template(input: { bookSlug: string }) {
+      return authFetch<{ template: NostrEventTemplate }>("/api/claims/template", {
+        method: "POST",
+        body: JSON.stringify(input),
+      });
+    },
+    submit(event: SignedEvent) {
+      return authFetch<{ claimed: boolean; claimants: BookClaimant[] }>("/api/claims", {
+        method: "POST",
+        body: JSON.stringify({ event }),
+      });
+    },
+    submitCustodial(input: { bookSlug: string }) {
+      return authFetch<{ claimed: boolean; claimants: BookClaimant[] }>("/api/claims", {
+        method: "POST",
+        body: JSON.stringify(input),
+      });
+    },
+  },
   books: {
     get(slug: string) {
-      return authFetch<{ book: PublicBook }>(
+      return authFetch<{ book: PublicBook; claimants: BookClaimant[] }>(
         `/api/books/${encodeURIComponent(slug)}`,
       );
     },
@@ -478,6 +507,13 @@ export const api = {
     followStatus(target: string) {
       return authFetch<{ following: boolean }>(
         `/api/profile/follows/${encodeURIComponent(target)}`,
+      );
+    },
+    // "Books by this author" (Story 31 / ADR 0032): the catalog books the PATH
+    // npub has claimed, hydrated to PublicBooks. Empty when none (section absent).
+    claimedBooks(npub: string) {
+      return authFetch<{ books: PublicBook[] }>(
+        `/api/profile/${encodeURIComponent(npub)}/claimed-books`,
       );
     },
   },

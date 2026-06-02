@@ -1,0 +1,23 @@
+.author-badge {
+  margin: 2px 0 0;
+  font-size: 13px;
+  color: var(--u-muted);
+}
+
+.author-badge-label {
+  color: var(--u-muted);
+}
+
+.author-badge-link {
+  color: var(--u-ink);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.author-badge-link:hover {
+  text-decoration: underline;
+}
+
+.author-badge-more {
+  color: var(--u-muted);
+}

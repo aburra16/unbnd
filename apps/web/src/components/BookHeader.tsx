@@ -1,5 +1,6 @@
 import { GenrePill } from "./Pill";
-import type { PublicBook, TagConsensus } from "../lib/api";
+import { AuthorBadge } from "./AuthorBadge";
+import type { BookClaimant, PublicBook, TagConsensus } from "../lib/api";
 import { coverGradient } from "../lib/view-model";
 import "./BookHeader.css";
 
@@ -9,9 +10,11 @@ type Props = {
   styles: TagConsensus[];
   /** Section state from the tags read (ADR 0025): trusted vs community consensus. */
   weighted?: boolean;
+  /** Author claim set (Story 31 / ADR 0032). Optional — absent → no badge. */
+  claimants?: BookClaimant[];
 };
 
-export function BookHeader({ book, genres, styles, weighted }: Props) {
+export function BookHeader({ book, genres, styles, weighted, claimants }: Props) {
   const g = coverGradient(book.slug);
   const chips = [...genres, ...styles];
   return (
@@ -33,6 +36,7 @@ export function BookHeader({ book, genres, styles, weighted }: Props) {
       <div className="bh-info">
         <h1 className="bh-title">{book.title}</h1>
         <p className="bh-author">by {book.authorName}</p>
+        <AuthorBadge claimants={claimants ?? []} />
         <div className="bh-meta">
           {book.publishYear !== undefined && <span>{book.publishYear}</span>}
           {book.pageCount !== undefined && <span>{book.pageCount} pages</span>}

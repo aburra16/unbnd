@@ -102,7 +102,7 @@ describe("GET /api/profile/:npub/claimed-books — by-author read (AC-6)", () =>
   });
 
   it("reads the claims author-scoped to the PATH npub (not a session)", async () => {
-    const queryPaged = vi.fn(async () => ({ events: [claimEvent("ol-a", AUTHOR_HEX)], capped: false }));
+    const queryPaged = vi.fn(async (_filter: Record<string, unknown>) => ({ events: [claimEvent("ol-a", AUTHOR_HEX)], capped: false }));
     const query = vi.fn(async () => [bookEvent("ol-a", "Alpha")]);
     const { app } = makeApp({ queryPaged, query });
     await request(app).get(`/api/profile/${AUTHOR_NPUB}/claimed-books`);

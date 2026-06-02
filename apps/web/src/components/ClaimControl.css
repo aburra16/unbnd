@@ -1,0 +1,37 @@
+.claim {
+  margin: 18px 0;
+}
+
+.claim-btn {
+  appearance: none;
+  border: 1px solid var(--u-line, #d8d4cc);
+  background: var(--u-surface, #fff);
+  color: var(--u-ink);
+  font: inherit;
+  font-weight: 600;
+  font-size: 14px;
+  padding: 9px 16px;
+  border-radius: 7px;
+  cursor: pointer;
+}
+
+.claim-btn:hover:not(:disabled) {
+  border-color: var(--u-ink);
+}
+
+.claim-btn:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.claim-ok {
+  margin: 0;
+  font-size: 14px;
+  color: var(--u-ink);
+}
+
+.claim-error {
+  margin: 8px 0 0;
+  font-size: 13px;
+  color: var(--u-amber);
+}
