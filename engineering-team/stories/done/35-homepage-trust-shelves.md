@@ -1,6 +1,6 @@
 # Story 35: Homepage trust shelves (Block D — the §2.9 SHELVES half)
 
-**Status:** Draft
+**Status:** Done
 **Created:** 2026-06-02
 **Type:** Feature
 
@@ -378,5 +378,5 @@ Resolve before approving the story (PO recommendations in Flags below).
   seam + `weightedRatings`/`dedupeRatings`, so the shelves/For-You workers reuse apps/api's
   trust-weighting via a workspace package, not a cross-app source import; landed via a re-export shim,
   with the ADR-0014 guard relocated to `packages/trust/test/architecture.test.ts`).
-- Test plan: `engineering-team/stories/35-homepage-trust-shelves.test-plan.md`
+- Test plan: `engineering-team/stories/done/35-homepage-trust-shelves.test-plan.md`
 - Review: (filled in after Review phase)

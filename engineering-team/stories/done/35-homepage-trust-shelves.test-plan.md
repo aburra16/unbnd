@@ -1,6 +1,6 @@
 # Test Plan: Story 35 — Homepage trust shelves
 
-**Story:** `engineering-team/stories/35-homepage-trust-shelves.md`
+**Story:** `engineering-team/stories/done/35-homepage-trust-shelves.md`
 **ADR:** `engineering-team/decisions/0036-homepage-trust-shelves.md`
 **Date:** 2026-06-02
 

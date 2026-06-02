@@ -1,8 +1,8 @@
 # ADR 0036: Homepage trust shelves — least-privilege scheduled worker + Postgres cache, honest non-trust fallback
 
-**Status:** Proposed
+**Status:** Accepted
 **Date:** 2026-06-02
-**Story:** `engineering-team/stories/35-homepage-trust-shelves.md`
+**Story:** `engineering-team/stories/done/35-homepage-trust-shelves.md`
 **Amended:** 2026-06-02 — extract `@unbnd/trust` shared package (see "Amendment 2026-06-02" below).
 
 ## Context

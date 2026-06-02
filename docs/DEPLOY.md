@@ -193,6 +193,28 @@ so re-running, or a reveal → withdraw → reveal flip, keeps one row with the
 latest intent winning. The canonical curator assertions are never rewritten;
 visibility is composed at read time.
 
+## Homepage trust shelves (Story 35 / ADR 0036)
+
+The `shelves` worker computes the homepage trust shelves (Trending, Community
+Favorites, genre rows) from the house observer's trust-weighted ratings and
+atomically replaces the `homepage_shelves` Postgres cache the API serves at
+`GET /api/homepage/shelves`. **Least-privilege: it holds NO `LIBRARIAN_NSEC`** —
+it reads the relay, computes, and caches; it signs nothing. Like the other
+profile jobs it never starts with the normal stack.
+
+1. The shelf knobs default sensibly (`SHELF_TRENDING_WINDOW_DAYS=7`,
+   `SHELF_FAVORITES_MIN_RATINGS=3`, `SHELF_GENRE_COUNT=5`, `SHELF_BOOKS_PER_ROW=10`);
+   override in `/opt/unbnd/.env` if desired. The worker uses the same house
+   observer as the API (default nosfabrica; `HOUSE_OBSERVER_PUBKEY` to override).
+2. Fire it periodically with a crontab entry (mirroring up-sync), hourly:
+   ```
+   0 * * * * cd /opt/unbnd && UNBND_IMAGE_TAG=$(git -C /opt/unbnd rev-parse HEAD) docker compose -f docker-compose.prod.yml --profile shelves run --rm shelves >> /var/log/unbnd-shelves.log 2>&1
+   ```
+   The replace is atomic per refresh; a failed run leaves the previous good cache
+   intact. On the thin interim graph every trust shelf is empty (honest empty) —
+   the homepage falls back to the labeled non-trust "Recently added" / "Explore
+   genres" sections — until the trust graph fills in.
+
 ## Rollback
 
 Pin the app services to a previous image tag (CI tags every image with its
