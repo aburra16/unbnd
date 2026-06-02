@@ -33,9 +33,25 @@ vi.mock("../src/lib/api", async (orig) => {
         book: (...a: unknown[]) => tagsBook(...a),
         list: (...a: unknown[]) => tagsList(...a),
       },
+      // MIGRATED for Story 31 / ADR 0032: BookDetail wires a claim action via
+      // api.claims.*; keep the methods on the mocked api so the import resolves.
+      // This test settles signed-out (auth.me rejects), so no claim is invoked.
+      claims: {
+        template: vi.fn(),
+        submit: vi.fn(),
+        submitCustodial: vi.fn(),
+      },
     },
   };
 });
+
+// MIGRATED for Story 31: BookDetail renders <AuthorBadge>, which resolves names
+// via useProfileMeta. Stub it so the badge can render with no claimants (the
+// trust-view assertions below are unchanged).
+vi.mock("../src/hooks/useProfileMeta", () => ({
+  useProfileMeta: () => null,
+  displayNameOf: (_meta: unknown, fallback: string) => fallback,
+}));
 
 const YOURS_NPUB = "npub1yourstrustedvantage000000000000000000000000000000000000000";
 
@@ -70,7 +86,9 @@ const TAGS: BookTags = { genres: [], styles: [], signals: [], weighted: false };
 import { BookDetail } from "../src/routes/BookDetail";
 
 beforeEach(() => {
-  booksGet.mockReset().mockResolvedValue({ book: ORBITAL });
+  // MIGRATED for Story 31 / ADR 0032 §2a: the book read now returns
+  // `{ book, claimants }`. Typed to the new shape so a dropped `claimants` fails.
+  booksGet.mockReset().mockResolvedValue({ book: ORBITAL, claimants: [] });
   tagsBook.mockReset().mockResolvedValue(TAGS);
   tagsList.mockReset().mockResolvedValue({ tags: [] });
   useBookRatingsMock.mockReset().mockReturnValue({

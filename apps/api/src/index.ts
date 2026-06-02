@@ -19,6 +19,8 @@ import { buildSearchRouter } from "./routes/search";
 import { buildTrustRouter } from "./routes/trust";
 import { buildHealthRouter } from "./routes/health";
 import { buildRatingsRouter } from "./routes/ratings";
+import { buildClaimsRouter } from "./routes/claims";
+import { buildProfileClaimsRouter } from "./routes/profile-claims";
 import { buildTagsRouter } from "./routes/tags";
 import { buildShelvesRouter } from "./routes/shelves";
 import { buildSubmissionsRouter } from "./routes/submissions";
@@ -436,6 +438,15 @@ async function main() {
     }),
   );
   app.use("/", buildRatingsRouter(userEventDeps));
+  app.use("/", buildClaimsRouter(userEventDeps));
+  app.use(
+    "/",
+    buildProfileClaimsRouter({
+      config,
+      query: userEventDeps.query,
+      queryPaged: userEventDeps.queryPaged,
+    }),
+  );
   app.use("/", buildTagsRouter(userEventDeps));
   app.use("/", buildShelvesRouter(userEventDeps));
   app.use(

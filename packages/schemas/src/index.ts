@@ -6,4 +6,5 @@ export * from "./BookGenre";
 export * from "./BookRating";
 export * from "./BookTag";
 export * from "./BookTagAssertion";
+export * from "./BookClaim";
 export * from "./BookShelf";

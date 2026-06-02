@@ -8,6 +8,7 @@ import { RatingsPanel } from "../components/RatingsPanel";
 import { RatingControl } from "../components/RatingControl";
 import { TagControl } from "../components/TagControl";
 import { ShelfControl } from "../components/ShelfControl";
+import { ClaimControl } from "../components/ClaimControl";
 import { WhereToRead } from "../components/WhereToRead";
 import { useTrustView } from "../hooks/useTrustView";
 import { useBookRatings } from "../hooks/useBookRatings";
@@ -15,6 +16,7 @@ import { NotFound } from "./NotFound";
 import {
   api,
   ApiError,
+  type BookClaimant,
   type BookTags,
   type PublicBook,
 } from "../lib/api";
@@ -27,6 +29,7 @@ type State =
       status: "ready";
       book: PublicBook;
       tags: BookTags;
+      claimants: BookClaimant[];
     };
 
 const EMPTY_TAGS: BookTags = { genres: [], styles: [], signals: [], weighted: false };
@@ -48,10 +51,10 @@ export function BookDetail() {
     setState({ status: "loading" });
     (async () => {
       try {
-        const { book } = await api.books.get(slug);
+        const { book, claimants } = await api.books.get(slug);
         // Tags are best-effort; ratings load inside RatingsPanel.
         const tags = await api.tags.book(slug, observer).catch(() => EMPTY_TAGS);
-        if (!cancelled) setState({ status: "ready", book, tags });
+        if (!cancelled) setState({ status: "ready", book, tags, claimants: claimants ?? [] });
       } catch (err) {
         if (cancelled) return;
         if (err instanceof ApiError && err.status === 404) {
@@ -106,8 +109,13 @@ export function BookDetail() {
     );
   }
 
-  const { book, tags } = state;
+  const { book, tags, claimants } = state;
   const primaryGenre = tags.genres[0];
+
+  const onClaimed = (next: BookClaimant[]) =>
+    setState((prev) =>
+      prev.status === "ready" ? { ...prev, claimants: next } : prev,
+    );
 
   return (
     <div className="page">
@@ -121,7 +129,14 @@ export function BookDetail() {
           { label: book.title },
         ]}
       />
-      <BookHeader book={book} genres={tags.genres} styles={tags.styles} weighted={tags.weighted} />
+      <BookHeader
+        book={book}
+        genres={tags.genres}
+        styles={tags.styles}
+        weighted={tags.weighted}
+        claimants={claimants}
+      />
+      {slug && <ClaimControl bookSlug={slug} onClaimed={onClaimed} />}
       {slug && (
         <RatingsPanel
           slug={slug}

@@ -281,7 +281,7 @@ export function Submit() {
           checked={isAuthor}
           onChange={setIsAuthor}
           label="I am the author of this book"
-          description="Adds the Author Verified badge and grants edit access to the metadata. The community can flag claims that look suspect."
+          description="Marks this submission as a self-claim of authorship. It signals you wrote the book; it is not a vetted credential."
         />
 
         <div className="sub-submit-area">

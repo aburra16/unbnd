@@ -7,6 +7,7 @@ import { Navigate, useLocation, Link } from "react-router-dom";
 import {
   api,
   type ProfileStatsResponse,
+  type PublicBook,
   type Shelf,
   type SubmittedBook,
 } from "../lib/api";
@@ -48,10 +49,13 @@ export function ProfileMe() {
   const [submissions, setSubmissions] = useState<SubmittedBook[] | null>(null);
   const [shelves, setShelves] = useState<Shelf[] | null>(null);
   const [stats, setStats] = useState<ProfileStatsResponse | null>(null);
+  // Story 31 / ADR 0032: the user's own claimed catalog books. Absent when empty.
+  const [claimedBooks, setClaimedBooks] = useState<PublicBook[]>([]);
 
   useEffect(() => {
     if (session.status !== "signed-in") return;
     let cancelled = false;
+    const ownNpub = session.user.npub;
     api.submissions
       .mine()
       .then((r) => !cancelled && setSubmissions(r.submissions))
@@ -64,6 +68,11 @@ export function ProfileMe() {
       .meStats()
       .then((r) => !cancelled && setStats(r.stats))
       .catch(() => !cancelled && setStats(null));
+    // Read by the OWN npub (the path/own rule, ADR 0020).
+    api.profile
+      .claimedBooks(ownNpub)
+      .then((r) => !cancelled && setClaimedBooks(r.books))
+      .catch(() => !cancelled && setClaimedBooks([]));
     return () => {
       cancelled = true;
     };
@@ -132,6 +141,13 @@ export function ProfileMe() {
       </header>
 
       {statCells(stats).length > 0 && <ProfileStats stats={statCells(stats)} />}
+
+      {claimedBooks.length > 0 && (
+        <section className="me-activity">
+          <h2 className="me-activity-title">Books by this author</h2>
+          <BookGrid books={claimedBooks.map(toCardBook)} />
+        </section>
+      )}
 
       <section className="me-activity" id="shelves">
         <h2 className="me-activity-title">Your shelves</h2>

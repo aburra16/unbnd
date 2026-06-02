@@ -55,6 +55,10 @@ vi.mock("../../src/lib/api", () => ({
       // FollowButton's status read (signed-out never calls it, but the method
       // must exist on the mocked api so the import resolves).
       followStatus: (...a: unknown[]) => followStatusMock(...a),
+      // MIGRATED for Story 31 / ADR 0032: Profile reads the by-author claimed
+      // books; mock it empty so the new "Books by this author" section is absent
+      // (these Story-20 identity/shelves assertions are unchanged).
+      claimedBooks: vi.fn().mockResolvedValue({ books: [] }),
     },
   },
 }));

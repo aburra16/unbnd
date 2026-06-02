@@ -10,6 +10,7 @@ import {
 } from "@unbnd/schemas";
 import type { Config } from "../config";
 import type { NostrFilter } from "../nostr/query";
+import { projectClaimants } from "../claims/claimants";
 
 const KIND = 39999;
 const DEFAULT_RECENT = 24;
@@ -68,18 +69,27 @@ export function buildBooksRouter(deps: BooksDeps): Router {
   const router = express.Router();
   const lib = () => deps.config.librarianPubkey;
   const booksConcept = () => `39998:${lib()}:books`;
+  const claimsConcept = () => `39998:${lib()}:book-claims`;
+  const bookAtag = (slug: string) => `${KIND}:${lib()}:${slug}`;
 
   router.get("/api/books/:slug", async (req, res, next) => {
     try {
       if (!lib()) {
         return void res.status(503).json({ error: { code: "feature_unavailable", message: "Catalog not configured." } });
       }
-      const events = await deps.query({ kinds: [KIND], "#z": [booksConcept()], "#d": [req.params.slug] });
-      const book = events.map(parseBook).find((b): b is PublicBook => b !== null);
+      // The book read and the sibling claims read run in parallel (ADR 0032 §2a).
+      // This `{ book, claimants }` assembly is also the Story-32 read-merge seam:
+      // today a pass-through (effectiveBook === canonical, no overlay exists).
+      const [bookEvents, claimEvents] = await Promise.all([
+        deps.query({ kinds: [KIND], "#z": [booksConcept()], "#d": [req.params.slug] }),
+        deps.query({ kinds: [KIND], "#z": [claimsConcept()], "#a": [bookAtag(req.params.slug)] }),
+      ]);
+      const book = bookEvents.map(parseBook).find((b): b is PublicBook => b !== null);
       if (!book) {
         return void res.status(404).json({ error: { code: "not_found", message: "No such book." } });
       }
-      res.status(200).json({ book });
+      const claimants = projectClaimants(claimEvents);
+      res.status(200).json({ book, claimants });
     } catch (err) {
       next(err);
     }

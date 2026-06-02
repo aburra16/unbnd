@@ -31,7 +31,7 @@ vi.mock("../../src/lib/api", () => ({
   api: {
     submissions: { mine: (...a: unknown[]) => submissionsMineMock(...a) },
     shelves: { mine: (...a: unknown[]) => shelvesMineMock(...a) },
-    profile: { meStats: (...a: unknown[]) => meStatsMock(...a) },
+    profile: { meStats: (...a: unknown[]) => meStatsMock(...a), claimedBooks: vi.fn().mockResolvedValue({ books: [] }) },
   },
 }));
 
