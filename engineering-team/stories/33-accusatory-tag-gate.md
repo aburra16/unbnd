@@ -385,5 +385,5 @@ Resolve before approving the story (PO recommendations in Flags below).
   hand-rolled crypto), `memory/feedback_unbnd_copy_and_visual.md` (no-slop copy/visual rule).
 - ADR for this story: `engineering-team/decisions/0034-accusatory-tag-gate.md` (filled in after
   Architecture phase; must document the defamation/moderation rationale per §2.8).
-- Test plan: (filled in after Test Design phase)
+- Test plan: `engineering-team/stories/33-accusatory-tag-gate.test-plan.md`
 - Review: (filled in after Review phase)
