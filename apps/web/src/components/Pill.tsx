@@ -30,20 +30,3 @@ export function GenrePill({ label, color, count, community }: GenrePillProps) {
     </span>
   );
 }
-
-type SignalPillProps = {
-  label: string;
-  tone: "positive" | "negative" | "sovereign" | "amber";
-};
-
-export function SignalPill({ label, tone }: SignalPillProps) {
-  return <span className={`pill pill-${tone}`}>{label}</span>;
-}
-
-type TrustBadgeProps = {
-  label: string;
-};
-
-export function TrustBadge({ label }: TrustBadgeProps) {
-  return <span className="pill pill-trust">{label}</span>;
-}
