@@ -11,6 +11,7 @@ import { probeTapestry } from "./probes/tapestry";
 import { buildAuthRouter } from "./routes/auth";
 import { buildBooksRouter } from "./routes/books";
 import { buildHomepageShelvesRouter } from "./routes/homepage-shelves";
+import { buildForYouRouter } from "./routes/foryou";
 import { buildProfileRouter } from "./routes/profile";
 import { buildProfileStatsRouter } from "./routes/profile-stats";
 import { buildProfileSubstackRouter } from "./routes/profile-substack";
@@ -388,6 +389,18 @@ async function main() {
       config,
       query: userEventDeps.query,
       readShelfCache,
+    }),
+  );
+  // For-You personalized shelf (Story 36 / ADR 0037). Read-time, per-request,
+  // from the signed-in user's OWN vantage — NEVER from the house cache. Always 200.
+  app.use(
+    "/",
+    buildForYouRouter({
+      config,
+      sessionUser: resolveSessionUser,
+      query: userEventDeps.query,
+      queryPaged: userEventDeps.queryPaged,
+      trust,
     }),
   );
   app.use("/", buildProfileRouter({ config }));

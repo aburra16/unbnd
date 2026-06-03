@@ -88,6 +88,36 @@ export type Config = {
    * here only so partial test fixtures need not set it (mirrors `curatorThreshold`).
    */
   readonly searchTrustBlend?: number;
+  /**
+   * The For-You "highly rated" bar (Story 36 / ADR 0037 §7). A book qualifies for
+   * a user's For-You shelf only when its trust-weighted average from the user's own
+   * vantage is at/above this value. Env `FORYOU_MIN_AVG`, validated finite in [1,5]
+   * (the rating scale), default 4.0 (a high, honest "highly rated" bar). Always set
+   * by `loadConfig`; optional here only so partial test fixtures need not set it
+   * (mirrors `searchTrustBlend`).
+   */
+  readonly foryouMinAvg?: number;
+  /**
+   * The For-You minimum trusted-rating count (Story 36 / ADR 0037 §7). A book
+   * qualifies only when at least this many raters carry positive weight in the
+   * user's graph, so a lone trusted 5-star never qualifies. Env `FORYOU_MIN_RATINGS`,
+   * validated as an integer ≥ 1, default 2 (mirrors `SHELF_FAVORITES_MIN_RATINGS`
+   * from the user's sparser vantage). Always set by `loadConfig`; optional here.
+   */
+  readonly foryouMinRatings?: number;
+  /**
+   * The For-You row length (Story 36 / ADR 0037 §7). Caps the shelf at this many
+   * books. Env `FORYOU_BOOKS`, validated as an integer ≥ 1, default 12 (one Shelf
+   * row). Always set by `loadConfig`; optional here.
+   */
+  readonly foryouBooks?: number;
+  /**
+   * The For-You candidate-rater cap (Story 36 / ADR 0037 §7). Bounds the single
+   * batched `weights` array so the read stays O(bounded) on a future dense graph.
+   * Env `FORYOU_CANDIDATE_RATERS`, validated as an integer ≥ 1, default 2000 (a
+   * no-op on today's thin graph). Always set by `loadConfig`; optional here.
+   */
+  readonly foryouCandidateRaters?: number;
 };
 
 const DEFAULT_TRUST_RELAYS = [
@@ -187,6 +217,50 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
   if (!Number.isFinite(searchTrustBlend) || searchTrustBlend < 0 || searchTrustBlend > 1) {
     throw new Error(
       `config: SEARCH_TRUST_BLEND must be a number in [0,1]; got ${JSON.stringify(searchTrustBlendRaw)}`,
+    );
+  }
+
+  // For-You "highly rated" bar (ADR 0037 §7). Finite, in [1,5]; default 4.0.
+  const foryouMinAvgRaw = withDefault(env, "FORYOU_MIN_AVG", "4.0");
+  const foryouMinAvg = Number(foryouMinAvgRaw);
+  if (!Number.isFinite(foryouMinAvg) || foryouMinAvg < 1 || foryouMinAvg > 5) {
+    throw new Error(
+      `config: FORYOU_MIN_AVG must be a number in [1,5]; got ${JSON.stringify(foryouMinAvgRaw)}`,
+    );
+  }
+
+  // For-You minimum trusted-rating count (ADR 0037 §7). Integer ≥ 1; default 2.
+  const foryouMinRatingsRaw = withDefault(env, "FORYOU_MIN_RATINGS", "2");
+  const foryouMinRatings = Number(foryouMinRatingsRaw);
+  if (
+    !Number.isFinite(foryouMinRatings) ||
+    foryouMinRatings < 1 ||
+    !Number.isInteger(foryouMinRatings)
+  ) {
+    throw new Error(
+      `config: FORYOU_MIN_RATINGS must be a positive integer ≥ 1; got ${JSON.stringify(foryouMinRatingsRaw)}`,
+    );
+  }
+
+  // For-You row length (ADR 0037 §7). Integer ≥ 1; default 12.
+  const foryouBooksRaw = withDefault(env, "FORYOU_BOOKS", "12");
+  const foryouBooks = Number(foryouBooksRaw);
+  if (!Number.isFinite(foryouBooks) || foryouBooks < 1 || !Number.isInteger(foryouBooks)) {
+    throw new Error(
+      `config: FORYOU_BOOKS must be a positive integer ≥ 1; got ${JSON.stringify(foryouBooksRaw)}`,
+    );
+  }
+
+  // For-You candidate-rater cap (ADR 0037 §7). Integer ≥ 1; default 2000.
+  const foryouCandidateRatersRaw = withDefault(env, "FORYOU_CANDIDATE_RATERS", "2000");
+  const foryouCandidateRaters = Number(foryouCandidateRatersRaw);
+  if (
+    !Number.isFinite(foryouCandidateRaters) ||
+    foryouCandidateRaters < 1 ||
+    !Number.isInteger(foryouCandidateRaters)
+  ) {
+    throw new Error(
+      `config: FORYOU_CANDIDATE_RATERS must be a positive integer ≥ 1; got ${JSON.stringify(foryouCandidateRatersRaw)}`,
     );
   }
 
@@ -294,6 +368,10 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
     curatorThreshold,
     verifiedAuthorMinCurators,
     searchTrustBlend,
+    foryouMinAvg,
+    foryouMinRatings,
+    foryouBooks,
+    foryouCandidateRaters,
     neo4jBoltUrl: withDefault(env, "NEO4J_BOLT_URL", "bolt://localhost:7687"),
     neo4jUser: withDefault(env, "NEO4J_USER", "neo4j"),
     neo4jPassword,
