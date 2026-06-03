@@ -25,15 +25,15 @@
   border: 1px solid var(--u-ink-tint-12);
   border-radius: 10px;
   box-shadow: 0 10px 30px var(--u-ink-tint-16);
-  padding: 6px;
+  padding: var(--u-space-6);
   z-index: 50;
 }
 
 .acct-id {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 8px;
+  gap: var(--u-space-10);
+  padding: var(--u-space-8);
   border-radius: 7px;
   color: inherit;
   text-decoration: none;
@@ -64,7 +64,7 @@
 .acct-item {
   display: block;
   width: 100%;
-  padding: 9px 10px;
+  padding: var(--u-space-9) var(--u-space-10);
   border-radius: 7px;
   font-size: var(--u-font-size-13);
   color: var(--u-ink);
@@ -77,13 +77,13 @@
 
 .acct-menu hr,
 .acct-signout {
-  margin-top: 4px;
+  margin-top: var(--u-space-4);
 }
 
 .acct-signout {
   width: 100%;
   text-align: left;
-  padding: 9px 10px;
+  padding: var(--u-space-9) var(--u-space-10);
   border: none;
   background: none;
   border-radius: 7px;

@@ -1,6 +1,6 @@
 .tagc {
-  margin: 24px 0;
-  padding: 18px 20px;
+  margin: var(--u-space-24) 0;
+  padding: var(--u-space-18) var(--u-space-20);
   border: 1px solid var(--u-border);
   border-radius: 8px;
   background: var(--u-surface);
@@ -10,13 +10,13 @@
   font-size: var(--u-font-size-15);
   font-weight: var(--u-font-weight-semibold);
   color: var(--u-ink);
-  margin-bottom: 12px;
+  margin-bottom: var(--u-space-12);
 }
 
 .tagc-empty {
   font-size: var(--u-font-size-13);
   color: var(--u-muted);
-  margin-bottom: 12px;
+  margin-bottom: var(--u-space-12);
 }
 
 .tagc-consensus {
@@ -25,14 +25,14 @@
   letter-spacing: var(--u-tracking-p04em);
   text-transform: uppercase;
   color: var(--u-muted);
-  margin-bottom: 8px;
+  margin-bottom: var(--u-space-8);
 }
 
 .tagc-chips {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px;
-  margin-bottom: 14px;
+  gap: var(--u-space-6);
+  margin-bottom: var(--u-space-14);
 }
 
 .tagc-gate {
@@ -48,7 +48,7 @@
 .tagc-form {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: var(--u-space-10);
 }
 
 .tagc-label {
@@ -58,7 +58,7 @@
 
 .tagc-select {
   font-size: var(--u-font-size-14);
-  padding: 8px 10px;
+  padding: var(--u-space-8) var(--u-space-10);
   border: 1px solid var(--u-ink-tint-18);
   border-radius: 6px;
   background: var(--u-surface-card);
@@ -68,14 +68,14 @@
 
 .tagc-actions {
   display: flex;
-  gap: 8px;
+  gap: var(--u-space-8);
 }
 
 .tagc-apply,
 .tagc-dispute {
   font-size: var(--u-font-size-13);
   font-weight: var(--u-font-weight-medium);
-  padding: 8px 16px;
+  padding: var(--u-space-8) var(--u-space-16);
   border-radius: 6px;
   cursor: pointer;
   border: 1px solid transparent;
@@ -113,14 +113,14 @@
 .tagc-reviewed {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  margin-bottom: 14px;
+  gap: var(--u-space-8);
+  margin-bottom: var(--u-space-14);
 }
 
 .tagc-reviewed-row {
   display: flex;
   align-items: baseline;
-  gap: 8px;
+  gap: var(--u-space-8);
   flex-wrap: wrap;
 }
 
@@ -130,7 +130,7 @@
   color: var(--signal-negative);
   border: 1px solid var(--signal-negative);
   border-radius: var(--u-radius, 8px);
-  padding: 2px 8px;
+  padding: var(--u-space-2) var(--u-space-8);
 }
 
 .tagc-reviewed-note {

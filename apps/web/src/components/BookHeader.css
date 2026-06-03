@@ -1,5 +1,5 @@
 .bh-attribution {
-  margin: 2px 0 0;
+  margin: var(--u-space-2) 0 0;
   font-size: var(--u-font-size-12);
   font-style: italic;
   color: var(--u-muted);
@@ -7,8 +7,8 @@
 
 .bh {
   display: flex;
-  gap: 28px;
-  margin-bottom: 28px;
+  gap: var(--u-space-28);
+  margin-bottom: var(--u-space-28);
 }
 
 .bh-cover {
@@ -18,7 +18,7 @@
   border-radius: 5px;
   display: flex;
   align-items: flex-end;
-  padding: 14px;
+  padding: var(--u-space-14);
   box-shadow: 0 6px 22px var(--u-ink-tint-13);
 }
 
@@ -51,14 +51,14 @@
   font-weight: var(--u-font-weight-semibold);
   letter-spacing: var(--u-tracking-n60);
   line-height: var(--u-leading-120);
-  margin-bottom: 6px;
+  margin-bottom: var(--u-space-6);
   color: var(--u-ink);
 }
 
 .bh-author {
   font-size: var(--u-font-size-14);
   color: var(--u-muted);
-  margin-bottom: 14px;
+  margin-bottom: var(--u-space-14);
 }
 
 .bh-author a {
@@ -74,10 +74,10 @@
 .bh-meta {
   display: flex;
   flex-wrap: wrap;
-  gap: 16px;
+  gap: var(--u-space-16);
   font-size: var(--u-font-size-12);
   color: var(--u-muted);
-  margin-bottom: 14px;
+  margin-bottom: var(--u-space-14);
 }
 
 .bh-meta-isbn {
@@ -88,21 +88,21 @@
 .bh-tags {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px;
-  margin-bottom: 12px;
+  gap: var(--u-space-6);
+  margin-bottom: var(--u-space-12);
 }
 
 .bh-blurb {
   font-size: var(--u-font-size-14);
   line-height: var(--u-leading-170);
   color: var(--u-ink-tint-74);
-  margin-top: 8px;
+  margin-top: var(--u-space-8);
 }
 
 @media (max-width: 620px) {
   .bh {
     flex-direction: column;
-    gap: 22px;
+    gap: var(--u-space-22);
   }
   .bh-cover {
     width: 130px;

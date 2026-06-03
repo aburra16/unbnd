@@ -1,12 +1,12 @@
 .reviews {
-  margin-bottom: 36px;
+  margin-bottom: var(--u-space-36);
 }
 
 .reviews-head {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
-  margin-bottom: 12px;
+  margin-bottom: var(--u-space-12);
 }
 
 .reviews-title {
@@ -28,12 +28,12 @@
 }
 
 .review {
-  padding: 18px 0;
+  padding: var(--u-space-18) 0;
   border-bottom: 1px solid var(--u-border);
 }
 
 .review:first-child {
-  padding-top: 4px;
+  padding-top: var(--u-space-4);
 }
 
 .review:last-child {
@@ -43,8 +43,8 @@
 .review-head {
   display: flex;
   align-items: center;
-  gap: 12px;
-  margin-bottom: 10px;
+  gap: var(--u-space-12);
+  margin-bottom: var(--u-space-10);
 }
 
 .review-avatar {
@@ -78,8 +78,8 @@ a.review-name:hover {
 .review-sub {
   display: flex;
   align-items: center;
-  gap: 10px;
-  margin-top: 3px;
+  gap: var(--u-space-10);
+  margin-top: var(--u-space-3);
   flex-wrap: wrap;
 }
 
@@ -102,8 +102,8 @@ a.review-name:hover {
 
 .review-foot {
   display: flex;
-  gap: 16px;
-  margin-top: 10px;
+  gap: var(--u-space-16);
+  margin-top: var(--u-space-10);
 }
 
 .review-action {

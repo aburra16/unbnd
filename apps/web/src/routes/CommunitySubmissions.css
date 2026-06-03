@@ -1,5 +1,5 @@
 .cs-head {
-  margin: 8px 0 20px;
+  margin: var(--u-space-8) 0 var(--u-space-20);
 }
 
 .cs-title {
@@ -7,7 +7,7 @@
   font-weight: var(--u-font-weight-semibold);
   letter-spacing: var(--u-tracking-n60);
   color: var(--u-ink);
-  margin-bottom: 6px;
+  margin-bottom: var(--u-space-6);
 }
 
 .cs-sub {
@@ -21,14 +21,14 @@
   list-style: none;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: var(--u-space-8);
 }
 
 .cs-item {
   display: flex;
   flex-direction: column;
-  gap: 2px;
-  padding: 12px 14px;
+  gap: var(--u-space-2);
+  padding: var(--u-space-12) var(--u-space-14);
   border: 1px solid var(--u-border);
   border-radius: 10px;
 }
@@ -58,8 +58,8 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
-  margin-top: 6px;
+  gap: var(--u-space-12);
+  margin-top: var(--u-space-6);
 }
 
 .cs-item-signal {
@@ -84,7 +84,7 @@
   background: transparent;
   border: 1px solid var(--u-border);
   border-radius: 8px;
-  padding: 5px 12px;
+  padding: var(--u-space-5) var(--u-space-12);
   cursor: pointer;
 }
 

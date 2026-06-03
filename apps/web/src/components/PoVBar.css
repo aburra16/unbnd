@@ -1,14 +1,14 @@
 .pov {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 12px 18px;
+  gap: var(--u-space-8);
+  padding: var(--u-space-12) var(--u-space-18);
   border-radius: 12px;
   border: 1px solid var(--u-border);
   background: var(--u-ink-tint-02);
   font-size: var(--u-font-size-13);
   color: var(--u-muted);
-  margin-bottom: 36px;
+  margin-bottom: var(--u-space-36);
 }
 
 .pov-lead,
@@ -37,12 +37,12 @@
   margin-left: auto;
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: var(--u-space-10);
 }
 
 .pov-btn {
   font-size: var(--u-font-size-11);
-  padding: 5px 12px;
+  padding: var(--u-space-5) var(--u-space-12);
   border-radius: var(--u-radius);
   border: 1px solid var(--u-border-hover);
   background: transparent;
@@ -65,7 +65,7 @@
 .pov-progress {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--u-space-8);
 }
 
 .pov-progress-label {
@@ -92,7 +92,7 @@
 .pov-badge {
   font-size: var(--u-font-size-10);
   letter-spacing: var(--u-tracking-p40);
-  padding: 2px 8px;
+  padding: var(--u-space-2) var(--u-space-8);
   border-radius: 20px;
   background: var(--u-green-tint-10);
   color: var(--signal-positive);
@@ -102,8 +102,8 @@
 
 .pov-switcher {
   display: inline-flex;
-  gap: 2px;
-  padding: 3px;
+  gap: var(--u-space-2);
+  padding: var(--u-space-3);
   border-radius: 9px;
   background: var(--u-ink-tint-06);
 }
@@ -111,7 +111,7 @@
 .pov-sw {
   font-size: var(--u-font-size-12);
   font-weight: var(--u-font-weight-medium);
-  padding: 5px 14px;
+  padding: var(--u-space-5) var(--u-space-14);
   background: transparent;
   border: none;
   border-radius: 7px;
@@ -146,7 +146,7 @@
   .pov-right {
     width: 100%;
     margin-left: 0;
-    margin-top: 6px;
+    margin-top: var(--u-space-6);
     justify-content: flex-end;
   }
 }

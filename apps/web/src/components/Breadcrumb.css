@@ -1,7 +1,7 @@
 .crumb {
   font-size: var(--u-font-size-12);
   color: var(--u-muted);
-  margin-bottom: 18px;
+  margin-bottom: var(--u-space-18);
 }
 
 .crumb-item a {
@@ -19,6 +19,6 @@
 }
 
 .crumb-sep {
-  margin: 0 8px;
+  margin: 0 var(--u-space-8);
   color: var(--u-muted-tint-50);
 }

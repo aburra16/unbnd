@@ -1,6 +1,6 @@
 .shelfc {
-  margin: 24px 0;
-  padding: 18px 20px;
+  margin: var(--u-space-24) 0;
+  padding: var(--u-space-18) var(--u-space-20);
   border: 1px solid var(--u-border);
   border-radius: 8px;
   background: var(--u-surface);
@@ -10,20 +10,20 @@
   font-size: var(--u-font-size-15);
   font-weight: var(--u-font-weight-semibold);
   color: var(--u-ink);
-  margin-bottom: 12px;
+  margin-bottom: var(--u-space-12);
 }
 
 .shelfc-current {
   display: flex;
   flex-wrap: wrap;
-  gap: 10px;
-  margin-bottom: 14px;
+  gap: var(--u-space-10);
+  margin-bottom: var(--u-space-14);
 }
 
 .shelfc-chip {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: var(--u-space-6);
 }
 
 .shelfc-remove {
@@ -32,7 +32,7 @@
   background: transparent;
   border: 1px solid var(--u-ink-tint-20);
   border-radius: 6px;
-  padding: 2px 8px;
+  padding: var(--u-space-2) var(--u-space-8);
   cursor: pointer;
 }
 
@@ -54,7 +54,7 @@
 .shelfc-form {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: var(--u-space-10);
 }
 
 .shelfc-label {
@@ -65,7 +65,7 @@
 .shelfc-select,
 .shelfc-input {
   font-size: var(--u-font-size-14);
-  padding: 8px 10px;
+  padding: var(--u-space-8) var(--u-space-10);
   border: 1px solid var(--u-ink-tint-18);
   border-radius: 6px;
   background: var(--u-surface-card);
@@ -76,18 +76,18 @@
 .shelfc-new {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: var(--u-space-6);
 }
 
 .shelfc-actions {
   display: flex;
-  gap: 8px;
+  gap: var(--u-space-8);
 }
 
 .shelfc-add {
   font-size: var(--u-font-size-13);
   font-weight: var(--u-font-weight-medium);
-  padding: 8px 16px;
+  padding: var(--u-space-8) var(--u-space-16);
   border-radius: 6px;
   cursor: pointer;
   border: 1px solid transparent;

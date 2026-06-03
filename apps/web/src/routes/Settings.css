@@ -1,7 +1,7 @@
 .set-head {
   max-width: 640px;
   margin: 0 auto;
-  padding: 40px 24px 8px;
+  padding: var(--u-space-40) var(--u-space-24) var(--u-space-8);
 }
 
 .set-title {
@@ -15,22 +15,22 @@
   font-size: var(--u-font-size-14);
   color: var(--u-muted);
   line-height: var(--u-leading-155);
-  margin: 8px 0 0;
+  margin: var(--u-space-8) 0 0;
 }
 
 .set-form {
   max-width: 640px;
   margin: 0 auto;
-  padding: 16px 24px 56px;
+  padding: var(--u-space-16) var(--u-space-24) var(--u-space-56);
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: var(--u-space-16);
 }
 
 .set-field {
   display: flex;
   flex-direction: column;
-  gap: 5px;
+  gap: var(--u-space-5);
 }
 
 .set-field label {
@@ -40,7 +40,7 @@
 }
 
 .set-field input {
-  padding: 9px 14px;
+  padding: var(--u-space-9) var(--u-space-14);
   font-size: var(--u-font-size-13);
   border-radius: var(--u-radius);
   border: 1px solid var(--u-border-hover);
@@ -74,11 +74,11 @@
 
 .set-actions {
   display: flex;
-  gap: 10px;
+  gap: var(--u-space-10);
 }
 
 .set-save {
-  padding: 9px 20px;
+  padding: var(--u-space-9) var(--u-space-20);
   font-size: var(--u-font-size-13);
   font-weight: var(--u-font-weight-semibold);
   border: none;
@@ -93,7 +93,7 @@
 }
 
 .set-clear {
-  padding: 9px 20px;
+  padding: var(--u-space-9) var(--u-space-20);
   font-size: var(--u-font-size-13);
   font-weight: var(--u-font-weight-medium);
   border: 1px solid var(--u-border-hover);
@@ -118,7 +118,7 @@
   font-size: var(--u-font-size-16);
   font-weight: var(--u-font-weight-semibold);
   color: var(--u-ink);
-  margin: 0 0 6px;
+  margin: 0 0 var(--u-space-6);
 }
 
 .set-nostr-explainer {
@@ -130,13 +130,13 @@
   font-size: var(--u-font-size-13);
   font-weight: var(--u-font-weight-medium);
   color: var(--u-ink);
-  margin-bottom: 6px;
+  margin-bottom: var(--u-space-6);
 }
 
 .set-nostr-row {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: var(--u-space-10);
   flex-wrap: wrap;
 }
 
@@ -144,7 +144,7 @@
   font-family: var(--font-mono);
   font-size: var(--u-font-size-12);
   color: var(--u-muted);
-  padding: 4px 8px;
+  padding: var(--u-space-4) var(--u-space-8);
   border: 1px solid var(--u-border);
   border-radius: var(--u-radius);
 }

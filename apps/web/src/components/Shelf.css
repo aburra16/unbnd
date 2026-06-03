@@ -1,12 +1,12 @@
 .shelf-section {
-  margin-bottom: 36px;
+  margin-bottom: var(--u-space-36);
 }
 
 .shelf-header {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
-  margin-bottom: 16px;
+  margin-bottom: var(--u-space-16);
 }
 
 .shelf-title {
@@ -29,9 +29,9 @@
 
 .shelf-rail {
   display: flex;
-  gap: 18px;
+  gap: var(--u-space-18);
   overflow-x: auto;
-  padding: 4px 0 10px;
+  padding: var(--u-space-4) 0 var(--u-space-10);
   scrollbar-width: thin;
   scrollbar-color: var(--u-ink-tint-12) transparent;
 }
@@ -55,7 +55,7 @@
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 12px;
+  gap: var(--u-space-12);
 }
 
 .foryou-invite-body {
@@ -68,7 +68,7 @@
 .foryou-invite-btn {
   font-size: var(--u-font-size-13);
   font-weight: var(--u-font-weight-semibold);
-  padding: 8px 16px;
+  padding: var(--u-space-8) var(--u-space-16);
   border-radius: 8px;
   border: none;
   background: var(--u-amber);

@@ -1,16 +1,23 @@
 /* Type styles for the NotFound route, swept off inline JSX literals into the
- * two-tier type tokens (ADR 0041, Option G). Non-type inline props (padding,
- * margins, textAlign, color) stay inline on the elements; only the type axis
- * moves here, resolving to byte-identical values. */
+ * two-tier type tokens (ADR 0041, Option G). The spacing axis was swept off
+ * the same inline styles into the two-tier spacing tokens (ADR 0042, Option G);
+ * resolved values are byte-identical. Remaining inline props (textAlign, color)
+ * stay inline on the elements. */
+
+.not-found-section {
+  padding: var(--u-space-80) 0 var(--u-space-60);
+}
 
 .not-found-heading {
   font-size: var(--u-font-size-26);
   font-weight: var(--u-font-weight-semibold);
   letter-spacing: var(--u-tracking-n60);
+  margin-bottom: var(--u-space-10);
 }
 
 .not-found-body {
   font-size: var(--u-font-size-14);
+  margin-bottom: var(--u-space-22);
 }
 
 .not-found-link {

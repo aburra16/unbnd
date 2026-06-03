@@ -375,6 +375,93 @@
   --font-sans: var(--u-raw-family-sans);
   --font-mono: var(--u-raw-family-mono);
 
+  /* ===================================================================== *
+   * Tier 1 — raw spacing tokens (ADR 0042 §1). Literal values only, no
+   * semantics. Naming: --u-raw-space-<value-key>, one token per distinct
+   * box-spacing value (padding / margin / gap) actually in use (no
+   * speculative steps), unit kept as authored (px). The name encodes the px
+   * integer so no consolidation or ordering is implied; the one negative
+   * value uses the `n` sign prefix (the convention ADR 0041 used for negative
+   * tracking). Tier 2 below points at these; app CSS must never reference a
+   * Tier-1 raw directly. Values preserved exactly — no grid-snapping.
+   * ===================================================================== */
+
+  --u-raw-space-1: 1px;
+  --u-raw-space-2: 2px;
+  --u-raw-space-3: 3px;
+  --u-raw-space-4: 4px;
+  --u-raw-space-5: 5px;
+  --u-raw-space-6: 6px;
+  --u-raw-space-7: 7px;
+  --u-raw-space-8: 8px;
+  --u-raw-space-9: 9px;
+  --u-raw-space-10: 10px;
+  --u-raw-space-11: 11px;
+  --u-raw-space-12: 12px;
+  --u-raw-space-13: 13px;
+  --u-raw-space-14: 14px;
+  --u-raw-space-16: 16px;
+  --u-raw-space-18: 18px;
+  --u-raw-space-20: 20px;
+  --u-raw-space-22: 22px;
+  --u-raw-space-24: 24px;
+  --u-raw-space-26: 26px;
+  --u-raw-space-28: 28px;
+  --u-raw-space-30: 30px;
+  --u-raw-space-32: 32px;
+  --u-raw-space-34: 34px;
+  --u-raw-space-36: 36px;
+  --u-raw-space-40: 40px;
+  --u-raw-space-42: 42px;
+  --u-raw-space-48: 48px;
+  --u-raw-space-56: 56px;
+  --u-raw-space-60: 60px;
+  --u-raw-space-80: 80px; /* swept off the NotFound.tsx inline padding */
+  --u-raw-space-n8: -8px; /* negative; RatedByRow avatar-stack overlap */
+
+  /* ===================================================================== *
+   * Tier 2 — semantic spacing aliases (ADR 0042 §1). Point at Tier 1, never
+   * a literal. App CSS references only this tier. Thin, value-keyed 1:1
+   * aliases that are property-agnostic: the same value serves padding,
+   * margin, and gap, so one --u-space-<n> alias covers all three. Richer
+   * inset/stack/inline role tokens are deferred (ADR 0042 §1, Out of scope).
+   * Each existing length component swaps its literal for the matching alias
+   * with no resolved-value change.
+   * ===================================================================== */
+
+  --u-space-1: var(--u-raw-space-1);
+  --u-space-2: var(--u-raw-space-2);
+  --u-space-3: var(--u-raw-space-3);
+  --u-space-4: var(--u-raw-space-4);
+  --u-space-5: var(--u-raw-space-5);
+  --u-space-6: var(--u-raw-space-6);
+  --u-space-7: var(--u-raw-space-7);
+  --u-space-8: var(--u-raw-space-8);
+  --u-space-9: var(--u-raw-space-9);
+  --u-space-10: var(--u-raw-space-10);
+  --u-space-11: var(--u-raw-space-11);
+  --u-space-12: var(--u-raw-space-12);
+  --u-space-13: var(--u-raw-space-13);
+  --u-space-14: var(--u-raw-space-14);
+  --u-space-16: var(--u-raw-space-16);
+  --u-space-18: var(--u-raw-space-18);
+  --u-space-20: var(--u-raw-space-20);
+  --u-space-22: var(--u-raw-space-22);
+  --u-space-24: var(--u-raw-space-24);
+  --u-space-26: var(--u-raw-space-26);
+  --u-space-28: var(--u-raw-space-28);
+  --u-space-30: var(--u-raw-space-30);
+  --u-space-32: var(--u-raw-space-32);
+  --u-space-34: var(--u-raw-space-34);
+  --u-space-36: var(--u-raw-space-36);
+  --u-space-40: var(--u-raw-space-40);
+  --u-space-42: var(--u-raw-space-42);
+  --u-space-48: var(--u-raw-space-48);
+  --u-space-56: var(--u-raw-space-56);
+  --u-space-60: var(--u-raw-space-60);
+  --u-space-80: var(--u-raw-space-80);
+  --u-space-n8: var(--u-raw-space-n8);
+
   /* Layout */
   --page-max: 720px;
   --page-pad-x: 24px;
