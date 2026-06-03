@@ -54,8 +54,8 @@
   background: var(--u-surface-card);
   color: var(--u-ink);
   transition:
-    border-color 120ms ease,
-    box-shadow 120ms ease;
+    border-color var(--u-duration-120ms) var(--u-ease-default),
+    box-shadow var(--u-duration-120ms) var(--u-ease-default);
 }
 
 .hero-search input::placeholder {

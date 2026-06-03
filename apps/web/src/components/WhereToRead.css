@@ -31,8 +31,8 @@
   color: var(--u-ink);
   font-weight: var(--u-font-weight-medium);
   transition:
-    border-color 120ms ease,
-    background 120ms ease;
+    border-color var(--u-duration-120ms) var(--u-ease-default),
+    background var(--u-duration-120ms) var(--u-ease-default);
 }
 
 .wtr-link:hover {

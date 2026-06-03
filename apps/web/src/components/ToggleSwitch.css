@@ -7,7 +7,7 @@
   background: var(--u-surface);
   border: 1px solid var(--u-border);
   cursor: pointer;
-  transition: background 120ms ease;
+  transition: background var(--u-duration-120ms) var(--u-ease-default);
 }
 
 .toggle:hover {
@@ -27,7 +27,7 @@
   border-radius: var(--u-radius-10);
   background: var(--u-border-hover);
   flex-shrink: 0;
-  transition: background 140ms ease;
+  transition: background var(--u-duration-140ms) var(--u-ease-default);
 }
 
 .toggle-on {
@@ -42,7 +42,7 @@
   height: 16px;
   border-radius: var(--u-radius-circle);
   background: var(--u-surface-card);
-  transition: transform 140ms ease;
+  transition: transform var(--u-duration-140ms) var(--u-ease-default);
   box-shadow: var(--u-elevation-1a);
 }
 

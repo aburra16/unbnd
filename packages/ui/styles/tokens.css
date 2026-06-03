@@ -574,7 +574,71 @@
   --u-z-dropdown: var(--u-raw-z-dropdown);
   --u-z-popover: var(--u-raw-z-popover);
 
+  /* ===================================================================== *
+   * Tier 1 — raw motion tokens (ADR 0044 §1). Literal values only, no
+   * semantics. Durations are value-keyed by the millisecond integer
+   * (--u-raw-duration-<n>ms), one token per distinct in-use value (no
+   * speculative steps, no consolidation). The FollowButton 0.15s site is
+   * authored here as 150ms: identical computed duration, registry
+   * consistency, zero-diff (ADR 0044 Option E); no other value is snapped
+   * onto it. Exactly one timing function is in use today (`ease`), held under
+   * a readable single-keyword name (value verbatim); a second easing, if ever
+   * added, gets its own raw token keyed to its value (ADR 0044 Option B).
+   * Tier 2 below points at these; app CSS must never reference a Tier-1 raw
+   * directly. Values preserved exactly — no retuning.
+   * ===================================================================== */
+
+  --u-raw-duration-120ms: 120ms;
+  --u-raw-duration-140ms: 140ms;
+  --u-raw-duration-150ms: 150ms;
+  --u-raw-duration-160ms: 160ms;
+  --u-raw-duration-180ms: 180ms;
+  --u-raw-duration-200ms: 200ms;
+  --u-raw-ease-default: ease;
+
+  /* ===================================================================== *
+   * Tier 2 — semantic motion aliases (ADR 0044 §1). Point at Tier 1, never a
+   * literal. App CSS references only this tier. Thin, value-keyed 1:1 aliases
+   * per duration plus the one easing alias, so every existing transition
+   * component swaps its literal for the matching alias with no resolved-value
+   * change. Richer role aliases (--u-duration-control / --u-ease-control) are
+   * deferred (ADR 0044 §1, Out of scope).
+   * ===================================================================== */
+
+  --u-duration-120ms: var(--u-raw-duration-120ms);
+  --u-duration-140ms: var(--u-raw-duration-140ms);
+  --u-duration-150ms: var(--u-raw-duration-150ms);
+  --u-duration-160ms: var(--u-raw-duration-160ms);
+  --u-duration-180ms: var(--u-raw-duration-180ms);
+  --u-duration-200ms: var(--u-raw-duration-200ms);
+  --u-ease-default: var(--u-raw-ease-default);
+
   /* Layout */
   --page-max: 720px;
   --page-pad-x: 24px;
+}
+
+/* ======================================================================= *
+ * prefers-reduced-motion (ADR 0044 §3, sanctioned by ADR 0038 §1). The ONE
+ * intentional behavior addition in Story 44: for users who have requested
+ * reduced motion at the OS level, zero the semantic duration aliases so every
+ * token-driven transition collapses to (near-)instant automatically. 0.01ms,
+ * not 0ms, keeps transitionend firing (forward-safe for any future JS that
+ * awaits a transition). Easings are untouched (a 0.01ms transition is
+ * imperceptible regardless of curve). This block is INERT at the no-preference
+ * media state, so the Story-39 visual baseline (captured at no-preference,
+ * animations frozen) stays byte-identical — no baseline is updated. Every
+ * motion on main today is a token-reading `transition`, so this covers 100% of
+ * in-use motion; a broader transition:none / scroll-behavior reset is not
+ * needed (ADR 0044 Option I).
+ * ======================================================================= */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --u-duration-120ms: 0.01ms;
+    --u-duration-140ms: 0.01ms;
+    --u-duration-150ms: 0.01ms;
+    --u-duration-160ms: 0.01ms;
+    --u-duration-180ms: 0.01ms;
+    --u-duration-200ms: 0.01ms;
+  }
 }

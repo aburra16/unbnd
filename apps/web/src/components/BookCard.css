@@ -10,8 +10,8 @@
   padding: var(--u-space-10);
   box-shadow: var(--u-elevation-2);
   transition:
-    transform 180ms ease,
-    box-shadow 180ms ease;
+    transform var(--u-duration-180ms) var(--u-ease-default),
+    box-shadow var(--u-duration-180ms) var(--u-ease-default);
 }
 
 .book:hover .book-cover {

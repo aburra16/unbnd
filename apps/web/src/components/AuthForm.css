@@ -31,8 +31,8 @@
   background: var(--u-surface-card);
   color: var(--u-ink);
   transition:
-    border-color 120ms ease,
-    box-shadow 120ms ease;
+    border-color var(--u-duration-120ms) var(--u-ease-default),
+    box-shadow var(--u-duration-120ms) var(--u-ease-default);
 }
 
 .auth-field input:focus {
@@ -56,7 +56,7 @@
   background: var(--u-amber);
   color: var(--u-parchment);
   margin-top: var(--u-space-4);
-  transition: background 120ms ease;
+  transition: background var(--u-duration-120ms) var(--u-ease-default);
 }
 
 .auth-submit:hover {
@@ -72,8 +72,8 @@
   background: transparent;
   color: var(--u-ink);
   transition:
-    border-color 120ms ease,
-    background 120ms ease;
+    border-color var(--u-duration-120ms) var(--u-ease-default),
+    background var(--u-duration-120ms) var(--u-ease-default);
 }
 
 .auth-btn-secondary:hover {
