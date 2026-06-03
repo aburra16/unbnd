@@ -2,7 +2,7 @@
 
 **Status:** Accepted
 **Date:** 2026-06-03
-**Story:** `engineering-team/stories/40-color-tokens.md`
+**Story:** `engineering-team/stories/done/40-color-tokens.md`
 
 **Approved 2026-06-03** at the architecture gate. Gate decisions: (1) the two genuine-bug drift fixes (borders → `--u-border`, error text → `--u-signal-negative`) are DEFERRED to a separate labeled visual-change story, not folded into this zero-diff refactor; (2) **`--signal-*` / `--genre-*` are LEFT AS-IS** as Tier-2 semantic names repointed to the raw tier — NO rename to `--u-signal-*`/`--u-genre-*`, NO deprecated aliases, NO deferred call-site sweep (avoids a half-migrated state; any cosmetic `--u-` unification, if ever wanted, is its own complete story); (3) the dead `apps/web/src/data/*-fixtures.ts` color literals are left for a separate cleanup (not in the render path). §1, Consequences, and Out-of-scope below are updated to match decision (2).
 

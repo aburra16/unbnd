@@ -1,8 +1,9 @@
 # Story 40: Two-tier color tokens, drift fix, and the first CI guards
 
-**Status:** Draft
+**Status:** Done
 **Created:** 2026-06-03
 **Type:** Refactor
+**Review:** `engineering-team/reviews/40-color-tokens.md` (PASS, 2026-06-03)
 
 ## Background
 
