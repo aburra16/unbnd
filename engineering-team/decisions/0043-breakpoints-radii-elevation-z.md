@@ -2,7 +2,7 @@
 
 **Status:** Accepted
 **Date:** 2026-06-03
-**Story:** `engineering-team/stories/43-breakpoints-radii-elevation-z.md`
+**Story:** `engineering-team/stories/done/43-breakpoints-radii-elevation-z.md`
 
 **Approved 2026-06-03** at the architecture gate. Gate resolutions (recommended defaults, consistent with ADR 0040/0041/0042): (1) **two guard files** — `architecture-shape-literals.test.ts` (radius + box-shadow geometry + z-index + TSX net, pure filesystem) and `architecture-breakpoints.test.ts` (reads the typed `breakpoints` export via the palette-sync dynamic-import shim; forward + reverse `@media`-set checks) — the split is forced by the typed-export load dependency; (2) elevation raw tokens use a readable stable-index registry (a multi-component shadow has no clean value-key); (3) **`--u-elevation-*`** naming (role, umbrella-aligned); (4) all else follows the established gate defaults (existing `--u-radius*` kept + repointed, no consolidation, no cosmetic renames). **Breakpoints are canonicalized, NOT consolidated** — no `@media` value is edited; zero-diff by inspection (the canonical set IS the 7 existing values), since the single-viewport harness cannot verify responsive widths; collapsing breakpoints is a separate future multi-viewport story.
 

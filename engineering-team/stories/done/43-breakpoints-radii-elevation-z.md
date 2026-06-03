@@ -1,6 +1,6 @@
 # Story 43: Two-tier radii, elevation, and z-index tokens, canonical breakpoints, and the guards
 
-**Status:** Draft
+**Status:** Done
 **Created:** 2026-06-03
 **Type:** Refactor
 
@@ -102,4 +102,4 @@ For the Architect to resolve in the Architecture phase. The PO does not pick nam
 - ADR: `engineering-team/decisions/0038-design-system-architecture.md` (umbrella; §1 token layer incl. the breakpoint-in-`@media` constraint and the typed `breakpoints` export, §6 CI guards). A refining ADR on the breakpoint/radii/elevation/z-index taxonomy and the `@media` guard may come from the Architecture phase.
 - Epic: `engineering-team/epics/0001-design-system-overhaul-ready.md` (epic story 6).
 - Test plan: (filled in after Test Design phase, if the gate keeps one; the guards are themselves locking tests.)
-- Review: (filled in after Review phase.)
+- Review: `engineering-team/reviews/43-breakpoints-radii-elevation-z.md` (PASS).
