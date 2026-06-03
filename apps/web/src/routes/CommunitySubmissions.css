@@ -30,7 +30,7 @@
   gap: var(--u-space-2);
   padding: var(--u-space-12) var(--u-space-14);
   border: 1px solid var(--u-border);
-  border-radius: 10px;
+  border-radius: var(--u-radius-10);
 }
 
 .cs-item-title {
@@ -83,7 +83,7 @@
   color: var(--u-ink);
   background: transparent;
   border: 1px solid var(--u-border);
-  border-radius: 8px;
+  border-radius: var(--u-radius);
   padding: var(--u-space-5) var(--u-space-12);
   cursor: pointer;
 }

@@ -42,7 +42,7 @@
 
 .shelf-rail::-webkit-scrollbar-thumb {
   background: var(--u-ink-tint-12);
-  border-radius: 3px;
+  border-radius: var(--u-radius-3);
 }
 
 .shelf-rail::-webkit-scrollbar-track {
@@ -69,7 +69,7 @@
   font-size: var(--u-font-size-13);
   font-weight: var(--u-font-weight-semibold);
   padding: var(--u-space-8) var(--u-space-16);
-  border-radius: 8px;
+  border-radius: var(--u-radius);
   border: none;
   background: var(--u-amber);
   color: var(--u-ink);

@@ -2,7 +2,7 @@
   margin: var(--u-space-24) 0;
   padding: var(--u-space-18) var(--u-space-20);
   border: 1px solid var(--u-border);
-  border-radius: 8px;
+  border-radius: var(--u-radius);
   background: var(--u-surface);
 }
 
@@ -31,7 +31,7 @@
   color: var(--u-muted);
   background: transparent;
   border: 1px solid var(--u-ink-tint-20);
-  border-radius: 6px;
+  border-radius: var(--u-radius-6);
   padding: var(--u-space-2) var(--u-space-8);
   cursor: pointer;
 }
@@ -67,7 +67,7 @@
   font-size: var(--u-font-size-14);
   padding: var(--u-space-8) var(--u-space-10);
   border: 1px solid var(--u-ink-tint-18);
-  border-radius: 6px;
+  border-radius: var(--u-radius-6);
   background: var(--u-surface-card);
   color: var(--u-ink);
   max-width: 320px;
@@ -88,7 +88,7 @@
   font-size: var(--u-font-size-13);
   font-weight: var(--u-font-weight-medium);
   padding: var(--u-space-8) var(--u-space-16);
-  border-radius: 6px;
+  border-radius: var(--u-radius-6);
   cursor: pointer;
   border: 1px solid transparent;
   background: var(--u-ink);

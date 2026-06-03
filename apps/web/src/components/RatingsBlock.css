@@ -66,7 +66,7 @@
 .dist-track {
   flex: 1;
   height: 5px;
-  border-radius: 3px;
+  border-radius: var(--u-radius-3);
   background: var(--u-border);
   overflow: hidden;
   display: inline-block;
@@ -76,7 +76,7 @@
   display: block;
   height: 100%;
   background: var(--u-amber);
-  border-radius: 3px;
+  border-radius: var(--u-radius-3);
 }
 
 .dist-pct {

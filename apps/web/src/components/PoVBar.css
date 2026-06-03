@@ -3,7 +3,7 @@
   align-items: center;
   gap: var(--u-space-8);
   padding: var(--u-space-12) var(--u-space-18);
-  border-radius: 12px;
+  border-radius: var(--u-radius-lg);
   border: 1px solid var(--u-border);
   background: var(--u-ink-tint-02);
   font-size: var(--u-font-size-13);
@@ -19,7 +19,7 @@
 .pov-dot {
   width: 7px;
   height: 7px;
-  border-radius: 50%;
+  border-radius: var(--u-radius-circle);
   background: var(--u-amber);
   flex-shrink: 0;
 }
@@ -76,7 +76,7 @@
 .pov-progress-track {
   width: 68px;
   height: 4px;
-  border-radius: 2px;
+  border-radius: var(--u-radius-2);
   background: var(--u-border);
   overflow: hidden;
   display: inline-block;
@@ -93,7 +93,7 @@
   font-size: var(--u-font-size-10);
   letter-spacing: var(--u-tracking-p40);
   padding: var(--u-space-2) var(--u-space-8);
-  border-radius: 20px;
+  border-radius: var(--u-radius-20);
   background: var(--u-green-tint-10);
   color: var(--signal-positive);
   font-weight: var(--u-font-weight-semibold);
@@ -104,7 +104,7 @@
   display: inline-flex;
   gap: var(--u-space-2);
   padding: var(--u-space-3);
-  border-radius: 9px;
+  border-radius: var(--u-radius-9);
   background: var(--u-ink-tint-06);
 }
 
@@ -114,7 +114,7 @@
   padding: var(--u-space-5) var(--u-space-14);
   background: transparent;
   border: none;
-  border-radius: 7px;
+  border-radius: var(--u-radius-7);
   color: var(--u-muted);
   cursor: pointer;
   transition:
@@ -130,7 +130,7 @@
 .pov-sw-active:hover {
   background: var(--u-surface-card);
   color: var(--u-ink);
-  box-shadow: 0 1px 3px var(--u-ink-tint-14);
+  box-shadow: var(--u-elevation-1c);
 }
 
 .pov-hint {

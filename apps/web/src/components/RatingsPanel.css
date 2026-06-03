@@ -6,7 +6,7 @@
   display: inline-flex;
   gap: var(--u-space-2);
   padding: var(--u-space-3);
-  border-radius: 8px;
+  border-radius: var(--u-radius);
   background: var(--u-ink-tint-05);
   margin-bottom: var(--u-space-14);
 }
@@ -17,7 +17,7 @@
   font-size: var(--u-font-size-12);
   font-weight: var(--u-font-weight-medium);
   padding: var(--u-space-6) var(--u-space-14);
-  border-radius: 6px;
+  border-radius: var(--u-radius-6);
   color: var(--u-muted);
   cursor: pointer;
 }
@@ -25,7 +25,7 @@
 .rp-tab-on {
   background: var(--u-surface-card);
   color: var(--u-ink);
-  box-shadow: 0 1px 3px var(--u-ink-tint-12);
+  box-shadow: var(--u-elevation-1b);
 }
 
 .rp-controls {
@@ -37,7 +37,7 @@
   font-size: var(--u-font-size-12);
   font-weight: var(--u-font-weight-medium);
   padding: var(--u-space-7) var(--u-space-16);
-  border-radius: 8px;
+  border-radius: var(--u-radius);
   border: 1px solid var(--u-amber);
   background: transparent;
   color: var(--u-amber);

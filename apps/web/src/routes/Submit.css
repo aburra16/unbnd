@@ -96,7 +96,7 @@
 .sub-field textarea:focus {
   outline: none;
   border-color: var(--u-amber);
-  box-shadow: 0 0 0 3px var(--u-amber-tint-08);
+  box-shadow: var(--u-elevation-ring-08);
 }
 
 .sub-field input::placeholder,
@@ -177,7 +177,7 @@
 .sub-done {
   padding: var(--u-space-22);
   border: 1px solid var(--u-green-tint-30);
-  border-radius: 12px;
+  border-radius: var(--u-radius-lg);
   background: var(--u-green-tint-06);
   margin-bottom: var(--u-space-24);
 }

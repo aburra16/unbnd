@@ -2,7 +2,7 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  border-radius: 50%;
+  border-radius: var(--u-radius-circle);
   flex: 0 0 auto;
   overflow: hidden;
 }

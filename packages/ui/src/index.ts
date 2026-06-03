@@ -10,3 +10,5 @@
 export { GENRE_PALETTE } from "./palette";
 export type { GenreRow } from "./palette";
 export { SEMANTIC_COLORS } from "./colors";
+export { breakpoints } from "./breakpoints";
+export type { Breakpoint } from "./breakpoints";

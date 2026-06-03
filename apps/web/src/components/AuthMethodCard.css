@@ -16,7 +16,7 @@
 
 .amc:hover:not(.amc-disabled) {
   border-color: var(--u-amber);
-  box-shadow: 0 0 0 3px var(--u-amber-tint-06);
+  box-shadow: var(--u-elevation-ring-06);
   background: var(--u-surface-warm);
 }
 
@@ -29,7 +29,7 @@
 .amc-icon {
   width: 34px;
   height: 34px;
-  border-radius: 8px;
+  border-radius: var(--u-radius);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -74,7 +74,7 @@
   letter-spacing: var(--u-tracking-p30);
   color: var(--u-muted);
   padding: var(--u-space-3) var(--u-space-8);
-  border-radius: 20px;
+  border-radius: var(--u-radius-20);
   background: var(--u-surface);
   text-transform: uppercase;
 }

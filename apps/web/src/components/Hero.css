@@ -65,7 +65,7 @@
 .hero-search input:focus {
   outline: none;
   border-color: var(--u-amber);
-  box-shadow: 0 0 0 3px var(--u-amber-tint-10);
+  box-shadow: var(--u-elevation-ring-10);
 }
 
 @media (max-width: 540px) {
