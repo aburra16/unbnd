@@ -2,7 +2,7 @@
 
 **Status:** Accepted
 **Date:** 2026-06-03
-**Story:** `engineering-team/stories/44-motion-tokens.md`
+**Story:** `engineering-team/stories/done/44-motion-tokens.md`
 
 **Approved 2026-06-03** at the architecture gate. Gate resolutions (recommended defaults): (1) easing raw token `--u-raw-ease-default: ease` (readable, over an awkward value-keyed spelling); (2) reduced-motion zeroes the semantic `--u-duration-*` aliases to **`0.01ms`** (not `0ms`, so `transitionend` still fires); (3) FollowButton's `0.15s` maps to a `150ms`-authored token (computed-identical, zero-diff). 6 distinct durations (120/140/160/180/200ms + 0.15s≡150ms), 1 easing (`ease`). Transition shorthand kept, each duration/easing component → `var()`. The reduced-motion block is the one intentional, ADR-0038-sanctioned accessibility addition; it is inert at the no-preference state the Story-39 harness captures, so the default render stays zero-diff.
 
