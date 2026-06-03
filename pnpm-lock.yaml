@@ -223,6 +223,9 @@ importers:
       '@unbnd/schemas':
         specifier: workspace:*
         version: link:../../packages/schemas
+      '@unbnd/ui':
+        specifier: workspace:*
+        version: link:../../packages/ui
       applesauce-core:
         specifier: 6.0.3
         version: 6.0.3(typescript@5.9.3)
@@ -297,6 +300,22 @@ importers:
       '@types/ws':
         specifier: ^8.5.12
         version: 8.18.1
+      typescript:
+        specifier: ^5.5.3
+        version: 5.9.3
+      vitest:
+        specifier: ^2.1.0
+        version: 2.1.9(@types/node@22.19.19)(happy-dom@15.11.7)
+
+  packages/ui:
+    dependencies:
+      react:
+        specifier: ^18.3.1
+        version: 18.3.1
+      react-dom:
+        specifier: ^18.3.1
+        version: 18.3.1(react@18.3.1)
+    devDependencies:
       typescript:
         specifier: ^5.5.3
         version: 5.9.3

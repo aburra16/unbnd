@@ -15,7 +15,8 @@
     "react-dom": "^18.3.1",
     "react-router-dom": "^6.26.0",
     "applesauce-core": "6.0.3",
-    "@unbnd/schemas": "workspace:*"
+    "@unbnd/schemas": "workspace:*",
+    "@unbnd/ui": "workspace:*"
   },
   "devDependencies": {
     "@testing-library/jest-dom": "^6.4.8",
