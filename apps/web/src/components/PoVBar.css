@@ -48,8 +48,8 @@
   background: transparent;
   color: var(--u-muted);
   transition:
-    color 120ms ease,
-    border-color 120ms ease;
+    color var(--u-duration-120ms) var(--u-ease-default),
+    border-color var(--u-duration-120ms) var(--u-ease-default);
 }
 
 .pov-btn:hover:not(:disabled) {
@@ -86,7 +86,7 @@
   display: block;
   height: 100%;
   background: var(--u-amber);
-  transition: width 200ms ease;
+  transition: width var(--u-duration-200ms) var(--u-ease-default);
 }
 
 .pov-badge {
@@ -118,8 +118,8 @@
   color: var(--u-muted);
   cursor: pointer;
   transition:
-    color 120ms ease,
-    background 120ms ease;
+    color var(--u-duration-120ms) var(--u-ease-default),
+    background var(--u-duration-120ms) var(--u-ease-default);
 }
 
 .pov-sw:hover {

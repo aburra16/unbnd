@@ -24,7 +24,7 @@
   margin-left: var(--u-space-n8);
   border-radius: var(--u-radius-circle);
   box-shadow: var(--u-elevation-ring-parchment);
-  transition: transform 120ms ease;
+  transition: transform var(--u-duration-120ms) var(--u-ease-default);
 }
 
 .rated-by-pile .rated-by-badge:first-child {
@@ -53,7 +53,7 @@
   font-size: var(--u-font-size-12);
   font-weight: var(--u-font-weight-semibold);
   cursor: pointer;
-  transition: border-color 120ms ease, color 120ms ease;
+  transition: border-color var(--u-duration-120ms) var(--u-ease-default), color var(--u-duration-120ms) var(--u-ease-default);
 }
 
 .rated-by-more:hover {

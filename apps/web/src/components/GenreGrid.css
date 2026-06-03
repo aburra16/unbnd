@@ -36,8 +36,8 @@
   border: 1px solid transparent;
   overflow: hidden;
   transition:
-    transform 160ms ease,
-    border-color 160ms ease;
+    transform var(--u-duration-160ms) var(--u-ease-default),
+    border-color var(--u-duration-160ms) var(--u-ease-default);
 }
 
 .genre:hover {

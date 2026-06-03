@@ -31,7 +31,7 @@
   background: var(--u-amber);
   color: var(--u-parchment);
   border: none;
-  transition: background 140ms ease;
+  transition: background var(--u-duration-140ms) var(--u-ease-default);
 }
 
 .cta-btn:hover {

@@ -81,8 +81,8 @@
   color: var(--u-ink);
   font-family: inherit;
   transition:
-    border-color 120ms ease,
-    box-shadow 120ms ease;
+    border-color var(--u-duration-120ms) var(--u-ease-default),
+    box-shadow var(--u-duration-120ms) var(--u-ease-default);
 }
 
 .sub-field textarea {
@@ -129,7 +129,7 @@
   border: none;
   background: var(--u-amber);
   color: var(--u-parchment);
-  transition: background 120ms ease;
+  transition: background var(--u-duration-120ms) var(--u-ease-default);
 }
 
 .sub-submit-btn:hover {

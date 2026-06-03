@@ -20,7 +20,7 @@
   font-weight: var(--u-font-weight-semibold);
   letter-spacing: var(--u-tracking-p30);
   text-decoration: none;
-  transition: background 120ms ease;
+  transition: background var(--u-duration-120ms) var(--u-ease-default);
 }
 
 .nav-avatar:hover {
@@ -50,7 +50,7 @@
   font-size: var(--u-font-size-13);
   color: var(--u-muted);
   letter-spacing: var(--u-tracking-p20);
-  transition: color 120ms ease;
+  transition: color var(--u-duration-120ms) var(--u-ease-default);
 }
 
 .nav-link:hover {
@@ -66,8 +66,8 @@
   background: transparent;
   color: var(--u-ink);
   transition:
-    border-color 120ms ease,
-    background 120ms ease;
+    border-color var(--u-duration-120ms) var(--u-ease-default),
+    background var(--u-duration-120ms) var(--u-ease-default);
 }
 
 .nav-signin:hover {

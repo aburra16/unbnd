@@ -13,9 +13,9 @@
   background: transparent;
   color: var(--u-muted);
   transition:
-    color 120ms ease,
-    border-color 120ms ease,
-    background 120ms ease;
+    color var(--u-duration-120ms) var(--u-ease-default),
+    border-color var(--u-duration-120ms) var(--u-ease-default),
+    background var(--u-duration-120ms) var(--u-ease-default);
 }
 
 .gps-pill:hover:not(:disabled) {

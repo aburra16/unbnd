@@ -27,9 +27,9 @@
   cursor: pointer;
   border: 1px solid transparent;
   transition:
-    background-color 0.15s ease,
-    border-color 0.15s ease,
-    color 0.15s ease;
+    background-color var(--u-duration-150ms) var(--u-ease-default),
+    border-color var(--u-duration-150ms) var(--u-ease-default),
+    color var(--u-duration-150ms) var(--u-ease-default);
 }
 
 .follow-btn:disabled {
