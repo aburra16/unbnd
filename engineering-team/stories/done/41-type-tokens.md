@@ -1,8 +1,9 @@
 # Story 41: Two-tier type tokens and the type CI guard
 
-**Status:** Draft
+**Status:** Done
 **Created:** 2026-06-03
 **Type:** Refactor
+**Review:** `engineering-team/reviews/41-type-tokens.md` (PASS)
 
 ## Background
 
@@ -82,4 +83,4 @@ For the Architect to resolve in the Architecture phase. The PO does not pick nam
 - ADR: `engineering-team/decisions/0038-design-system-architecture.md` (umbrella; §1 token layer, §6 CI guards). A refining ADR on the type taxonomy may come from the Architecture phase.
 - Epic: `engineering-team/epics/0001-design-system-overhaul-ready.md` (epic story 4).
 - Test plan: (filled in after Test Design phase, if the gate keeps one; the guard is itself a locking test.)
-- Review: (filled in after Review phase.)
+- Review: `engineering-team/reviews/41-type-tokens.md` (PASS).

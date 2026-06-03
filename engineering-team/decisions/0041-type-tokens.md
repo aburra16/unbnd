@@ -2,7 +2,7 @@
 
 **Status:** Accepted
 **Date:** 2026-06-03
-**Story:** `engineering-team/stories/41-type-tokens.md`
+**Story:** `engineering-team/stories/done/41-type-tokens.md`
 
 **Approved 2026-06-03** at the architecture gate. Gate resolutions: (1) **letter-spacing IS in scope** (36 declarations / 17 values; excluding it would force a dishonest guard allowlist and a second sweep); (2) the `--u-text-*` semantic bundles are **deferred** to a later intentional typography story (bundles would merge near-unequal call-site combinations and move pixels; this refactor uses thin per-property aliases only); (3) **no `--u-family-*` aliases** are added — `--font-sans`/`--font-mono` are kept and repointed to raw (consistent with the Story-40 decision to leave `--signal-*`/`--genre-*` as-is; cosmetic `--u-` unification is its own complete story if ever wanted).
 
