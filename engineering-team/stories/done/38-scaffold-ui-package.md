@@ -1,6 +1,6 @@
 # Story 38: Scaffold the `@unbnd/ui` package and consume existing tokens from it
 
-**Status:** Draft
+**Status:** Done
 **Created:** 2026-06-03
 **Type:** Refactor
 
@@ -64,5 +64,5 @@ PRD §11.3 "Out of Scope" check: this story touches no product surface (no payme
 
 - ADR: `engineering-team/decisions/0038-design-system-architecture.md` (umbrella ADR for the epic; a refining ADR for this story is optional and the Architect's call).
 - Epic: `engineering-team/epics/0001-design-system-overhaul-ready.md` (epic story 1).
-- Test plan: (filled in after Test Design phase)
-- Review: (filled in after Review phase)
+- Test plan: none (lean Impl→Reviewer tier; Test-Design skipped by approval).
+- Review: `engineering-team/reviews/38-scaffold-ui-package.md` (PASS, 2026-06-03).
