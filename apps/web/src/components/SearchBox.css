@@ -11,7 +11,7 @@
 .searchbox-compact .searchbox-input {
   padding: var(--u-space-8) var(--u-space-12) var(--u-space-8) var(--u-space-34);
   font-size: var(--u-font-size-13);
-  border-radius: 8px;
+  border-radius: var(--u-radius);
   background: var(--u-surface);
   border-color: transparent;
 }
@@ -45,7 +45,7 @@
   padding: var(--u-space-13) var(--u-space-16) var(--u-space-13) var(--u-space-42);
   font-size: var(--u-font-size-15);
   border: 1px solid var(--u-ink-tint-16);
-  border-radius: 10px;
+  border-radius: var(--u-radius-10);
   background: var(--u-surface-card);
   color: var(--u-ink);
 }
@@ -62,10 +62,10 @@
   right: 0;
   background: var(--u-surface-card);
   border: 1px solid var(--u-ink-tint-12);
-  border-radius: 10px;
-  box-shadow: 0 12px 32px var(--u-ink-tint-16);
+  border-radius: var(--u-radius-10);
+  box-shadow: var(--u-elevation-4c);
   padding: var(--u-space-6);
-  z-index: 40;
+  z-index: var(--u-z-dropdown);
   text-align: left;
 }
 
@@ -84,7 +84,7 @@
   padding: var(--u-space-9) var(--u-space-10);
   border: none;
   background: none;
-  border-radius: 7px;
+  border-radius: var(--u-radius-7);
   cursor: pointer;
 }
 
@@ -111,7 +111,7 @@
   border: none;
   border-top: 1px solid var(--u-ink-tint-08);
   background: none;
-  border-radius: 0 0 7px 7px;
+  border-radius: 0 0 var(--u-radius-7) var(--u-radius-7);
   font-size: var(--u-font-size-12);
   font-weight: var(--u-font-weight-medium);
   color: var(--u-amber);

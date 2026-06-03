@@ -8,7 +8,7 @@
   font-size: var(--u-font-size-11);
   font-weight: var(--u-font-weight-medium);
   padding: var(--u-space-6) var(--u-space-13);
-  border-radius: 20px;
+  border-radius: var(--u-radius-20);
   border: 1px solid var(--u-border-hover);
   background: transparent;
   color: var(--u-muted);

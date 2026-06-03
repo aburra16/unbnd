@@ -32,7 +32,7 @@
   display: inline-block;
   margin-right: var(--u-space-6);
   padding: var(--u-space-1) var(--u-space-8);
-  border-radius: 999px;
+  border-radius: var(--u-radius-pill);
   background: var(--u-ink);
   color: var(--u-on-ink);
   font-size: var(--u-font-size-11);

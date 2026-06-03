@@ -22,8 +22,8 @@
 
 .rated-by-pile .rated-by-badge {
   margin-left: var(--u-space-n8);
-  border-radius: 50%;
-  box-shadow: 0 0 0 2px var(--u-parchment);
+  border-radius: var(--u-radius-circle);
+  box-shadow: var(--u-elevation-ring-parchment);
   transition: transform 120ms ease;
 }
 
@@ -33,7 +33,7 @@
 
 .rated-by-pile .rated-by-badge:hover {
   transform: translateY(-2px);
-  z-index: 1;
+  z-index: var(--u-z-base);
 }
 
 .rated-by-badge {
@@ -46,7 +46,7 @@
   height: 30px;
   min-width: 30px;
   padding: 0 var(--u-space-8);
-  border-radius: 999px;
+  border-radius: var(--u-radius-pill);
   border: 1px solid var(--u-border);
   background: var(--u-surface);
   color: var(--u-amber);

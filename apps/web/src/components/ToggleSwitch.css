@@ -24,7 +24,7 @@
   position: relative;
   width: 36px;
   height: 20px;
-  border-radius: 10px;
+  border-radius: var(--u-radius-10);
   background: var(--u-border-hover);
   flex-shrink: 0;
   transition: background 140ms ease;
@@ -40,10 +40,10 @@
   left: 2px;
   width: 16px;
   height: 16px;
-  border-radius: 50%;
+  border-radius: var(--u-radius-circle);
   background: var(--u-surface-card);
   transition: transform 140ms ease;
-  box-shadow: 0 1px 2px var(--u-ink-tint-15);
+  box-shadow: var(--u-elevation-1a);
 }
 
 .toggle-on .toggle-thumb {
@@ -51,7 +51,7 @@
 }
 
 .toggle-input:focus-visible + .toggle-track {
-  box-shadow: 0 0 0 3px var(--u-amber-tint-18);
+  box-shadow: var(--u-elevation-ring-18);
 }
 
 .toggle-text {

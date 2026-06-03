@@ -208,14 +208,6 @@
   --signal-sovereign: var(--u-raw-color-purple-500);
 
   /* ===================================================================== *
-   * Non-color tokens — left exactly as-is (out of scope, ADR 0040).
-   * ===================================================================== */
-
-  /* Derived (radii) */
-  --u-radius: 8px;
-  --u-radius-lg: 12px;
-
-  /* ===================================================================== *
    * Tier 1 — raw type tokens (ADR 0041 §1). Literal values only, no
    * semantics. Naming: --u-raw-<axis>-<value-key>, one token per distinct
    * value actually in use (no speculative steps), units kept as authored
@@ -461,6 +453,126 @@
   --u-space-60: var(--u-raw-space-60);
   --u-space-80: var(--u-raw-space-80);
   --u-space-n8: var(--u-raw-space-n8);
+
+  /* ===================================================================== *
+   * Tier 1 — raw radius tokens (ADR 0043 §1). Literal values only, no
+   * semantics. Naming: --u-raw-radius-<value-key>, one token per distinct
+   * in-use border-radius value (the px integer; the two non-px forms get
+   * honest keyed off-ramp names — `circle` for 50%, `pill` for the
+   * effectively-infinite 999px corner). The name encodes the value so no
+   * consolidation or ordering is implied. Tier 2 below points at these; app
+   * CSS must never reference a Tier-1 raw directly. Values preserved exactly.
+   * ===================================================================== */
+
+  --u-raw-radius-2: 2px;
+  --u-raw-radius-3: 3px;
+  --u-raw-radius-4: 4px;
+  --u-raw-radius-5: 5px;
+  --u-raw-radius-6: 6px;
+  --u-raw-radius-7: 7px;
+  --u-raw-radius-8: 8px;
+  --u-raw-radius-9: 9px;
+  --u-raw-radius-10: 10px;
+  --u-raw-radius-12: 12px;
+  --u-raw-radius-20: 20px;
+  --u-raw-radius-circle: 50%; /* circular form (avatars, dots) */
+  --u-raw-radius-pill: 999px; /* effectively-infinite pill corner */
+
+  /* ===================================================================== *
+   * Tier 2 — semantic radius aliases (ADR 0043 §1). Point at Tier 1, never a
+   * literal. App CSS references only this tier. Thin, value-keyed 1:1 aliases
+   * per value. The pre-existing --u-radius / --u-radius-lg names are KEPT and
+   * repointed to the raw tier (no rename, zero churn at their 28 call sites);
+   * the bare `8px` duplicates consolidate onto --u-radius and the bare `12px`
+   * onto --u-radius-lg, each resolving to the one raw token. Richer role
+   * aliases (--u-radius-control/-card) are deferred (ADR 0043 §1, Out of scope).
+   * ===================================================================== */
+
+  --u-radius-2: var(--u-raw-radius-2);
+  --u-radius-3: var(--u-raw-radius-3);
+  --u-radius-4: var(--u-raw-radius-4);
+  --u-radius-5: var(--u-raw-radius-5);
+  --u-radius-6: var(--u-raw-radius-6);
+  --u-radius-7: var(--u-raw-radius-7);
+  --u-radius-9: var(--u-raw-radius-9);
+  --u-radius-10: var(--u-raw-radius-10);
+  --u-radius-20: var(--u-raw-radius-20);
+  --u-radius-circle: var(--u-raw-radius-circle);
+  --u-radius-pill: var(--u-raw-radius-pill);
+  --u-radius: var(--u-raw-radius-8);
+  --u-radius-lg: var(--u-raw-radius-12);
+
+  /* ===================================================================== *
+   * Tier 1 — raw elevation tokens (ADR 0043 §2). One token per distinct
+   * box-shadow, the whole value VERBATIM (geometry + the already-var()-backed
+   * color component + `inset` where present). The shadows do not form a clean
+   * depth ladder; they are an ad-hoc set, so the names are a stable readable
+   * registry (1a/1b/1c for the three near-identical 1px-blur shadows that
+   * differ only in tint; 2/3/4a/4b/4c for the deepening drop shadows; ring-*
+   * for the focus rings keyed by amber-tint alpha; inset-hairline for the one
+   * inset). The comment records the exact geometry. Tier 2 points at these;
+   * app CSS references only the Tier-2 alias. Tokenized as-is — no geometry
+   * redesign (the parchment-depth redesign is a separate story, ADR 0043 §2).
+   * ===================================================================== */
+
+  /* Drop shadows (offset-y / blur / optional spread; color is an existing tint var) */
+  --u-raw-elevation-hairline: 0 1px 0 var(--u-ink-tint-04); /* 1px bottom hairline */
+  --u-raw-elevation-1a: 0 1px 2px var(--u-ink-tint-15);
+  --u-raw-elevation-1b: 0 1px 3px var(--u-ink-tint-12);
+  --u-raw-elevation-1c: 0 1px 3px var(--u-ink-tint-14);
+  --u-raw-elevation-2: 0 3px 12px var(--u-ink-tint-10);
+  --u-raw-elevation-3: 0 6px 22px var(--u-ink-tint-13);
+  --u-raw-elevation-4a: 0 10px 26px var(--u-ink-tint-16);
+  --u-raw-elevation-4b: 0 10px 30px var(--u-ink-tint-16);
+  --u-raw-elevation-4c: 0 12px 32px var(--u-ink-tint-16);
+  /* Focus rings (0 0 0 spread; amber tint) */
+  --u-raw-elevation-ring-06: 0 0 0 3px var(--u-amber-tint-06);
+  --u-raw-elevation-ring-08: 0 0 0 3px var(--u-amber-tint-08);
+  --u-raw-elevation-ring-10: 0 0 0 3px var(--u-amber-tint-10);
+  --u-raw-elevation-ring-18: 0 0 0 3px var(--u-amber-tint-18);
+  --u-raw-elevation-ring-parchment: 0 0 0 2px var(--u-parchment); /* 2px parchment ring */
+  /* Inset */
+  --u-raw-elevation-inset-hairline: inset 0 0 0 1px var(--u-amber-tint-30);
+
+  /* ===================================================================== *
+   * Tier 2 — semantic elevation aliases (ADR 0043 §2). Point at Tier 1, never
+   * a literal. App CSS references only this tier. Thin, value-keyed 1:1
+   * aliases (one per distinct shadow); the var() inside the stored shadow
+   * resolves through the alias chain unchanged, so every resolved declaration
+   * is byte-identical. Role aliases are deferred (ADR 0043 §2, Out of scope).
+   * ===================================================================== */
+
+  --u-elevation-hairline: var(--u-raw-elevation-hairline);
+  --u-elevation-1a: var(--u-raw-elevation-1a);
+  --u-elevation-1b: var(--u-raw-elevation-1b);
+  --u-elevation-1c: var(--u-raw-elevation-1c);
+  --u-elevation-2: var(--u-raw-elevation-2);
+  --u-elevation-3: var(--u-raw-elevation-3);
+  --u-elevation-4a: var(--u-raw-elevation-4a);
+  --u-elevation-4b: var(--u-raw-elevation-4b);
+  --u-elevation-4c: var(--u-raw-elevation-4c);
+  --u-elevation-ring-06: var(--u-raw-elevation-ring-06);
+  --u-elevation-ring-08: var(--u-raw-elevation-ring-08);
+  --u-elevation-ring-10: var(--u-raw-elevation-ring-10);
+  --u-elevation-ring-18: var(--u-raw-elevation-ring-18);
+  --u-elevation-ring-parchment: var(--u-raw-elevation-ring-parchment);
+  --u-elevation-inset-hairline: var(--u-raw-elevation-inset-hairline);
+
+  /* ===================================================================== *
+   * Tier 1 — raw z-index tokens (ADR 0043 §3). The three distinct in-use
+   * values, each with a distinct stacking role, so role naming is honest here
+   * (unlike radii/elevation). Only the three values in use are minted (no
+   * speculative steps). Tier 2 points at these; app CSS references only Tier 2.
+   * ===================================================================== */
+
+  --u-raw-z-base: 1; /* in-flow stack (avatar overlap) */
+  --u-raw-z-dropdown: 40; /* search dropdown */
+  --u-raw-z-popover: 50; /* account menu */
+
+  /* Tier 2 — semantic z-index aliases (ADR 0043 §3). */
+  --u-z-base: var(--u-raw-z-base);
+  --u-z-dropdown: var(--u-raw-z-dropdown);
+  --u-z-popover: var(--u-raw-z-popover);
 
   /* Layout */
   --page-max: 720px;

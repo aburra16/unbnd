@@ -2,7 +2,7 @@
   margin: var(--u-space-16) 0;
   padding: var(--u-space-16);
   border: 1px solid var(--u-line-200);
-  border-radius: 12px;
+  border-radius: var(--u-radius-lg);
   display: flex;
   flex-direction: column;
   gap: var(--u-space-12);
@@ -27,7 +27,7 @@
 .author-edit-field textarea {
   padding: var(--u-space-8) var(--u-space-10);
   border: 1px solid var(--u-line-300);
-  border-radius: 8px;
+  border-radius: var(--u-radius);
   font: inherit;
   color: var(--u-ink);
   background: var(--u-surface-input);
@@ -42,7 +42,7 @@
 .author-edit-save {
   padding: var(--u-space-8) var(--u-space-18);
   border: none;
-  border-radius: 999px;
+  border-radius: var(--u-radius-pill);
   background: var(--u-ink);
   color: var(--u-on-ink);
   font-weight: var(--u-font-weight-semibold);

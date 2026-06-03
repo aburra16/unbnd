@@ -12,7 +12,7 @@
 .sov-dot {
   width: 6px;
   height: 6px;
-  border-radius: 50%;
+  border-radius: var(--u-radius-circle);
   margin-top: var(--u-space-6);
   flex-shrink: 0;
 }

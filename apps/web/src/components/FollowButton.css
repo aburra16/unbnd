@@ -100,7 +100,7 @@
 .follow-signin:focus-visible {
   outline: 2px solid var(--u-amber);
   outline-offset: 2px;
-  border-radius: 4px;
+  border-radius: var(--u-radius-4);
 }
 
 .follow-error {

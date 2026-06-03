@@ -10,7 +10,7 @@
 .nav-avatar {
   width: 30px;
   height: 30px;
-  border-radius: 50%;
+  border-radius: var(--u-radius-circle);
   background: var(--u-amber);
   color: var(--u-parchment);
   display: inline-flex;

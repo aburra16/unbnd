@@ -11,7 +11,7 @@
   font-weight: var(--u-font-weight-semibold);
   font-size: var(--u-font-size-14);
   padding: var(--u-space-9) var(--u-space-16);
-  border-radius: 7px;
+  border-radius: var(--u-radius-7);
   cursor: pointer;
 }
 

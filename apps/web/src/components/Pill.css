@@ -5,7 +5,7 @@
   font-size: var(--u-font-size-11);
   font-weight: var(--u-font-weight-medium);
   padding: var(--u-space-3) var(--u-space-11);
-  border-radius: 20px;
+  border-radius: var(--u-radius-20);
   letter-spacing: var(--u-tracking-0);
   line-height: var(--u-leading-140);
   white-space: nowrap;
@@ -27,5 +27,5 @@
    than its trusted neighbours. Depth without a drop shadow; no new hex. */
 .pill-community {
   background: var(--u-amber-tint-05);
-  box-shadow: inset 0 0 0 1px var(--u-amber-tint-30);
+  box-shadow: var(--u-elevation-inset-hairline);
 }

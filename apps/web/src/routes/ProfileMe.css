@@ -88,7 +88,7 @@
   padding: var(--u-space-24);
   text-align: center;
   border: 1px dashed var(--u-ink-tint-14);
-  border-radius: 10px;
+  border-radius: var(--u-radius-10);
 }
 
 .me-subs {
@@ -104,7 +104,7 @@
   gap: var(--u-space-2);
   padding: var(--u-space-12) var(--u-space-14);
   border: 1px solid var(--u-border);
-  border-radius: 10px;
+  border-radius: var(--u-radius-10);
 }
 
 .me-sub-title {
@@ -129,7 +129,7 @@
 .me-shelf {
   padding: var(--u-space-12) var(--u-space-14);
   border: 1px solid var(--u-border);
-  border-radius: 10px;
+  border-radius: var(--u-radius-10);
 }
 
 .me-shelf-head {
