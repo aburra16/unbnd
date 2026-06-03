@@ -4,23 +4,23 @@
 }
 
 .about-title {
-  font-size: 28px;
-  font-weight: 600;
-  letter-spacing: -0.6px;
+  font-size: var(--u-font-size-28);
+  font-weight: var(--u-font-weight-semibold);
+  letter-spacing: var(--u-tracking-n60);
   color: var(--u-ink);
   margin-bottom: 14px;
 }
 
 .about-lede {
-  font-size: 17px;
-  line-height: 1.6;
+  font-size: var(--u-font-size-17);
+  line-height: var(--u-leading-160);
   color: var(--u-ink);
   margin-bottom: 16px;
 }
 
 .about p {
-  font-size: 15px;
-  line-height: 1.75;
+  font-size: var(--u-font-size-15);
+  line-height: var(--u-leading-175);
   color: var(--u-ink-tint-78);
   margin-bottom: 14px;
 }
@@ -30,5 +30,5 @@
   padding-top: 16px;
   border-top: 1px solid var(--u-border);
   color: var(--u-muted) !important;
-  font-size: 14px !important;
+  font-size: var(--u-font-size-14) !important;
 }

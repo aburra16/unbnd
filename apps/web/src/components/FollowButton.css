@@ -21,9 +21,9 @@
   padding: 8px 16px;
   border-radius: var(--u-radius);
   font-family: var(--font-sans);
-  font-size: 0.92rem;
-  font-weight: 600;
-  line-height: 1.2;
+  font-size: var(--u-font-size-92rem);
+  font-weight: var(--u-font-weight-semibold);
+  line-height: var(--u-leading-120);
   cursor: pointer;
   border: 1px solid transparent;
   transition:
@@ -87,8 +87,8 @@
   display: inline-block;
   margin-top: 10px;
   color: var(--u-amber);
-  font-weight: 600;
-  font-size: 0.92rem;
+  font-weight: var(--u-font-weight-semibold);
+  font-size: var(--u-font-size-92rem);
   text-decoration: none;
 }
 
@@ -106,5 +106,5 @@
 .follow-error {
   margin: 0;
   color: var(--signal-negative);
-  font-size: 0.85rem;
+  font-size: var(--u-font-size-85rem);
 }

@@ -10,15 +10,15 @@
 }
 
 .me-name {
-  font-size: 24px;
-  font-weight: 600;
-  letter-spacing: -0.5px;
+  font-size: var(--u-font-size-24);
+  font-weight: var(--u-font-weight-semibold);
+  letter-spacing: var(--u-tracking-n50);
   color: var(--u-ink);
   margin-bottom: 2px;
 }
 
 .me-nip05 {
-  font-size: 13px;
+  font-size: var(--u-font-size-13);
   color: var(--signal-positive);
   margin-bottom: 4px;
 }
@@ -32,13 +32,13 @@
 }
 
 .me-npub-label {
-  font-size: 12px;
+  font-size: var(--u-font-size-12);
   color: var(--u-muted);
 }
 
 .me-npub-chip {
   font-family: var(--font-mono);
-  font-size: 12px;
+  font-size: var(--u-font-size-12);
   color: var(--u-muted);
   padding: 4px 8px;
   border: 1px solid var(--u-border);
@@ -48,7 +48,7 @@
 .me-nostr-link {
   display: inline-block;
   margin-top: 2px;
-  font-size: 13px;
+  font-size: var(--u-font-size-13);
   color: var(--u-muted);
 }
 
@@ -57,8 +57,8 @@
 }
 
 .me-about {
-  font-size: 14px;
-  line-height: 1.6;
+  font-size: var(--u-font-size-14);
+  line-height: var(--u-leading-160);
   color: var(--u-ink-tint-74);
   margin-top: 8px;
 }
@@ -66,8 +66,8 @@
 .me-substack {
   display: inline-block;
   margin-top: 8px;
-  font-size: 13px;
-  font-weight: 500;
+  font-size: var(--u-font-size-13);
+  font-weight: var(--u-font-weight-medium);
   color: var(--u-amber);
 }
 
@@ -76,14 +76,14 @@
 }
 
 .me-activity-title {
-  font-size: 16px;
-  font-weight: 600;
+  font-size: var(--u-font-size-16);
+  font-weight: var(--u-font-weight-semibold);
   color: var(--u-ink);
   margin-bottom: 10px;
 }
 
 .me-empty {
-  font-size: 14px;
+  font-size: var(--u-font-size-14);
   color: var(--u-muted);
   padding: 24px;
   text-align: center;
@@ -108,13 +108,13 @@
 }
 
 .me-sub-title {
-  font-size: 14px;
-  font-weight: 500;
+  font-size: var(--u-font-size-14);
+  font-weight: var(--u-font-weight-medium);
   color: var(--u-ink);
 }
 
 .me-sub-meta {
-  font-size: 12px;
+  font-size: var(--u-font-size-12);
   color: var(--u-muted);
 }
 
@@ -140,13 +140,13 @@
 }
 
 .me-shelf-name {
-  font-size: 14px;
-  font-weight: 600;
+  font-size: var(--u-font-size-14);
+  font-weight: var(--u-font-weight-semibold);
   color: var(--u-ink);
 }
 
 .me-shelf-count {
-  font-size: 12px;
+  font-size: var(--u-font-size-12);
   color: var(--u-muted);
 }
 
@@ -158,6 +158,6 @@
 }
 
 .me-shelf-book a {
-  font-size: 13px;
+  font-size: var(--u-font-size-13);
   color: var(--u-amber);
 }

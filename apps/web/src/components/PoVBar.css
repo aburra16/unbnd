@@ -6,7 +6,7 @@
   border-radius: 12px;
   border: 1px solid var(--u-border);
   background: var(--u-ink-tint-02);
-  font-size: 13px;
+  font-size: var(--u-font-size-13);
   color: var(--u-muted);
   margin-bottom: 36px;
 }
@@ -29,7 +29,7 @@
 }
 
 .pov-strong {
-  font-weight: 600;
+  font-weight: var(--u-font-weight-semibold);
   color: var(--u-ink);
 }
 
@@ -41,7 +41,7 @@
 }
 
 .pov-btn {
-  font-size: 11px;
+  font-size: var(--u-font-size-11);
   padding: 5px 12px;
   border-radius: var(--u-radius);
   border: 1px solid var(--u-border-hover);
@@ -69,7 +69,7 @@
 }
 
 .pov-progress-label {
-  font-size: 11px;
+  font-size: var(--u-font-size-11);
   color: var(--u-muted);
 }
 
@@ -90,13 +90,13 @@
 }
 
 .pov-badge {
-  font-size: 10px;
-  letter-spacing: 0.4px;
+  font-size: var(--u-font-size-10);
+  letter-spacing: var(--u-tracking-p40);
   padding: 2px 8px;
   border-radius: 20px;
   background: var(--u-green-tint-10);
   color: var(--signal-positive);
-  font-weight: 600;
+  font-weight: var(--u-font-weight-semibold);
   text-transform: uppercase;
 }
 
@@ -109,8 +109,8 @@
 }
 
 .pov-sw {
-  font-size: 12px;
-  font-weight: 500;
+  font-size: var(--u-font-size-12);
+  font-weight: var(--u-font-weight-medium);
   padding: 5px 14px;
   background: transparent;
   border: none;
@@ -134,7 +134,7 @@
 }
 
 .pov-hint {
-  font-size: 11px;
+  font-size: var(--u-font-size-11);
   color: var(--u-muted);
   margin-left: auto;
 }

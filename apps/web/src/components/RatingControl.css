@@ -8,7 +8,7 @@
 .rate-summary {
   margin: 0 0 12px;
   color: var(--u-muted);
-  font-size: 0.95rem;
+  font-size: var(--u-font-size-95rem);
 }
 
 .rate-gate {
@@ -18,7 +18,7 @@
 
 .rate-gate a {
   color: var(--u-amber);
-  font-weight: 600;
+  font-weight: var(--u-font-weight-semibold);
 }
 
 .rate-form {
@@ -39,7 +39,7 @@
   padding: 2px;
   cursor: pointer;
   color: inherit;
-  line-height: 0;
+  line-height: var(--u-leading-0);
 }
 
 .rate-star:hover {
@@ -55,7 +55,7 @@
   background: var(--u-surface);
   color: var(--u-ink);
   font-family: var(--font-sans);
-  font-size: 0.95rem;
+  font-size: var(--u-font-size-95rem);
   resize: vertical;
 }
 
@@ -71,7 +71,7 @@
   border-radius: var(--u-radius);
   background: var(--u-amber);
   color: var(--u-parchment);
-  font-weight: 600;
+  font-weight: var(--u-font-weight-semibold);
   cursor: pointer;
 }
 
@@ -87,11 +87,11 @@
 .rate-error {
   margin: 0;
   color: var(--signal-negative);
-  font-size: 0.9rem;
+  font-size: var(--u-font-size-90rem);
 }
 
 .rate-ok {
   margin: 0;
   color: var(--signal-positive);
-  font-size: 0.9rem;
+  font-size: var(--u-font-size-90rem);
 }

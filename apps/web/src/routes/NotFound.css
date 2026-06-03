@@ -1,0 +1,19 @@
+/* Type styles for the NotFound route, swept off inline JSX literals into the
+ * two-tier type tokens (ADR 0041, Option G). Non-type inline props (padding,
+ * margins, textAlign, color) stay inline on the elements; only the type axis
+ * moves here, resolving to byte-identical values. */
+
+.not-found-heading {
+  font-size: var(--u-font-size-26);
+  font-weight: var(--u-font-weight-semibold);
+  letter-spacing: var(--u-tracking-n60);
+}
+
+.not-found-body {
+  font-size: var(--u-font-size-14);
+}
+
+.not-found-link {
+  font-size: var(--u-font-size-13);
+  font-weight: var(--u-font-weight-medium);
+}

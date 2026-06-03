@@ -1,12 +1,12 @@
 .crumb {
-  font-size: 12px;
+  font-size: var(--u-font-size-12);
   color: var(--u-muted);
   margin-bottom: 18px;
 }
 
 .crumb-item a {
   color: var(--u-amber);
-  font-weight: 500;
+  font-weight: var(--u-font-weight-medium);
 }
 
 .crumb-item a:hover {

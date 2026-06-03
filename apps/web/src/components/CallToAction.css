@@ -8,24 +8,24 @@
 }
 
 .cta-title {
-  font-size: 14px;
-  font-weight: 600;
+  font-size: var(--u-font-size-14);
+  font-weight: var(--u-font-weight-semibold);
   margin-bottom: 6px;
   color: var(--u-ink);
 }
 
 .cta-body {
-  font-size: 13px;
+  font-size: var(--u-font-size-13);
   color: var(--u-muted);
-  line-height: 1.55;
+  line-height: var(--u-leading-155);
   margin: 0 auto 18px;
   max-width: 440px;
 }
 
 .cta-btn {
   display: inline-block;
-  font-size: 13px;
-  font-weight: 500;
+  font-size: var(--u-font-size-13);
+  font-weight: var(--u-font-weight-medium);
   padding: 10px 26px;
   border-radius: var(--u-radius);
   background: var(--u-amber);

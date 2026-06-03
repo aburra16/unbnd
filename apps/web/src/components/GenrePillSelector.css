@@ -5,8 +5,8 @@
 }
 
 .gps-pill {
-  font-size: 11px;
-  font-weight: 500;
+  font-size: var(--u-font-size-11);
+  font-weight: var(--u-font-weight-medium);
   padding: 6px 13px;
   border-radius: 20px;
   border: 1px solid var(--u-border-hover);

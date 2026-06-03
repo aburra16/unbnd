@@ -30,14 +30,14 @@
 }
 
 .sov-text {
-  font-size: 11px;
+  font-size: var(--u-font-size-11);
   color: var(--u-muted);
-  line-height: 1.6;
+  line-height: var(--u-leading-160);
 }
 
 .sov-text a {
   color: var(--u-amber);
-  font-weight: 500;
+  font-weight: var(--u-font-weight-medium);
 }
 
 .sov-text a:hover {
