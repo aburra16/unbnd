@@ -63,6 +63,58 @@ jobs:
       - name: Build web
         run: pnpm --filter @unbnd/web build
 
+  # Visual-regression gate (ADR 0039). Runs inside the pinned Playwright image
+  # so CI's render environment is byte-for-byte the canonical capture
+  # environment, making the committed Linux baselines compare zero-diff. No
+  # Postgres / data layer: the harness route-mocks /api + /auth, so it needs no
+  # backend. Sibling to `test`, not wired into `pnpm -r test`.
+  visual:
+    name: Visual regression
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    container:
+      image: mcr.microsoft.com/playwright:v1.60.0-jammy
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build web
+        run: pnpm --filter @unbnd/web build
+
+      - name: Visual regression
+        run: pnpm --filter @unbnd/web test:visual
+
+      - name: Upload Playwright report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: apps/web/playwright-report
+          retention-days: 7
+
+      # Uploaded so first-run-generated baselines can be retrieved during the
+      # CI bootstrap (the canonical Linux PNGs are produced here).
+      - name: Upload snapshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: visual-snapshots
+          path: apps/web/e2e/visual/**/*-snapshots/**
+          retention-days: 7
+
   caddyfile:
     name: Validate Caddyfile
     runs-on: ubuntu-latest

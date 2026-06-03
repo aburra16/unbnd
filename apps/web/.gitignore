@@ -1,0 +1,7 @@
+# Playwright run artifacts (ADR 0039). The committed baselines live under
+# e2e/visual/visual.spec.ts-snapshots/ and are intentionally NOT ignored; they
+# are generated in CI (Linux). These are transient run outputs only.
+/playwright-report/
+/test-results/
+/blob-report/
+/playwright/.cache/
