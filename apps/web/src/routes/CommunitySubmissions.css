@@ -3,16 +3,16 @@
 }
 
 .cs-title {
-  font-size: 26px;
-  font-weight: 600;
-  letter-spacing: -0.6px;
+  font-size: var(--u-font-size-26);
+  font-weight: var(--u-font-weight-semibold);
+  letter-spacing: var(--u-tracking-n60);
   color: var(--u-ink);
   margin-bottom: 6px;
 }
 
 .cs-sub {
-  font-size: 14px;
-  line-height: 1.6;
+  font-size: var(--u-font-size-14);
+  line-height: var(--u-leading-160);
   color: var(--u-muted);
   max-width: 560px;
 }
@@ -34,13 +34,13 @@
 }
 
 .cs-item-title {
-  font-size: 14px;
-  font-weight: 500;
+  font-size: var(--u-font-size-14);
+  font-weight: var(--u-font-weight-medium);
   color: var(--u-ink);
 }
 
 .cs-item-meta {
-  font-size: 12px;
+  font-size: var(--u-font-size-12);
   color: var(--u-muted);
 }
 
@@ -63,7 +63,7 @@
 }
 
 .cs-item-signal {
-  font-size: 12px;
+  font-size: var(--u-font-size-12);
   color: var(--u-muted);
 }
 
@@ -72,14 +72,14 @@
 }
 
 .cs-item-state {
-  font-size: 12px;
-  font-weight: 500;
+  font-size: var(--u-font-size-12);
+  font-weight: var(--u-font-weight-medium);
   color: var(--u-amber);
 }
 
 .cs-promote {
-  font-size: 12px;
-  font-weight: 500;
+  font-size: var(--u-font-size-12);
+  font-weight: var(--u-font-weight-medium);
   color: var(--u-ink);
   background: transparent;
   border: 1px solid var(--u-border);

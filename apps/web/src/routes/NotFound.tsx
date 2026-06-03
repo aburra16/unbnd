@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { Nav } from "../components/Nav";
 import { Footer } from "../components/Footer";
+import "./NotFound.css";
 
 export function NotFound() {
   return (
@@ -13,18 +14,16 @@ export function NotFound() {
         }}
       >
         <h1
+          className="not-found-heading"
           style={{
-            fontSize: 26,
-            fontWeight: 600,
-            letterSpacing: "-0.6px",
             marginBottom: 10,
           }}
         >
           That page is not on the shelf.
         </h1>
         <p
+          className="not-found-body"
           style={{
-            fontSize: 14,
             color: "var(--u-muted)",
             marginBottom: 22,
           }}
@@ -33,9 +32,8 @@ export function NotFound() {
         </p>
         <Link
           to="/"
+          className="not-found-link"
           style={{
-            fontSize: 13,
-            fontWeight: 500,
             color: "var(--u-amber)",
           }}
         >

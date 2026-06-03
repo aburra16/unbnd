@@ -7,14 +7,14 @@
 }
 
 .dc-title {
-  font-size: 16px;
-  font-weight: 600;
+  font-size: var(--u-font-size-16);
+  font-weight: var(--u-font-weight-semibold);
   color: var(--u-ink);
   margin-bottom: 4px;
 }
 
 .dc-sub {
-  font-size: 13px;
+  font-size: var(--u-font-size-13);
   color: var(--u-muted);
   margin-bottom: 12px;
 }
@@ -22,7 +22,7 @@
 .dc-input {
   width: 100%;
   padding: 11px 14px;
-  font-size: 14px;
+  font-size: var(--u-font-size-14);
   border: 1px solid var(--u-ink-tint-18);
   border-radius: 8px;
   background: var(--u-surface-card);
@@ -35,7 +35,7 @@
 }
 
 .dc-status {
-  font-size: 12px;
+  font-size: var(--u-font-size-12);
   color: var(--u-muted);
   margin-top: 10px;
 }
@@ -49,17 +49,17 @@
   flex-wrap: wrap;
   align-items: center;
   gap: 8px;
-  font-size: 13px;
+  font-size: var(--u-font-size-13);
   color: var(--u-ink);
 }
 
 .dc-exact-link {
   color: var(--u-amber);
-  font-weight: 600;
+  font-weight: var(--u-font-weight-semibold);
 }
 
 .dc-matches-label {
-  font-size: 12px;
+  font-size: var(--u-font-size-12);
   color: var(--u-muted);
   margin: 14px 0 6px;
 }
@@ -89,13 +89,13 @@
 }
 
 .dc-match-title {
-  font-size: 13px;
-  font-weight: 500;
+  font-size: var(--u-font-size-13);
+  font-weight: var(--u-font-weight-medium);
   color: var(--u-ink);
 }
 
 .dc-match-author {
-  font-size: 12px;
+  font-size: var(--u-font-size-12);
   color: var(--u-muted);
 }
 
@@ -107,13 +107,13 @@
 }
 
 .dc-clear-note {
-  font-size: 13px;
+  font-size: var(--u-font-size-13);
   color: var(--signal-positive);
 }
 
 .dc-proceed {
-  font-size: 13px;
-  font-weight: 500;
+  font-size: var(--u-font-size-13);
+  font-weight: var(--u-font-weight-medium);
   padding: 9px 18px;
   border-radius: 8px;
   border: 1px solid transparent;
@@ -126,7 +126,7 @@
   background: transparent;
   border-color: var(--u-ink-tint-20);
   color: var(--u-ink);
-  font-weight: 400;
+  font-weight: var(--u-font-weight-regular);
 }
 
 .dc-proceed:hover {

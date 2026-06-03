@@ -7,14 +7,14 @@
 
 .copy-btn {
   padding: 4px 10px;
-  font-size: 12px;
-  font-weight: 500;
+  font-size: var(--u-font-size-12);
+  font-weight: var(--u-font-weight-medium);
   border: 1px solid var(--u-border-hover);
   border-radius: var(--u-radius);
   background: transparent;
   color: var(--u-ink);
   cursor: pointer;
-  line-height: 1.4;
+  line-height: var(--u-leading-140);
 }
 
 .copy-btn:hover {
@@ -30,7 +30,7 @@
    to AT via role=status / aria-live. Empty when idle (no reserved noise). */
 .copy-btn-status {
   margin-left: 8px;
-  font-size: 12px;
+  font-size: var(--u-font-size-12);
   color: var(--u-muted);
 }
 

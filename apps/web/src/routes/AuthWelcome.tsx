@@ -37,11 +37,10 @@ export function AuthWelcome() {
         </Link>
       </div>
       <p
+        className="auth-welcome-note"
         style={{
-          fontSize: 11,
           color: "var(--u-muted)",
           textAlign: "center",
-          lineHeight: 1.5,
           marginTop: 16,
         }}
       >

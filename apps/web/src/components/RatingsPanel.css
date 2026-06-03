@@ -14,8 +14,8 @@
 .rp-tab {
   border: none;
   background: none;
-  font-size: 12px;
-  font-weight: 500;
+  font-size: var(--u-font-size-12);
+  font-weight: var(--u-font-weight-medium);
   padding: 6px 14px;
   border-radius: 6px;
   color: var(--u-muted);
@@ -34,8 +34,8 @@
 }
 
 .rp-personalize {
-  font-size: 12px;
-  font-weight: 500;
+  font-size: var(--u-font-size-12);
+  font-weight: var(--u-font-weight-medium);
   padding: 7px 16px;
   border-radius: 8px;
   border: 1px solid var(--u-amber);
@@ -49,18 +49,18 @@
 }
 
 .rp-building {
-  font-size: 12px;
+  font-size: var(--u-font-size-12);
   color: var(--u-muted);
 }
 
 .rp-error {
-  font-size: 12px;
+  font-size: var(--u-font-size-12);
   color: var(--signal-negative);
   margin-bottom: 10px;
 }
 
 .rp-caption {
-  font-size: 12px;
+  font-size: var(--u-font-size-12);
   color: var(--u-muted);
   margin-bottom: 12px;
 }

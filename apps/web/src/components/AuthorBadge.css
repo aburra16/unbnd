@@ -1,6 +1,6 @@
 .author-badge {
   margin: 2px 0 0;
-  font-size: 13px;
+  font-size: var(--u-font-size-13);
   color: var(--u-muted);
 }
 
@@ -10,7 +10,7 @@
 
 .author-badge-link {
   color: var(--u-ink);
-  font-weight: 600;
+  font-weight: var(--u-font-weight-semibold);
   text-decoration: none;
 }
 
@@ -35,8 +35,8 @@
   border-radius: 999px;
   background: var(--u-ink);
   color: var(--u-on-ink);
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.02em;
+  font-size: var(--u-font-size-11);
+  font-weight: var(--u-font-weight-bold);
+  letter-spacing: var(--u-tracking-p02em);
   text-transform: uppercase;
 }

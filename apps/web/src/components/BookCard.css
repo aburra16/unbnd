@@ -20,9 +20,9 @@
 }
 
 .book-cover-title {
-  font-size: 11px;
-  font-weight: 600;
-  line-height: 1.3;
+  font-size: var(--u-font-size-11);
+  font-weight: var(--u-font-weight-semibold);
+  line-height: var(--u-leading-130);
 }
 
 /* The decorative spine title is CSS-generated from the data attribute, so it is
@@ -49,9 +49,9 @@
 }
 
 .book-title {
-  font-size: 12px;
-  font-weight: 500;
-  line-height: 1.3;
+  font-size: var(--u-font-size-12);
+  font-weight: var(--u-font-weight-medium);
+  line-height: var(--u-leading-130);
   margin-bottom: 2px;
   color: var(--u-ink);
   display: -webkit-box;
@@ -62,15 +62,15 @@
 }
 
 .book-author {
-  font-size: 11px;
+  font-size: var(--u-font-size-11);
   color: var(--u-muted);
   margin-bottom: 3px;
 }
 
 .book-rating {
-  font-size: 11px;
+  font-size: var(--u-font-size-11);
   color: var(--u-amber);
-  font-weight: 500;
+  font-weight: var(--u-font-weight-medium);
 }
 
 .book-shelf {
@@ -96,12 +96,12 @@
 }
 
 .book-signal {
-  font-size: 9px;
-  font-weight: 600;
+  font-size: var(--u-font-size-9);
+  font-weight: var(--u-font-weight-semibold);
   padding: 2px 7px;
   border-radius: 12px;
-  letter-spacing: 0.1px;
-  line-height: 1.3;
+  letter-spacing: var(--u-tracking-p10);
+  line-height: var(--u-leading-130);
 }
 
 .book-signal-positive {

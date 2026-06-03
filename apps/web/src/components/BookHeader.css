@@ -1,6 +1,6 @@
 .bh-attribution {
   margin: 2px 0 0;
-  font-size: 12px;
+  font-size: var(--u-font-size-12);
   font-style: italic;
   color: var(--u-muted);
 }
@@ -23,9 +23,9 @@
 }
 
 .bh-cover-title {
-  font-size: 13px;
-  font-weight: 600;
-  line-height: 1.3;
+  font-size: var(--u-font-size-13);
+  font-weight: var(--u-font-weight-semibold);
+  line-height: var(--u-leading-130);
 }
 
 .bh-cover-img {
@@ -47,23 +47,23 @@
 }
 
 .bh-title {
-  font-size: 26px;
-  font-weight: 600;
-  letter-spacing: -0.6px;
-  line-height: 1.2;
+  font-size: var(--u-font-size-26);
+  font-weight: var(--u-font-weight-semibold);
+  letter-spacing: var(--u-tracking-n60);
+  line-height: var(--u-leading-120);
   margin-bottom: 6px;
   color: var(--u-ink);
 }
 
 .bh-author {
-  font-size: 14px;
+  font-size: var(--u-font-size-14);
   color: var(--u-muted);
   margin-bottom: 14px;
 }
 
 .bh-author a {
   color: var(--u-amber);
-  font-weight: 500;
+  font-weight: var(--u-font-weight-medium);
 }
 
 .bh-author a:hover {
@@ -75,14 +75,14 @@
   display: flex;
   flex-wrap: wrap;
   gap: 16px;
-  font-size: 12px;
+  font-size: var(--u-font-size-12);
   color: var(--u-muted);
   margin-bottom: 14px;
 }
 
 .bh-meta-isbn {
   font-family: var(--font-mono);
-  font-size: 11px;
+  font-size: var(--u-font-size-11);
 }
 
 .bh-tags {
@@ -93,8 +93,8 @@
 }
 
 .bh-blurb {
-  font-size: 14px;
-  line-height: 1.7;
+  font-size: var(--u-font-size-14);
+  line-height: var(--u-leading-170);
   color: var(--u-ink-tint-74);
   margin-top: 8px;
 }
@@ -110,6 +110,6 @@
     flex: 0 0 auto;
   }
   .bh-title {
-    font-size: 22px;
+    font-size: var(--u-font-size-22);
   }
 }

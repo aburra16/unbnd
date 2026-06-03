@@ -3,17 +3,17 @@
 }
 
 .sub-title {
-  font-size: 22px;
-  font-weight: 600;
-  letter-spacing: -0.5px;
+  font-size: var(--u-font-size-22);
+  font-weight: var(--u-font-weight-semibold);
+  letter-spacing: var(--u-tracking-n50);
   margin-bottom: 8px;
   color: var(--u-ink);
 }
 
 .sub-sub {
-  font-size: 14px;
+  font-size: var(--u-font-size-14);
   color: var(--u-muted);
-  line-height: 1.6;
+  line-height: var(--u-leading-160);
   max-width: 560px;
 }
 
@@ -30,12 +30,12 @@
 }
 
 .sub-section-title {
-  font-size: 13px;
-  font-weight: 600;
+  font-size: var(--u-font-size-13);
+  font-weight: var(--u-font-weight-semibold);
   padding-bottom: 6px;
   border-bottom: 1px solid var(--u-border);
   color: var(--u-ink);
-  letter-spacing: 0.1px;
+  letter-spacing: var(--u-tracking-p10);
 }
 
 .sub-row {
@@ -55,8 +55,8 @@
 }
 
 .sub-field label {
-  font-size: 12px;
-  font-weight: 500;
+  font-size: var(--u-font-size-12);
+  font-weight: var(--u-font-weight-medium);
   color: var(--u-ink-tint-70);
   display: flex;
   align-items: center;
@@ -64,17 +64,17 @@
 }
 
 .sub-req {
-  font-size: 10px;
-  font-weight: 500;
+  font-size: var(--u-font-size-10);
+  font-weight: var(--u-font-weight-medium);
   color: var(--u-amber);
-  letter-spacing: 0.2px;
+  letter-spacing: var(--u-tracking-p20);
 }
 
 .sub-field input,
 .sub-field select,
 .sub-field textarea {
   padding: 9px 14px;
-  font-size: 13px;
+  font-size: var(--u-font-size-13);
   border-radius: var(--u-radius);
   border: 1px solid var(--u-border-hover);
   background: var(--u-surface-card);
@@ -88,7 +88,7 @@
 .sub-field textarea {
   resize: vertical;
   min-height: 92px;
-  line-height: 1.55;
+  line-height: var(--u-leading-155);
 }
 
 .sub-field input:focus,
@@ -105,9 +105,9 @@
 }
 
 .sub-hint {
-  font-size: 11px;
+  font-size: var(--u-font-size-11);
   color: var(--u-muted);
-  line-height: 1.5;
+  line-height: var(--u-leading-150);
   margin-top: 2px;
 }
 
@@ -123,8 +123,8 @@
 .sub-submit-btn {
   align-self: flex-start;
   padding: 12px 28px;
-  font-size: 14px;
-  font-weight: 500;
+  font-size: var(--u-font-size-14);
+  font-weight: var(--u-font-weight-medium);
   border-radius: var(--u-radius);
   border: none;
   background: var(--u-amber);
@@ -137,15 +137,15 @@
 }
 
 .sub-submit-note {
-  font-size: 11px;
+  font-size: var(--u-font-size-11);
   color: var(--u-muted);
-  line-height: 1.6;
+  line-height: var(--u-leading-160);
   max-width: 560px;
 }
 
 .sub-submit-note a {
   color: var(--u-amber);
-  font-weight: 500;
+  font-weight: var(--u-font-weight-medium);
 }
 
 .sub-submit-note a:hover {
@@ -165,7 +165,7 @@
   background: none;
   padding: 0;
   margin-bottom: 16px;
-  font-size: 13px;
+  font-size: var(--u-font-size-13);
   color: var(--u-muted);
   cursor: pointer;
 }
@@ -183,26 +183,26 @@
 }
 
 .sub-done-title {
-  font-size: 17px;
-  font-weight: 600;
+  font-size: var(--u-font-size-17);
+  font-weight: var(--u-font-weight-semibold);
   color: var(--u-ink);
   margin-bottom: 6px;
 }
 
 .sub-done-note {
-  font-size: 14px;
-  line-height: 1.6;
+  font-size: var(--u-font-size-14);
+  line-height: var(--u-leading-160);
   color: var(--u-ink-tint-75);
 }
 
 .sub-done-note a,
 .sub-submit-note a {
   color: var(--u-amber);
-  font-weight: 500;
+  font-weight: var(--u-font-weight-medium);
 }
 
 .sub-error {
-  font-size: 13px;
+  font-size: var(--u-font-size-13);
   color: var(--signal-negative);
   margin-bottom: 10px;
 }

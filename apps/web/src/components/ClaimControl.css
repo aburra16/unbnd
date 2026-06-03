@@ -8,8 +8,8 @@
   background: var(--u-surface);
   color: var(--u-ink);
   font: inherit;
-  font-weight: 600;
-  font-size: 14px;
+  font-weight: var(--u-font-weight-semibold);
+  font-size: var(--u-font-size-14);
   padding: 9px 16px;
   border-radius: 7px;
   cursor: pointer;
@@ -26,12 +26,12 @@
 
 .claim-ok {
   margin: 0;
-  font-size: 14px;
+  font-size: var(--u-font-size-14);
   color: var(--u-ink);
 }
 
 .claim-error {
   margin: 8px 0 0;
-  font-size: 13px;
+  font-size: var(--u-font-size-13);
   color: var(--u-amber);
 }

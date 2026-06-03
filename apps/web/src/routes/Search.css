@@ -4,7 +4,7 @@
 }
 
 .search-count {
-  font-size: 14px;
+  font-size: var(--u-font-size-14);
   color: var(--u-muted);
   margin-bottom: 16px;
 }
@@ -16,8 +16,8 @@
 }
 
 .search-more-btn {
-  font-size: 13px;
-  font-weight: 500;
+  font-size: var(--u-font-size-13);
+  font-weight: var(--u-font-weight-medium);
   padding: 10px 22px;
   border: 1px solid var(--u-ink-tint-20);
   border-radius: 8px;

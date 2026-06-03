@@ -215,12 +215,165 @@
   --u-radius: 8px;
   --u-radius-lg: 12px;
 
-  /* Type */
-  --font-sans:
+  /* ===================================================================== *
+   * Tier 1 — raw type tokens (ADR 0041 §1). Literal values only, no
+   * semantics. Naming: --u-raw-<axis>-<value-key>, one token per distinct
+   * value actually in use (no speculative steps), units kept as authored
+   * (no rem→px). Tier 2 below points at these; app CSS must never reference
+   * a Tier-1 raw directly. Value-keyed names: the name encodes the value so
+   * no consolidation or ordering is implied (sizes/leading/tracking); the
+   * one honest ordinal ladder is the four weights.
+   * ===================================================================== */
+
+  /* font sizes — px named by integer */
+  --u-raw-font-size-9: 9px;
+  --u-raw-font-size-10: 10px;
+  --u-raw-font-size-11: 11px;
+  --u-raw-font-size-12: 12px;
+  --u-raw-font-size-13: 13px;
+  --u-raw-font-size-14: 14px;
+  --u-raw-font-size-15: 15px;
+  --u-raw-font-size-16: 16px;
+  --u-raw-font-size-17: 17px;
+  --u-raw-font-size-18: 18px;
+  --u-raw-font-size-20: 20px;
+  --u-raw-font-size-22: 22px;
+  --u-raw-font-size-24: 24px;
+  --u-raw-font-size-26: 26px;
+  --u-raw-font-size-28: 28px;
+  --u-raw-font-size-30: 30px;
+  --u-raw-font-size-38: 38px;
+  /* rem sizes — kept as authored (no rem→px); key encodes the rem ×100 */
+  --u-raw-font-size-85rem: 0.85rem;
+  --u-raw-font-size-90rem: 0.9rem;
+  --u-raw-font-size-92rem: 0.92rem;
+  --u-raw-font-size-95rem: 0.95rem;
+
+  /* font weights — the one honest four-step ladder */
+  --u-raw-weight-regular: 400;
+  --u-raw-weight-medium: 500;
+  --u-raw-weight-semibold: 600;
+  --u-raw-weight-bold: 700;
+
+  /* line-heights — unitless ratios (decimal point dropped in the key) plus
+   * the two integer resets (-100: 1, -0: 0). Preserved exactly. */
+  --u-raw-leading-0: 0;
+  --u-raw-leading-100: 1;
+  --u-raw-leading-120: 1.2;
+  --u-raw-leading-125: 1.25;
+  --u-raw-leading-130: 1.3;
+  --u-raw-leading-140: 1.4;
+  --u-raw-leading-150: 1.5;
+  --u-raw-leading-155: 1.55;
+  --u-raw-leading-160: 1.6;
+  --u-raw-leading-165: 1.65;
+  --u-raw-leading-170: 1.7;
+  --u-raw-leading-175: 1.75;
+
+  /* letter-spacings — n/p prefixes encode the sign legibly without a leading
+   * `-` in the identifier; key digits are the value ×10 for px, em values
+   * suffixed `em`. Preserved exactly incl. sign and unit. */
+  --u-raw-tracking-0: 0;
+  --u-raw-tracking-n10: -0.1px;
+  --u-raw-tracking-n20: -0.2px;
+  --u-raw-tracking-n30: -0.3px;
+  --u-raw-tracking-n40: -0.4px;
+  --u-raw-tracking-n50: -0.5px;
+  --u-raw-tracking-n60: -0.6px;
+  --u-raw-tracking-n70: -0.7px;
+  --u-raw-tracking-n110: -1.1px;
+  --u-raw-tracking-p10: 0.1px;
+  --u-raw-tracking-p20: 0.2px;
+  --u-raw-tracking-p30: 0.3px;
+  --u-raw-tracking-p40: 0.4px;
+  --u-raw-tracking-p50: 0.5px;
+  --u-raw-tracking-p100: 1px;
+  --u-raw-tracking-p02em: 0.02em;
+  --u-raw-tracking-p04em: 0.04em;
+
+  /* font families — the stacks live here once (folded from --font-sans /
+   * --font-mono, byte-for-byte). */
+  --u-raw-family-sans:
     -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue",
     Arial, sans-serif;
-  --font-mono:
+  --u-raw-family-mono:
     ui-monospace, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+
+  /* ===================================================================== *
+   * Tier 2 — semantic / per-property type aliases (ADR 0041 §1). Point at
+   * Tier 1, never a literal. App CSS references only this tier. Thin,
+   * value-keyed 1:1 aliases per property so every existing call site swaps
+   * its literal for the matching alias with no resolved-value change.
+   * Composite role bundles (--u-text-*) are deferred (ADR 0041 §3, Out of
+   * scope).
+   * ===================================================================== */
+
+  /* font-size aliases */
+  --u-font-size-9: var(--u-raw-font-size-9);
+  --u-font-size-10: var(--u-raw-font-size-10);
+  --u-font-size-11: var(--u-raw-font-size-11);
+  --u-font-size-12: var(--u-raw-font-size-12);
+  --u-font-size-13: var(--u-raw-font-size-13);
+  --u-font-size-14: var(--u-raw-font-size-14);
+  --u-font-size-15: var(--u-raw-font-size-15);
+  --u-font-size-16: var(--u-raw-font-size-16);
+  --u-font-size-17: var(--u-raw-font-size-17);
+  --u-font-size-18: var(--u-raw-font-size-18);
+  --u-font-size-20: var(--u-raw-font-size-20);
+  --u-font-size-22: var(--u-raw-font-size-22);
+  --u-font-size-24: var(--u-raw-font-size-24);
+  --u-font-size-26: var(--u-raw-font-size-26);
+  --u-font-size-28: var(--u-raw-font-size-28);
+  --u-font-size-30: var(--u-raw-font-size-30);
+  --u-font-size-38: var(--u-raw-font-size-38);
+  --u-font-size-85rem: var(--u-raw-font-size-85rem);
+  --u-font-size-90rem: var(--u-raw-font-size-90rem);
+  --u-font-size-92rem: var(--u-raw-font-size-92rem);
+  --u-font-size-95rem: var(--u-raw-font-size-95rem);
+
+  /* font-weight aliases */
+  --u-font-weight-regular: var(--u-raw-weight-regular);
+  --u-font-weight-medium: var(--u-raw-weight-medium);
+  --u-font-weight-semibold: var(--u-raw-weight-semibold);
+  --u-font-weight-bold: var(--u-raw-weight-bold);
+
+  /* line-height aliases */
+  --u-leading-0: var(--u-raw-leading-0);
+  --u-leading-100: var(--u-raw-leading-100);
+  --u-leading-120: var(--u-raw-leading-120);
+  --u-leading-125: var(--u-raw-leading-125);
+  --u-leading-130: var(--u-raw-leading-130);
+  --u-leading-140: var(--u-raw-leading-140);
+  --u-leading-150: var(--u-raw-leading-150);
+  --u-leading-155: var(--u-raw-leading-155);
+  --u-leading-160: var(--u-raw-leading-160);
+  --u-leading-165: var(--u-raw-leading-165);
+  --u-leading-170: var(--u-raw-leading-170);
+  --u-leading-175: var(--u-raw-leading-175);
+
+  /* letter-spacing aliases */
+  --u-tracking-0: var(--u-raw-tracking-0);
+  --u-tracking-n10: var(--u-raw-tracking-n10);
+  --u-tracking-n20: var(--u-raw-tracking-n20);
+  --u-tracking-n30: var(--u-raw-tracking-n30);
+  --u-tracking-n40: var(--u-raw-tracking-n40);
+  --u-tracking-n50: var(--u-raw-tracking-n50);
+  --u-tracking-n60: var(--u-raw-tracking-n60);
+  --u-tracking-n70: var(--u-raw-tracking-n70);
+  --u-tracking-n110: var(--u-raw-tracking-n110);
+  --u-tracking-p10: var(--u-raw-tracking-p10);
+  --u-tracking-p20: var(--u-raw-tracking-p20);
+  --u-tracking-p30: var(--u-raw-tracking-p30);
+  --u-tracking-p40: var(--u-raw-tracking-p40);
+  --u-tracking-p50: var(--u-raw-tracking-p50);
+  --u-tracking-p100: var(--u-raw-tracking-p100);
+  --u-tracking-p02em: var(--u-raw-tracking-p02em);
+  --u-tracking-p04em: var(--u-raw-tracking-p04em);
+
+  /* font-family — existing names kept and repointed to raw (zero churn,
+   * zero diff); the 9 app-CSS font-family references resolve unchanged. */
+  --font-sans: var(--u-raw-family-sans);
+  --font-mono: var(--u-raw-family-mono);
 
   /* Layout */
   --page-max: 720px;

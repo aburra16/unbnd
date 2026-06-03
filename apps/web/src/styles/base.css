@@ -14,8 +14,8 @@ body,
 
 body {
   font-family: var(--font-sans);
-  font-size: 14px;
-  line-height: 1.55;
+  font-size: var(--u-font-size-14);
+  line-height: var(--u-leading-155);
   color: var(--u-ink);
   background: var(--u-parchment);
   -webkit-font-smoothing: antialiased;
@@ -65,7 +65,7 @@ img {
 .route-status {
   padding: 48px 0;
   text-align: center;
-  font-size: 14px;
+  font-size: var(--u-font-size-14);
   color: var(--u-muted);
 }
 
@@ -74,14 +74,14 @@ img {
 }
 
 .genre-browse-title {
-  font-size: 26px;
-  font-weight: 600;
-  letter-spacing: -0.6px;
+  font-size: var(--u-font-size-26);
+  font-weight: var(--u-font-weight-semibold);
+  letter-spacing: var(--u-tracking-n60);
   color: var(--u-ink);
   margin-bottom: 4px;
 }
 
 .genre-browse-count {
-  font-size: 13px;
+  font-size: var(--u-font-size-13);
   color: var(--u-muted);
 }

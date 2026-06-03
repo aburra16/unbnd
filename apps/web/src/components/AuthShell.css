@@ -16,9 +16,9 @@
 }
 
 .auth-back {
-  font-size: 12px;
+  font-size: var(--u-font-size-12);
   color: var(--u-muted);
-  letter-spacing: 0.2px;
+  letter-spacing: var(--u-tracking-p20);
   transition: color 120ms ease;
 }
 
@@ -44,19 +44,19 @@
 }
 
 .auth-card-title {
-  font-size: 22px;
-  font-weight: 600;
-  letter-spacing: -0.5px;
-  line-height: 1.25;
+  font-size: var(--u-font-size-22);
+  font-weight: var(--u-font-weight-semibold);
+  letter-spacing: var(--u-tracking-n50);
+  line-height: var(--u-leading-125);
   text-align: center;
   color: var(--u-ink);
   margin-bottom: 8px;
 }
 
 .auth-card-sub {
-  font-size: 13px;
+  font-size: var(--u-font-size-13);
   color: var(--u-muted);
-  line-height: 1.55;
+  line-height: var(--u-leading-155);
   text-align: center;
   margin: 0 auto 22px;
   max-width: 320px;
@@ -71,7 +71,7 @@
   margin-top: 20px;
   padding-top: 18px;
   border-top: 1px solid var(--u-border);
-  font-size: 12px;
+  font-size: var(--u-font-size-12);
   color: var(--u-muted);
   text-align: center;
 }
@@ -79,7 +79,7 @@
 .auth-card-footer a,
 .auth-card-footer .auth-linklike {
   color: var(--u-amber);
-  font-weight: 500;
+  font-weight: var(--u-font-weight-medium);
 }
 
 .auth-card-footer .auth-linklike {

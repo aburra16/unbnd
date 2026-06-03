@@ -8,9 +8,9 @@
 
 .ratings-label {
   flex-basis: 100%;
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.3px;
+  font-size: var(--u-font-size-11);
+  font-weight: var(--u-font-weight-semibold);
+  letter-spacing: var(--u-tracking-p30);
   text-transform: uppercase;
   color: var(--u-muted);
   margin-bottom: 2px;
@@ -22,22 +22,22 @@
 }
 
 .ratings-num {
-  font-size: 38px;
-  font-weight: 600;
-  line-height: 1;
-  letter-spacing: -1.1px;
+  font-size: var(--u-font-size-38);
+  font-weight: var(--u-font-weight-semibold);
+  line-height: var(--u-leading-100);
+  letter-spacing: var(--u-tracking-n110);
   color: var(--u-ink);
 }
 
 .ratings-stars {
   color: var(--u-amber);
-  font-size: 14px;
-  letter-spacing: 1px;
+  font-size: var(--u-font-size-14);
+  letter-spacing: var(--u-tracking-p100);
   margin: 6px 0 4px;
 }
 
 .ratings-count {
-  font-size: 11px;
+  font-size: var(--u-font-size-11);
   color: var(--u-muted);
 }
 
@@ -53,14 +53,14 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  font-size: 11px;
+  font-size: var(--u-font-size-11);
   color: var(--u-muted);
 }
 
 .dist-label {
   width: 12px;
   text-align: right;
-  font-weight: 500;
+  font-weight: var(--u-font-weight-medium);
 }
 
 .dist-track {

@@ -8,9 +8,9 @@
 }
 
 .avatar-initials {
-  font-weight: 600;
-  letter-spacing: 0.2px;
-  line-height: 1;
+  font-weight: var(--u-font-weight-semibold);
+  letter-spacing: var(--u-tracking-p20);
+  line-height: var(--u-leading-100);
   user-select: none;
 }
 

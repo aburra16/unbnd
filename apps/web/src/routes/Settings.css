@@ -5,16 +5,16 @@
 }
 
 .set-title {
-  font-size: 26px;
-  font-weight: 600;
+  font-size: var(--u-font-size-26);
+  font-weight: var(--u-font-weight-semibold);
   color: var(--u-ink);
   margin: 0;
 }
 
 .set-sub {
-  font-size: 14px;
+  font-size: var(--u-font-size-14);
   color: var(--u-muted);
-  line-height: 1.55;
+  line-height: var(--u-leading-155);
   margin: 8px 0 0;
 }
 
@@ -34,14 +34,14 @@
 }
 
 .set-field label {
-  font-size: 12px;
-  font-weight: 500;
+  font-size: var(--u-font-size-12);
+  font-weight: var(--u-font-weight-medium);
   color: var(--u-ink-tint-70);
 }
 
 .set-field input {
   padding: 9px 14px;
-  font-size: 13px;
+  font-size: var(--u-font-size-13);
   border-radius: var(--u-radius);
   border: 1px solid var(--u-border-hover);
   background: var(--u-surface-card);
@@ -54,20 +54,20 @@
 }
 
 .set-hint {
-  font-size: 12px;
+  font-size: var(--u-font-size-12);
   color: var(--u-muted);
   margin: 0;
 }
 
 .set-error {
-  font-size: 13px;
+  font-size: var(--u-font-size-13);
   color: var(--signal-negative);
   margin: 0;
 }
 
 .set-saving,
 .set-saved {
-  font-size: 13px;
+  font-size: var(--u-font-size-13);
   color: var(--u-muted);
   margin: 0;
 }
@@ -79,8 +79,8 @@
 
 .set-save {
   padding: 9px 20px;
-  font-size: 13px;
-  font-weight: 600;
+  font-size: var(--u-font-size-13);
+  font-weight: var(--u-font-weight-semibold);
   border: none;
   border-radius: var(--u-radius);
   background: var(--u-amber);
@@ -94,8 +94,8 @@
 
 .set-clear {
   padding: 9px 20px;
-  font-size: 13px;
-  font-weight: 500;
+  font-size: var(--u-font-size-13);
+  font-weight: var(--u-font-weight-medium);
   border: 1px solid var(--u-border-hover);
   border-radius: var(--u-radius);
   background: transparent;
@@ -115,8 +115,8 @@
 
 /* Nostr identity section (Story 29 / ADR 0030). Read-only npub chip + copy. */
 .set-nostr-title {
-  font-size: 16px;
-  font-weight: 600;
+  font-size: var(--u-font-size-16);
+  font-weight: var(--u-font-weight-semibold);
   color: var(--u-ink);
   margin: 0 0 6px;
 }
@@ -127,8 +127,8 @@
 
 .set-nostr-label {
   display: block;
-  font-size: 13px;
-  font-weight: 500;
+  font-size: var(--u-font-size-13);
+  font-weight: var(--u-font-weight-medium);
   color: var(--u-ink);
   margin-bottom: 6px;
 }
@@ -142,7 +142,7 @@
 
 .set-nostr-chip {
   font-family: var(--font-mono);
-  font-size: 12px;
+  font-size: var(--u-font-size-12);
   color: var(--u-muted);
   padding: 4px 8px;
   border: 1px solid var(--u-border);
