@@ -20,5 +20,5 @@
 
 .crumb-sep {
   margin: 0 8px;
-  color: rgba(139, 134, 152, 0.5);
+  color: var(--u-muted-tint-50);
 }

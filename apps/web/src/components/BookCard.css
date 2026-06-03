@@ -8,7 +8,7 @@
   display: flex;
   align-items: flex-end;
   padding: 10px;
-  box-shadow: 0 3px 12px rgba(26, 26, 46, 0.1);
+  box-shadow: 0 3px 12px var(--u-ink-tint-10);
   transition:
     transform 180ms ease,
     box-shadow 180ms ease;
@@ -16,7 +16,7 @@
 
 .book:hover .book-cover {
   transform: translateY(-3px);
-  box-shadow: 0 10px 26px rgba(26, 26, 46, 0.16);
+  box-shadow: 0 10px 26px var(--u-ink-tint-16);
 }
 
 .book-cover-title {
@@ -105,21 +105,21 @@
 }
 
 .book-signal-positive {
-  background: rgba(29, 158, 117, 0.1);
+  background: var(--u-green-tint-10);
   color: var(--signal-positive);
 }
 
 .book-signal-negative {
-  background: rgba(220, 53, 69, 0.1);
+  background: var(--u-red-tint-10);
   color: var(--signal-negative);
 }
 
 .book-signal-sovereign {
-  background: rgba(120, 69, 255, 0.1);
+  background: var(--u-purple-tint-10);
   color: var(--signal-sovereign);
 }
 
 .book-signal-amber {
-  background: rgba(196, 118, 60, 0.1);
+  background: var(--u-amber-tint-10);
   color: var(--u-amber);
 }

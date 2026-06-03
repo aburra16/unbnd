@@ -1,9 +1,11 @@
+import { SEMANTIC_COLORS } from "@unbnd/ui";
+
 type Props = {
   size?: number;
   stroke?: string;
 };
 
-export function SearchIcon({ size = 16, stroke = "#8B8698" }: Props) {
+export function SearchIcon({ size = 16, stroke = SEMANTIC_COLORS.muted }: Props) {
   return (
     <svg
       width={size}

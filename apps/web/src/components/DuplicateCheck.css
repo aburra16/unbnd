@@ -1,9 +1,9 @@
 .dc {
   margin-bottom: 28px;
   padding: 20px 22px;
-  border: 1px solid var(--u-border, rgba(26, 26, 46, 0.1));
+  border: 1px solid var(--u-border);
   border-radius: 12px;
-  background: rgba(26, 26, 46, 0.02);
+  background: var(--u-ink-tint-02);
 }
 
 .dc-title {
@@ -23,9 +23,9 @@
   width: 100%;
   padding: 11px 14px;
   font-size: 14px;
-  border: 1px solid rgba(26, 26, 46, 0.18);
+  border: 1px solid var(--u-ink-tint-18);
   border-radius: 8px;
-  background: #fff;
+  background: var(--u-surface-card);
   color: var(--u-ink);
 }
 
@@ -44,7 +44,7 @@
   margin-top: 12px;
   padding: 12px 14px;
   border-radius: 8px;
-  background: rgba(196, 118, 60, 0.1);
+  background: var(--u-amber-tint-10);
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -78,8 +78,8 @@
   gap: 1px;
   padding: 9px 12px;
   border-radius: 8px;
-  border: 1px solid var(--u-border, rgba(26, 26, 46, 0.1));
-  background: #fff;
+  border: 1px solid var(--u-border);
+  background: var(--u-surface-card);
   color: inherit;
   text-decoration: none;
 }
@@ -108,7 +108,7 @@
 
 .dc-clear-note {
   font-size: 13px;
-  color: var(--signal-positive, #1d9e75);
+  color: var(--signal-positive);
 }
 
 .dc-proceed {
@@ -118,13 +118,13 @@
   border-radius: 8px;
   border: 1px solid transparent;
   background: var(--u-ink);
-  color: #fff;
+  color: var(--u-surface-card);
   cursor: pointer;
 }
 
 .dc-proceed-quiet {
   background: transparent;
-  border-color: rgba(26, 26, 46, 0.2);
+  border-color: var(--u-ink-tint-20);
   color: var(--u-ink);
   font-weight: 400;
 }

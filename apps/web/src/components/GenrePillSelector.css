@@ -24,13 +24,13 @@
 }
 
 .gps-on {
-  background: rgba(196, 118, 60, 0.1);
+  background: var(--u-amber-tint-10);
   border-color: var(--u-amber);
   color: var(--u-amber);
 }
 
 .gps-on:hover {
-  background: rgba(196, 118, 60, 0.15);
+  background: var(--u-amber-tint-15);
   border-color: var(--u-amber-hover);
   color: var(--u-amber-hover);
 }

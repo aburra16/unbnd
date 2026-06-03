@@ -26,7 +26,7 @@
   padding: 11px 16px;
   border-radius: var(--u-radius);
   border: 1px solid var(--u-border);
-  background: #ffffff;
+  background: var(--u-surface-card);
   font-size: 13px;
   color: var(--u-ink);
   font-weight: 500;
@@ -37,7 +37,7 @@
 
 .wtr-link:hover {
   border-color: var(--u-amber);
-  background: rgba(196, 118, 60, 0.04);
+  background: var(--u-amber-tint-04);
 }
 
 .wtr-label {

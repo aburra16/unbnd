@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { npubEncode } from "applesauce-core/helpers";
+import { SEMANTIC_COLORS } from "@unbnd/ui";
 import { AuthShell } from "../components/AuthShell";
 import { SovereigntyNote } from "../components/SovereigntyNote";
 import { api, ApiError } from "../lib/api";
@@ -109,7 +110,7 @@ export function AuthNostrConnect() {
     <AuthShell
       title="Sign in with Nostr"
       subtitle="Unbnd reads your public key from a NIP-07 browser extension. Your private key never leaves the extension."
-      logoFill="#7845FF"
+      logoFill={SEMANTIC_COLORS.signalSovereign}
       footer={
         <>
           No extension yet?{" "}

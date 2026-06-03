@@ -1,9 +1,9 @@
 .tagc {
   margin: 24px 0;
   padding: 18px 20px;
-  border: 1px solid var(--u-border, rgba(26, 26, 46, 0.1));
+  border: 1px solid var(--u-border);
   border-radius: 8px;
-  background: var(--u-surface, #fff);
+  background: var(--u-surface);
 }
 
 .tagc-title {
@@ -59,9 +59,9 @@
 .tagc-select {
   font-size: 14px;
   padding: 8px 10px;
-  border: 1px solid rgba(26, 26, 46, 0.18);
+  border: 1px solid var(--u-ink-tint-18);
   border-radius: 6px;
-  background: #fff;
+  background: var(--u-surface-card);
   color: var(--u-ink);
   max-width: 320px;
 }
@@ -83,12 +83,12 @@
 
 .tagc-apply {
   background: var(--u-ink);
-  color: #fff;
+  color: var(--u-surface-card);
 }
 
 .tagc-dispute {
   background: transparent;
-  border-color: rgba(26, 26, 46, 0.2);
+  border-color: var(--u-ink-tint-20);
   color: var(--u-ink);
 }
 
@@ -100,12 +100,12 @@
 
 .tagc-error {
   font-size: 13px;
-  color: var(--signal-negative, #dc3545);
+  color: var(--signal-negative);
 }
 
 .tagc-ok {
   font-size: 13px;
-  color: var(--signal-positive, #1d9e75);
+  color: var(--signal-positive);
 }
 
 /* A revealed accusatory signal (ADR 0034 §5): distinct from genre/style chips,
@@ -127,8 +127,8 @@
 .tagc-reviewed-chip {
   font-size: 13px;
   font-weight: 600;
-  color: var(--signal-negative, #dc3545);
-  border: 1px solid var(--signal-negative, #dc3545);
+  color: var(--signal-negative);
+  border: 1px solid var(--signal-negative);
   border-radius: var(--u-radius, 8px);
   padding: 2px 8px;
 }

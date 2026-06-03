@@ -21,10 +21,10 @@
   top: calc(100% + 8px);
   right: 0;
   min-width: 220px;
-  background: #fff;
-  border: 1px solid rgba(26, 26, 46, 0.12);
+  background: var(--u-surface-card);
+  border: 1px solid var(--u-ink-tint-12);
   border-radius: 10px;
-  box-shadow: 0 10px 30px rgba(26, 26, 46, 0.16);
+  box-shadow: 0 10px 30px var(--u-ink-tint-16);
   padding: 6px;
   z-index: 50;
 }
@@ -40,7 +40,7 @@
 }
 
 .acct-id:hover {
-  background: rgba(26, 26, 46, 0.04);
+  background: var(--u-ink-tint-04);
 }
 
 .acct-id-text {
@@ -72,7 +72,7 @@
 }
 
 .acct-item:hover {
-  background: rgba(26, 26, 46, 0.04);
+  background: var(--u-ink-tint-04);
 }
 
 .acct-menu hr,
@@ -90,12 +90,12 @@
   font-size: 13px;
   color: var(--u-ink);
   cursor: pointer;
-  border-top: 1px solid rgba(26, 26, 46, 0.08);
+  border-top: 1px solid var(--u-ink-tint-08);
 }
 
 .acct-signout:hover:not(:disabled) {
-  background: rgba(220, 53, 69, 0.08);
-  color: var(--signal-negative, #dc3545);
+  background: var(--u-red-tint-08);
+  color: var(--signal-negative);
 }
 
 .acct-signout:disabled {

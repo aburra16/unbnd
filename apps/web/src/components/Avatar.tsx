@@ -1,10 +1,13 @@
 // Identity avatar (ADR 0012): renders the kind-0 picture when present, else a
 // deterministic initials circle. A dead picture URL falls back to initials.
 import { useState } from "react";
+import { GENRE_PALETTE } from "@unbnd/ui";
 import "./Avatar.css";
 
-const BGS = ["#085041", "#133F7A", "#7A2E14", "#4340A0", "#8B5A1B", "#993556", "#27500A", "#0E3F4D"];
-const INKS = ["#9FE1CB", "#B5D4F4", "#F5C4B3", "#CECBF6", "#F5E3C7", "#F4C0D1", "#D1ECB6", "#B6DDE5"];
+// Derived from the single palette source (ADR 0040 §3). Order preserved, so the
+// hash → color mapping is byte-identical to the former inline arrays.
+const BGS = GENRE_PALETTE.map((r) => r.bg);
+const INKS = GENRE_PALETTE.map((r) => r.ink);
 
 function hash(seed: string): number {
   let h = 2166136261;

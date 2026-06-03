@@ -20,7 +20,7 @@
 
 .footer-tagline {
   font-size: 11px;
-  color: rgba(139, 134, 152, 0.6);
+  color: var(--u-muted-tint-60);
   font-style: italic;
 }
 

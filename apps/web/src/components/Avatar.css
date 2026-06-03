@@ -16,5 +16,5 @@
 
 .avatar-img {
   object-fit: cover;
-  background: var(--u-border, rgba(26, 26, 46, 0.08));
+  background: var(--u-border);
 }

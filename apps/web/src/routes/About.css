@@ -21,14 +21,14 @@
 .about p {
   font-size: 15px;
   line-height: 1.75;
-  color: rgba(26, 26, 46, 0.78);
+  color: var(--u-ink-tint-78);
   margin-bottom: 14px;
 }
 
 .about-state {
   margin-top: 22px;
   padding-top: 16px;
-  border-top: 1px solid var(--u-border, rgba(26, 26, 46, 0.1));
+  border-top: 1px solid var(--u-border);
   color: var(--u-muted) !important;
   font-size: 14px !important;
 }
