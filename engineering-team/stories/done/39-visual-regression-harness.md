@@ -1,6 +1,6 @@
 # Story 39: Visual-regression harness with committed screenshot baselines
 
-**Status:** Draft
+**Status:** Done
 **Created:** 2026-06-03
 **Type:** Refactor
 
@@ -90,5 +90,5 @@ Hard constraint on the answer: **production code should not change to serve test
 
 - ADR: `engineering-team/decisions/0038-design-system-architecture.md` (umbrella; sub-decision 2 approved 2026-06-03). A refining ADR on harness design is expected from the Architecture phase.
 - Epic: `engineering-team/epics/0001-design-system-overhaul-ready.md` (epic story 2).
-- Test plan: (filled in after Test Design phase)
-- Review: (filled in after Review phase)
+- Test plan: none (the harness IS the test infra; no separate Tester phase).
+- Review: `engineering-team/reviews/39-visual-regression-harness.md` (PASS, 2026-06-03)

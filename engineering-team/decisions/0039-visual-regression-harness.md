@@ -2,7 +2,7 @@
 
 **Status:** Accepted
 **Date:** 2026-06-03
-**Story:** `engineering-team/stories/39-visual-regression-harness.md`
+**Story:** `engineering-team/stories/done/39-visual-regression-harness.md`
 
 **Approved 2026-06-03** at the architecture gate. Gate decisions confirmed: (1) Playwright pinned to the current stable at implementation time with the matching `mcr.microsoft.com/playwright:v<version>-jammy` image tag, both recorded in the README; (2) threshold starts at `maxDiffPixelRatio: 0` (true zero-diff), loosened only with recorded evidence; (3) logged-out-only baseline this story, logged-in variants a clean later addition.
 
