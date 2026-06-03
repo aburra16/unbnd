@@ -59,18 +59,18 @@ img {
 .page {
   max-width: var(--page-max);
   margin: 0 auto;
-  padding: 0 var(--page-pad-x) 32px;
+  padding: 0 var(--page-pad-x) var(--u-space-32);
 }
 
 .route-status {
-  padding: 48px 0;
+  padding: var(--u-space-48) 0;
   text-align: center;
   font-size: var(--u-font-size-14);
   color: var(--u-muted);
 }
 
 .genre-browse-head {
-  margin: 8px 0 20px;
+  margin: var(--u-space-8) 0 var(--u-space-20);
 }
 
 .genre-browse-title {
@@ -78,7 +78,7 @@ img {
   font-weight: var(--u-font-weight-semibold);
   letter-spacing: var(--u-tracking-n60);
   color: var(--u-ink);
-  margin-bottom: 4px;
+  margin-bottom: var(--u-space-4);
 }
 
 .genre-browse-count {

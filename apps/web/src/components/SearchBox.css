@@ -9,7 +9,7 @@
 }
 
 .searchbox-compact .searchbox-input {
-  padding: 8px 12px 8px 34px;
+  padding: var(--u-space-8) var(--u-space-12) var(--u-space-8) var(--u-space-34);
   font-size: var(--u-font-size-13);
   border-radius: 8px;
   background: var(--u-surface);
@@ -42,7 +42,7 @@
 
 .searchbox-input {
   width: 100%;
-  padding: 13px 16px 13px 42px;
+  padding: var(--u-space-13) var(--u-space-16) var(--u-space-13) var(--u-space-42);
   font-size: var(--u-font-size-15);
   border: 1px solid var(--u-ink-tint-16);
   border-radius: 10px;
@@ -64,13 +64,13 @@
   border: 1px solid var(--u-ink-tint-12);
   border-radius: 10px;
   box-shadow: 0 12px 32px var(--u-ink-tint-16);
-  padding: 6px;
+  padding: var(--u-space-6);
   z-index: 40;
   text-align: left;
 }
 
 .searchbox-empty {
-  padding: 12px;
+  padding: var(--u-space-12);
   font-size: var(--u-font-size-13);
   color: var(--u-muted);
 }
@@ -80,8 +80,8 @@
   flex-direction: column;
   width: 100%;
   text-align: left;
-  gap: 1px;
-  padding: 9px 10px;
+  gap: var(--u-space-1);
+  padding: var(--u-space-9) var(--u-space-10);
   border: none;
   background: none;
   border-radius: 7px;
@@ -106,8 +106,8 @@
 .searchbox-seeall {
   width: 100%;
   text-align: left;
-  padding: 9px 10px;
-  margin-top: 4px;
+  padding: var(--u-space-9) var(--u-space-10);
+  margin-top: var(--u-space-4);
   border: none;
   border-top: 1px solid var(--u-ink-tint-08);
   background: none;

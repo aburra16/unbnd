@@ -2,9 +2,9 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 18px 0;
+  padding: var(--u-space-18) 0;
   border-bottom: 1px solid var(--u-border);
-  margin-bottom: 20px;
+  margin-bottom: var(--u-space-20);
 }
 
 .nav-avatar {
@@ -30,7 +30,7 @@
 .nav-logo {
   display: inline-flex;
   align-items: center;
-  gap: 10px;
+  gap: var(--u-space-10);
 }
 
 .nav-wordmark {
@@ -43,7 +43,7 @@
 .nav-right {
   display: flex;
   align-items: center;
-  gap: 22px;
+  gap: var(--u-space-22);
 }
 
 .nav-link {
@@ -60,7 +60,7 @@
 .nav-signin {
   font-size: var(--u-font-size-13);
   font-weight: var(--u-font-weight-medium);
-  padding: 7px 18px;
+  padding: var(--u-space-7) var(--u-space-18);
   border-radius: var(--u-radius);
   border: 1px solid var(--u-border-hover);
   background: transparent;
@@ -89,10 +89,10 @@
 
 @media (max-width: 540px) {
   .nav {
-    gap: 16px;
+    gap: var(--u-space-16);
   }
   .nav-right {
-    gap: 14px;
+    gap: var(--u-space-14);
   }
   .nav-link[href="/submit"] {
     display: none;

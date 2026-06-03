@@ -1,14 +1,14 @@
 .ratings-panel {
-  margin-bottom: 8px;
+  margin-bottom: var(--u-space-8);
 }
 
 .rp-toggle {
   display: inline-flex;
-  gap: 2px;
-  padding: 3px;
+  gap: var(--u-space-2);
+  padding: var(--u-space-3);
   border-radius: 8px;
   background: var(--u-ink-tint-05);
-  margin-bottom: 14px;
+  margin-bottom: var(--u-space-14);
 }
 
 .rp-tab {
@@ -16,7 +16,7 @@
   background: none;
   font-size: var(--u-font-size-12);
   font-weight: var(--u-font-weight-medium);
-  padding: 6px 14px;
+  padding: var(--u-space-6) var(--u-space-14);
   border-radius: 6px;
   color: var(--u-muted);
   cursor: pointer;
@@ -29,14 +29,14 @@
 }
 
 .rp-controls {
-  margin-bottom: 14px;
+  margin-bottom: var(--u-space-14);
   min-height: 30px;
 }
 
 .rp-personalize {
   font-size: var(--u-font-size-12);
   font-weight: var(--u-font-weight-medium);
-  padding: 7px 16px;
+  padding: var(--u-space-7) var(--u-space-16);
   border-radius: 8px;
   border: 1px solid var(--u-amber);
   background: transparent;
@@ -56,11 +56,11 @@
 .rp-error {
   font-size: var(--u-font-size-12);
   color: var(--signal-negative);
-  margin-bottom: 10px;
+  margin-bottom: var(--u-space-10);
 }
 
 .rp-caption {
   font-size: var(--u-font-size-12);
   color: var(--u-muted);
-  margin-bottom: 12px;
+  margin-bottom: var(--u-space-12);
 }

@@ -1,8 +1,8 @@
 .toggle {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 14px 16px;
+  gap: var(--u-space-12);
+  padding: var(--u-space-14) var(--u-space-16);
   border-radius: var(--u-radius);
   background: var(--u-surface);
   border: 1px solid var(--u-border);
@@ -57,7 +57,7 @@
 .toggle-text {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: var(--u-space-2);
 }
 
 .toggle-label {

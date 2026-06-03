@@ -1,11 +1,11 @@
 .author-edit {
-  margin: 16px 0;
-  padding: 16px;
+  margin: var(--u-space-16) 0;
+  padding: var(--u-space-16);
   border: 1px solid var(--u-line-200);
   border-radius: 12px;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: var(--u-space-12);
 }
 
 .author-edit-heading {
@@ -18,14 +18,14 @@
 .author-edit-field {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: var(--u-space-4);
   font-size: var(--u-font-size-13);
   color: var(--u-muted);
 }
 
 .author-edit-field input,
 .author-edit-field textarea {
-  padding: 8px 10px;
+  padding: var(--u-space-8) var(--u-space-10);
   border: 1px solid var(--u-line-300);
   border-radius: 8px;
   font: inherit;
@@ -36,11 +36,11 @@
 .author-edit-actions {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: var(--u-space-12);
 }
 
 .author-edit-save {
-  padding: 8px 18px;
+  padding: var(--u-space-8) var(--u-space-18);
   border: none;
   border-radius: 999px;
   background: var(--u-ink);

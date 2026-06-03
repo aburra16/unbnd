@@ -3,14 +3,14 @@
   border: 1px solid var(--u-border);
   border-radius: var(--u-radius);
   overflow: hidden;
-  margin-bottom: 24px;
+  margin-bottom: var(--u-space-24);
   background: var(--u-surface-card);
 }
 
 .pst-cell {
   flex: 1;
   text-align: center;
-  padding: 16px 10px;
+  padding: var(--u-space-16) var(--u-space-10);
   border-right: 1px solid var(--u-border);
 }
 
@@ -23,7 +23,7 @@
   font-weight: var(--u-font-weight-semibold);
   letter-spacing: var(--u-tracking-n40);
   color: var(--u-ink);
-  margin-bottom: 2px;
+  margin-bottom: var(--u-space-2);
 }
 
 .pst-label {

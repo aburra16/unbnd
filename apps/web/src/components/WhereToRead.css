@@ -1,29 +1,29 @@
 .wtr {
-  margin-bottom: 32px;
+  margin-bottom: var(--u-space-32);
 }
 
 .wtr-title {
   font-size: var(--u-font-size-15);
   font-weight: var(--u-font-weight-semibold);
   letter-spacing: var(--u-tracking-n30);
-  margin-bottom: 12px;
+  margin-bottom: var(--u-space-12);
   color: var(--u-ink);
 }
 
 .wtr-list {
   list-style: none;
   padding: 0;
-  margin: 0 0 10px;
+  margin: 0 0 var(--u-space-10);
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: var(--u-space-8);
 }
 
 .wtr-link {
   display: flex;
   align-items: center;
-  gap: 14px;
-  padding: 11px 16px;
+  gap: var(--u-space-14);
+  padding: var(--u-space-11) var(--u-space-16);
   border-radius: var(--u-radius);
   border: 1px solid var(--u-border);
   background: var(--u-surface-card);

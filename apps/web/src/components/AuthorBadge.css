@@ -1,5 +1,5 @@
 .author-badge {
-  margin: 2px 0 0;
+  margin: var(--u-space-2) 0 0;
   font-size: var(--u-font-size-13);
   color: var(--u-muted);
 }
@@ -25,13 +25,13 @@
 .author-badge-set {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: var(--u-space-2);
 }
 
 .author-badge-verified .author-badge-mark {
   display: inline-block;
-  margin-right: 6px;
-  padding: 1px 8px;
+  margin-right: var(--u-space-6);
+  padding: var(--u-space-1) var(--u-space-8);
   border-radius: 999px;
   background: var(--u-ink);
   color: var(--u-on-ink);

@@ -41,7 +41,6 @@ export function AuthWelcome() {
         style={{
           color: "var(--u-muted)",
           textAlign: "center",
-          marginTop: 16,
         }}
       >
         Once you follow ten curators, recommendations will switch from the

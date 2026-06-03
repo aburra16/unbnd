@@ -1,8 +1,8 @@
 .me-head {
   display: flex;
-  gap: 18px;
+  gap: var(--u-space-18);
   align-items: flex-start;
-  margin: 8px 0 24px;
+  margin: var(--u-space-8) 0 var(--u-space-24);
 }
 
 .me-id {
@@ -14,21 +14,21 @@
   font-weight: var(--u-font-weight-semibold);
   letter-spacing: var(--u-tracking-n50);
   color: var(--u-ink);
-  margin-bottom: 2px;
+  margin-bottom: var(--u-space-2);
 }
 
 .me-nip05 {
   font-size: var(--u-font-size-13);
   color: var(--signal-positive);
-  margin-bottom: 4px;
+  margin-bottom: var(--u-space-4);
 }
 
 .me-npub {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--u-space-8);
   flex-wrap: wrap;
-  margin-top: 2px;
+  margin-top: var(--u-space-2);
 }
 
 .me-npub-label {
@@ -40,14 +40,14 @@
   font-family: var(--font-mono);
   font-size: var(--u-font-size-12);
   color: var(--u-muted);
-  padding: 4px 8px;
+  padding: var(--u-space-4) var(--u-space-8);
   border: 1px solid var(--u-border);
   border-radius: var(--u-radius);
 }
 
 .me-nostr-link {
   display: inline-block;
-  margin-top: 2px;
+  margin-top: var(--u-space-2);
   font-size: var(--u-font-size-13);
   color: var(--u-muted);
 }
@@ -60,32 +60,32 @@
   font-size: var(--u-font-size-14);
   line-height: var(--u-leading-160);
   color: var(--u-ink-tint-74);
-  margin-top: 8px;
+  margin-top: var(--u-space-8);
 }
 
 .me-substack {
   display: inline-block;
-  margin-top: 8px;
+  margin-top: var(--u-space-8);
   font-size: var(--u-font-size-13);
   font-weight: var(--u-font-weight-medium);
   color: var(--u-amber);
 }
 
 .me-activity {
-  margin-top: 28px;
+  margin-top: var(--u-space-28);
 }
 
 .me-activity-title {
   font-size: var(--u-font-size-16);
   font-weight: var(--u-font-weight-semibold);
   color: var(--u-ink);
-  margin-bottom: 10px;
+  margin-bottom: var(--u-space-10);
 }
 
 .me-empty {
   font-size: var(--u-font-size-14);
   color: var(--u-muted);
-  padding: 24px;
+  padding: var(--u-space-24);
   text-align: center;
   border: 1px dashed var(--u-ink-tint-14);
   border-radius: 10px;
@@ -95,14 +95,14 @@
   list-style: none;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: var(--u-space-8);
 }
 
 .me-sub {
   display: flex;
   flex-direction: column;
-  gap: 2px;
-  padding: 12px 14px;
+  gap: var(--u-space-2);
+  padding: var(--u-space-12) var(--u-space-14);
   border: 1px solid var(--u-border);
   border-radius: 10px;
 }
@@ -122,12 +122,12 @@
   list-style: none;
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  margin-bottom: 28px;
+  gap: var(--u-space-12);
+  margin-bottom: var(--u-space-28);
 }
 
 .me-shelf {
-  padding: 12px 14px;
+  padding: var(--u-space-12) var(--u-space-14);
   border: 1px solid var(--u-border);
   border-radius: 10px;
 }
@@ -135,8 +135,8 @@
 .me-shelf-head {
   display: flex;
   align-items: baseline;
-  gap: 10px;
-  margin-bottom: 8px;
+  gap: var(--u-space-10);
+  margin-bottom: var(--u-space-8);
 }
 
 .me-shelf-name {
@@ -154,7 +154,7 @@
   list-style: none;
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: var(--u-space-8);
 }
 
 .me-shelf-book a {

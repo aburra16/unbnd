@@ -1,12 +1,12 @@
 .genres-section {
-  margin-bottom: 36px;
+  margin-bottom: var(--u-space-36);
 }
 
 .genres-header {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
-  margin-bottom: 16px;
+  margin-bottom: var(--u-space-16);
 }
 
 .genres-title {
@@ -25,13 +25,13 @@
 .genres-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 10px;
+  gap: var(--u-space-10);
 }
 
 .genre {
   position: relative;
   display: block;
-  padding: 18px 14px 18px 18px;
+  padding: var(--u-space-18) var(--u-space-14) var(--u-space-18) var(--u-space-18);
   border-radius: var(--u-radius);
   border: 1px solid transparent;
   overflow: hidden;
@@ -56,7 +56,7 @@
 .genre-name {
   font-size: var(--u-font-size-13);
   font-weight: var(--u-font-weight-semibold);
-  margin-bottom: 4px;
+  margin-bottom: var(--u-space-4);
   letter-spacing: var(--u-tracking-n10);
 }
 

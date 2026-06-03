@@ -1,8 +1,8 @@
 .bgrid {
   display: grid;
   grid-template-columns: repeat(5, 1fr);
-  gap: 24px 16px;
-  margin-bottom: 32px;
+  gap: var(--u-space-24) var(--u-space-16);
+  margin-bottom: var(--u-space-32);
 }
 
 @media (max-width: 880px) {
@@ -20,6 +20,6 @@
 @media (max-width: 480px) {
   .bgrid {
     grid-template-columns: repeat(2, 1fr);
-    gap: 22px 14px;
+    gap: var(--u-space-22) var(--u-space-14);
   }
 }

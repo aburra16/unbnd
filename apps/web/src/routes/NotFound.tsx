@@ -8,24 +8,16 @@ export function NotFound() {
     <div className="page">
       <Nav />
       <section
+        className="not-found-section"
         style={{
-          padding: "80px 0 60px",
           textAlign: "center",
         }}
       >
-        <h1
-          className="not-found-heading"
-          style={{
-            marginBottom: 10,
-          }}
-        >
-          That page is not on the shelf.
-        </h1>
+        <h1 className="not-found-heading">That page is not on the shelf.</h1>
         <p
           className="not-found-body"
           style={{
             color: "var(--u-muted)",
-            marginBottom: 22,
           }}
         >
           The link may be old, or the book has not been added yet.

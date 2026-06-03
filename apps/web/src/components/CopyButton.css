@@ -6,7 +6,7 @@
 }
 
 .copy-btn {
-  padding: 4px 10px;
+  padding: var(--u-space-4) var(--u-space-10);
   font-size: var(--u-font-size-12);
   font-weight: var(--u-font-weight-medium);
   border: 1px solid var(--u-border-hover);
@@ -29,7 +29,7 @@
 /* The transient feedback line. Visible inline next to the button and announced
    to AT via role=status / aria-live. Empty when idle (no reserved noise). */
 .copy-btn-status {
-  margin-left: 8px;
+  margin-left: var(--u-space-8);
   font-size: var(--u-font-size-12);
   color: var(--u-muted);
 }

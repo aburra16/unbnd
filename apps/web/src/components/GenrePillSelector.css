@@ -1,13 +1,13 @@
 .gps {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px;
+  gap: var(--u-space-6);
 }
 
 .gps-pill {
   font-size: var(--u-font-size-11);
   font-weight: var(--u-font-weight-medium);
-  padding: 6px 13px;
+  padding: var(--u-space-6) var(--u-space-13);
   border-radius: 20px;
   border: 1px solid var(--u-border-hover);
   background: transparent;

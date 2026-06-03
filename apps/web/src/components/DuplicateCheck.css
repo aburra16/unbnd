@@ -1,6 +1,6 @@
 .dc {
-  margin-bottom: 28px;
-  padding: 20px 22px;
+  margin-bottom: var(--u-space-28);
+  padding: var(--u-space-20) var(--u-space-22);
   border: 1px solid var(--u-border);
   border-radius: 12px;
   background: var(--u-ink-tint-02);
@@ -10,18 +10,18 @@
   font-size: var(--u-font-size-16);
   font-weight: var(--u-font-weight-semibold);
   color: var(--u-ink);
-  margin-bottom: 4px;
+  margin-bottom: var(--u-space-4);
 }
 
 .dc-sub {
   font-size: var(--u-font-size-13);
   color: var(--u-muted);
-  margin-bottom: 12px;
+  margin-bottom: var(--u-space-12);
 }
 
 .dc-input {
   width: 100%;
-  padding: 11px 14px;
+  padding: var(--u-space-11) var(--u-space-14);
   font-size: var(--u-font-size-14);
   border: 1px solid var(--u-ink-tint-18);
   border-radius: 8px;
@@ -37,18 +37,18 @@
 .dc-status {
   font-size: var(--u-font-size-12);
   color: var(--u-muted);
-  margin-top: 10px;
+  margin-top: var(--u-space-10);
 }
 
 .dc-exact {
-  margin-top: 12px;
-  padding: 12px 14px;
+  margin-top: var(--u-space-12);
+  padding: var(--u-space-12) var(--u-space-14);
   border-radius: 8px;
   background: var(--u-amber-tint-10);
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 8px;
+  gap: var(--u-space-8);
   font-size: var(--u-font-size-13);
   color: var(--u-ink);
 }
@@ -61,22 +61,22 @@
 .dc-matches-label {
   font-size: var(--u-font-size-12);
   color: var(--u-muted);
-  margin: 14px 0 6px;
+  margin: var(--u-space-14) 0 var(--u-space-6);
 }
 
 .dc-matches {
   list-style: none;
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  margin-bottom: 12px;
+  gap: var(--u-space-4);
+  margin-bottom: var(--u-space-12);
 }
 
 .dc-match {
   display: flex;
   flex-direction: column;
-  gap: 1px;
-  padding: 9px 12px;
+  gap: var(--u-space-1);
+  padding: var(--u-space-9) var(--u-space-12);
   border-radius: 8px;
   border: 1px solid var(--u-border);
   background: var(--u-surface-card);
@@ -100,10 +100,10 @@
 }
 
 .dc-clear {
-  margin-top: 14px;
+  margin-top: var(--u-space-14);
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: var(--u-space-12);
 }
 
 .dc-clear-note {
@@ -114,7 +114,7 @@
 .dc-proceed {
   font-size: var(--u-font-size-13);
   font-weight: var(--u-font-weight-medium);
-  padding: 9px 18px;
+  padding: var(--u-space-9) var(--u-space-18);
   border-radius: 8px;
   border: 1px solid transparent;
   background: var(--u-ink);
