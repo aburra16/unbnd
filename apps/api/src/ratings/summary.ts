@@ -81,6 +81,34 @@ export function countOwnRatings(events: SignedNostrEvent[]): {
   return { booksRated: latest.size, reviews };
 }
 
+/**
+ * The SET of book slugs the signed-in user currently has a rating on (Story 36 /
+ * ADR 0037 §3, AC-3). Sibling of `countOwnRatings`: the SAME author-scoped
+ * latest-wins-by-slug fold (all events are the same author, so latest-wins keys
+ * by BOOK, never by pubkey), but it returns which slugs rather than counts so
+ * For-You can exclude books the user already rated. Malformed events are skipped;
+ * a re-rating of the same book collapses to one slug. By construction
+ * `ownRatedSlugs(events).size === countOwnRatings(events).booksRated`.
+ */
+export function ownRatedSlugs(events: SignedNostrEvent[]): Set<string> {
+  const slugs = new Set<string>();
+  for (const event of events) {
+    try {
+      const rating = fromBookRatingEvent(
+        fromWireEvent({
+          kind: event.kind,
+          content: event.content,
+          tags: event.tags,
+        }) as never,
+      );
+      slugs.add(rating.bookSlug);
+    } catch {
+      continue; // skip anything that is not a well-formed rating
+    }
+  }
+  return slugs;
+}
+
 export function rawFromParsed(deduped: ParsedRating[]): RatingsSummary {
   const count = deduped.length;
   const average = count === 0 ? null : deduped.reduce((s, r) => s + r.score, 0) / count;

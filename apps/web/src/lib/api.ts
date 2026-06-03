@@ -247,6 +247,16 @@ export type HomepageShelves = {
   genres: HomepageShelfGenre[];
 };
 
+// The For-You personalized shelf (Story 36 / ADR 0037 §5). Read-time, from the
+// signed-in user's own vantage; never cached. `state` carries the why so the
+// homepage renders correctly: "personalized" (+ books, possibly empty),
+// "not_personalized" (the invitation), "anonymous" (nothing). No trust number /
+// tier crosses the wire — the shelf only selects + orders books.
+export type ForYou = {
+  state: "personalized" | "not_personalized" | "anonymous";
+  books: PublicBook[];
+};
+
 export class ApiError extends Error {
   constructor(
     readonly status: number,
@@ -660,5 +670,10 @@ export const api = {
     shelves() {
       return authFetch<HomepageShelves>("/api/homepage/shelves");
     },
+  },
+  // The For-You personalized shelf (Story 36 / ADR 0037). Credentialed (the
+  // session cookie is the vantage) — `authFetch` sends `credentials: "include"`.
+  foryou() {
+    return authFetch<ForYou>("/api/foryou");
   },
 };
