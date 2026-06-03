@@ -19,7 +19,7 @@
 
 .me-nip05 {
   font-size: 13px;
-  color: var(--signal-positive, #1d9e75);
+  color: var(--signal-positive);
   margin-bottom: 4px;
 }
 
@@ -59,7 +59,7 @@
 .me-about {
   font-size: 14px;
   line-height: 1.6;
-  color: rgba(26, 26, 46, 0.74);
+  color: var(--u-ink-tint-74);
   margin-top: 8px;
 }
 
@@ -87,7 +87,7 @@
   color: var(--u-muted);
   padding: 24px;
   text-align: center;
-  border: 1px dashed rgba(26, 26, 46, 0.14);
+  border: 1px dashed var(--u-ink-tint-14);
   border-radius: 10px;
 }
 
@@ -103,7 +103,7 @@
   flex-direction: column;
   gap: 2px;
   padding: 12px 14px;
-  border: 1px solid var(--u-border, rgba(26, 26, 46, 0.1));
+  border: 1px solid var(--u-border);
   border-radius: 10px;
 }
 
@@ -128,7 +128,7 @@
 
 .me-shelf {
   padding: 12px 14px;
-  border: 1px solid var(--u-border, rgba(26, 26, 46, 0.1));
+  border: 1px solid var(--u-border);
   border-radius: 10px;
 }
 

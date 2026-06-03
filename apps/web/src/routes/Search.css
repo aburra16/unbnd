@@ -19,9 +19,9 @@
   font-size: 13px;
   font-weight: 500;
   padding: 10px 22px;
-  border: 1px solid rgba(26, 26, 46, 0.2);
+  border: 1px solid var(--u-ink-tint-20);
   border-radius: 8px;
-  background: #fff;
+  background: var(--u-surface-card);
   color: var(--u-ink);
   cursor: pointer;
 }

@@ -97,7 +97,7 @@ a.review-name:hover {
 .review-text {
   font-size: 13px;
   line-height: 1.7;
-  color: rgba(26, 26, 46, 0.72);
+  color: var(--u-ink-tint-72);
 }
 
 .review-foot {

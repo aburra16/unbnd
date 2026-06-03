@@ -1,9 +1,9 @@
 .shelfc {
   margin: 24px 0;
   padding: 18px 20px;
-  border: 1px solid var(--u-border, rgba(26, 26, 46, 0.1));
+  border: 1px solid var(--u-border);
   border-radius: 8px;
-  background: var(--u-surface, #fff);
+  background: var(--u-surface);
 }
 
 .shelfc-title {
@@ -30,7 +30,7 @@
   font-size: 12px;
   color: var(--u-muted);
   background: transparent;
-  border: 1px solid rgba(26, 26, 46, 0.2);
+  border: 1px solid var(--u-ink-tint-20);
   border-radius: 6px;
   padding: 2px 8px;
   cursor: pointer;
@@ -66,9 +66,9 @@
 .shelfc-input {
   font-size: 14px;
   padding: 8px 10px;
-  border: 1px solid rgba(26, 26, 46, 0.18);
+  border: 1px solid var(--u-ink-tint-18);
   border-radius: 6px;
-  background: #fff;
+  background: var(--u-surface-card);
   color: var(--u-ink);
   max-width: 320px;
 }
@@ -92,7 +92,7 @@
   cursor: pointer;
   border: 1px solid transparent;
   background: var(--u-ink);
-  color: #fff;
+  color: var(--u-surface-card);
 }
 
 .shelfc-add:disabled {
@@ -102,10 +102,10 @@
 
 .shelfc-error {
   font-size: 13px;
-  color: var(--signal-negative, #dc3545);
+  color: var(--signal-negative);
 }
 
 .shelfc-ok {
   font-size: 13px;
-  color: var(--signal-positive, #1d9e75);
+  color: var(--signal-positive);
 }

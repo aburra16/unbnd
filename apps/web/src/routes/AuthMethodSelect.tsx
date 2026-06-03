@@ -24,7 +24,7 @@ export function AuthMethodSelect() {
       <div className="auth-methods">
         <AuthMethodCard
           to="/auth/email"
-          iconBg="rgba(196,118,60,0.12)"
+          iconBg="var(--u-amber-tint-12)"
           iconInk="var(--u-amber)"
           icon={<EmailGlyph />}
           name="Continue with email"
@@ -32,7 +32,7 @@ export function AuthMethodSelect() {
         />
         <AuthMethodCard
           to="/auth/nostr"
-          iconBg="rgba(120,69,255,0.12)"
+          iconBg="var(--u-purple-tint-12)"
           iconInk="var(--signal-sovereign)"
           icon={<NostrBolt />}
           name="Sign in with Nostr"
@@ -48,7 +48,7 @@ export function AuthMethodSelect() {
 
       <div className="auth-methods">
         <AuthMethodCard
-          iconBg="rgba(26,26,46,0.06)"
+          iconBg="var(--u-ink-tint-06)"
           iconInk="var(--u-muted)"
           icon={<GLetter />}
           name="Continue with Google"
@@ -56,7 +56,7 @@ export function AuthMethodSelect() {
           comingSoon
         />
         <AuthMethodCard
-          iconBg="rgba(26,26,46,0.06)"
+          iconBg="var(--u-ink-tint-06)"
           iconInk="var(--u-muted)"
           icon={<AppleLetter />}
           name="Continue with Apple"

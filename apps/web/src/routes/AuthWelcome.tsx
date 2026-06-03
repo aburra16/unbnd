@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { SEMANTIC_COLORS } from "@unbnd/ui";
 import { AuthShell } from "../components/AuthShell";
 import "../components/AuthForm.css";
 
@@ -7,7 +8,7 @@ export function AuthWelcome() {
     <AuthShell
       title="You're in"
       subtitle="Two short steps and your recommendations will start to tune to your taste."
-      logoFill="#1D9E75"
+      logoFill={SEMANTIC_COLORS.signalPositive}
     >
       <div className="auth-welcome-stats">
         <div className="auth-welcome-stat">

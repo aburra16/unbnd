@@ -12,7 +12,7 @@
 }
 
 .pill-genre {
-  background: rgba(196, 118, 60, 0.1);
+  background: var(--u-amber-tint-10);
   color: var(--u-amber);
 }
 
@@ -26,6 +26,6 @@
    0025). Lighter amber fill + an inset amber ring so it reads as less settled
    than its trusted neighbours. Depth without a drop shadow; no new hex. */
 .pill-community {
-  background: rgba(196, 118, 60, 0.05);
-  box-shadow: inset 0 0 0 1px rgba(196, 118, 60, 0.3);
+  background: var(--u-amber-tint-05);
+  box-shadow: inset 0 0 0 1px var(--u-amber-tint-30);
 }

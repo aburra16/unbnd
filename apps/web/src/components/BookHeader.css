@@ -19,7 +19,7 @@
   display: flex;
   align-items: flex-end;
   padding: 14px;
-  box-shadow: 0 6px 22px rgba(26, 26, 46, 0.13);
+  box-shadow: 0 6px 22px var(--u-ink-tint-13);
 }
 
 .bh-cover-title {
@@ -95,7 +95,7 @@
 .bh-blurb {
   font-size: 14px;
   line-height: 1.7;
-  color: rgba(26, 26, 46, 0.74);
+  color: var(--u-ink-tint-74);
   margin-top: 8px;
 }
 

@@ -1,35 +1,219 @@
 :root {
-  /* Core palette */
-  --u-ink: #1A1A2E;
-  --u-amber: #C4763C;
-  --u-amber-hover: #B06A35;
-  --u-amber-light: #E8A96A;
-  --u-parchment: #FAF6F0;
-  --u-parchment-deep: #EFEBE4;
-  --u-muted: #8B8698;
-  --u-night: #0E0E1A;
+  /* ===================================================================== *
+   * Tier 1 — raw color ramp (ADR 0040 §1). Literal values only, no
+   * semantics. Naming: --u-raw-color-<group>-<key>. Tier 2 below points at
+   * these; app CSS must never reference a Tier-1 raw directly. The ramp
+   * carries exactly the values in use today (no speculative steps).
+   * ===================================================================== */
 
-  /* Derived */
-  --u-border: rgba(26, 26, 46, 0.08);
-  --u-border-hover: rgba(26, 26, 46, 0.15);
-  --u-surface: rgba(26, 26, 46, 0.03);
+  /* amber */
+  --u-raw-color-amber-500: #C4763C;
+  --u-raw-color-amber-600: #B06A35;
+  --u-raw-color-amber-300: #E8A96A;
+
+  /* ink */
+  --u-raw-color-ink-900: #1A1A2E;
+  --u-raw-color-ink-950: #0E0E1A;
+
+  /* parchment + white */
+  --u-raw-color-parchment-50: #FAF6F0;
+  --u-raw-color-parchment-100: #EFEBE4;
+  --u-raw-color-parchment-warm: #FFFBF6;
+  --u-raw-color-white: #FFFFFF;
+
+  /* muted (neutral) */
+  --u-raw-color-muted-500: #8B8698;
+
+  /* green / red / purple signals */
+  --u-raw-color-green-500: #1D9E75;
+  --u-raw-color-red-500: #DC3545;
+  --u-raw-color-purple-500: #7845FF;
+
+  /* drift-preservation neutrals (D2) — exist solely to preserve the three
+   * drifted refs' current rendered fallback values exactly (ADR 0040 §2). */
+  --u-raw-color-line-200: #E5E5E5;
+  --u-raw-color-line-300: #D4D4D4;
+  --u-raw-color-line-warm: #D8D4CC;
+  --u-raw-color-red-700: #B00020;
+
+  /* genre/cover palette bg hues — the seven named rows. The teal eighth row
+   * is --u-raw-color-teal-700 (no genre token, pre-existing asymmetry). The
+   * ink partners and coverTo stops live in the GENRE_PALETTE TS constant
+   * (packages/ui/src/palette.ts); the palette-sync guard binds these raws to
+   * that constant's `bg` values. */
+  --u-raw-color-genre-literary: #085041;
+  --u-raw-color-genre-scifi: #133F7A;
+  --u-raw-color-genre-mystery: #8B5A1B;
+  --u-raw-color-genre-romance: #993556;
+  --u-raw-color-genre-fantasy: #4340A0;
+  --u-raw-color-genre-thriller: #7A2E14;
+  --u-raw-color-genre-biography: #27500A;
+  --u-raw-color-genre-history: #555362;
+  --u-raw-color-teal-700: #0E3F4D;
+
+  /* translucent overlays — one raw per distinct base+alpha actually in use
+   * (ADR 0040 §1/§4). Named --u-raw-color-<base>-a<NN> where NN is the alpha
+   * ×100. No speculative opacity steps. */
+
+  /* ink alphas */
+  --u-raw-color-ink-a02: rgba(26, 26, 46, 0.02);
+  --u-raw-color-ink-a03: rgba(26, 26, 46, 0.03);
+  --u-raw-color-ink-a04: rgba(26, 26, 46, 0.04);
+  --u-raw-color-ink-a045: rgba(26, 26, 46, 0.045);
+  --u-raw-color-ink-a05: rgba(26, 26, 46, 0.05);
+  --u-raw-color-ink-a06: rgba(26, 26, 46, 0.06);
+  --u-raw-color-ink-a08: rgba(26, 26, 46, 0.08);
+  --u-raw-color-ink-a10: rgba(26, 26, 46, 0.1);
+  --u-raw-color-ink-a12: rgba(26, 26, 46, 0.12);
+  --u-raw-color-ink-a13: rgba(26, 26, 46, 0.13);
+  --u-raw-color-ink-a14: rgba(26, 26, 46, 0.14);
+  --u-raw-color-ink-a15: rgba(26, 26, 46, 0.15);
+  --u-raw-color-ink-a16: rgba(26, 26, 46, 0.16);
+  --u-raw-color-ink-a18: rgba(26, 26, 46, 0.18);
+  --u-raw-color-ink-a20: rgba(26, 26, 46, 0.2);
+  --u-raw-color-ink-a70: rgba(26, 26, 46, 0.7);
+  --u-raw-color-ink-a72: rgba(26, 26, 46, 0.72);
+  --u-raw-color-ink-a74: rgba(26, 26, 46, 0.74);
+  --u-raw-color-ink-a75: rgba(26, 26, 46, 0.75);
+  --u-raw-color-ink-a78: rgba(26, 26, 46, 0.78);
+
+  /* amber alphas */
+  --u-raw-color-amber-a04: rgba(196, 118, 60, 0.04);
+  --u-raw-color-amber-a05: rgba(196, 118, 60, 0.05);
+  --u-raw-color-amber-a06: rgba(196, 118, 60, 0.06);
+  --u-raw-color-amber-a08: rgba(196, 118, 60, 0.08);
+  --u-raw-color-amber-a10: rgba(196, 118, 60, 0.1);
+  --u-raw-color-amber-a12: rgba(196, 118, 60, 0.12);
+  --u-raw-color-amber-a15: rgba(196, 118, 60, 0.15);
+  --u-raw-color-amber-a18: rgba(196, 118, 60, 0.18);
+  --u-raw-color-amber-a20: rgba(196, 118, 60, 0.2);
+  --u-raw-color-amber-a30: rgba(196, 118, 60, 0.3);
+
+  /* muted alphas */
+  --u-raw-color-muted-a50: rgba(139, 134, 152, 0.5);
+  --u-raw-color-muted-a60: rgba(139, 134, 152, 0.6);
+  --u-raw-color-muted-a70: rgba(139, 134, 152, 0.7);
+  --u-raw-color-muted-a85: rgba(139, 134, 152, 0.85);
+
+  /* green alphas */
+  --u-raw-color-green-a06: rgba(29, 158, 117, 0.06);
+  --u-raw-color-green-a10: rgba(29, 158, 117, 0.1);
+  --u-raw-color-green-a30: rgba(29, 158, 117, 0.3);
+
+  /* red alphas */
+  --u-raw-color-red-a08: rgba(220, 53, 69, 0.08);
+  --u-raw-color-red-a10: rgba(220, 53, 69, 0.1);
+
+  /* purple alphas */
+  --u-raw-color-purple-a10: rgba(120, 69, 255, 0.1);
+  --u-raw-color-purple-a12: rgba(120, 69, 255, 0.12);
+
+  /* ===================================================================== *
+   * Tier 2 — semantic aliases (ADR 0040 §1). Point at Tier 1, never a
+   * literal. App CSS references only this tier. Existing names are kept and
+   * repointed so call sites do not change (zero churn, zero diff).
+   * ===================================================================== */
+
+  /* Core palette */
+  --u-ink: var(--u-raw-color-ink-900);
+  --u-amber: var(--u-raw-color-amber-500);
+  --u-amber-hover: var(--u-raw-color-amber-600);
+  --u-amber-light: var(--u-raw-color-amber-300);
+  --u-parchment: var(--u-raw-color-parchment-50);
+  --u-parchment-deep: var(--u-raw-color-parchment-100);
+  --u-muted: var(--u-raw-color-muted-500);
+  --u-night: var(--u-raw-color-ink-950);
+
+  /* Derived translucent ink roles */
+  --u-border: var(--u-raw-color-ink-a08);
+  --u-border-hover: var(--u-raw-color-ink-a15);
+  --u-surface: var(--u-raw-color-ink-a03);
+
+  /* Drift-fix semantic roles (D2, ADR 0040 §2) — each equals the old
+   * inline fallback the drifted ref rendered, so pixels are preserved. */
+  --u-line-200: var(--u-raw-color-line-200);
+  --u-line-300: var(--u-raw-color-line-300);
+  --u-line-warm: var(--u-raw-color-line-warm);
+  --u-surface-input: var(--u-raw-color-white);
+  --u-on-ink: var(--u-raw-color-white);
+  --u-text-error: var(--u-raw-color-red-700);
+
+  /* Opaque white surface role (the #fff/#ffffff fills across app CSS). */
+  --u-surface-card: var(--u-raw-color-white);
+
+  /* Warm parchment tint role (the AuthMethodCard #fffbf6 fill). */
+  --u-surface-warm: var(--u-raw-color-parchment-warm);
+
+  /* Translucent overlay / tint roles by family. Named by base + alpha role;
+   * app CSS references these instead of the raw rgba. */
+  --u-ink-tint-02: var(--u-raw-color-ink-a02);
+  --u-ink-tint-04: var(--u-raw-color-ink-a04);
+  --u-ink-tint-045: var(--u-raw-color-ink-a045);
+  --u-ink-tint-05: var(--u-raw-color-ink-a05);
+  --u-ink-tint-06: var(--u-raw-color-ink-a06);
+  --u-ink-tint-08: var(--u-raw-color-ink-a08);
+  --u-ink-tint-10: var(--u-raw-color-ink-a10);
+  --u-ink-tint-12: var(--u-raw-color-ink-a12);
+  --u-ink-tint-13: var(--u-raw-color-ink-a13);
+  --u-ink-tint-14: var(--u-raw-color-ink-a14);
+  --u-ink-tint-15: var(--u-raw-color-ink-a15);
+  --u-ink-tint-16: var(--u-raw-color-ink-a16);
+  --u-ink-tint-18: var(--u-raw-color-ink-a18);
+  --u-ink-tint-20: var(--u-raw-color-ink-a20);
+  --u-ink-tint-70: var(--u-raw-color-ink-a70);
+  --u-ink-tint-72: var(--u-raw-color-ink-a72);
+  --u-ink-tint-74: var(--u-raw-color-ink-a74);
+  --u-ink-tint-75: var(--u-raw-color-ink-a75);
+  --u-ink-tint-78: var(--u-raw-color-ink-a78);
+
+  --u-amber-tint-04: var(--u-raw-color-amber-a04);
+  --u-amber-tint-05: var(--u-raw-color-amber-a05);
+  --u-amber-tint-06: var(--u-raw-color-amber-a06);
+  --u-amber-tint-08: var(--u-raw-color-amber-a08);
+  --u-amber-tint-10: var(--u-raw-color-amber-a10);
+  --u-amber-tint-12: var(--u-raw-color-amber-a12);
+  --u-amber-tint-15: var(--u-raw-color-amber-a15);
+  --u-amber-tint-18: var(--u-raw-color-amber-a18);
+  --u-amber-tint-20: var(--u-raw-color-amber-a20);
+  --u-amber-tint-30: var(--u-raw-color-amber-a30);
+
+  --u-muted-tint-50: var(--u-raw-color-muted-a50);
+  --u-muted-tint-60: var(--u-raw-color-muted-a60);
+  --u-muted-tint-70: var(--u-raw-color-muted-a70);
+  --u-muted-tint-85: var(--u-raw-color-muted-a85);
+
+  --u-green-tint-06: var(--u-raw-color-green-a06);
+  --u-green-tint-10: var(--u-raw-color-green-a10);
+  --u-green-tint-30: var(--u-raw-color-green-a30);
+
+  --u-red-tint-08: var(--u-raw-color-red-a08);
+  --u-red-tint-10: var(--u-raw-color-red-a10);
+
+  --u-purple-tint-10: var(--u-raw-color-purple-a10);
+  --u-purple-tint-12: var(--u-raw-color-purple-a12);
+
+  /* Genre colors (kept as-is per gate decision; repointed to raw) */
+  --genre-literary: var(--u-raw-color-genre-literary);
+  --genre-scifi: var(--u-raw-color-genre-scifi);
+  --genre-mystery: var(--u-raw-color-genre-mystery);
+  --genre-romance: var(--u-raw-color-genre-romance);
+  --genre-fantasy: var(--u-raw-color-genre-fantasy);
+  --genre-thriller: var(--u-raw-color-genre-thriller);
+  --genre-biography: var(--u-raw-color-genre-biography);
+  --genre-history: var(--u-raw-color-genre-history);
+
+  /* Semantic signals (kept as-is per gate decision; repointed to raw) */
+  --signal-positive: var(--u-raw-color-green-500);
+  --signal-negative: var(--u-raw-color-red-500);
+  --signal-sovereign: var(--u-raw-color-purple-500);
+
+  /* ===================================================================== *
+   * Non-color tokens — left exactly as-is (out of scope, ADR 0040).
+   * ===================================================================== */
+
+  /* Derived (radii) */
   --u-radius: 8px;
   --u-radius-lg: 12px;
-
-  /* Genre colors */
-  --genre-literary: #085041;
-  --genre-scifi: #133F7A;
-  --genre-mystery: #8B5A1B;
-  --genre-romance: #993556;
-  --genre-fantasy: #4340A0;
-  --genre-thriller: #7A2E14;
-  --genre-biography: #27500A;
-  --genre-history: #555362;
-
-  /* Semantic signals */
-  --signal-positive: #1D9E75;
-  --signal-negative: #DC3545;
-  --signal-sovereign: #7845FF;
 
   /* Type */
   --font-sans:

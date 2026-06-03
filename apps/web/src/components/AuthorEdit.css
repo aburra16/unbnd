@@ -1,7 +1,7 @@
 .author-edit {
   margin: 16px 0;
   padding: 16px;
-  border: 1px solid var(--u-line, #e5e5e5);
+  border: 1px solid var(--u-line-200);
   border-radius: 12px;
   display: flex;
   flex-direction: column;
@@ -26,11 +26,11 @@
 .author-edit-field input,
 .author-edit-field textarea {
   padding: 8px 10px;
-  border: 1px solid var(--u-line, #d4d4d4);
+  border: 1px solid var(--u-line-300);
   border-radius: 8px;
   font: inherit;
   color: var(--u-ink);
-  background: var(--u-bg, #fff);
+  background: var(--u-surface-input);
 }
 
 .author-edit-actions {
@@ -44,7 +44,7 @@
   border: none;
   border-radius: 999px;
   background: var(--u-ink);
-  color: var(--u-bg, #fff);
+  color: var(--u-on-ink);
   font-weight: 600;
   cursor: pointer;
 }
@@ -62,6 +62,6 @@
 
 .author-edit-error {
   margin: 0;
-  color: var(--u-danger, #b00020);
+  color: var(--u-text-error);
   font-size: 13px;
 }

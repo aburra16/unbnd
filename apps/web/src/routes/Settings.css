@@ -36,7 +36,7 @@
 .set-field label {
   font-size: 12px;
   font-weight: 500;
-  color: rgba(26, 26, 46, 0.7);
+  color: var(--u-ink-tint-70);
 }
 
 .set-field input {
@@ -44,7 +44,7 @@
   font-size: 13px;
   border-radius: var(--u-radius);
   border: 1px solid var(--u-border-hover);
-  background: #ffffff;
+  background: var(--u-surface-card);
   color: var(--u-ink);
 }
 

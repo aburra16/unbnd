@@ -4,7 +4,7 @@
   border-radius: var(--u-radius);
   overflow: hidden;
   margin-bottom: 24px;
-  background: #ffffff;
+  background: var(--u-surface-card);
 }
 
 .pst-cell {

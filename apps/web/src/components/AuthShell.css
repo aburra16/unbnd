@@ -29,12 +29,12 @@
 .auth-card {
   width: 100%;
   max-width: 420px;
-  background: #ffffff;
+  background: var(--u-surface-card);
   border: 1px solid var(--u-border);
   border-radius: var(--u-radius-lg);
   padding: 36px 32px 30px;
   margin-top: 32px;
-  box-shadow: 0 1px 0 rgba(26, 26, 46, 0.04);
+  box-shadow: 0 1px 0 var(--u-ink-tint-04);
 }
 
 .auth-card-mark {

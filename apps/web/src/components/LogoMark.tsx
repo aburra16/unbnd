@@ -1,3 +1,5 @@
+import { SEMANTIC_COLORS } from "@unbnd/ui";
+
 type Props = {
   size?: number;
   fill?: string;
@@ -7,7 +9,7 @@ type Props = {
 
 export function LogoMark({
   size = 26,
-  fill = "#C4763C",
+  fill = SEMANTIC_COLORS.amber,
   opacityScheme = "solid",
   title = "Unbnd",
 }: Props) {

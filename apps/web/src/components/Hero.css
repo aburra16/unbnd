@@ -51,7 +51,7 @@
   font-size: 14px;
   border-radius: var(--u-radius);
   border: 1px solid var(--u-border-hover);
-  background: #ffffff;
+  background: var(--u-surface-card);
   color: var(--u-ink);
   transition:
     border-color 120ms ease,
@@ -59,13 +59,13 @@
 }
 
 .hero-search input::placeholder {
-  color: rgba(139, 134, 152, 0.7);
+  color: var(--u-muted-tint-70);
 }
 
 .hero-search input:focus {
   outline: none;
   border-color: var(--u-amber);
-  box-shadow: 0 0 0 3px rgba(196, 118, 60, 0.1);
+  box-shadow: 0 0 0 3px var(--u-amber-tint-10);
 }
 
 @media (max-width: 540px) {

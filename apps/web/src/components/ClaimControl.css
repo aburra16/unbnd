@@ -4,8 +4,8 @@
 
 .claim-btn {
   appearance: none;
-  border: 1px solid var(--u-line, #d8d4cc);
-  background: var(--u-surface, #fff);
+  border: 1px solid var(--u-line-warm);
+  background: var(--u-surface);
   color: var(--u-ink);
   font: inherit;
   font-weight: 600;

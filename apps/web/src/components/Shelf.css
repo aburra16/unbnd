@@ -33,7 +33,7 @@
   overflow-x: auto;
   padding: 4px 0 10px;
   scrollbar-width: thin;
-  scrollbar-color: rgba(26, 26, 46, 0.12) transparent;
+  scrollbar-color: var(--u-ink-tint-12) transparent;
 }
 
 .shelf-rail::-webkit-scrollbar {
@@ -41,7 +41,7 @@
 }
 
 .shelf-rail::-webkit-scrollbar-thumb {
-  background: rgba(26, 26, 46, 0.12);
+  background: var(--u-ink-tint-12);
   border-radius: 3px;
 }
 
