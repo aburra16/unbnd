@@ -13,8 +13,7 @@ import {
   type TaxonomyElement,
 } from "../lib/api";
 import { useSession } from "../hooks/useSession";
-import { Button } from "@unbnd/ui";
-import { GenrePill } from "./Pill";
+import { Button, GenrePill } from "@unbnd/ui";
 import "./TagControl.css";
 
 type Nip07 = {

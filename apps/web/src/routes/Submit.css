@@ -151,18 +151,11 @@
   }
 }
 
+/* The back affordance's link skin moved to the @unbnd/ui Link primitive
+ * (variant="plain-muted"), Story 47a / ADR 0047. Only the margin-bottom that
+ * spaces it above the form stays here as additive layout-only residue. */
 .sub-back {
-  border: none;
-  background: none;
-  padding: 0;
   margin-bottom: var(--u-space-16);
-  font-size: var(--u-font-size-13);
-  color: var(--u-muted);
-  cursor: pointer;
-}
-
-.sub-back:hover {
-  color: var(--u-ink);
 }
 
 .sub-done {

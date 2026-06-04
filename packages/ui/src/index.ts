@@ -24,3 +24,11 @@ export type { IconButtonProps } from "./components/IconButton";
 // no-raw-<svg> guard. The `name` union is derived from the registry keys.
 export { Icon } from "./components/Icon/Icon";
 export type { IconName, IconProps } from "./components/Icon/Icon";
+// Link / Pill primitives (Story 47a / ADR 0047). Link is the router-agnostic
+// home for the link-styled controls + the link-as-button affordances; Pill
+// subsumes GenrePill + the gps-pill / rated-by-more deferred pills. Both clear
+// the last four Story-45 no-raw-<button> DEFERRALS (only searchbox-hit remains).
+export { Link } from "./components/Link";
+export type { LinkProps, LinkVariant } from "./components/Link";
+export { Pill, GenrePill } from "./components/Pill";
+export type { PillProps, PillVariant } from "./components/Pill";

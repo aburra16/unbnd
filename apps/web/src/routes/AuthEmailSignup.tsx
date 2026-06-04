@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { Button } from "@unbnd/ui";
+import { Link as RouterLink, useNavigate } from "react-router-dom";
+import { Button, Link } from "@unbnd/ui";
 import { AuthShell } from "../components/AuthShell";
 import { SovereigntyNote } from "../components/SovereigntyNote";
 import { api, ApiError } from "../lib/api";
@@ -58,26 +58,26 @@ export function AuthEmailSignup() {
         isCreate ? (
           <>
             Already have an account?{" "}
-            <button
+            <Link
+              variant="plain-amber"
               type="button"
-              className="auth-linklike"
               onClick={() => switchMode("signin")}
             >
               Sign in.
-            </button>
+            </Link>
           </>
         ) : (
           <>
             New to Unbnd?{" "}
-            <button
+            <Link
+              variant="plain-amber"
               type="button"
-              className="auth-linklike"
               onClick={() => switchMode("create")}
             >
               Create an account.
-            </button>{" "}
+            </Link>{" "}
             Prefer a Nostr extension?{" "}
-            <Link to="/auth/nostr">Sign in with Nostr.</Link>
+            <RouterLink to="/auth/nostr">Sign in with Nostr.</RouterLink>
           </>
         )
       }

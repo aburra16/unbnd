@@ -1,5 +1,5 @@
-import { Link } from "react-router-dom";
-import { SEMANTIC_COLORS } from "@unbnd/ui";
+import { Link as RouterLink } from "react-router-dom";
+import { SEMANTIC_COLORS, Link } from "@unbnd/ui";
 import { AuthShell } from "../components/AuthShell";
 import "../components/AuthForm.css";
 
@@ -22,14 +22,18 @@ export function AuthWelcome() {
       </div>
       <div className="auth-welcome-cta">
         <Link
+          as={RouterLink}
           to="/curators"
+          variant="button-primary"
           className="auth-submit"
           style={{ textAlign: "center", textDecoration: "none" }}
         >
           Find curators to follow
         </Link>
         <Link
+          as={RouterLink}
           to="/"
+          variant="button-secondary"
           className="auth-btn-secondary"
           style={{ textAlign: "center" }}
         >

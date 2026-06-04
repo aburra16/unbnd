@@ -16,8 +16,7 @@ import {
   type SignedEvent,
 } from "../lib/api";
 import { useSession } from "../hooks/useSession";
-import { Button } from "@unbnd/ui";
-import { GenrePill } from "./Pill";
+import { Button, GenrePill } from "@unbnd/ui";
 import "./ShelfControl.css";
 
 type Nip07 = {
