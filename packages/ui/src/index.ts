@@ -19,3 +19,8 @@ export { Button } from "./components/Button";
 export type { ButtonProps, ButtonVariant, ButtonSize } from "./components/Button";
 export { IconButton } from "./components/IconButton";
 export type { IconButtonProps } from "./components/IconButton";
+// Icon registry (Story 46 / ADR 0046). A typed <Icon name> over a map of our
+// hand-authored SVGs; every <svg> in apps/web goes through this, enforced by the
+// no-raw-<svg> guard. The `name` union is derived from the registry keys.
+export { Icon } from "./components/Icon/Icon";
+export type { IconName, IconProps } from "./components/Icon/Icon";

@@ -14,7 +14,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { api, ApiError, type SignedEvent } from "../lib/api";
 import { useSession } from "../hooks/useSession";
-import { Button } from "@unbnd/ui";
+import { Button, Icon } from "@unbnd/ui";
 import "./FollowButton.css";
 
 type Nip07 = {
@@ -25,28 +25,6 @@ type Nip07 = {
     content: string;
   }) => Promise<SignedEvent>;
 };
-
-/** A short two-segment check, drawn from tokens (currentColor). Not an icon lib. */
-function CheckGlyph() {
-  return (
-    <svg
-      className="follow-check"
-      viewBox="0 0 16 16"
-      width="14"
-      height="14"
-      aria-hidden="true"
-    >
-      <polyline
-        points="3.5,8.5 6.5,11.5 12.5,4.5"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.8"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
-}
 
 export function FollowButton({ target }: { target: string }) {
   const session = useSession();
@@ -148,7 +126,7 @@ export function FollowButton({ target }: { target: string }) {
             <span className="follow-label">Unfollow</span>
           ) : (
             <>
-              <CheckGlyph />
+              <Icon name="check" className="follow-check" />
               <span className="follow-label">Following</span>
             </>
           )}

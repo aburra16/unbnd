@@ -3,8 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { api, type SearchHit } from "../lib/api";
-import { SearchIcon } from "./SearchIcon";
-import { Button } from "@unbnd/ui";
+import { Button, Icon } from "@unbnd/ui";
 import "./SearchBox.css";
 
 const MIN_CHARS = 2;
@@ -87,7 +86,7 @@ export function SearchBox({
     <div className={compact ? "searchbox searchbox-compact" : "searchbox"} ref={root}>
       <form className="searchbox-form" onSubmit={onSubmit} role="search">
         <span className="searchbox-icon" aria-hidden="true">
-          <SearchIcon />
+          <Icon name="search" />
         </span>
         <input
           type="text"

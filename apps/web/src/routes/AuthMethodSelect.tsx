@@ -1,9 +1,9 @@
 import { Link } from "react-router-dom";
+import { Icon } from "@unbnd/ui";
 import { AuthShell } from "../components/AuthShell";
 import {
   AuthMethodCard,
   EmailGlyph,
-  NostrBolt,
   GLetter,
   AppleLetter,
 } from "../components/AuthMethodCard";
@@ -34,7 +34,7 @@ export function AuthMethodSelect() {
           to="/auth/nostr"
           iconBg="var(--u-purple-tint-12)"
           iconInk="var(--signal-sovereign)"
-          icon={<NostrBolt />}
+          icon={<Icon name="bolt" />}
           name="Sign in with Nostr"
           description="Use a NIP-07 extension. The private key stays in your control."
         />

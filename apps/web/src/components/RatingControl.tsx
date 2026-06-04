@@ -17,7 +17,7 @@ import {
   type SignedEvent,
 } from "../lib/api";
 import { useSession } from "../hooks/useSession";
-import { Button, IconButton } from "@unbnd/ui";
+import { Button, Icon, IconButton } from "@unbnd/ui";
 import "./RatingControl.css";
 
 type Nip07 = {
@@ -31,20 +31,6 @@ type Nip07 = {
 
 function todayIso(): string {
   return new Date().toISOString().slice(0, 10);
-}
-
-function Star({ filled }: { filled: boolean }) {
-  return (
-    <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
-      <path
-        d="M12 2.5l2.9 5.9 6.5.95-4.7 4.58 1.1 6.47L12 17.9 6.2 20.9l1.1-6.47-4.7-4.58 6.5-.95z"
-        fill={filled ? "currentColor" : "none"}
-        stroke="currentColor"
-        strokeWidth="1.4"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
 }
 
 const MONTHS = [
@@ -177,7 +163,7 @@ export function RatingControl({
                 aria-pressed={score === n}
                 onClick={() => setScore(n)}
               >
-                <Star filled={n <= score} />
+                <Icon name="star" filled={n <= score} />
               </IconButton>
             ))}
           </div>
