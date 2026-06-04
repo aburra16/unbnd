@@ -293,13 +293,13 @@ export function Settings() {
           This is your identity on nostr. It travels with you to any nostr app,
           and it is how other people follow and reference you.
         </p>
-        <div className="set-field">
+        <Field className="set-field">
           <span className="set-nostr-label">Your npub</span>
           <div className="set-nostr-row">
             <code className="set-nostr-chip">{shortNpub(user.npub)}</code>
             <CopyButton value={user.npub} />
           </div>
-        </div>
+        </Field>
       </section>
       <Footer />
     </div>
