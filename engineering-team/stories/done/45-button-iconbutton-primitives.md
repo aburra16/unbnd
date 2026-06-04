@@ -1,8 +1,8 @@
 # Story 45: `Button` and `IconButton` primitives, the bespoke-button migration, and the no-raw-`<button>` guard
 
-**Status:** Draft
+**Status:** Done
 **Created:** 2026-06-03
-**Type:** Refactor
+**Type:** Refactor (reclassified to a deliberate visual-change story per ADR 0045 Option 3)
 
 ## Background
 
@@ -118,4 +118,4 @@ For the Architect to resolve in the Architecture phase. The PO does not pick the
 - ADR: `engineering-team/decisions/0038-design-system-architecture.md` (umbrella; §2 primitive component library and the `className` rule, §6 CI guards, §7 package and CSS delivery). A refining ADR on the button-primitive contract and migration is expected from the Architecture phase.
 - Epic: `engineering-team/epics/0001-design-system-overhaul-ready.md` (epic story 8).
 - Test plan: (filled in after Test Design phase, if the gate keeps one; the guard is itself a locking test.)
-- Review: (filled in after Review phase.)
+- Review: `engineering-team/reviews/45-button-iconbutton-primitives.md` (**PASS**, 2026-06-03).

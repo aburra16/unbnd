@@ -2,7 +2,7 @@
 
 **Status:** Accepted
 **Date:** 2026-06-03
-**Story:** `engineering-team/stories/45-button-iconbutton-primitives.md`
+**Story:** `engineering-team/stories/done/45-button-iconbutton-primitives.md`
 
 **Approved 2026-06-03** at the architecture gate, after the user reviewed the full variant mapping, risks, and tradeoffs. Original decision: **Option A, pure zero-diff refactor** (reproduce every outlier exactly via a closed typed `tone` enum plus additive-layout-only `className`; no visual normalization; no baseline update).
 
