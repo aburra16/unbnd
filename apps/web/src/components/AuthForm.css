@@ -47,12 +47,24 @@
   line-height: var(--u-leading-150);
 }
 
-/* Layout/density residue only — the primary skin (fill, text, radius, border,
- * hover, focus) is owned by the @unbnd/ui Button primitive (ADR 0045). */
+/* Primary-CTA skin for the one remaining consumer: the link-styled control on
+ * the welcome screen (AuthWelcome's "Find curators to follow" <Link>). The
+ * migrated auth <button>s now use the @unbnd/ui Button primitive (ADR 0045);
+ * this rule stays until that Link moves to the Link primitive (story 10). */
 .auth-submit {
   padding: var(--u-space-12) var(--u-space-16);
   font-size: var(--u-font-size-14);
+  font-weight: var(--u-font-weight-medium);
+  border-radius: var(--u-radius);
+  border: none;
+  background: var(--u-amber);
+  color: var(--u-parchment);
   margin-top: var(--u-space-4);
+  transition: background var(--u-duration-120ms) var(--u-ease-default);
+}
+
+.auth-submit:hover {
+  background: var(--u-amber-hover);
 }
 
 .auth-btn-secondary {
