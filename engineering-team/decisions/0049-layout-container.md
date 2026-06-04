@@ -2,7 +2,7 @@
 
 **Status:** Accepted
 **Date:** 2026-06-04
-**Story:** `engineering-team/stories/49-layout-primitives.md`
+**Story:** `engineering-team/stories/done/49-layout-primitives.md`
 
 **Accepted 2026-06-04** (auto-mode epic closeout; user-scoped Container-only). Build `Container` in `@unbnd/ui` emitting `.page`, move the 3 `.page` declarations from `base.css` into co-located `Container.css`, convert the 16 `<div className="page">` sites byte-identical. One narrow new guard (no raw `--page-max`/`--page-pad-x` outside `Container.css` + the bespoke `.rate` allowlist). `Stack`/`Grid`/`.rate`/auth-shell left bespoke. Zero-diff; no escalation on the conversion. Gate OQs (add guard / allowlist `.rate` / emit-`.page`) all accepted.
 

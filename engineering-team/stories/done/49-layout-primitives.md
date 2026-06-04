@@ -1,6 +1,6 @@
 # Story 49: Layout primitives (`Container`/`Stack`/`Grid`) — separate structure from skin, honest scope (the hardest axis; lands partial), zero-diff
 
-**Status:** Draft
+**Status:** Done
 **Created:** 2026-06-04
 **Type:** Refactor (structural / modularity-only / invisible-to-users / zero-diff) — scope under review
 
@@ -154,4 +154,4 @@ This is Phase-2 platform hardening under Epic 0001 (design-system overhaul), not
 - Epic: `engineering-team/epics/0001-design-system-overhaul-ready.md` (epic story 12; the "Layout axis depth" gate question).
 - Precedents: `engineering-team/stories/done/47-form-surface-primitives.md` (the clean-primitives-only, escalate-don't-normalize precedent — lift what reduces to a clean API byte-identical, leave the inconsistent surfaces bespoke) and `done/48-motion-util.md` (the honest no-op/thin precedent — do not pad a near-empty axis; close it truthfully).
 - Test plan: none expected (the guard, if any, is itself the locking test; under Option c there is no code to test).
-- Review: (filled in after Review phase.)
+- Review: `engineering-team/reviews/49-layout-container.md` (PASS — Container shipped; Stack/Grid left bespoke/deferred).
