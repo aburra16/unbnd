@@ -38,10 +38,11 @@
 //          immediately preceding the literal.
 //
 // DEFERRED class-name allowlist (ADR 0045 §3 "Scope deferrals" + §6 "How the
-// guard stays honest"): a raw <button> is EXEMPT only if its className (the JSX
-// `className="…"` or `className={`…`}` on THAT element) contains one of the five
-// deferred class names below. A raw <button> with any OTHER className (or none)
-// is an offender. The exemption is keyed to the CLASS NAME, not the file, so:
+// guard stays honest"; shrunk to one entry by Story 47a / ADR 0047 §4): a raw
+// <button> is EXEMPT only if its className (the JSX `className="…"` or
+// `className={`…`}` on THAT element) contains one of the deferred class names
+// below. A raw <button> with any OTHER className (or none) is an offender. The
+// exemption is keyed to the CLASS NAME, not the file, so:
 //   (a) a NEW raw <button className="something-else"> is flagged even inside a
 //       file that already holds a deferred button (e.g. SearchBox.tsx holds both
 //       searchbox-hit and the migrated searchbox-seeall);
@@ -51,20 +52,26 @@
 // THIS LIST IS A COUNTDOWN TO EMPTY. Each name retires when its proper primitive
 // lands (Link / Pill / a listbox Option). DO NOT ADD TO THIS LIST. When a
 // deferred site migrates, delete its entry; the guard tightens automatically.
+// Story 47a (ADR 0047 §4) shrank this list from five to one: auth-linklike ×2 +
+// sub-back migrated to Link, gps-pill + rated-by-more migrated to Pill, so those
+// four entries are deleted. Only the listbox-option site remains:
 //
-//   - auth-linklike   (AuthEmailSignup.tsx ×2)  link-styled control → story 10 (Link / variant=link)
-//   - sub-back        (Submit.tsx)              link-styled control → story 10 (Link / variant=link)
-//   - gps-pill        (GenrePillSelector.tsx)   selectable pill     → story 10 (Pill primitive)
-//   - rated-by-more   (RatedByRow.tsx)          "+N" count pill     → story 10 (Pill primitive)
 //   - searchbox-hit   (SearchBox.tsx)           role=option listbox item → future listbox / Option primitive
 //
-// EXPECTED STATE BEFORE THE IMPLEMENTER: RED. apps/web/src holds 37 raw <button>
-// JSX elements + the polymorphic cta-btn <Btn> ("button" tag in CallToAction.tsx
-// ). Five of the 37 carry a deferred class (auth-linklike ×2, sub-back, gps-pill,
-// rated-by-more, searchbox-hit) and are exempt, leaving 32 raw-<button> offenders
-// + 1 polymorphic offender. After the Implementer migrates every non-deferred
-// button to <Button>/<IconButton>, only the five deferred remain (all exempt) and
-// the guard is GREEN.
+// (Retired by Story 47a — no longer exempt, must render through their primitive:
+//   - auth-linklike   (AuthEmailSignup.tsx ×2)  link-styled control → Link
+//   - sub-back        (Submit.tsx)              link-styled control → Link
+//   - gps-pill        (GenrePillSelector.tsx)   selectable pill     → Pill
+//   - rated-by-more   (RatedByRow.tsx)          "+N" count pill     → Pill )
+//
+// EXPECTED STATE BEFORE THE IMPLEMENTER (Story 47a): RED. Only searchbox-hit is
+// exempt now. The four sites whose exemptions Story 47a removed are still raw
+// <button>s in apps/web/src (auth-linklike ×2 in AuthEmailSignup, sub-back in
+// Submit, gps-pill in GenrePillSelector, rated-by-more in RatedByRow), so they
+// are now OFFENDERS until the Implementer migrates them to <Link>/<Pill> (which
+// moves their rendered <button>, where any, into packages/ui/src/components,
+// outside SCAN_ROOT). After that migration only searchbox-hit remains (exempt)
+// and the guard is GREEN.
 import { describe, expect, it } from "vitest";
 import { readdirSync, readFileSync, statSync } from "node:fs";
 import { join, resolve, relative } from "node:path";
@@ -88,13 +95,12 @@ const SKIP_DIRS = new Set([
   "test",
 ]);
 
-// The five DEFERRED class names (ADR 0045 §3). A raw <button> whose className
-// contains one of these is exempt. COUNTDOWN TO EMPTY — do not add.
+// The remaining DEFERRED class name (ADR 0045 §3; shrunk to one by Story 47a /
+// ADR 0047 §4). A raw <button> whose className contains one of these is exempt.
+// COUNTDOWN TO EMPTY — do not add. Story 47a migrated auth-linklike ×2, sub-back
+// → Link and gps-pill, rated-by-more → Pill, so their entries are deleted; only
+// the listbox-option site remains, awaiting a future listbox/Option primitive.
 const DEFERRED_CLASSES = [
-  "auth-linklike", // AuthEmailSignup.tsx ×2 — link-styled control → story 10
-  "sub-back", //      Submit.tsx            — link-styled control → story 10
-  "gps-pill", //      GenrePillSelector.tsx — selectable pill     → story 10
-  "rated-by-more", // RatedByRow.tsx        — "+N" count pill     → story 10
   "searchbox-hit", // SearchBox.tsx         — role=option item    → future listbox/Option
 ];
 
@@ -281,7 +287,7 @@ describe("button primitive: no raw <button> in apps/web/src (ADR 0045 §6; story
     expect(
       offenders,
       `raw / dynamic <button> found in apps/web/src (${offenders.length}); ` +
-        `only the five DEFERRED-by-class sites are exempt:\n${offenders.join("\n")}`,
+        `only the searchbox-hit DEFERRED-by-class site is exempt:\n${offenders.join("\n")}`,
     ).toEqual([]);
   });
 });
