@@ -24,7 +24,7 @@ The PRD and handoff together carry every product decision that has been made so 
    - Appendix B competitive landscape
 2. **[unbnd-handoff.md](./unbnd-handoff.md)** — how the screens look and which PRD sections they map to. The brand design tokens and the screen-to-PRD mapping table live here.
 3. **[unbnd-wireframes.html](./unbnd-wireframes.html)** — the visual reference. The CSS at the top of the file is the production-ready design system; the markup below it is the per-screen reference. Open in a browser if you need to see the visual; read the CSS block to understand the token system.
-4. **The shipped UI**: `apps/web/src/components/` (atomic and composite components), `apps/web/src/routes/` (one file per top-level route), `apps/web/src/data/` (fixtures that the screens render against).
+4. **The shipped UI**: `apps/web/src/components/` (atomic and composite components) and `apps/web/src/routes/` (one file per top-level route). The screens render against live data from `apps/web/src/lib/api.ts` (the static `apps/web/src/data/` fixtures were retired once the live-data swap landed).
 
 For backend work, see `apps/api/src/` (currently a `/health` stub; the data-layer wiring is the next round of stories).
 

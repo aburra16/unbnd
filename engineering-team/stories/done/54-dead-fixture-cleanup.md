@@ -1,6 +1,6 @@
 # Story 54: Remove the dead `apps/web/src/data` fixtures and close the guard blind spot
 
-**Status:** In progress
+**Status:** Done
 **Created:** 2026-06-04
 **Type:** Cleanup / guard hardening
 
@@ -52,4 +52,4 @@ None.
 
 - ADR: `engineering-team/decisions/0053-guard-scope-tighten.md`
 - Test plan: deletion + guard-scope change; the red→green check is the test (Reviewer reproduces).
-- Review: `engineering-team/reviews/54-dead-fixture-cleanup.md` (pending)
+- Review: `engineering-team/reviews/54-dead-fixture-cleanup.md` (PASS)

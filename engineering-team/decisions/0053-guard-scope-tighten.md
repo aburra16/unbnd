@@ -2,7 +2,7 @@
 
 **Status:** Accepted
 **Date:** 2026-06-04
-**Story:** `engineering-team/stories/54-dead-fixture-cleanup.md`
+**Story:** `engineering-team/stories/done/54-dead-fixture-cleanup.md`
 
 **Accepted 2026-06-04.** Delete the dead `apps/web/src/data/` directory (`book-fixtures.ts`, `genre-fixtures.ts`, `fixture-constants.ts`) and its sole importer `apps/web/test/fixtures.test.ts`; then remove `"data"` from `SKIP_DIRS` in every `packages/ui/test/architecture-*.test.ts` guard that carries it (color, type, spacing, shape, motion, button, svg, page-frame, breakpoints) and correct the stale scope-exclusion comments. The token-refs guard never carried `"data"` and is untouched. This converts ADR 0040 §5's documented, temporary `data/` blind spot into genuine coverage: any future `data/` directory under a guard scan root is scanned like any other source. Zero production-code change; zero-diff `visual`. The other follow-ups raised this session (ephemeral key TTL sweeper, CI buildx flake retry, author-claim border/error-text repoint) are explicitly NOT in this story.
 
