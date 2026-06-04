@@ -2,7 +2,7 @@
 
 **Status:** Accepted
 **Date:** 2026-06-04
-**Story:** `engineering-team/stories/53-blurb-display.md`
+**Story:** `engineering-team/stories/done/53-blurb-display.md`
 
 **Accepted 2026-06-04.** Clamp `.bh-blurb` to **4 lines** (the `BookCard.css` `-webkit-line-clamp` pattern, guard-safe, no max-height); overflow detected via `scrollHeight > clientHeight` in `useLayoutEffect` + `ResizeObserver` (toggle shown only on overflow); Read more/Read less = `Link variant="plain-amber"` (default `<button>`, `aria-expanded`), in a new focused `<Blurb>` component; Source: Open Library link = `Link variant="plain-muted" as="a"` external (`https://openlibrary.org/works/{openLibraryId}`, bare id, `↗` glyph like Substack, no SVG, rendered only when present — `openLibraryId` already on `PublicBook`, no API change). Seeder `BLURB_MAX_CHARS` 700 → **2000** (logic/sanitizer unchanged). DELIBERATE labeled `book-detail.png` baseline update (lengthen the detail e2e fixture blurb + add its `openLibraryId`; regenerate in CI Docker; other baselines zero-diff). Re-backfill = epoch bump (→3) + cache-hit re-seed + re-index. Supersedes ADR 0051's cap-700 / no-read-more / no-baseline-update lines. Open-Qs resolved as the recommended defaults (clamp 4, source below the toggle in `<Blurb>`, fixture-detail-only, cap 2000, ResizeObserver).
 

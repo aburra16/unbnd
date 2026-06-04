@@ -1,8 +1,9 @@
 # Story 53: Book detail blurb display — clamp, Read more, and an Open Library source link
 
-**Status:** Draft
+**Status:** Done
 **Created:** 2026-06-04
 **Type:** Feature
+**Review:** `engineering-team/reviews/53-blurb-display.md` (PASS)
 
 ## Background
 
@@ -86,9 +87,9 @@ No new or changed shape. The blurb already lives in the kind-39999 record `conte
 
 - Depends on: Story 52 / ADR 0051 (blurb seeding, the raw-description cache, the epoch checkpoint, the existing display path).
 - Relates to: ADR 0039 (visual-regression harness — the intentional-baseline-update path), ADR 0047 (the `Link` primitive), ADR 0033 (effective-book overlay — untouched).
-- ADR: (filled in after Architecture phase)
-- Test plan: (filled in after Test Design phase)
-- Review: (filled in after Review phase)
+- ADR: `engineering-team/decisions/0052-blurb-display.md` (Accepted)
+- Test plan: `engineering-team/stories/done/53-blurb-display.test-plan.md`
+- Review: `engineering-team/reviews/53-blurb-display.md` (PASS)
 
 ## Phase-2 note
 

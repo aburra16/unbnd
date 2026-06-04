@@ -1,6 +1,6 @@
 # Test Plan: Story 53 — Book detail blurb display (clamp + Read more / Read less + Open Library source link)
 
-**Story:** `engineering-team/stories/53-blurb-display.md`
+**Story:** `engineering-team/stories/done/53-blurb-display.md`
 **ADR:** `engineering-team/decisions/0052-blurb-display.md` (Accepted)
 **Date:** 2026-06-04
 
