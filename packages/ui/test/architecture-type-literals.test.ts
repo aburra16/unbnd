@@ -18,7 +18,6 @@
 // literals are swept into CSS, not into a TS constant, so there is no
 // type-scale.ts to exempt.
 // Scope-excludes (handled by SKIP_DIRS, not the allowlist):
-//   - apps/web/src/data   (dead fixture data, not in the render path)
 //   - apps/web/e2e        (visual-harness fixtures)
 //   - packages/ui/test    (these guards, which name literals as expectations)
 //
@@ -48,10 +47,8 @@ const SKIP_DIRS = new Set([
   "dist",
   ".git",
   "engineering-team",
-  // Visual-harness fixtures and dead fixture data (not in the render path) are
-  // scope-excluded, consistent with the color guard.
+  // Visual-harness fixtures are scope-excluded, consistent with the color guard.
   "e2e",
-  "data",
   // @unbnd/ui's own test dir holds these guards (which name literals as test
   // expectations) and tokens.test.ts; it is not app source.
   "test",
