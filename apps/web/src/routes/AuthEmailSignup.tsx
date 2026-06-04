@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link as RouterLink, useNavigate } from "react-router-dom";
-import { Button, Link } from "@unbnd/ui";
+import { Button, Field, Label, Link } from "@unbnd/ui";
 import { AuthShell } from "../components/AuthShell";
 import { SovereigntyNote } from "../components/SovereigntyNote";
 import { api, ApiError } from "../lib/api";
@@ -84,8 +84,8 @@ export function AuthEmailSignup() {
     >
       <form className="auth-form" onSubmit={onSubmit}>
         {isCreate && (
-          <div className="auth-field">
-            <label htmlFor="auth-name">Display name</label>
+          <Field className="auth-field">
+            <Label htmlFor="auth-name">Display name</Label>
             <input
               id="auth-name"
               type="text"
@@ -95,10 +95,10 @@ export function AuthEmailSignup() {
               onChange={(e) => setDisplayName(e.target.value)}
               required
             />
-          </div>
+          </Field>
         )}
-        <div className="auth-field">
-          <label htmlFor="auth-email">Email</label>
+        <Field className="auth-field">
+          <Label htmlFor="auth-email">Email</Label>
           <input
             id="auth-email"
             type="email"
@@ -108,9 +108,9 @@ export function AuthEmailSignup() {
             onChange={(e) => setEmail(e.target.value)}
             required
           />
-        </div>
-        <div className="auth-field">
-          <label htmlFor="auth-pw">Password</label>
+        </Field>
+        <Field className="auth-field">
+          <Label htmlFor="auth-pw">Password</Label>
           <input
             id="auth-pw"
             type="password"
@@ -126,7 +126,7 @@ export function AuthEmailSignup() {
               Your password encrypts the private key that signs your activity.
             </span>
           )}
-        </div>
+        </Field>
         {error && (
           <p className="auth-field-error" role="alert">
             {error}

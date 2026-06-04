@@ -1,0 +1,43 @@
+/* Label + Field primitive skin/layout (ADR 0048 §2/§3). References ONLY existing
+ * Tier-2 semantic tokens (var(--u-*)); mints no token, so the Story-40..44 guards
+ * stay clean. A VERBATIM transcription (zero-diff, NOT a normalization).
+ *
+ *  - .u-label reproduces the ONE consistent label skin byte-identical: it is the
+ *    value-for-value transcription of the former `.auth-field label` /
+ *    `.sub-field label` / `.set-field label` skin (all three verified identical:
+ *    font-size-12 / weight-medium / --u-ink-tint-70). Those three per-form rules
+ *    are deleted from AuthForm.css / Submit.css / Settings.css (now owned here).
+ *
+ *  - .u-label--inline carries ONLY the sub-field label's inline-hint LAYOUT
+ *    (display:flex; align-items:center; gap --u-space-8) — the layout that lays
+ *    an inline glyph (e.g. the `.sub-req` tag) beside the label text. It is the
+ *    additive layout-only residue split off from the former `.sub-field label`
+ *    rule; every former sub-field label carried this layout, so every migrated
+ *    sub-field Label carries `u-label--inline` to stay byte-identical.
+ *
+ *  - .u-field owns ONLY the column LAYOUT shared by all three form wrappers
+ *    (display:flex; flex-direction:column; gap --u-space-5, all three verified
+ *    identical — ADR 0048 OQ-2). It owns NO skin. The form's divergent wrapper
+ *    class (auth-field / sub-field / set-field) stays at the call site as the
+ *    additive layout-only className, carrying only what differs (e.g. the
+ *    `.sub-row > .sub-field { flex:1 }` sibling layout). The wrappers' own
+ *    `display/flex-direction/gap` declarations are deleted there (now owned here).
+ */
+
+.u-label {
+  font-size: var(--u-font-size-12);
+  font-weight: var(--u-font-weight-medium);
+  color: var(--u-ink-tint-70);
+}
+
+.u-label--inline {
+  display: flex;
+  align-items: center;
+  gap: var(--u-space-8);
+}
+
+.u-field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--u-space-5);
+}

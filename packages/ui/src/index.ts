@@ -32,3 +32,14 @@ export { Link } from "./components/Link";
 export type { LinkProps, LinkVariant } from "./components/Link";
 export { Pill, GenrePill } from "./components/Pill";
 export type { PillProps, PillVariant } from "./components/Pill";
+// Avatar primitive (Story 47b / ADR 0048). MOVED in from apps/web byte-identical
+// (the kind-0 picture / deterministic-initials identity circle); its former
+// cross-package GENRE_PALETTE import is now an intra-package relative import.
+export { Avatar } from "./components/Avatar";
+export type { AvatarProps } from "./components/Avatar";
+// Label / Field form primitives (Story 47b / ADR 0048). Label owns the one
+// consistent label skin (.u-label); Field is layout-only (.u-field), preserving
+// each form's divergent wrapper class as additive layout-only. The four input
+// skins are accidentally inconsistent and stay bespoke (Input escalated).
+export { Field, Label } from "./components/Field";
+export type { FieldProps, LabelProps } from "./components/Field";

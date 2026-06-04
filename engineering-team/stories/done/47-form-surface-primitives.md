@@ -1,8 +1,10 @@
 # Story 47: Form + surface primitives in `@unbnd/ui` — `Avatar`, `Link`, `Pill`, `Input`/`Field`/`Label`, `Card` — byte-identical migration, the Story-45 Pill/Link deferrals cleared, and the guard set extended
 
-> **47a DONE (2026-06-04).** The `Link` + `Pill` half (ADR 0047) shipped: both primitives in `@unbnd/ui`, the four Story-45 deferrals cleared (`gps-pill`/`rated-by-more` → `Pill`; `auth-linklike` ×2/`sub-back` → `Link`), the link-as-button affordances (`cta-btn`/`auth-submit`/`auth-btn-secondary`) byte-identical, the button-guard `DEFERRED_CLASSES` shrunk 5→1 (`searchbox-hit`). Reviewer verdict **PASS** — `engineering-team/reviews/47a-link-pill-primitives.md` (PR #90; visual gate green, no baseline change). **47b** (`Avatar` + `Label`/`Field`, ADR 0048) is still pending, so this shared doc is NOT yet moved to `done/`.
+> **47a DONE (2026-06-04).** The `Link` + `Pill` half (ADR 0047) shipped: both primitives in `@unbnd/ui`, the four Story-45 deferrals cleared (`gps-pill`/`rated-by-more` → `Pill`; `auth-linklike` ×2/`sub-back` → `Link`), the link-as-button affordances (`cta-btn`/`auth-submit`/`auth-btn-secondary`) byte-identical, the button-guard `DEFERRED_CLASSES` shrunk 5→1 (`searchbox-hit`). Reviewer verdict **PASS** — `engineering-team/reviews/47a-link-pill-primitives.md` (PR #90; visual gate green, no baseline change).
+>
+> **47b DONE (2026-06-04).** The `Avatar` MOVE + `Label`/`Field` half (ADR 0048) shipped: `Avatar.{tsx,css}` moved into `@unbnd/ui` byte-identical (5 call sites + unit test re-pointed), `Label`/`Field` primitives transcribed zero-diff (the one consistent label skin + the shared field column layout), all three forms migrated (`auth-field`/`sub-field`/`set-field`), `Input` escalated/left-bespoke and the checkbox-switch + search fenced out, `Card` deferred. Reviewer verdict **PASS** after a one-line fix (the orphaned npub `set-field` migrated to `<Field>`) — `engineering-team/reviews/47b-avatar-label-field.md` (PR #91; visual gate green, no baseline change). **Story 47 (47a + 47b) is now COMPLETE.**
 
-**Status:** Draft (47a done; 47b pending)
+**Status:** Done
 **Created:** 2026-06-04
 **Type:** Refactor (behavior-preserving, byte-identical; no visual change — this is NOT a Story-45-style normalization)
 
@@ -177,5 +179,5 @@ For the Architect to resolve in the Architecture phase. The PO does not pick pro
 - ADR: `engineering-team/decisions/0038-design-system-architecture.md` (umbrella; §2 primitive component library + the `className` rule, §6 CI guards, §7 package and CSS delivery). A refining ADR on the form/surface-primitive contracts and the migration is expected from the Architecture phase (likely one per split story).
 - Epic: `engineering-team/epics/0001-design-system-overhaul-ready.md` (epic story 10).
 - Precedents: `engineering-team/stories/done/45-button-iconbutton-primitives.md` (the structural-primitive precedent + the DEFERRED Pill/Link list this story clears) and `done/46-icon-registry.md` (the byte-identical, no-normalization discipline).
-- Test plan: (filled in after Test Design phase, if the gate keeps one; the guards are themselves locking tests.)
-- Review: (filled in after Review phase.)
+- Test plan: none — the guards are themselves the locking tests (no separate test-plan file).
+- Reviews: `engineering-team/reviews/47a-link-pill-primitives.md` (47a — PASS) and `engineering-team/reviews/47b-avatar-label-field.md` (47b — PASS after fix).

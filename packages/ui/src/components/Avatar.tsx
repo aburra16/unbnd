@@ -1,7 +1,7 @@
 // Identity avatar (ADR 0012): renders the kind-0 picture when present, else a
 // deterministic initials circle. A dead picture URL falls back to initials.
 import { useState } from "react";
-import { GENRE_PALETTE } from "@unbnd/ui";
+import { GENRE_PALETTE } from "../palette";
 import "./Avatar.css";
 
 // Derived from the single palette source (ADR 0040 §3). Order preserved, so the
@@ -28,7 +28,7 @@ function initialsOf(label: string): string {
   return cleaned.slice(0, 2).toUpperCase();
 }
 
-type Props = {
+export type AvatarProps = {
   /** Best display name available (kind-0 name → display name → npub). */
   label: string;
   /** Seed for the deterministic colour — use the npub so it's stable. */
@@ -37,7 +37,7 @@ type Props = {
   size?: number;
 };
 
-export function Avatar({ label, seed, picture, size = 30 }: Props) {
+export function Avatar({ label, seed, picture, size = 30 }: AvatarProps) {
   const [broken, setBroken] = useState(false);
   const idx = hash(seed) % BGS.length;
   const dim = { width: size, height: size, fontSize: Math.round(size * 0.4) };

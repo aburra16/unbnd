@@ -11,17 +11,11 @@
   margin: 0;
 }
 
-.auth-field {
-  display: flex;
-  flex-direction: column;
-  gap: var(--u-space-5);
-}
-
-.auth-field label {
-  font-size: var(--u-font-size-12);
-  font-weight: var(--u-font-weight-medium);
-  color: var(--u-ink-tint-70);
-}
+/* The .auth-field column layout + label skin are now owned by the @unbnd/ui
+ * Field (.u-field) and Label (.u-label) primitives (Story 47b / ADR 0048). The
+ * input skin below stays bespoke (Input escalated to left-bespoke, ADR 0048 §4)
+ * and still targets the input inside the .auth-field wrapper class that Field
+ * carries through. */
 
 .auth-field input {
   padding: var(--u-space-10) var(--u-space-14);

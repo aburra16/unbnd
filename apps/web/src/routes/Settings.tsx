@@ -12,7 +12,7 @@ import { api, ApiError, type SignedEvent } from "../lib/api";
 import { Nav } from "../components/Nav";
 import { Footer } from "../components/Footer";
 import { CopyButton } from "../components/CopyButton";
-import { Button } from "@unbnd/ui";
+import { Button, Field, Label } from "@unbnd/ui";
 import { shortNpub } from "../lib/view-model";
 import { useSession } from "../hooks/useSession";
 import {
@@ -165,8 +165,8 @@ export function Settings() {
           void save(field);
         }}
       >
-        <div className="set-field">
-          <label htmlFor="set-substack">Substack</label>
+        <Field className="set-field">
+          <Label htmlFor="set-substack">Substack</Label>
           <input
             id="set-substack"
             name="substack"
@@ -180,7 +180,7 @@ export function Settings() {
             }}
           />
           <p className="set-hint">A full link, including https://.</p>
-        </div>
+        </Field>
 
         {status === "error" && errorMsg && (
           <p className="set-error" role="alert">
@@ -234,8 +234,8 @@ export function Settings() {
             void saveName(nameField);
           }}
         >
-          <div className="set-field">
-            <label htmlFor="set-display-name">Display name</label>
+          <Field className="set-field">
+            <Label htmlFor="set-display-name">Display name</Label>
             <input
               id="set-display-name"
               name="displayName"
@@ -250,7 +250,7 @@ export function Settings() {
             <p className="set-hint">
               The name readers see on your profile and reviews.
             </p>
-          </div>
+          </Field>
 
           {nameStatus === "error" && nameError && (
             <p className="set-error" role="alert">
@@ -293,13 +293,13 @@ export function Settings() {
           This is your identity on nostr. It travels with you to any nostr app,
           and it is how other people follow and reference you.
         </p>
-        <div className="set-field">
+        <Field className="set-field">
           <span className="set-nostr-label">Your npub</span>
           <div className="set-nostr-row">
             <code className="set-nostr-chip">{shortNpub(user.npub)}</code>
             <CopyButton value={user.npub} />
           </div>
-        </div>
+        </Field>
       </section>
       <Footer />
     </div>
