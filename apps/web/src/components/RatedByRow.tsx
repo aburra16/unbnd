@@ -15,8 +15,7 @@ import { Link } from "react-router-dom";
 import type { PublicRating } from "../lib/api";
 import { useProfileMeta, displayNameOf } from "../hooks/useProfileMeta";
 import { shortNpub } from "../lib/view-model";
-import { Pill } from "@unbnd/ui";
-import { Avatar } from "./Avatar";
+import { Avatar, Pill } from "@unbnd/ui";
 import "./RatedByRow.css";
 
 const CAP = 5;

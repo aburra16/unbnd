@@ -13,7 +13,7 @@ import {
 } from "../lib/api";
 import { Nav } from "../components/Nav";
 import { Footer } from "../components/Footer";
-import { Avatar } from "../components/Avatar";
+import { Avatar } from "@unbnd/ui";
 import { BookGrid } from "../components/BookGrid";
 import { ProfileStats } from "../components/ProfileStats";
 import { CopyButton } from "../components/CopyButton";

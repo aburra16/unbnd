@@ -5,8 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { api, type PublicUser } from "../lib/api";
 import { useProfileMeta, displayNameOf } from "../hooks/useProfileMeta";
-import { Avatar } from "./Avatar";
-import { Button, IconButton } from "@unbnd/ui";
+import { Avatar, Button, IconButton } from "@unbnd/ui";
 import "./AccountMenu.css";
 
 type Props = {

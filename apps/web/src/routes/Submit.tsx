@@ -6,7 +6,7 @@ import { DuplicateCheck } from "../components/DuplicateCheck";
 import { GenrePillSelector } from "../components/GenrePillSelector";
 import { ToggleSwitch } from "../components/ToggleSwitch";
 import { useSession } from "../hooks/useSession";
-import { Button, Link } from "@unbnd/ui";
+import { Button, Field, Label, Link } from "@unbnd/ui";
 import { api, ApiError, type SignedEvent, type SubmissionInput } from "../lib/api";
 import "./Submit.css";
 
@@ -168,44 +168,44 @@ export function Submit() {
           <h2 className="sub-section-title">Book details</h2>
 
           <div className="sub-row">
-            <div className="sub-field">
-              <label htmlFor="sub-title-in">
+            <Field className="sub-field">
+              <Label className="u-label--inline" htmlFor="sub-title-in">
                 Title <span className="sub-req">required</span>
-              </label>
+              </Label>
               <input id="sub-title-in" name="title" type="text" required defaultValue={adding.title} />
-            </div>
-            <div className="sub-field">
-              <label htmlFor="sub-author">
+            </Field>
+            <Field className="sub-field">
+              <Label className="u-label--inline" htmlFor="sub-author">
                 Author name <span className="sub-req">required</span>
-              </label>
+              </Label>
               <input id="sub-author" name="author" type="text" required />
-            </div>
+            </Field>
           </div>
 
-          <div className="sub-field">
-            <label htmlFor="sub-blurb">Blurb</label>
+          <Field className="sub-field">
+            <Label className="u-label--inline" htmlFor="sub-blurb">Blurb</Label>
             <textarea
               id="sub-blurb"
               name="blurb"
               rows={4}
               placeholder="A short description of the book, in the author's voice or yours. Two to four sentences is plenty."
             />
-          </div>
+          </Field>
 
           <div className="sub-row">
-            <div className="sub-field">
-              <label htmlFor="sub-isbn13">ISBN-13</label>
+            <Field className="sub-field">
+              <Label className="u-label--inline" htmlFor="sub-isbn13">ISBN-13</Label>
               <input id="sub-isbn13" name="isbn13" type="text" placeholder="9780000000000" />
-            </div>
-            <div className="sub-field">
-              <label htmlFor="sub-isbn10">ISBN-10</label>
+            </Field>
+            <Field className="sub-field">
+              <Label className="u-label--inline" htmlFor="sub-isbn10">ISBN-10</Label>
               <input id="sub-isbn10" name="isbn10" type="text" placeholder="0000000000" />
-            </div>
+            </Field>
           </div>
 
           <div className="sub-row">
-            <div className="sub-field">
-              <label htmlFor="sub-year">Publication year</label>
+            <Field className="sub-field">
+              <Label className="u-label--inline" htmlFor="sub-year">Publication year</Label>
               <input
                 id="sub-year"
                 name="year"
@@ -214,13 +214,13 @@ export function Submit() {
                 max={new Date().getFullYear() + 1}
                 placeholder="2025"
               />
-            </div>
-            <div className="sub-field">
-              <label htmlFor="sub-pages">Page count</label>
+            </Field>
+            <Field className="sub-field">
+              <Label className="u-label--inline" htmlFor="sub-pages">Page count</Label>
               <input id="sub-pages" name="pages" type="number" min={1} placeholder="320" />
-            </div>
-            <div className="sub-field">
-              <label htmlFor="sub-lang">Language</label>
+            </Field>
+            <Field className="sub-field">
+              <Label className="u-label--inline" htmlFor="sub-lang">Language</Label>
               <select id="sub-lang" name="lang" defaultValue="en">
                 {languages.map((l) => (
                   <option key={l.value} value={l.value}>
@@ -228,15 +228,15 @@ export function Submit() {
                   </option>
                 ))}
               </select>
-            </div>
+            </Field>
           </div>
         </div>
 
         <div className="sub-section">
           <h2 className="sub-section-title">Discovery</h2>
 
-          <div className="sub-field">
-            <label>Genres</label>
+          <Field className="sub-field">
+            <Label className="u-label--inline">Genres</Label>
             <GenrePillSelector
               options={genreOptions}
               selected={selectedGenres}
@@ -246,11 +246,11 @@ export function Submit() {
             <span className="sub-hint">
               Pick up to three. Other readers can add more from the book page.
             </span>
-          </div>
+          </Field>
 
           <div className="sub-row">
-            <div className="sub-field">
-              <label htmlFor="sub-cover">Cover image URL</label>
+            <Field className="sub-field">
+              <Label className="u-label--inline" htmlFor="sub-cover">Cover image URL</Label>
               <input
                 id="sub-cover"
                 name="cover"
@@ -261,9 +261,9 @@ export function Submit() {
                 A direct link to a JPEG or PNG. Use the publisher's image when
                 possible.
               </span>
-            </div>
-            <div className="sub-field">
-              <label htmlFor="sub-purchase">Where to read</label>
+            </Field>
+            <Field className="sub-field">
+              <Label className="u-label--inline" htmlFor="sub-purchase">Where to read</Label>
               <input
                 id="sub-purchase"
                 name="purchase"
@@ -274,7 +274,7 @@ export function Submit() {
                 Bookshop, the author's site, Open Library, a library catalog.
                 Multiple links can be added later.
               </span>
-            </div>
+            </Field>
           </div>
         </div>
 

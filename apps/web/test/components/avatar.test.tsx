@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
-import { Avatar } from "../../src/components/Avatar";
+import { Avatar } from "@unbnd/ui";
 
 describe("Avatar", () => {
   it("renders the picture as an img when provided", () => {

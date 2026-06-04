@@ -48,20 +48,13 @@
   min-width: 0;
 }
 
-.sub-field {
-  display: flex;
-  flex-direction: column;
-  gap: var(--u-space-5);
-}
-
-.sub-field label {
-  font-size: var(--u-font-size-12);
-  font-weight: var(--u-font-weight-medium);
-  color: var(--u-ink-tint-70);
-  display: flex;
-  align-items: center;
-  gap: var(--u-space-8);
-}
+/* The .sub-field column layout is now owned by the @unbnd/ui Field (.u-field)
+ * primitive; the .sub-field label skin + its inline-hint layout are owned by the
+ * Label (.u-label) + .u-label--inline classes (Story 47b / ADR 0048). The
+ * `.sub-row > .sub-field { flex:1 }` sibling layout above stays here (additive,
+ * carried by the wrapper class Field passes through). The input skin below stays
+ * bespoke (Input escalated to left-bespoke, ADR 0048 §4) and still targets the
+ * input inside the .sub-field wrapper class. */
 
 .sub-req {
   font-size: var(--u-font-size-10);
