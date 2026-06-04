@@ -4,8 +4,13 @@
 // kept out of the I/O path so the seeder's mapper stays pure and testable.
 import { SEEDER_USER_AGENT } from "./fetch";
 
-/** Back-jacket cap: ~110-120 words, a true back-cover length. ADR 0051. */
-export const BLURB_MAX_CHARS = 700;
+/**
+ * Blurb cap: ~320-340 words, a few full paragraphs. The detail page reveals the
+ * complete description in-app via the Read more control (ADR 0052 §5), so the cap
+ * carries the whole description for the large majority of works; a rare
+ * book-length essay still gets a clean cut. Raised from 700 by ADR 0052.
+ */
+export const BLURB_MAX_CHARS = 2000;
 
 /** The work-detail JSON shape we read (Open Library `/works/{id}.json`). */
 export type OLWorkDetail = {

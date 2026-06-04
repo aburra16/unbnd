@@ -119,12 +119,15 @@ describe("sanitizeDescription", () => {
 });
 
 // --------------------------------------------------------------------------
-// capBlurb — the ADR's back-jacket cap (default BLURB_MAX_CHARS = 700).
+// capBlurb — the ADR's back-jacket cap (default BLURB_MAX_CHARS = 2000 per
+// ADR 0052 §5, raised from 700 to reveal the full description in-app via the
+// detail-page Read more control). capBlurb's cut logic is unchanged; only the
+// default `max` constant moves.
 // --------------------------------------------------------------------------
 describe("capBlurb", () => {
-  it("pins the cap constant at 700", async () => {
+  it("pins the cap constant at 2000", async () => {
     const { BLURB_MAX_CHARS } = await load();
-    expect(BLURB_MAX_CHARS).toBe(700);
+    expect(BLURB_MAX_CHARS).toBe(2000);
   });
 
   it("returns text unchanged (no ellipsis) when at or under the cap", async () => {
@@ -133,15 +136,15 @@ describe("capBlurb", () => {
     expect(capBlurb(text)).toBe(text);
     expect(capBlurb(text)).not.toContain("…");
 
-    const exact = "a".repeat(700);
+    const exact = "a".repeat(2000);
     expect(capBlurb(exact)).toBe(exact);
   });
 
   it("never returns a string longer than the cap, ellipsis included", async () => {
     const { capBlurb } = await load();
-    const long = "word ".repeat(400); // ~2000 chars, all word boundaries
+    const long = "word ".repeat(800); // ~4000 chars, all word boundaries — overflows the 2000 cap
     const out = capBlurb(long);
-    expect(out.length).toBeLessThanOrEqual(700);
+    expect(out.length).toBeLessThanOrEqual(2000);
     expect(out.endsWith("…")).toBe(true);
   });
 
@@ -184,7 +187,7 @@ describe("capBlurb", () => {
 
   it("appends a single U+2026 ellipsis, not three dots", async () => {
     const { capBlurb } = await load();
-    const long = "word ".repeat(400);
+    const long = "word ".repeat(800); // ~4000 chars — clearly overflows the 2000 cap
     const out = capBlurb(long);
     expect(out.endsWith("…")).toBe(true);
     expect(out.endsWith("...")).toBe(false);
