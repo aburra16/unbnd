@@ -642,3 +642,124 @@
     --u-duration-200ms: 0.01ms;
   }
 }
+
+/* ======================================================================= *
+ * Theming substrate (ADR 0050). The default light skin is the :root block
+ * above: Tier 1 raw literals and Tier 2 semantic aliases both live there. A
+ * skin is a data-theme selector (data-theme="<name>" on an ancestor) that
+ * overrides the RAW color tier (--u-raw-color-*). The Tier-2 aliases resolve
+ * through the
+ * overridden raws automatically, so app CSS (Tier-2 only) re-themes with no
+ * change. A skin does not redefine the Tier-2 aliases, the non-color raws,
+ * --u-raw-elevation-* (elevation re-themes for free through the ink/amber
+ * tints it reads), or --page-* (page geometry is not a skin concern). A skin
+ * may override a specific Tier-2 alias for a deliberate role-remap, but it
+ * must never point a Tier-2 alias at a literal. A `[data-theme]` block is a
+ * scoped override of the same shape as the prefers-reduced-motion block
+ * above: it is INERT until its attribute is set on an ancestor. No data-theme
+ * attribute is set anywhere in this story, so every block here is inert and
+ * the default render is unchanged. See ADR 0050.
+ * ======================================================================= */
+
+/* SKELETON. Structural validation only; NOT a finalized dark palette; NOT
+ * activated. Placeholder values prove the raw-tier swap mechanism: a crude
+ * surface/ink inversion (parchment and white go near-black, ink goes near-
+ * white) with the accent, signal, and genre hues left at or near their light
+ * values, and the ink/amber/muted alpha steps re-based so overlays read on a
+ * dark ground. Polishing this into a brand-reviewed dark skin is later work.
+ * Redefines every --u-raw-color-* the completeness guard requires; touches no
+ * Tier-2 alias, no non-color raw, no elevation raw, no --page-* token. */
+[data-theme="dark"] {
+  /* amber */
+  --u-raw-color-amber-500: #C4763C;
+  --u-raw-color-amber-600: #D08A4F;
+  --u-raw-color-amber-300: #E8A96A;
+
+  /* ink (inverted: ink reads as light on a dark ground) */
+  --u-raw-color-ink-900: #ECECF2;
+  --u-raw-color-ink-950: #F4F4F8;
+
+  /* parchment + white (inverted: surfaces go near-black) */
+  --u-raw-color-parchment-50: #14141F;
+  --u-raw-color-parchment-100: #1E1E2C;
+  --u-raw-color-parchment-warm: #1A1A26;
+  --u-raw-color-white: #20202E;
+
+  /* muted (neutral) */
+  --u-raw-color-muted-500: #9A95A6;
+
+  /* green / red / purple signals */
+  --u-raw-color-green-500: #1D9E75;
+  --u-raw-color-red-500: #DC3545;
+  --u-raw-color-purple-500: #7845FF;
+
+  /* drift-preservation neutrals (D2): hairline lines on a dark ground */
+  --u-raw-color-line-200: #33333F;
+  --u-raw-color-line-300: #3D3D4A;
+  --u-raw-color-line-warm: #3A3A44;
+  --u-raw-color-red-700: #FF6B7A;
+
+  /* genre/cover palette bg hues */
+  --u-raw-color-genre-literary: #085041;
+  --u-raw-color-genre-scifi: #133F7A;
+  --u-raw-color-genre-mystery: #8B5A1B;
+  --u-raw-color-genre-romance: #993556;
+  --u-raw-color-genre-fantasy: #4340A0;
+  --u-raw-color-genre-thriller: #7A2E14;
+  --u-raw-color-genre-biography: #27500A;
+  --u-raw-color-genre-history: #555362;
+  --u-raw-color-teal-700: #0E3F4D;
+
+  /* ink alphas (re-based to a light overlay so ink tints read on dark) */
+  --u-raw-color-ink-a02: rgba(236, 236, 242, 0.02);
+  --u-raw-color-ink-a03: rgba(236, 236, 242, 0.03);
+  --u-raw-color-ink-a04: rgba(236, 236, 242, 0.04);
+  --u-raw-color-ink-a045: rgba(236, 236, 242, 0.045);
+  --u-raw-color-ink-a05: rgba(236, 236, 242, 0.05);
+  --u-raw-color-ink-a06: rgba(236, 236, 242, 0.06);
+  --u-raw-color-ink-a08: rgba(236, 236, 242, 0.08);
+  --u-raw-color-ink-a10: rgba(236, 236, 242, 0.1);
+  --u-raw-color-ink-a12: rgba(236, 236, 242, 0.12);
+  --u-raw-color-ink-a13: rgba(236, 236, 242, 0.13);
+  --u-raw-color-ink-a14: rgba(236, 236, 242, 0.14);
+  --u-raw-color-ink-a15: rgba(236, 236, 242, 0.15);
+  --u-raw-color-ink-a16: rgba(236, 236, 242, 0.16);
+  --u-raw-color-ink-a18: rgba(236, 236, 242, 0.18);
+  --u-raw-color-ink-a20: rgba(236, 236, 242, 0.2);
+  --u-raw-color-ink-a70: rgba(236, 236, 242, 0.7);
+  --u-raw-color-ink-a72: rgba(236, 236, 242, 0.72);
+  --u-raw-color-ink-a74: rgba(236, 236, 242, 0.74);
+  --u-raw-color-ink-a75: rgba(236, 236, 242, 0.75);
+  --u-raw-color-ink-a78: rgba(236, 236, 242, 0.78);
+
+  /* amber alphas */
+  --u-raw-color-amber-a04: rgba(196, 118, 60, 0.04);
+  --u-raw-color-amber-a05: rgba(196, 118, 60, 0.05);
+  --u-raw-color-amber-a06: rgba(196, 118, 60, 0.06);
+  --u-raw-color-amber-a08: rgba(196, 118, 60, 0.08);
+  --u-raw-color-amber-a10: rgba(196, 118, 60, 0.1);
+  --u-raw-color-amber-a12: rgba(196, 118, 60, 0.12);
+  --u-raw-color-amber-a15: rgba(196, 118, 60, 0.15);
+  --u-raw-color-amber-a18: rgba(196, 118, 60, 0.18);
+  --u-raw-color-amber-a20: rgba(196, 118, 60, 0.2);
+  --u-raw-color-amber-a30: rgba(196, 118, 60, 0.3);
+
+  /* muted alphas */
+  --u-raw-color-muted-a50: rgba(154, 149, 166, 0.5);
+  --u-raw-color-muted-a60: rgba(154, 149, 166, 0.6);
+  --u-raw-color-muted-a70: rgba(154, 149, 166, 0.7);
+  --u-raw-color-muted-a85: rgba(154, 149, 166, 0.85);
+
+  /* green alphas */
+  --u-raw-color-green-a06: rgba(29, 158, 117, 0.06);
+  --u-raw-color-green-a10: rgba(29, 158, 117, 0.1);
+  --u-raw-color-green-a30: rgba(29, 158, 117, 0.3);
+
+  /* red alphas */
+  --u-raw-color-red-a08: rgba(220, 53, 69, 0.08);
+  --u-raw-color-red-a10: rgba(220, 53, 69, 0.1);
+
+  /* purple alphas */
+  --u-raw-color-purple-a10: rgba(120, 69, 255, 0.1);
+  --u-raw-color-purple-a12: rgba(120, 69, 255, 0.12);
+}
