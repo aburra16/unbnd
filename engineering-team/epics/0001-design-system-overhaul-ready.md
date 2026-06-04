@@ -1,6 +1,6 @@
 # Epic 0001: Overhaul-ready design system (`@unbnd/ui`)
 
-**Status:** Accepted (2026-06-03)
+**Status:** Done (2026-06-04). All 14 epic stories (epic stories 1–14 = repo Stories 38–51, including the 47a/47b split and the Story-48 motion-util no-op) are merged. Closed by Story 51 (docs re-point); see `engineering-team/reviews/51-docs-repoint.md`.
 **Created:** 2026-06-03
 **ADR:** `engineering-team/decisions/0038-design-system-architecture.md`
 **Phase classification:** Phase 2 platform hardening (extends PRD §2.11 / Block E). To be recorded in the post-Phase-2 PRD addendum.
