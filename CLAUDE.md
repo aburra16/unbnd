@@ -90,9 +90,25 @@ The harness lives in two places:
 
 The MVP scope is PRD §11.1. The "Out of Scope" list at §11.3 is binding for Phase 1 work. Reject Phase 2+ work in MVP discussions: payments, file hosting, ebook sales, editing bounty marketplace, print-on-demand, social feed, reading progress, federation, email notifications. If a request needs to break that line, the user must explicitly re-scope the PRD before the story can proceed.
 
+### The design system lives in `@unbnd/ui`
+
+The design system is the `@unbnd/ui` workspace package (`packages/ui/`), established by ADR 0038 and built across epic 0001 (stories 38–50). It is the single source of truth for tokens, primitives, the icon registry, the motion layer, and layout primitives. UI work goes through it; the CI guards in `packages/ui/test/architecture-*.test.ts` make that mandatory, not advisory.
+
+- **Tokens** live in [`packages/ui/styles/tokens.css`](./packages/ui/styles/tokens.css), a two-tier system: raw values (`--u-raw-*`) aliased by a semantic tier (`--u-*` / `--signal-*` / `--genre-*`). App CSS references only the semantic tier. `apps/web` consumes the sheet via the package export `@unbnd/ui/styles/tokens.css` (imported once in `apps/web/src/main.tsx`). The handoff §"Brand Design Tokens" pins the values; the package is their canonical home.
+- **Primitives** (`Button`, `IconButton`, `Link`, `Pill`, `Avatar`, `Label`, `Field`, `Container`), the typed `Icon` registry, and the `breakpoints` constant are exported from `@unbnd/ui`.
+- A future redesign is a token-tier swap plus primitive-internals change, with no app-code churn. Theming is `[data-theme]`-scoped (`packages/ui/styles/tokens.css`); a dark skeleton exists for structural validation but is inert and not activated.
+
 ### Brand tokens are the visual source of truth
 
-[`apps/web/src/styles/tokens.css`](./apps/web/src/styles/tokens.css) is the single source of truth for colors, radii, type sizes, spacing. The handoff §"Brand Design Tokens" pins the values; the CSS file is their canonical home. No new hex literal outside `tokens.css` and the per-component genre/signal color styling. Amber is the only accent. Green for positive quality signals, red for negative, purple for sovereign/Nostr identity.
+Colors, radii, type sizes, and spacing come from `@unbnd/ui` tokens (`packages/ui/styles/tokens.css`), never from literals in app code. The rules and the guard that enforces each:
+
+- No raw color literals (hex, `rgb(a)`, named colors) outside the token layer. Enforced by `packages/ui/test/architecture-color-literals.test.ts` and `architecture-token-refs.test.ts` (the latter also kills the undefined-token drift that convention-only review let accumulate).
+- No raw `font-size` / `font-weight` / `line-height`: `architecture-type-literals.test.ts`.
+- No raw spacing (`padding` / `margin` / `gap` numeric literals) outside the token layer and layout primitives: `architecture-spacing-literals.test.ts`.
+- No raw radius / box-shadow geometry / z-index: `architecture-shape-literals.test.ts`. No raw `transition` / `animation` durations or easings: `architecture-motion-literals.test.ts`.
+- The TS palette and CSS raws stay in sync: `architecture-palette-sync.test.ts`. The page-frame tokens stay in `Container`: `architecture-page-frame.test.ts`.
+
+Amber is the only accent. Green for positive quality signals, red for negative, purple for sovereign/Nostr identity. These are token-backed in `@unbnd/ui` and still binding.
 
 ### No AI-slop, in copy or visuals
 

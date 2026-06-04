@@ -56,11 +56,13 @@ If your design fails any of these, re-derive from a POV-aware vantage point.
 
 ## 4. Know the design and copy rules before you ship UI
 
-The handoff §"Design Principles" pins these:
+The design system is the `@unbnd/ui` package (`packages/ui/`, ADR 0038, epic 0001). The handoff §"Design Principles" pins the intent; `@unbnd/ui` is where it lives and the CI guards in `packages/ui/test/architecture-*.test.ts` are how it holds:
 
-- No icon libraries. Inline SVG logo mark, hand-crafted SVGs (search magnifier, lightning), or typographic glyphs (★, →, @, ↗).
-- Amber `#C4763C` is the only accent. Green for positive quality signals, red for negative, purple for sovereign / Nostr identity.
-- Brand tokens (`apps/web/src/styles/tokens.css`) are the source of truth for color, radius, spacing, type.
+- No icon libraries. Icons go through the `@unbnd/ui` `Icon` registry (`<Icon name="…" />`), a typed map of our own hand-authored SVGs. No raw `<svg>` in app code: enforced by `packages/ui/test/architecture-svg-literals.test.ts`.
+- Buttons and interactive controls go through the `@unbnd/ui` primitives (`Button`, `IconButton`, and `Link` / `Pill` for the link- and pill-styled affordances). No raw `<button>` in app code: enforced by `packages/ui/test/architecture-button-literals.test.ts`.
+- Amber `#C4763C` is the only accent. Green for positive quality signals, red for negative, purple for sovereign / Nostr identity. These are token-backed in `@unbnd/ui` and still binding.
+- Tokens (color, radius, spacing, type, motion) are the source of truth and live in `@unbnd/ui` (`packages/ui/styles/tokens.css`, two-tier raw → semantic, consumed by `apps/web` via the `@unbnd/ui/styles/tokens.css` export). No raw literals outside the token layer: enforced by the color / type / spacing / shape / motion literal guards under `packages/ui/test/architecture-*.test.ts`.
+- A redesign is a token-tier swap (theming is `[data-theme]`-scoped in `packages/ui/styles/tokens.css`); a dark skeleton exists for structural validation but is inert and not activated.
 - Trust shown as percentile tier strings ("Top 2% curator"), never raw GrapeRank numbers.
 - Parchment-on-parchment elevation (page = `#FAF6F0`, cards = `#FFFFFF`, outer frame = `#EFEBE4`). Depth without shadows.
 
@@ -95,7 +97,7 @@ If a request tries to expand into any of these, the Product Owner pauses and ask
 | Type gate | `tsc --noEmit` via `pnpm -r typecheck` | the workspace typecheck gate |
 | Data layer | strfry + Neo4j + Meilisearch + GrapeRank | Docker Compose; not yet wired |
 | App DB | Postgres | user accounts, sessions, encrypted nostr keys; not yet wired |
-| Package manager | pnpm 9 workspace | `apps/web`, `apps/api`, future `packages/*` |
+| Package manager | pnpm 9 workspace | `apps/web`, `apps/api`, and `packages/*` (incl. `@unbnd/ui` design system) |
 | Dev server | `pnpm dev:web` on :5181, `pnpm dev:api` on :8787 |
 
 ## 7. Quick command reference
