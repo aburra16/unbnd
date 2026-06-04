@@ -1,0 +1,120 @@
+/* Pill primitive skin (ADR 0047 §3, under epic 0001 / ADR 0038 §2). References
+ * ONLY existing Tier-2 semantic tokens (var(--u-*)); mints no token, so the
+ * Story-40..44 color / spacing / radius / type / motion guards stay clean.
+ *
+ * Three CLOSED variants, each a VERBATIM transcription of one existing look
+ * (zero-diff, NOT a normalization, ADR 0047):
+ *   - variant="genre"  — the former apps/web GenrePill <span> chip (moved here).
+ *   - variant="select" — the former GenrePillSelector gps-pill toggle <button>.
+ *   - variant="count"  — the former RatedByRow rated-by-more "+N" <button>.
+ *
+ * The rendered class NAMES are preserved exactly (pill / pill-genre / pill-conf
+ * / pill-community / gps-pill / gps-on / gps-off / rated-by-more) so every
+ * migrated instance is byte-identical. Genuinely-distinct LAYOUT residue (the
+ * .gps flex container, the rated-by-more margin-left that positions the chip in
+ * the avatar pile) stays at the call site as an additive layout-only class
+ * (ADR 0038 §2); it is not the chip skin and does not live here.
+ */
+
+/* ===================================================================== *
+ * variant="genre" — the non-interactive filled chip (moved verbatim from the
+ * former apps/web/src/components/Pill.css).
+ * ===================================================================== */
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--u-space-6);
+  font-size: var(--u-font-size-11);
+  font-weight: var(--u-font-weight-medium);
+  padding: var(--u-space-3) var(--u-space-11);
+  border-radius: var(--u-radius-20);
+  letter-spacing: var(--u-tracking-0);
+  line-height: var(--u-leading-140);
+  white-space: nowrap;
+}
+
+.pill-genre {
+  background: var(--u-amber-tint-10);
+  color: var(--u-amber);
+}
+
+.pill-conf {
+  font-size: var(--u-font-size-10);
+  font-weight: var(--u-font-weight-semibold);
+  opacity: 0.7;
+}
+
+/* A community-only chip inside an otherwise trusted-consensus section (ADR
+   0025). Lighter amber fill + an inset amber ring so it reads as less settled
+   than its trusted neighbours. Depth without a drop shadow; no new hex. */
+.pill-community {
+  background: var(--u-amber-tint-05);
+  box-shadow: var(--u-elevation-inset-hairline);
+}
+
+/* ===================================================================== *
+ * variant="select" — the selectable toggle <button> (moved verbatim from the
+ * former GenrePillSelector.css; the .gps flex container stays at the call site).
+ * ===================================================================== */
+
+.gps-pill {
+  font-size: var(--u-font-size-11);
+  font-weight: var(--u-font-weight-medium);
+  padding: var(--u-space-6) var(--u-space-13);
+  border-radius: var(--u-radius-20);
+  border: 1px solid var(--u-border-hover);
+  background: transparent;
+  color: var(--u-muted);
+  transition:
+    color var(--u-duration-120ms) var(--u-ease-default),
+    border-color var(--u-duration-120ms) var(--u-ease-default),
+    background var(--u-duration-120ms) var(--u-ease-default);
+}
+
+.gps-pill:hover:not(:disabled) {
+  color: var(--u-ink);
+  border-color: var(--u-ink);
+}
+
+.gps-on {
+  background: var(--u-amber-tint-10);
+  border-color: var(--u-amber);
+  color: var(--u-amber);
+}
+
+.gps-on:hover {
+  background: var(--u-amber-tint-15);
+  border-color: var(--u-amber-hover);
+  color: var(--u-amber-hover);
+}
+
+.gps-off {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* ===================================================================== *
+ * variant="count" — the circular "+N" overflow <button> (moved verbatim from
+ * RatedByRow.css; the margin-left that positions it in the pile stays at the
+ * call site as layout-only residue).
+ * ===================================================================== */
+
+.rated-by-more {
+  height: 30px;
+  min-width: 30px;
+  padding: 0 var(--u-space-8);
+  border-radius: var(--u-radius-pill);
+  border: 1px solid var(--u-border);
+  background: var(--u-surface);
+  color: var(--u-amber);
+  font-size: var(--u-font-size-12);
+  font-weight: var(--u-font-weight-semibold);
+  cursor: pointer;
+  transition: border-color var(--u-duration-120ms) var(--u-ease-default), color var(--u-duration-120ms) var(--u-ease-default);
+}
+
+.rated-by-more:hover {
+  border-color: var(--u-border-hover);
+  color: var(--u-amber-hover);
+}

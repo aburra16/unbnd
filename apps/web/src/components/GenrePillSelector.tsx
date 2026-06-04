@@ -1,3 +1,4 @@
+import { Pill } from "@unbnd/ui";
 import "./GenrePillSelector.css";
 
 type Option = {
@@ -24,16 +25,16 @@ export function GenrePillSelector({
         const isOn = selected.includes(o.slug);
         const disabled = !isOn && selected.length >= max;
         return (
-          <button
+          <Pill
             key={o.slug}
-            type="button"
-            className={`gps-pill ${isOn ? "gps-on" : ""} ${disabled ? "gps-off" : ""}`}
+            variant="select"
+            on={isOn}
             disabled={disabled}
             onClick={() => onToggle(o.slug)}
             aria-pressed={isOn}
           >
             {o.label}
-          </button>
+          </Pill>
         );
       })}
     </div>

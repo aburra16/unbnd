@@ -22,18 +22,16 @@
   max-width: 440px;
 }
 
+/* The primary-button SKIN (fill, text, border, radius, hover colour) moved to
+ * the Button primitive (u-btn--primary, ADR 0045) — both the Button branch and
+ * the Link button-primary branch supply it. Only the genuine per-site residue
+ * stays here as additive layout-only (ADR 0038 §2): the wider 10/26 inset, the
+ * 13px type, inline-block flow, and this surface's own 140ms hover transition
+ * (the primitive declares none). Shared by both branches so they render byte-
+ * identical to origin/main. */
 .cta-btn {
   display: inline-block;
   font-size: var(--u-font-size-13);
-  font-weight: var(--u-font-weight-medium);
   padding: var(--u-space-10) var(--u-space-26);
-  border-radius: var(--u-radius);
-  background: var(--u-amber);
-  color: var(--u-parchment);
-  border: none;
   transition: background var(--u-duration-140ms) var(--u-ease-default);
-}
-
-.cta-btn:hover {
-  background: var(--u-amber-hover);
 }

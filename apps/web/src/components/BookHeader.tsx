@@ -1,4 +1,4 @@
-import { GenrePill } from "./Pill";
+import { GenrePill } from "@unbnd/ui";
 import { AuthorBadge } from "./AuthorBadge";
 import type {
   AuthorProvidedField,

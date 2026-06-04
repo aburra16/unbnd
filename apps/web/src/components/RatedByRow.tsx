@@ -15,6 +15,7 @@ import { Link } from "react-router-dom";
 import type { PublicRating } from "../lib/api";
 import { useProfileMeta, displayNameOf } from "../hooks/useProfileMeta";
 import { shortNpub } from "../lib/view-model";
+import { Pill } from "@unbnd/ui";
 import { Avatar } from "./Avatar";
 import "./RatedByRow.css";
 
@@ -100,14 +101,13 @@ export function RatedByRow({ ratings }: { ratings: PublicRating[] }) {
             <RaterBadge key={r.npub} rating={r} />
           ))}
           {overflow > 0 && (
-            <button
-              type="button"
-              className="rated-by-more"
+            <Pill
+              variant="count"
               aria-label={`Show all ${raters.length} raters`}
               onClick={() => setExpanded(true)}
             >
               +{overflow}
-            </button>
+            </Pill>
           )}
         </div>
       )}

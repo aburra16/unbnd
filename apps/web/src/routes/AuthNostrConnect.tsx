@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link as RouterLink, useNavigate } from "react-router-dom";
 import { npubEncode } from "applesauce-core/helpers";
-import { SEMANTIC_COLORS, Button } from "@unbnd/ui";
+import { SEMANTIC_COLORS, Button, Link } from "@unbnd/ui";
 import { AuthShell } from "../components/AuthShell";
 import { SovereigntyNote } from "../components/SovereigntyNote";
 import { api, ApiError } from "../lib/api";
@@ -122,7 +122,7 @@ export function AuthNostrConnect() {
             Install Alby
           </a>{" "}
           or use{" "}
-          <Link to="/auth/email">email signup instead.</Link>
+          <RouterLink to="/auth/email">email signup instead.</RouterLink>
         </>
       }
     >
@@ -140,7 +140,13 @@ export function AuthNostrConnect() {
             Install a NIP-07 extension such as Alby, nos2x, or Flamingo, then
             reload this page.
           </div>
-          <Link to="/auth" className="auth-btn-secondary" style={{ textAlign: "center" }}>
+          <Link
+            as={RouterLink}
+            to="/auth"
+            variant="button-secondary"
+            className="auth-btn-secondary"
+            style={{ textAlign: "center" }}
+          >
             Back to method selection
           </Link>
         </>
@@ -162,7 +168,9 @@ export function AuthNostrConnect() {
             )}
             <div className="auth-btn-row">
               <Link
+                as={RouterLink}
                 to="/auth"
+                variant="button-secondary"
                 className="auth-btn-secondary"
                 style={{ textAlign: "center" }}
               >

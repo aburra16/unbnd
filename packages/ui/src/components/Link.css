@@ -1,0 +1,97 @@
+/* Link primitive skin (ADR 0047 §1/§2). References ONLY existing Tier-2
+ * semantic tokens (var(--u-*)); mints no token, so the Story-40..44 guards stay
+ * clean.
+ *
+ * Two FAMILIES of look, both VERBATIM transcriptions (zero-diff, NOT a
+ * normalization, ADR 0047):
+ *
+ *  1. The "plain-*" link looks reproduce the two former link-styled controls
+ *     byte-identical:
+ *       - plain-amber  ← .auth-linklike (AuthShell.css, scoped under the auth
+ *                        card footer). Rendered on a real <button> via as="button"
+ *                        because its job is an in-page action (signup-mode
+ *                        toggle), not navigation (ADR 0047 OQ-1 Reading 2).
+ *       - plain-muted  ← .sub-back (Submit.css). Rendered on a real <button> via
+ *                        as="button" because its job is an in-page action
+ *                        (collapse the form), not a route navigation.
+ *
+ *  2. The "button-*" looks make a real <a>/route-link render the Button look:
+ *       - button-primary   reuses Button's OWN skin classes (u-btn
+ *                          u-btn--primary u-btn--md, emitted by Link.tsx, see
+ *                          Button.css) so it is identical to Button BY
+ *                          CONSTRUCTION and a future primary restyle tracks it.
+ *                          No primary skin lives here.
+ *       - button-secondary reproduces the AUTH secondary skin value-for-value
+ *                          below (ADR 0047 §2 WATCH-POINT / OQ-2). This is
+ *                          INTENTIONALLY NOT Button's u-btn--secondary: the auth
+ *                          secondary is a genuinely distinct look (resting border
+ *                          --u-border-hover, hover ink + surface) that predates
+ *                          Story 45's secondary-border normalization and was not
+ *                          in its scope. Reusing u-btn--secondary would change
+ *                          pixels. Do NOT "unify" this later without a deliberate
+ *                          visual-change story.
+ */
+
+/* ===================================================================== *
+ * plain-amber ← .auth-linklike. The declaration ORDER mirrors the former two
+ * AuthShell.css rules so the cascade resolves identically: `font: inherit`
+ * follows `font-weight: medium` and overrides it, exactly as in the original
+ * (the medium declaration was already dead there). Computed result is byte-
+ * identical to the former .auth-card-footer .auth-linklike.
+ * ===================================================================== */
+
+.u-link--plain-amber {
+  color: var(--u-amber);
+  font-weight: var(--u-font-weight-medium);
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  cursor: pointer;
+}
+
+.u-link--plain-amber:hover {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+/* ===================================================================== *
+ * plain-muted ← .sub-back. The margin-bottom is genuine layout residue that
+ * positions the back affordance above the form; it stays at the call site as an
+ * additive layout-only class (.sub-back), not here.
+ * ===================================================================== */
+
+.u-link--plain-muted {
+  border: none;
+  background: none;
+  padding: 0;
+  font-size: var(--u-font-size-13);
+  color: var(--u-muted);
+  cursor: pointer;
+}
+
+.u-link--plain-muted:hover {
+  color: var(--u-ink);
+}
+
+/* ===================================================================== *
+ * button-secondary ← the auth secondary skin (verbatim from .auth-btn-secondary
+ * in AuthForm.css). The per-site density (padding 12 18, font-size 13) stays at
+ * the call site as additive layout-only residue on .auth-btn-secondary.
+ * ===================================================================== */
+
+.u-link--button-secondary {
+  font-weight: var(--u-font-weight-medium);
+  border-radius: var(--u-radius);
+  border: 1px solid var(--u-border-hover);
+  background: transparent;
+  color: var(--u-ink);
+  transition:
+    border-color var(--u-duration-120ms) var(--u-ease-default),
+    background var(--u-duration-120ms) var(--u-ease-default);
+}
+
+.u-link--button-secondary:hover {
+  border-color: var(--u-ink);
+  background: var(--u-surface);
+}

@@ -1,12 +1,12 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link as RouterLink } from "react-router-dom";
 import { Nav } from "../components/Nav";
 import { Footer } from "../components/Footer";
 import { DuplicateCheck } from "../components/DuplicateCheck";
 import { GenrePillSelector } from "../components/GenrePillSelector";
 import { ToggleSwitch } from "../components/ToggleSwitch";
 import { useSession } from "../hooks/useSession";
-import { Button } from "@unbnd/ui";
+import { Button, Link } from "@unbnd/ui";
 import { api, ApiError, type SignedEvent, type SubmissionInput } from "../lib/api";
 import "./Submit.css";
 
@@ -149,20 +149,21 @@ export function Submit() {
           <p className="sub-done-note">
             Your book is signed and published as a community submission. It will
             appear in the catalog as it gains trust.{" "}
-            <Link to="/profile/me">See your submissions</Link>.
+            <RouterLink to="/profile/me">See your submissions</RouterLink>.
           </p>
         </section>
       )}
 
       {adding && status !== "done" && (
       <form className="sub-form" onSubmit={onSubmit}>
-        <button
-          type="button"
+        <Link
+          variant="plain-muted"
           className="sub-back"
+          type="button"
           onClick={() => setAdding(null)}
         >
           ← Back to search
-        </button>
+        </Link>
         <div className="sub-section">
           <h2 className="sub-section-title">Book details</h2>
 
@@ -291,7 +292,7 @@ export function Submit() {
           )}
           {!signedIn && session.status !== "loading" && (
             <p className="sub-submit-note">
-              <Link to="/auth">Sign in</Link> to submit a book.
+              <RouterLink to="/auth">Sign in</RouterLink> to submit a book.
             </p>
           )}
           <Button
@@ -306,7 +307,7 @@ export function Submit() {
           <p className="sub-submit-note">
             The submission is signed by your key and attributed to your
             profile. See the{" "}
-            <Link to="/about/submissions">submission policy</Link> for what
+            <RouterLink to="/about/submissions">submission policy</RouterLink> for what
             happens next.
           </p>
         </div>

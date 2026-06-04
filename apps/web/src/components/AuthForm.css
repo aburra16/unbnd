@@ -47,42 +47,25 @@
   line-height: var(--u-leading-150);
 }
 
-/* Primary-CTA skin for the one remaining consumer: the link-styled control on
- * the welcome screen (AuthWelcome's "Find curators to follow" <Link>). The
- * migrated auth <button>s now use the @unbnd/ui Button primitive (ADR 0045);
- * this rule stays until that Link moves to the Link primitive (story 10). */
+/* .auth-submit / .auth-btn-secondary are now DENSITY-ONLY residue (ADR 0038 §2,
+ * Story 47a / ADR 0047). The primary-button SKIN moved to the Button primitive
+ * (u-btn--primary) — shared by the <Button className="auth-submit"> sites and
+ * the AuthWelcome <Link variant="button-primary">. The auth SECONDARY skin moved
+ * to the Link primitive (u-link--button-secondary), reproducing this surface's
+ * distinct secondary value-for-value (NOT Button's normalized secondary, ADR
+ * 0047 §2). Only the genuine per-site padding / font-size / margin and this
+ * surface's own hover transition (the primitive declares none for primary) stay
+ * here, so every consumer renders byte-identical to origin/main. */
 .auth-submit {
   padding: var(--u-space-12) var(--u-space-16);
   font-size: var(--u-font-size-14);
-  font-weight: var(--u-font-weight-medium);
-  border-radius: var(--u-radius);
-  border: none;
-  background: var(--u-amber);
-  color: var(--u-parchment);
   margin-top: var(--u-space-4);
   transition: background var(--u-duration-120ms) var(--u-ease-default);
-}
-
-.auth-submit:hover {
-  background: var(--u-amber-hover);
 }
 
 .auth-btn-secondary {
   padding: var(--u-space-12) var(--u-space-18);
   font-size: var(--u-font-size-13);
-  font-weight: var(--u-font-weight-medium);
-  border-radius: var(--u-radius);
-  border: 1px solid var(--u-border-hover);
-  background: transparent;
-  color: var(--u-ink);
-  transition:
-    border-color var(--u-duration-120ms) var(--u-ease-default),
-    background var(--u-duration-120ms) var(--u-ease-default);
-}
-
-.auth-btn-secondary:hover {
-  border-color: var(--u-ink);
-  background: var(--u-surface);
 }
 
 .auth-btn-row {

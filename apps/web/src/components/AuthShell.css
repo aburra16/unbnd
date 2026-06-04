@@ -76,22 +76,16 @@
   text-align: center;
 }
 
-.auth-card-footer a,
-.auth-card-footer .auth-linklike {
+/* The link-styled footer <a> keeps its bespoke skin here. The former
+ * .auth-linklike control (a signup-mode toggle) moved to the @unbnd/ui Link
+ * primitive (variant="plain-amber"), Story 47a / ADR 0047; its skin is byte-
+ * identical and now lives in Link.css. */
+.auth-card-footer a {
   color: var(--u-amber);
   font-weight: var(--u-font-weight-medium);
 }
 
-.auth-card-footer .auth-linklike {
-  background: none;
-  border: none;
-  padding: 0;
-  font: inherit;
-  cursor: pointer;
-}
-
-.auth-card-footer a:hover,
-.auth-card-footer .auth-linklike:hover {
+.auth-card-footer a:hover {
   text-decoration: underline;
   text-underline-offset: 2px;
 }

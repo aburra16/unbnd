@@ -41,24 +41,12 @@
   text-decoration: none;
 }
 
+/* The "+N" overflow chip skin moved to the @unbnd/ui Pill primitive
+ * (variant="count"), Story 47a / ADR 0047. Only the margin-left that positions
+ * it after the avatar pile stays here as additive layout-only residue on the
+ * (unchanged) .rated-by-more class. */
 .rated-by-more {
   margin-left: var(--u-space-4);
-  height: 30px;
-  min-width: 30px;
-  padding: 0 var(--u-space-8);
-  border-radius: var(--u-radius-pill);
-  border: 1px solid var(--u-border);
-  background: var(--u-surface);
-  color: var(--u-amber);
-  font-size: var(--u-font-size-12);
-  font-weight: var(--u-font-weight-semibold);
-  cursor: pointer;
-  transition: border-color var(--u-duration-120ms) var(--u-ease-default), color var(--u-duration-120ms) var(--u-ease-default);
-}
-
-.rated-by-more:hover {
-  border-color: var(--u-border-hover);
-  color: var(--u-amber-hover);
 }
 
 /* Expanded: a wrapping grid, each entry shows name + score. */
