@@ -1,5 +1,6 @@
 import { GenrePill } from "@unbnd/ui";
 import { AuthorBadge } from "./AuthorBadge";
+import { Blurb } from "./Blurb";
 import type {
   AuthorProvidedField,
   BookClaimant,
@@ -77,7 +78,9 @@ export function BookHeader({
             ))}
           </div>
         )}
-        {book.blurb && <p className="bh-blurb">{book.blurb}</p>}
+        {book.blurb && (
+          <Blurb blurb={book.blurb} openLibraryId={book.openLibraryId} />
+        )}
         {hasAuthorOverlay && <p className="bh-attribution">From the author</p>}
       </div>
     </header>

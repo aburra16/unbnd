@@ -92,13 +92,6 @@
   margin-bottom: var(--u-space-12);
 }
 
-.bh-blurb {
-  font-size: var(--u-font-size-14);
-  line-height: var(--u-leading-170);
-  color: var(--u-ink-tint-74);
-  margin-top: var(--u-space-8);
-}
-
 @media (max-width: 620px) {
   .bh {
     flex-direction: column;

@@ -65,11 +65,27 @@ const HOME_BOOKS: PublicBook[] = [
   book("sixth-fixture", "Sixth Fixture", "F. Frozen"),
 ];
 
-const THE_BOOK: PublicBook = book(
-  FIXTURE_SLUG,
-  "The Fixture Novel",
-  "A. Fixture",
-);
+// The book-detail fixture carries a multi-paragraph blurb long enough to
+// overflow the 4-line clamp at the 1280x800 capture viewport, so book-detail.png
+// captures the collapsed-clamped state WITH the Read more control, and an
+// openLibraryId so the Source: Open Library link renders in the baseline (ADR
+// 0052 §6). Only this detail fixture book carries the long blurb + id, so
+// book-detail.png is the sole intended baseline diff; the HOME_BOOKS stay short.
+const THE_BOOK: PublicBook = {
+  ...book(FIXTURE_SLUG, "The Fixture Novel", "A. Fixture"),
+  blurb:
+    "A sweeping novel of a coastal town across three generations, where the " +
+    "lighthouse keeper's family weathers storms, fortunes, and the slow turning " +
+    "of the tide. The prose is patient and the cast is wide, carrying the reader " +
+    "from the herring boom to the quiet years after the cannery closed and the " +
+    "young people left for the cities inland.\n\n" +
+    "The middle chapters follow a daughter who stays behind, mending nets by " +
+    "lamplight and keeping the light burning through a winter of wrecks. Her " +
+    "letters to a brother who never writes back form the book's quiet spine, and " +
+    "the town itself becomes a character: its harbour, its chapel, its long " +
+    "memory of every ship that failed to round the point.",
+  openLibraryId: "OL45804W",
+};
 
 // --- Endpoint bodies (each typed against lib/api.ts) ------------------------
 

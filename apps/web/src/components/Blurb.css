@@ -1,0 +1,23 @@
+.bh-blurb {
+  font-size: var(--u-font-size-14);
+  line-height: var(--u-leading-170);
+  color: var(--u-ink-tint-74);
+  margin-top: var(--u-space-8);
+}
+
+/* Collapsed state: the BookCard.css -webkit-line-clamp pattern, four lines. The
+   clamp integer is a unitless property, not a tokenized axis (guard-safe). */
+.bh-blurb--clamped {
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.bh-blurb-footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--u-space-12);
+  margin-top: var(--u-space-6);
+}
