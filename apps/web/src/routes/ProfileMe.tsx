@@ -13,7 +13,7 @@ import {
 } from "../lib/api";
 import { Nav } from "../components/Nav";
 import { Footer } from "../components/Footer";
-import { Avatar } from "@unbnd/ui";
+import { Avatar, Container } from "@unbnd/ui";
 import { BookGrid } from "../components/BookGrid";
 import { ProfileStats } from "../components/ProfileStats";
 import { CopyButton } from "../components/CopyButton";
@@ -87,13 +87,13 @@ export function ProfileMe() {
 
   if (session.status === "loading") {
     return (
-      <div className="page">
+      <Container>
         <Nav />
         <p className="route-status" role="status">
           Loading…
         </p>
         <Footer />
-      </div>
+      </Container>
     );
   }
   if (session.status === "signed-out") {
@@ -104,7 +104,7 @@ export function ProfileMe() {
   const name = displayNameOf(meta, user.displayName);
 
   return (
-    <div className="page">
+    <Container>
       <Nav />
       <header className="me-head">
         <Avatar label={name} seed={user.npub} picture={meta?.picture} size={72} />
@@ -192,6 +192,6 @@ export function ProfileMe() {
         )}
       </section>
       <Footer />
-    </div>
+    </Container>
   );
 }

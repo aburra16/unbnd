@@ -10,7 +10,7 @@ import { CallToAction } from "../components/CallToAction";
 import { api, type ForYou, type HomepageShelves } from "../lib/api";
 import { genreColor, toCardBook } from "../lib/view-model";
 import { useTrustView } from "../hooks/useTrustView";
-import { Button } from "@unbnd/ui";
+import { Button, Container } from "@unbnd/ui";
 import type { Book } from "../components/BookCard";
 
 // The trust shelves, mapped to render-ready rows (Story 35 / ADR 0036 §5). Each
@@ -101,7 +101,7 @@ export function Home() {
   }, []);
 
   return (
-    <div className="page">
+    <Container>
       <Nav />
       <Hero />
       <PoVBar />
@@ -175,6 +175,6 @@ export function Home() {
         ctaHref="/auth"
       />
       <Footer />
-    </div>
+    </Container>
   );
 }

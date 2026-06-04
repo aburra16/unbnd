@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Container } from "@unbnd/ui";
 import { Nav } from "../components/Nav";
 import { Footer } from "../components/Footer";
 import { Breadcrumb } from "../components/Breadcrumb";
@@ -40,7 +41,7 @@ export function Browse() {
   }, []);
 
   return (
-    <div className="page">
+    <Container>
       <Nav />
       <Breadcrumb trail={[{ label: "Home", to: "/" }, { label: "Browse" }]} />
       {state.status === "loading" && (
@@ -64,6 +65,6 @@ export function Browse() {
         </>
       )}
       <Footer />
-    </div>
+    </Container>
   );
 }
