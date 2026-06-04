@@ -2,7 +2,7 @@
 
 **Status:** Accepted
 **Date:** 2026-06-04
-**Story:** `engineering-team/stories/47-form-surface-primitives.md`
+**Story:** `engineering-team/stories/done/47-form-surface-primitives.md`
 
 **Accepted 2026-06-04** (auto-mode epic closeout). Scope per the user's "clean primitives only, zero-diff" decision: `Link`+`Pill` for the consistent looks, clear the four Story-45 deferrals byte-identical, leave bespoke nav/footer/byline links + signal pills as-is. Open questions are zero-diff reproduction detail / Implementer latitude. The only guard change is shrinking the Story-45 `DEFERRED` set from 5 to 1 (no new Link/Pill guard — partial coverage).
 

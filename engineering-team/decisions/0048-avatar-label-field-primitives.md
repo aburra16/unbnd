@@ -2,7 +2,7 @@
 
 **Status:** Accepted
 **Date:** 2026-06-04
-**Story:** `engineering-team/stories/47-form-surface-primitives.md`
+**Story:** `engineering-team/stories/done/47-form-surface-primitives.md`
 
 **Accepted 2026-06-04** (auto-mode epic closeout). Scope: `Avatar` MOVE into `@unbnd/ui` byte-identical, `Label` primitive (consistent skin), layout-only `Field` (preserves the divergent wrapper classes). **`Input` ESCALATED to left-bespoke** — its 4 input skins are accidentally inconsistent (padding/font-size/focus-ring/border/bg differ), so a zero-diff `Input` would need the banned `tone`-grab-bag or normalization; left bespoke (token-backed), a future deliberate visual-change story. Consistent with the user's "leave inconsistent ones bespoke" directive. No new guard (partial coverage). `Card` stays out (Story-47 scope).
 

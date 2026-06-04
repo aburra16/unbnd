@@ -2,14 +2,91 @@
 
 **Reviewer:** Claude (acting as Reviewer, independent / fresh context)
 **Date:** 2026-06-04
-**Story:** `engineering-team/stories/47-form-surface-primitives.md` (shared 47a+47b doc; 47a done)
+**Story:** `engineering-team/stories/done/47-form-surface-primitives.md` (shared 47a+47b doc; 47a done)
 **ADR:** `engineering-team/decisions/0048-avatar-label-field-primitives.md` (Accepted)
-**Diff:** `git diff origin/main...HEAD` (branch `story-47b-avatar-label-field`, commit `c31d798`, PR #91)
+**Diff:** `git diff origin/main...HEAD` (branch `story-47b-avatar-label-field`, fix commit `0deb2d7`, PR #91)
 **Run mode:** lean (Impl → Reviewer; no new guard per ADR 0048 §5)
 
 ## Verdict
 
-**CHANGES_REQUESTED (FAIL).**
+**PASS** (re-review after fix — supersedes the prior CHANGES_REQUESTED below).
+
+The sole blocking finding from the first pass — the orphaned third `set-field`
+wrapper on the Settings npub block (the 5px column-gap regression) — is **resolved.**
+The Implementer migrated that block from `<div className="set-field">` to
+`<Field className="set-field">` (fix commit `0deb2d7`, +2/−2 in `Settings.tsx`),
+so it now resolves `.u-field`'s `display:flex; flex-direction:column;
+gap:var(--u-space-5)` — **byte-identical** to `origin/main`'s old `.set-field`
+column rule. The npub label↔row spacing is back to the original 11px
+(`set-nostr-label` 6px margin-bottom + 5px gap). No other `*-field` orphan exists
+anywhere in `apps/web/src`. All four prior PASSES still hold (the fix touched only
+`Settings.tsx`, 2 lines). All gates re-run green; `visual` is success and no `*.png`
+changed. Story 47 is now complete (47a + 47b).
+
+---
+
+## Re-review (fix verification)
+
+### Blocking finding resolved — `Settings.tsx:296` npub block (PASS)
+
+- `Settings.tsx:296` now reads `<Field className="set-field">` … `</Field>` (was
+  `<div className="set-field">`). Fix is the only delta vs. the prior-reviewed
+  `c31d798`: the fix commit `0deb2d7` is +2/−2 in `Settings.tsx` (plus the review
+  file). Confirmed via `git show 0deb2d7 -- apps/web/src/routes/Settings.tsx`.
+- **Resolved layout is byte-identical.** `git show origin/main:apps/web/src/routes/Settings.css`
+  showed `.set-field { display:flex; flex-direction:column; gap:var(--u-space-5) }`.
+  `Field` renders `<div class="u-field set-field">`; `.u-field`
+  (`packages/ui/src/components/Field.css:39-43`) carries exactly
+  `display:flex; flex-direction:column; gap:var(--u-space-5)` — value-for-value
+  the deleted rule. The npub block is a column again; the
+  `set-nostr-label` (6px margin-bottom) + 5px gap = 11px, the origin/main spacing.
+- **Right primitive.** The npub block's children are `<span class="set-nostr-label">`
+  + `<div class="set-nostr-row">` (no `<label>`/input). `Field` renders a plain
+  `<div>` (not `<label>`), so this is the correct wrapper; the `span`/`div`
+  children are untouched. All three Settings `set-field` wrappers are now `<Field>`
+  (lines 168, 237, 296); the full `Settings.tsx` diff vs. origin/main is the three
+  wrapper migrations + the two label→`Label` swaps and nothing else.
+
+### No other `*-field` orphan (PASS)
+
+- `grep -rn '<div className="[a-z-]*-field'` across `apps/web/src` → **NONE.**
+- Every `*-field` wrapper resolves to a `<Field>`: all three `set-field`
+  (`Settings.tsx`), three `auth-field` (`AuthEmailSignup.tsx`), eleven `sub-field`
+  (`Submit.tsx`). The only remaining `*-field` *class* is `author-edit-field` — a
+  `<label className="author-edit-field">` in `AuthorEdit.tsx` (3 sites), which is
+  **fenced out** by ADR 0048 (a different skin + implicit-association composition;
+  its own layout rule retained in `AuthorEdit.css`, file byte-untouched). No bare
+  `<div className="…-field">` wrapper remains.
+
+### Prior PASSES re-confirmed (fix touched only Settings.tsx) (PASS)
+
+- **Avatar MOVE byte-identical:** `diff` of `origin/main:apps/web/src/components/Avatar.css`
+  vs. `HEAD:packages/ui/src/components/Avatar.css` → **IDENTICAL**; app-side
+  `Avatar.*` deleted; no `components/Avatar` refs remain in `apps/web/src`+`test`.
+- **Label/Field transcriptions:** `Field.css` `.u-label`/`.u-label--inline`/`.u-field`
+  unchanged from the first pass; reference only `var(--u-*)`.
+- **Input/Card untouched:** `ToggleSwitch.{tsx,css}`, `SearchBox.tsx`, `AuthorEdit.tsx`
+  all `git diff --quiet origin/main...HEAD` → **UNTOUCHED**. No Card surface in diff.
+- **No guard modified:** the only `test/` change vs. origin/main is
+  `apps/web/test/components/avatar.test.tsx` (the re-point). No `*.png` changed.
+
+### Gates re-run (PASS)
+
+- `pnpm --filter @unbnd/ui test` — **PASS** (11 files, 16 tests).
+- `pnpm -r typecheck` — **PASS** (all 10 projects Done, no errors).
+- `pnpm --filter @unbnd/web test` — **PASS** (52 files, **300/300**; happy-dom
+  teardown ECONNREFUSED noise prints, no test fails).
+- `pnpm --filter @unbnd/web build` — **PASS** (`tsc --noEmit` + `vite build`, 457
+  modules, 584ms).
+- `gh pr checks 91` — **all pass:** Typecheck/test/build, Validate Caddyfile,
+  **Visual regression** (run against fix commit `0deb2d7` = HEAD = pushed). No
+  `*.png` baseline changed.
+
+---
+
+## First-pass review (superseded — retained for the record)
+
+**Original verdict: CHANGES_REQUESTED (FAIL).**
 
 One blocking zero-diff violation: a third, un-migrated `set-field` wrapper on the
 Settings page lost its deleted column-layout rule, shifting the npub block's
@@ -118,10 +195,12 @@ on code inspection, which is where the orphan surfaced.
 ## Findings
 
 ### Blocking
-1. **`apps/web/src/routes/Settings.tsx:296`** — the third `<div className="set-field">` (Nostr-identity npub block) was not migrated to `<Field>`, but `.set-field`'s `display:flex; flex-direction:column; gap:var(--u-space-5)` layout rule was deleted from `Settings.css`. The npub label↔row spacing drops from 11px to 6px (−5px). Zero-diff violation, undetected because Settings has no visual baseline. Asked change: restore byte-identical layout for this block (migrate to `<Field className="set-field">`, or retain the `.set-field` column-layout rule). Re-verify visually.
+1. **`apps/web/src/routes/Settings.tsx:296`** — ~~the third `<div className="set-field">` (Nostr-identity npub block) was not migrated to `<Field>`, but `.set-field`'s `display:flex; flex-direction:column; gap:var(--u-space-5)` layout rule was deleted from `Settings.css`. The npub label↔row spacing drops from 11px to 6px (−5px). Zero-diff violation, undetected because Settings has no visual baseline. Asked change: restore byte-identical layout for this block (migrate to `<Field className="set-field">`, or retain the `.set-field` column-layout rule). Re-verify visually.~~ **RESOLVED in fix commit `0deb2d7`** — migrated to `<Field className="set-field">`; resolved layout (`.u-field` flex column + `gap:var(--u-space-5)`) is byte-identical to the deleted `.set-field` rule. See the Re-review section above.
 
 ### Non-blocking
 1. **Visual coverage gap (pre-existing, not introduced here).** Three of the migrated forms (`auth-field`/`sub-field`/`set-field`) are outside the `visual` baselines, so the zero-diff gate gave no protection to this story's main change. Not blocking for 47b, but worth filing: the at-rest `submit.png` never exercises the `sub-field` form, and Settings/email-signup have no baseline at all. A future story could add an authenticated-Settings and an expanded-Submit-form baseline so form-primitive migrations are genuinely gated.
 
 ## Verdict
-**CHANGES_REQUESTED**
+**PASS** (re-review after fix commit `0deb2d7`). The sole blocking finding is
+resolved byte-identical; all prior PASSES hold; all gates and the `visual` job
+green. Story 47 (47a + 47b) is complete.

@@ -4,7 +4,7 @@
 **Date:** 2026-06-04
 **Branch / PR:** `story-47-form-surface-primitives` / PR #90
 **Diff:** `git diff origin/main...HEAD` (HEAD = `bd9d6ee`; Tester guard commit `dbae472`)
-**Story:** `engineering-team/stories/47-form-surface-primitives.md` (shared 47a/47b)
+**Story:** `engineering-team/stories/done/47-form-surface-primitives.md` (shared 47a/47b)
 **ADR:** `engineering-team/decisions/0047-link-pill-primitives.md` (Accepted)
 
 This is a **zero-diff, structural-only** refactor (binding user directive: invisible to users, NO visual change, NOT a Story-45-style normalization). The review is held to byte-identical reproduction of every migrated instance + a clean guard shrink.
