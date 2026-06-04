@@ -1,6 +1,6 @@
 # Story 46: `Icon` registry — a typed `<Icon name>` over hand-authored SVGs, the inline-`<svg>` migration, and the no-raw-`<svg>` guard
 
-**Status:** Draft
+**Status:** Done
 **Created:** 2026-06-04
 **Type:** Refactor (behavior-preserving, byte-identical; no visual change)
 
@@ -97,4 +97,4 @@ For the Architect to resolve in the Architecture phase. The PO does not pick the
 - ADR: `engineering-team/decisions/0038-design-system-architecture.md` (umbrella; §3 icon abstraction and the no-icon-library rule, §6 CI guards, §7 package and CSS delivery). A refining ADR on the icon-registry shape and the migration is expected from the Architecture phase.
 - Epic: `engineering-team/epics/0001-design-system-overhaul-ready.md` (epic story 9).
 - Test plan: (filled in after Test Design phase, if the gate keeps one; the guard is itself a locking test.)
-- Review: (filled in after Review phase.)
+- Review: `engineering-team/reviews/46-icon-registry.md` (PASS).

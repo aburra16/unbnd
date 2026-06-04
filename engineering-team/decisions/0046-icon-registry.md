@@ -2,7 +2,7 @@
 
 **Status:** Accepted
 **Date:** 2026-06-04
-**Story:** `engineering-team/stories/46-icon-registry.md`
+**Story:** `engineering-team/stories/done/46-icon-registry.md`
 
 **Accepted 2026-06-04** (auto-mode epic closeout; no escalation). All 5 icons reproduce byte-identical via the discriminated-union prop surface; no normalization. Open questions are Implementer latitude (guard via `SCAN_ROOT` exclusion; one `icons.tsx` vs per-icon files). Zero-diff binding.
 
