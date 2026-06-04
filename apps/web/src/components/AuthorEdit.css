@@ -39,19 +39,18 @@
   gap: var(--u-space-12);
 }
 
+/* Density/state residue only — the ink skin is owned by the @unbnd/ui Button
+ * primitive (ADR 0045). NORMALIZE (ADR 0045 §2, JC-3): --u-radius-pill (999px) →
+ * --u-radius (8px), the largest single corner normalization; the near-white text
+ * --u-on-ink → --u-surface-card (the ink variant's text token). The 8/18 inset
+ * and the semibold weight stay. */
 .author-edit-save {
   padding: var(--u-space-8) var(--u-space-18);
-  border: none;
-  border-radius: var(--u-radius-pill);
-  background: var(--u-ink);
-  color: var(--u-on-ink);
   font-weight: var(--u-font-weight-semibold);
-  cursor: pointer;
 }
 
 .author-edit-save:disabled {
   opacity: 0.6;
-  cursor: default;
 }
 
 .author-edit-ok {

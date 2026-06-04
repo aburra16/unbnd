@@ -120,20 +120,11 @@
   margin-top: var(--u-space-4);
 }
 
+/* Layout/state residue only — the primary skin is owned by the @unbnd/ui Button
+ * primitive (ADR 0045). align-self positions the button; the disabled opacity is
+ * this button's existing state look, preserved value-for-value. */
 .sub-submit-btn {
   align-self: flex-start;
-  padding: var(--u-space-12) var(--u-space-28);
-  font-size: var(--u-font-size-14);
-  font-weight: var(--u-font-weight-medium);
-  border-radius: var(--u-radius);
-  border: none;
-  background: var(--u-amber);
-  color: var(--u-parchment);
-  transition: background var(--u-duration-120ms) var(--u-ease-default);
-}
-
-.sub-submit-btn:hover {
-  background: var(--u-amber-hover);
 }
 
 .sub-submit-note {

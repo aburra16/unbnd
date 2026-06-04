@@ -12,3 +12,10 @@ export type { GenreRow } from "./palette";
 export { SEMANTIC_COLORS } from "./colors";
 export { breakpoints } from "./breakpoints";
 export type { Breakpoint } from "./breakpoints";
+// Button / IconButton primitives (Story 45 / ADR 0045). The first React
+// primitives on the token foundation; every <button> in apps/web goes through
+// these, enforced by the no-raw-<button> guard.
+export { Button } from "./components/Button";
+export type { ButtonProps, ButtonVariant, ButtonSize } from "./components/Button";
+export { IconButton } from "./components/IconButton";
+export type { IconButtonProps } from "./components/IconButton";

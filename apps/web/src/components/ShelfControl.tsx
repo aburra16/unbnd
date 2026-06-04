@@ -16,6 +16,7 @@ import {
   type SignedEvent,
 } from "../lib/api";
 import { useSession } from "../hooks/useSession";
+import { Button } from "@unbnd/ui";
 import { GenrePill } from "./Pill";
 import "./ShelfControl.css";
 
@@ -187,14 +188,16 @@ export function ShelfControl({ bookSlug }: Props) {
           {current.map((s) => (
             <span className="shelfc-chip" key={s.slug}>
               <GenrePill label={s.name} />
-              <button
-                type="button"
+              <Button
+                variant="secondary"
+                size="sm"
                 className="shelfc-remove"
+                type="button"
                 disabled={status === "submitting"}
                 onClick={() => remove(s.slug)}
               >
                 Remove
-              </button>
+              </Button>
             </span>
           ))}
         </div>
@@ -253,9 +256,11 @@ export function ShelfControl({ bookSlug }: Props) {
           )}
 
           <div className="shelfc-actions">
-            <button
-              type="button"
+            <Button
+              variant="ink"
+              size="md"
               className="shelfc-add"
+              type="button"
               disabled={
                 !selected ||
                 status === "submitting" ||
@@ -264,7 +269,7 @@ export function ShelfControl({ bookSlug }: Props) {
               onClick={add}
             >
               Add
-            </button>
+            </Button>
           </div>
 
           {status === "error" && errorMsg && (

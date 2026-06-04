@@ -2,19 +2,10 @@
   position: relative;
 }
 
-.acct-trigger {
-  display: inline-flex;
-  padding: 0;
-  border: none;
-  background: none;
-  cursor: pointer;
-  border-radius: var(--u-radius-circle);
-}
-
-.acct-trigger:focus-visible {
-  outline: 2px solid var(--u-amber);
-  outline-offset: 2px;
-}
+/* .acct-trigger is now the @unbnd/ui IconButton (variant="bare" shape="circle"):
+ * the inline-flex, the zero inset, the no-border/no-fill bare look, the circular
+ * radius, and the standardized 2px amber focus ring are all owned by the
+ * primitive (ADR 0045), so no skin class is needed here. */
 
 .acct-menu {
   position: absolute;
@@ -80,16 +71,18 @@
   margin-top: var(--u-space-4);
 }
 
+/* Layout/density/state residue only — the ghost skin (no fill, no border, the
+ * standardized focus ring) and the full-width `block` are owned by the @unbnd/ui
+ * Button primitive (ADR 0045). The menu-row layout (text-align, the top divider,
+ * the 7px corner, the 9/10 inset, the 13px ink text) and the destructive
+ * hover (the --u-red-tint-08 fill + --signal-negative text) are this row's
+ * identity, kept here. */
 .acct-signout {
-  width: 100%;
   text-align: left;
   padding: var(--u-space-9) var(--u-space-10);
-  border: none;
-  background: none;
   border-radius: var(--u-radius-7);
   font-size: var(--u-font-size-13);
   color: var(--u-ink);
-  cursor: pointer;
   border-top: 1px solid var(--u-ink-tint-08);
 }
 
@@ -100,5 +93,4 @@
 
 .acct-signout:disabled {
   opacity: 0.6;
-  cursor: default;
 }

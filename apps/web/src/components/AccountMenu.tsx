@@ -6,6 +6,7 @@ import { Link } from "react-router-dom";
 import { api, type PublicUser } from "../lib/api";
 import { useProfileMeta, displayNameOf } from "../hooks/useProfileMeta";
 import { Avatar } from "./Avatar";
+import { Button, IconButton } from "@unbnd/ui";
 import "./AccountMenu.css";
 
 type Props = {
@@ -55,16 +56,18 @@ export function AccountMenu({ user, onSignedOut }: Props) {
 
   return (
     <div className="acct" ref={ref}>
-      <button
-        type="button"
+      <IconButton
+        variant="bare"
+        shape="circle"
         className="acct-trigger"
+        type="button"
         aria-haspopup="menu"
         aria-expanded={open}
         aria-label={`${name} — account menu`}
         onClick={() => setOpen((v) => !v)}
       >
         <Avatar label={name} seed={user.npub} picture={meta?.picture} size={30} />
-      </button>
+      </IconButton>
       {open && (
         <div className="acct-menu" role="menu">
           <Link className="acct-id" to="/profile/me" role="menuitem" onClick={() => setOpen(false)}>
@@ -83,9 +86,17 @@ export function AccountMenu({ user, onSignedOut }: Props) {
           <Link className="acct-item" to="/settings" role="menuitem" onClick={() => setOpen(false)}>
             Settings
           </Link>
-          <button type="button" className="acct-signout" role="menuitem" onClick={signOut} disabled={busy}>
+          <Button
+            variant="ghost"
+            block
+            className="acct-signout"
+            type="button"
+            role="menuitem"
+            onClick={signOut}
+            disabled={busy}
+          >
             {busy ? "Signing out…" : "Sign out"}
-          </button>
+          </Button>
         </div>
       )}
     </div>

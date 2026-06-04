@@ -4,6 +4,7 @@
 // searched, an all-clear CTA lets them proceed to the form.
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
+import { Button } from "@unbnd/ui";
 import { api, type SearchHit } from "../lib/api";
 import "./DuplicateCheck.css";
 
@@ -96,26 +97,30 @@ export function DuplicateCheck({ onProceed }: Props) {
               </li>
             ))}
           </ul>
-          <button
+          <Button
+            variant="secondary"
+            size="md"
+            className="dc-proceed-quiet"
             type="button"
-            className="dc-proceed dc-proceed-quiet"
             onClick={() => onProceed({ title: query.trim() })}
           >
             Don't see your book? Add it anyway
-          </button>
+          </Button>
         </>
       )}
 
       {searched && !loading && hits && hits.length === 0 && (
         <div className="dc-clear">
           <p className="dc-clear-note">No match found — this looks new.</p>
-          <button
-            type="button"
+          <Button
+            variant="ink"
+            size="md"
             className="dc-proceed"
+            type="button"
             onClick={() => onProceed({ title: query.trim() })}
           >
             Add this book
-          </button>
+          </Button>
         </div>
       )}
     </section>

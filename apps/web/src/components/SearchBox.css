@@ -103,19 +103,20 @@
   color: var(--u-muted);
 }
 
+/* Layout/density residue only — the ghost skin (no fill, no border, the
+ * standardized focus ring) and the full-width `block` are owned by the @unbnd/ui
+ * Button primitive (ADR 0045). The menu-footer layout (text-align, the top
+ * divider, the bottom-corner radius, the 9/10 inset) and the amber text + tint
+ * hover are this footer row's identity, kept here. */
 .searchbox-seeall {
-  width: 100%;
   text-align: left;
   padding: var(--u-space-9) var(--u-space-10);
   margin-top: var(--u-space-4);
-  border: none;
   border-top: 1px solid var(--u-ink-tint-08);
-  background: none;
   border-radius: 0 0 var(--u-radius-7) var(--u-radius-7);
   font-size: var(--u-font-size-12);
   font-weight: var(--u-font-weight-medium);
   color: var(--u-amber);
-  cursor: pointer;
 }
 
 .searchbox-seeall:hover {

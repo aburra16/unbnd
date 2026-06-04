@@ -11,21 +11,14 @@
   margin-bottom: var(--u-space-14);
 }
 
+/* Density residue only — the ghost skin and the unified selected toggle look
+ * (surface-card fill + --u-elevation-1b + --u-radius-6, which rp-tab-on already
+ * used) are owned by the @unbnd/ui Button primitive (ADR 0045). The 6/14 inset
+ * and the resting muted text stay. */
 .rp-tab {
-  border: none;
-  background: none;
   font-size: var(--u-font-size-12);
-  font-weight: var(--u-font-weight-medium);
   padding: var(--u-space-6) var(--u-space-14);
-  border-radius: var(--u-radius-6);
   color: var(--u-muted);
-  cursor: pointer;
-}
-
-.rp-tab-on {
-  background: var(--u-surface-card);
-  color: var(--u-ink);
-  box-shadow: var(--u-elevation-1b);
 }
 
 .rp-controls {
@@ -33,19 +26,12 @@
   min-height: 30px;
 }
 
+/* Density residue only — the amber-outline secondary look (the `accent` flag,
+ * JC-2b: amber color + border + amber-tint hover) is owned by the @unbnd/ui
+ * Button primitive (ADR 0045). The 7/16 inset and the 12px font stay. */
 .rp-personalize {
   font-size: var(--u-font-size-12);
-  font-weight: var(--u-font-weight-medium);
   padding: var(--u-space-7) var(--u-space-16);
-  border-radius: var(--u-radius);
-  border: 1px solid var(--u-amber);
-  background: transparent;
-  color: var(--u-amber);
-  cursor: pointer;
-}
-
-.rp-personalize:hover {
-  background: var(--u-amber-tint-08);
 }
 
 .rp-building {

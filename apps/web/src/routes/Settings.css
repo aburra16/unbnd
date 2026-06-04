@@ -77,40 +77,25 @@
   gap: var(--u-space-10);
 }
 
+/* Layout/density/state residue only — the primary / secondary skin is owned by
+ * the @unbnd/ui Button primitive (ADR 0045). NORMALIZE (ADR 0045 §2): set-save's
+ * off-color --u-night text now comes from the primitive as --u-parchment;
+ * set-clear's --u-border-hover resting border now comes from the primitive as
+ * --u-border. The 9/20 inset, set-save's semibold, and the disabled opacity stay. */
 .set-save {
   padding: var(--u-space-9) var(--u-space-20);
   font-size: var(--u-font-size-13);
   font-weight: var(--u-font-weight-semibold);
-  border: none;
-  border-radius: var(--u-radius);
-  background: var(--u-amber);
-  color: var(--u-night);
-  cursor: pointer;
-}
-
-.set-save:hover:not(:disabled) {
-  background: var(--u-amber-hover);
 }
 
 .set-clear {
   padding: var(--u-space-9) var(--u-space-20);
   font-size: var(--u-font-size-13);
-  font-weight: var(--u-font-weight-medium);
-  border: 1px solid var(--u-border-hover);
-  border-radius: var(--u-radius);
-  background: transparent;
-  color: var(--u-ink);
-  cursor: pointer;
-}
-
-.set-clear:hover:not(:disabled) {
-  border-color: var(--u-amber);
 }
 
 .set-save:disabled,
 .set-clear:disabled {
   opacity: 0.55;
-  cursor: default;
 }
 
 /* Nostr identity section (Story 29 / ADR 0030). Read-only npub chip + copy. */

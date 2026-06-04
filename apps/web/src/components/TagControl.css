@@ -71,31 +71,19 @@
   gap: var(--u-space-8);
 }
 
+/* Density/state residue only — the ink (tagc-apply) and secondary (tagc-dispute)
+ * skins are owned by the @unbnd/ui Button primitive (ADR 0045). NORMALIZE (ADR
+ * 0045 §2, JC-3): both radii --u-radius-6 → --u-radius (8px); tagc-dispute's
+ * --u-ink-tint-20 border → --u-border. The 8/16 inset and the disabled opacity
+ * stay. */
 .tagc-apply,
 .tagc-dispute {
-  font-size: var(--u-font-size-13);
-  font-weight: var(--u-font-weight-medium);
   padding: var(--u-space-8) var(--u-space-16);
-  border-radius: var(--u-radius-6);
-  cursor: pointer;
-  border: 1px solid transparent;
-}
-
-.tagc-apply {
-  background: var(--u-ink);
-  color: var(--u-surface-card);
-}
-
-.tagc-dispute {
-  background: transparent;
-  border-color: var(--u-ink-tint-20);
-  color: var(--u-ink);
 }
 
 .tagc-apply:disabled,
 .tagc-dispute:disabled {
   opacity: 0.5;
-  cursor: not-allowed;
 }
 
 .tagc-error {

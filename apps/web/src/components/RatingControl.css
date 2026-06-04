@@ -33,11 +33,11 @@
   color: var(--u-amber);
 }
 
+/* Layout/density residue only — the bare icon-button skin is owned by the
+ * @unbnd/ui IconButton primitive (ADR 0045). Padding sets the star spacing;
+ * color inherits the amber from .rate-stars; hover keeps the star's color shift. */
 .rate-star {
-  background: none;
-  border: none;
   padding: var(--u-space-2);
-  cursor: pointer;
   color: inherit;
   line-height: var(--u-leading-0);
 }
@@ -64,24 +64,17 @@
   border-color: var(--u-border-hover);
 }
 
+/* Layout/density residue only — the primary skin is owned by the @unbnd/ui
+ * Button primitive (ADR 0045). align-self positions it; the semibold weight and
+ * 10/18 inset are this button's density; the disabled opacity is its state look. */
 .rate-submit {
   align-self: flex-start;
   padding: var(--u-space-10) var(--u-space-18);
-  border: none;
-  border-radius: var(--u-radius);
-  background: var(--u-amber);
-  color: var(--u-parchment);
   font-weight: var(--u-font-weight-semibold);
-  cursor: pointer;
-}
-
-.rate-submit:hover:not(:disabled) {
-  background: var(--u-amber-hover);
 }
 
 .rate-submit:disabled {
   opacity: 0.5;
-  cursor: default;
 }
 
 .rate-error {

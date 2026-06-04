@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { api, type SearchHit } from "../lib/api";
 import { SearchIcon } from "./SearchIcon";
+import { Button } from "@unbnd/ui";
 import "./SearchBox.css";
 
 const MIN_CHARS = 2;
@@ -124,16 +125,18 @@ export function SearchBox({
                   <span className="searchbox-hit-author">{h.authorName}</span>
                 </button>
               ))}
-              <button
-                type="button"
+              <Button
+                variant="ghost"
+                block
                 className="searchbox-seeall"
+                type="button"
                 onMouseDown={(e) => {
                   e.preventDefault();
                   goToResults();
                 }}
               >
                 See all results for “{q.trim()}”
-              </button>
+              </Button>
             </>
           )}
         </div>

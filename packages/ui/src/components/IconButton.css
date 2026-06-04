@@ -1,0 +1,36 @@
+/* IconButton primitive skin (ADR 0045 §1/§2/§5). References ONLY existing Tier-2
+ * semantic tokens. The two icon-only looks in use are both `bare` (no fill, no
+ * border): acct-trigger (circle, the avatar trigger) and rate-star (square, the
+ * star toggle). Distinctive density/layout (padding, the star color) stays on a
+ * slimmed layout-only class at the call site so the buttons render byte-identical
+ * (ADR 0045 §2 ZERO-DIFF). The standardized 2px amber :focus-visible ring (JC-5)
+ * is added to every icon button (a11y win; renders only on keyboard focus, so no
+ * at-rest baseline change). */
+
+.u-iconbtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.u-iconbtn--bare {
+  padding: 0;
+  border: none;
+  background: none;
+  color: inherit;
+}
+
+.u-iconbtn--circle {
+  border-radius: var(--u-radius-circle);
+}
+
+.u-iconbtn--square {
+  border-radius: var(--u-radius);
+}
+
+/* Standardized keyboard-focus ring on every icon button (JC-5). */
+.u-iconbtn:focus-visible {
+  outline: 2px solid var(--u-amber);
+  outline-offset: 2px;
+}

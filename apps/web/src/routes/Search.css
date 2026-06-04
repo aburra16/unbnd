@@ -15,22 +15,14 @@
   margin: var(--u-space-28) 0 var(--u-space-8);
 }
 
+/* Layout/density/state residue only — the secondary skin is owned by the
+ * @unbnd/ui Button primitive (ADR 0045). NORMALIZE (ADR 0045 §2): the
+ * --u-surface-card fill → transparent and the --u-ink-tint-20 border → --u-border
+ * now come from the secondary variant. The 10/22 inset and disabled opacity stay. */
 .search-more-btn {
-  font-size: var(--u-font-size-13);
-  font-weight: var(--u-font-weight-medium);
   padding: var(--u-space-10) var(--u-space-22);
-  border: 1px solid var(--u-ink-tint-20);
-  border-radius: var(--u-radius);
-  background: var(--u-surface-card);
-  color: var(--u-ink);
-  cursor: pointer;
-}
-
-.search-more-btn:hover:not(:disabled) {
-  border-color: var(--u-ink);
 }
 
 .search-more-btn:disabled {
   opacity: 0.6;
-  cursor: default;
 }

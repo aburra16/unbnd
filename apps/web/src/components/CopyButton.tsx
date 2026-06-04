@@ -7,6 +7,7 @@
 // shows a transient "Copy failed" instead. No timestamp is rendered, so the
 // asserted output is the label text alone.
 import { useEffect, useRef, useState } from "react";
+import { Button } from "@unbnd/ui";
 import "./CopyButton.css";
 
 const REVERT_MS = 1500;
@@ -50,16 +51,18 @@ export function CopyButton({
 
   return (
     <span className="copy-btn-wrap">
-      <button
-        type="button"
+      <Button
+        variant="secondary"
+        size="sm"
         className="copy-btn"
+        type="button"
         aria-label="Copy your npub"
         onClick={() => {
           void onCopy();
         }}
       >
         {label}
-      </button>
+      </Button>
       <span className="copy-btn-status" role="status" aria-live="polite">
         {status}
       </span>

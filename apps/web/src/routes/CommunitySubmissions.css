@@ -77,23 +77,15 @@
   color: var(--u-amber);
 }
 
-.cs-promote {
-  font-size: var(--u-font-size-12);
-  font-weight: var(--u-font-weight-medium);
-  color: var(--u-ink);
-  background: transparent;
-  border: 1px solid var(--u-border);
-  border-radius: var(--u-radius);
-  padding: var(--u-space-5) var(--u-space-12);
-  cursor: pointer;
-}
-
+/* State residue only — the secondary skin (transparent fill, ink text,
+ * --u-border, 8px radius, amber-border hover, the focus ring) is owned by the
+ * @unbnd/ui Button primitive (ADR 0045). The sm size already carries the 5/12
+ * inset. Kept here: the hover text→amber (this button's own emphasis) and the
+ * disabled opacity. */
 .cs-promote:hover:not(:disabled) {
-  border-color: var(--u-amber);
   color: var(--u-amber);
 }
 
 .cs-promote:disabled {
   opacity: 0.6;
-  cursor: default;
 }

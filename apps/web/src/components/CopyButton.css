@@ -5,25 +5,14 @@
   align-items: center;
 }
 
+/* Layout/density residue only — the secondary skin (transparent fill, ink text,
+ * 8px radius, amber-border hover, the standardized 2px amber focus ring) is owned
+ * by the @unbnd/ui Button primitive (ADR 0045). NORMALIZE (ADR 0045 §2): the
+ * --u-border-hover resting border now comes from the primitive as --u-border. The
+ * 4/10 inset and the 1.4 line-height stay. */
 .copy-btn {
   padding: var(--u-space-4) var(--u-space-10);
-  font-size: var(--u-font-size-12);
-  font-weight: var(--u-font-weight-medium);
-  border: 1px solid var(--u-border-hover);
-  border-radius: var(--u-radius);
-  background: transparent;
-  color: var(--u-ink);
-  cursor: pointer;
   line-height: var(--u-leading-140);
-}
-
-.copy-btn:hover {
-  border-color: var(--u-amber);
-}
-
-.copy-btn:focus-visible {
-  outline: 2px solid var(--u-amber);
-  outline-offset: 2px;
 }
 
 /* The transient feedback line. Visible inline next to the button and announced

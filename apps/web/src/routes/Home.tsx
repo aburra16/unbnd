@@ -10,6 +10,7 @@ import { CallToAction } from "../components/CallToAction";
 import { api, type ForYou, type HomepageShelves } from "../lib/api";
 import { genreColor, toCardBook } from "../lib/view-model";
 import { useTrustView } from "../hooks/useTrustView";
+import { Button } from "@unbnd/ui";
 import type { Book } from "../components/BookCard";
 
 // The trust shelves, mapped to render-ready rows (Story 35 / ADR 0036 §5). Each
@@ -130,9 +131,15 @@ export function Home() {
                 Build your web of trust and this shelf fills with books the
                 curators you follow rate highly.
               </p>
-              <button type="button" className="foryou-invite-btn" onClick={personalize}>
+              <Button
+                variant="primary"
+                size="md"
+                className="foryou-invite-btn"
+                type="button"
+                onClick={personalize}
+              >
                 Personalize your view
-              </button>
+              </Button>
             </section>
           )}
 

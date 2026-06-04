@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { npubEncode } from "applesauce-core/helpers";
-import { SEMANTIC_COLORS } from "@unbnd/ui";
+import { SEMANTIC_COLORS, Button } from "@unbnd/ui";
 import { AuthShell } from "../components/AuthShell";
 import { SovereigntyNote } from "../components/SovereigntyNote";
 import { api, ApiError } from "../lib/api";
@@ -168,9 +168,11 @@ export function AuthNostrConnect() {
               >
                 Cancel
               </Link>
-              <button
-                type="button"
+              <Button
+                variant="primary"
+                size="md"
                 className="auth-submit"
+                type="button"
                 onClick={onConfirm}
                 disabled={state === "connecting"}
               >
@@ -179,7 +181,7 @@ export function AuthNostrConnect() {
                   : state === "error"
                     ? "Try again"
                     : "Continue with this key"}
-              </button>
+              </Button>
             </div>
           </>
         )}

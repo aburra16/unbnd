@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { Button } from "@unbnd/ui";
 import { AuthShell } from "../components/AuthShell";
 import { SovereigntyNote } from "../components/SovereigntyNote";
 import { api, ApiError } from "../lib/api";
@@ -131,7 +132,13 @@ export function AuthEmailSignup() {
             {error}
           </p>
         )}
-        <button className="auth-submit" type="submit" disabled={submitting}>
+        <Button
+          variant="primary"
+          size="md"
+          className="auth-submit"
+          type="submit"
+          disabled={submitting}
+        >
           {submitting
             ? isCreate
               ? "Creating account…"
@@ -139,7 +146,7 @@ export function AuthEmailSignup() {
             : isCreate
               ? "Create account"
               : "Sign in"}
-        </button>
+        </Button>
       </form>
 
       {isCreate && (

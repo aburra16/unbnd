@@ -12,6 +12,11 @@
   margin-top: var(--u-space-10);
 }
 
+/* Layout/density residue only — the primary / secondary skin (fill, text,
+ * border, radius, hover, the standardized focus ring, and the unfollow danger
+ * state via `selected`) is owned by the @unbnd/ui Button primitive (ADR 0045).
+ * What stays here: the icon+label inline layout, the min-width, the 8/16 inset,
+ * the 92rem semibold density, the 150ms transition, and the disabled opacity. */
 .follow-btn {
   display: inline-flex;
   align-items: center;
@@ -19,13 +24,9 @@
   min-width: 116px;
   justify-content: center;
   padding: var(--u-space-8) var(--u-space-16);
-  border-radius: var(--u-radius);
-  font-family: var(--font-sans);
   font-size: var(--u-font-size-92rem);
   font-weight: var(--u-font-weight-semibold);
   line-height: var(--u-leading-120);
-  cursor: pointer;
-  border: 1px solid transparent;
   transition:
     background-color var(--u-duration-150ms) var(--u-ease-default),
     border-color var(--u-duration-150ms) var(--u-ease-default),
@@ -34,48 +35,25 @@
 
 .follow-btn:disabled {
   opacity: 0.6;
-  cursor: default;
 }
 
-.follow-btn:focus-visible {
-  outline: 2px solid var(--u-amber);
-  outline-offset: 2px;
-}
-
-/* Follow — the affirmative primary action. */
+/* Following — the quiet confirmed look keeps its non-transparent surface fill
+   (a deliberate divergence from the transparent secondary, preserved zero-diff)
+   and the amber check glyph; the ink text + hairline border come from the
+   secondary variant. */
+/* The follow buttons keep a 1px border box on both states (the original
+   follow-follow had a 1px amber border over the amber fill; the secondary
+   variant gives follow-following its 1px border), so the box stays exact. */
 .follow-follow {
-  background: var(--u-amber);
-  color: var(--u-parchment);
-  border-color: var(--u-amber);
+  border: 1px solid transparent;
 }
 
-.follow-follow:hover:not(:disabled) {
-  background: var(--u-amber-hover);
-  border-color: var(--u-amber-hover);
-}
-
-/* Following — a quiet confirmed state: surface fill + a hairline border + the
-   check glyph in amber. */
 .follow-following {
   background: var(--u-surface);
-  color: var(--u-ink);
-  border-color: var(--u-border);
 }
 
 .follow-following .follow-check {
   color: var(--u-amber);
-}
-
-/* Revealed on hover/focus: the consequence (Unfollow) in a negative treatment
-   so it reads clearly before the click. */
-.follow-following.is-unfollow {
-  color: var(--signal-negative);
-  border-color: var(--signal-negative);
-  background: var(--u-surface);
-}
-
-.follow-following.is-unfollow:focus-visible {
-  outline-color: var(--signal-negative);
 }
 
 .follow-label {

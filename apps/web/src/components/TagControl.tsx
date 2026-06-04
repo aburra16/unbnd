@@ -13,6 +13,7 @@ import {
   type TaxonomyElement,
 } from "../lib/api";
 import { useSession } from "../hooks/useSession";
+import { Button } from "@unbnd/ui";
 import { GenrePill } from "./Pill";
 import "./TagControl.css";
 
@@ -203,22 +204,26 @@ export function TagControl({ bookSlug, tags, onChanged }: Props) {
             )}
           </select>
           <div className="tagc-actions">
-            <button
-              type="button"
+            <Button
+              variant="ink"
+              size="md"
               className="tagc-apply"
+              type="button"
               disabled={!selected || status === "submitting"}
               onClick={() => write(1)}
             >
               Apply
-            </button>
-            <button
-              type="button"
+            </Button>
+            <Button
+              variant="secondary"
+              size="md"
               className="tagc-dispute"
+              type="button"
               disabled={!selected || status === "submitting"}
               onClick={() => write(-1)}
             >
               Dispute
-            </button>
+            </Button>
           </div>
           {status === "error" && errorMsg && (
             <p className="tagc-error" role="alert">
