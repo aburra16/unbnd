@@ -4,6 +4,8 @@ The Unbnd design system. The single source of truth for tokens, primitives, the 
 
 UI work in `apps/web` goes through this package. The CI guards in `test/architecture-*.test.ts` make that mandatory, not advisory: a raw color, type, spacing, motion, `<button>`, or `<svg>` literal in app code fails CI.
 
+**Swapping the UI (re-skin, theme, or full overhaul): read [`REDESIGN.md`](./REDESIGN.md).** It is a self-contained, step-by-step guide for a designer, front-end engineer, or AI design agent to build a new look and swap it in without changing behavior.
+
 ## What ships from here
 
 ### Tokens
