@@ -1,0 +1,13 @@
+/* Container — the one shared page frame (ADR 0049 §1, under epic 0001 / ADR
+ * 0038 §5). These three declarations are the former apps/web base.css `.page`
+ * rule, moved here verbatim; the Container component emits `class="page"` so the
+ * rendered markup and resolved styles are byte-identical to the pre-Story-49
+ * page frame. The three tokens ship from packages/ui/styles/tokens.css. This is
+ * the canonical (and, with the bespoke `.rate` frame, one of two allowlisted)
+ * home for the page-frame tokens, locked by the page-frame guard (ADR 0049 §4).
+ */
+.page {
+  max-width: var(--page-max);
+  margin: 0 auto;
+  padding: 0 var(--page-pad-x) var(--u-space-32);
+}

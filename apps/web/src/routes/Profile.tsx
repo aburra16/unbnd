@@ -14,7 +14,7 @@ import {
 } from "../lib/api";
 import { Nav } from "../components/Nav";
 import { Footer } from "../components/Footer";
-import { Avatar } from "@unbnd/ui";
+import { Avatar, Container } from "@unbnd/ui";
 import { BookGrid } from "../components/BookGrid";
 import { ProfileStats } from "../components/ProfileStats";
 import { FollowButton } from "../components/FollowButton";
@@ -98,7 +98,7 @@ export function Profile() {
   const cells = statCells(stats);
 
   return (
-    <div className="page">
+    <Container>
       <Nav />
       <header className="me-head">
         <Avatar label={name} seed={npub ?? ""} picture={meta?.picture} size={72} />
@@ -153,6 +153,6 @@ export function Profile() {
         )}
       </section>
       <Footer />
-    </div>
+    </Container>
   );
 }

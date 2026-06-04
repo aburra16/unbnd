@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
+import { Container } from "@unbnd/ui";
 import { Nav } from "../components/Nav";
 import { Footer } from "../components/Footer";
 import { Breadcrumb } from "../components/Breadcrumb";
@@ -99,25 +100,25 @@ export function BookDetail() {
 
   if (state.status === "loading") {
     return (
-      <div className="page">
+      <Container>
         <Nav />
         <p className="route-status" role="status">
           Loading…
         </p>
         <Footer />
-      </div>
+      </Container>
     );
   }
 
   if (state.status === "error") {
     return (
-      <div className="page">
+      <Container>
         <Nav />
         <p className="route-status" role="alert">
           Could not load this book. Try again.
         </p>
         <Footer />
-      </div>
+      </Container>
     );
   }
 
@@ -147,7 +148,7 @@ export function BookDetail() {
     session.status === "signed-in" && session.user.email === null;
 
   return (
-    <div className="page">
+    <Container>
       <Nav />
       <Breadcrumb
         trail={[
@@ -204,6 +205,6 @@ export function BookDetail() {
         />
       )}
       <Footer />
-    </div>
+    </Container>
   );
 }

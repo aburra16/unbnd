@@ -12,7 +12,7 @@ import { api, ApiError, type SignedEvent } from "../lib/api";
 import { Nav } from "../components/Nav";
 import { Footer } from "../components/Footer";
 import { CopyButton } from "../components/CopyButton";
-import { Button, Field, Label } from "@unbnd/ui";
+import { Button, Container, Field, Label } from "@unbnd/ui";
 import { shortNpub } from "../lib/view-model";
 import { useSession } from "../hooks/useSession";
 import {
@@ -62,13 +62,13 @@ export function Settings() {
 
   if (session.status === "loading") {
     return (
-      <div className="page">
+      <Container>
         <Nav />
         <p className="route-status" role="status">
           Loading…
         </p>
         <Footer />
-      </div>
+      </Container>
     );
   }
   if (session.status === "signed-out") {
@@ -147,7 +147,7 @@ export function Settings() {
   }
 
   return (
-    <div className="page">
+    <Container>
       <Nav />
       <header className="set-head">
         <h1 className="set-title">Settings</h1>
@@ -302,6 +302,6 @@ export function Settings() {
         </Field>
       </section>
       <Footer />
-    </div>
+    </Container>
   );
 }

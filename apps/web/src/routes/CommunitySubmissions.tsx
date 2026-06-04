@@ -9,7 +9,7 @@ import { Nav } from "../components/Nav";
 import { Footer } from "../components/Footer";
 import { Breadcrumb } from "../components/Breadcrumb";
 import { useSession } from "../hooks/useSession";
-import { Button } from "@unbnd/ui";
+import { Button, Container } from "@unbnd/ui";
 import { api, type SubmittedBook } from "../lib/api";
 import "./CommunitySubmissions.css";
 
@@ -107,7 +107,7 @@ export function CommunitySubmissions() {
   };
 
   return (
-    <div className="page">
+    <Container>
       <Nav />
       <Breadcrumb trail={[{ label: "Home", to: "/" }, { label: "Community submissions" }]} />
       <header className="cs-head">
@@ -152,6 +152,6 @@ export function CommunitySubmissions() {
         )
       )}
       <Footer />
-    </div>
+    </Container>
   );
 }

@@ -43,3 +43,11 @@ export type { AvatarProps } from "./components/Avatar";
 // skins are accidentally inconsistent and stay bespoke (Input escalated).
 export { Field, Label } from "./components/Field";
 export type { FieldProps, LabelProps } from "./components/Field";
+// Container layout primitive (Story 49 / ADR 0049, under epic 0001 / ADR 0038
+// §5). The one clean zero-diff page-frame primitive: emits the literal `.page`
+// class (its three declarations relocated into the co-located Container.css from
+// apps/web base.css), so the 16 former `<div className="page">` sites render
+// byte-identical. Stack / Grid / the bespoke `.rate` frame / the auth shell are
+// left bespoke (deferred / different frames).
+export { Container } from "./components/Container";
+export type { ContainerProps } from "./components/Container";

@@ -4,7 +4,7 @@ import { Nav } from "../components/Nav";
 import { Footer } from "../components/Footer";
 import { SearchBox } from "../components/SearchBox";
 import { BookGrid } from "../components/BookGrid";
-import { Button } from "@unbnd/ui";
+import { Button, Container } from "@unbnd/ui";
 import { api, type SearchHit } from "../lib/api";
 import { coverGradient } from "../lib/view-model";
 import type { Book } from "../components/BookCard";
@@ -70,7 +70,7 @@ export function Search() {
   }
 
   return (
-    <div className="page">
+    <Container>
       <Nav />
       <div className="search-head">
         <SearchBox />
@@ -110,6 +110,6 @@ export function Search() {
         </>
       )}
       <Footer />
-    </div>
+    </Container>
   );
 }

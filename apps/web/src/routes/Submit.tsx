@@ -6,7 +6,7 @@ import { DuplicateCheck } from "../components/DuplicateCheck";
 import { GenrePillSelector } from "../components/GenrePillSelector";
 import { ToggleSwitch } from "../components/ToggleSwitch";
 import { useSession } from "../hooks/useSession";
-import { Button, Field, Label, Link } from "@unbnd/ui";
+import { Button, Container, Field, Label, Link } from "@unbnd/ui";
 import { api, ApiError, type SignedEvent, type SubmissionInput } from "../lib/api";
 import "./Submit.css";
 
@@ -130,7 +130,7 @@ export function Submit() {
   }
 
   return (
-    <div className="page">
+    <Container>
       <Nav />
       <header className="sub-head">
         <h1 className="sub-title">Submit a book to Unbnd</h1>
@@ -315,6 +315,6 @@ export function Submit() {
       )}
 
       <Footer />
-    </div>
+    </Container>
   );
 }

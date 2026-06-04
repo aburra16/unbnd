@@ -56,12 +56,6 @@ img {
   background: var(--u-amber-tint-20);
 }
 
-.page {
-  max-width: var(--page-max);
-  margin: 0 auto;
-  padding: 0 var(--page-pad-x) var(--u-space-32);
-}
-
 .route-status {
   padding: var(--u-space-48) 0;
   text-align: center;

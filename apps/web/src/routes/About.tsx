@@ -1,3 +1,4 @@
+import { Container } from "@unbnd/ui";
 import { Nav } from "../components/Nav";
 import { Footer } from "../components/Footer";
 import { Breadcrumb } from "../components/Breadcrumb";
@@ -5,7 +6,7 @@ import "./About.css";
 
 export function About() {
   return (
-    <div className="page">
+    <Container>
       <Nav />
       <Breadcrumb trail={[{ label: "Home", to: "/" }, { label: "About" }]} />
       <article className="about">
@@ -29,6 +30,6 @@ export function About() {
         </p>
       </article>
       <Footer />
-    </div>
+    </Container>
   );
 }
