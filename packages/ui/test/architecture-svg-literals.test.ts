@@ -15,7 +15,7 @@
 // all, exactly as the button guard does not scan packages/ui/src/components.
 // The guard's job is "no raw <svg> in APP code"; the registry is package code.
 // SKIP_DIRS matches the prior guards (node_modules / dist / .git /
-// engineering-team / e2e / data / test).
+// engineering-team / e2e / test).
 //
 // NO DEFERRED SET. Unlike the button guard (which carries a class-name countdown
 // for Link / Pill / listbox sites that land later), EVERY one of the five raw
@@ -72,10 +72,9 @@ const SKIP_DIRS = new Set([
   "dist",
   ".git",
   "engineering-team",
-  // Visual-harness fixtures and dead fixture data (not in the render path),
-  // consistent with the color/type/spacing/shape/button guards.
+  // Visual-harness fixtures, consistent with the color/type/spacing/shape/button
+  // guards.
   "e2e",
-  "data",
   // Test dirs hold guards (which name literals as expectations), never app JSX.
   "test",
 ]);

@@ -38,7 +38,7 @@
 //
 // Allowlist (ADR 0043 §5 — the typed source IS the canonical set):
 //   - packages/ui/src/breakpoints.ts   (its literals ARE the canonical values)
-// Scope-excludes (handled by SKIP_DIRS): e2e, data, packages/ui/test.
+// Scope-excludes (handled by SKIP_DIRS): e2e, packages/ui/test.
 import { describe, expect, it } from "vitest";
 import { readdirSync, readFileSync, statSync } from "node:fs";
 import { join, resolve, relative } from "node:path";
@@ -57,7 +57,6 @@ const SKIP_DIRS = new Set([
   ".git",
   "engineering-team",
   "e2e",
-  "data",
   "test",
 ]);
 

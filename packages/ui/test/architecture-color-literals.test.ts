@@ -14,7 +14,6 @@
 //   - packages/ui/src/palette.ts      (GENRE_PALETTE, the genre/cover source)
 //   - packages/ui/src/colors.ts       (SEMANTIC_COLORS, runtime-injected props)
 // Scope-excludes (handled by scope, not allowlist):
-//   - apps/web/src/data   (dead fixture data, imported only by apps/web/test)
 //   - apps/web/e2e        (visual-harness fixtures)
 //
 // `transparent` and `currentColor` are CSS keywords / inherited values, NOT
@@ -49,10 +48,8 @@ const SKIP_DIRS = new Set([
   "dist",
   ".git",
   "engineering-team",
-  // Visual-harness fixtures (ADR 0040 §5) and dead fixture data (ADR 0040 §5,
-  // not in the render path) are scope-excluded.
+  // Visual-harness fixtures (ADR 0040 §5) are scope-excluded.
   "e2e",
-  "data",
   // @unbnd/ui's own test dir holds these guards (which name literals as test
   // expectations) and tokens.test.ts; it is not app source.
   "test",

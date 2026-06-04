@@ -54,7 +54,6 @@
 //   - packages/ui/styles/tokens.css   (the Tier-1 raw radius/elevation/z literals
 //                                       live here)
 // Scope-excludes (handled by SKIP_DIRS, not the allowlist):
-//   - apps/web/src/data   (dead fixture data, not in the render path)
 //   - apps/web/e2e        (visual-harness fixtures)
 //   - packages/ui/test    (these guards, which name literals as expectations)
 //
@@ -85,10 +84,9 @@ const SKIP_DIRS = new Set([
   "dist",
   ".git",
   "engineering-team",
-  // Visual-harness fixtures and dead fixture data (not in the render path) are
-  // scope-excluded, consistent with the color/type/spacing guards.
+  // Visual-harness fixtures are scope-excluded, consistent with the
+  // color/type/spacing guards.
   "e2e",
-  "data",
   // @unbnd/ui's own test dir holds these guards (which name literals as test
   // expectations) and tokens.test.ts; it is not app source.
   "test",

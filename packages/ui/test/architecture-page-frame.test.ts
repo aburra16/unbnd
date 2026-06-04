@@ -28,7 +28,6 @@
 // Scope-excludes (handled by SKIP_DIRS, not the allowlist):
 //   - dist                this guard scans source, not build artifacts (the
 //                         bundled dist CSS re-emits the frame; not source).
-//   - apps/web/src/data   dead fixture data, not in the render path.
 //   - apps/web/e2e        visual-harness fixtures.
 //   - packages/ui/test    these guards (which name the tokens as expectations,
 //                         e.g. this file) are not app source — so the guard does
@@ -67,10 +66,9 @@ const SKIP_DIRS = new Set([
   "dist",
   ".git",
   "engineering-team",
-  // Visual-harness fixtures and dead fixture data (not in the render path) are
-  // scope-excluded, consistent with the spacing/color/type guards.
+  // Visual-harness fixtures are scope-excluded, consistent with the
+  // spacing/color/type guards.
   "e2e",
-  "data",
   // @unbnd/ui's own test dir holds these guards (which name the page-frame
   // tokens as test expectations — including this file); it is not app source.
   "test",

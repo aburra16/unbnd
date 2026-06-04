@@ -12,7 +12,7 @@
 // packages/ui/src/components — is NOT scanned (it is the one legitimate place a
 // raw <button> lives), so it never needs an allowlist entry here. SKIP_DIRS
 // matches the prior guards (node_modules / dist / .git / engineering-team / e2e
-// / data / test).
+// / test).
 //
 // DETECTION (comment-aware, ADR 0045 §6 "Detection"):
 //
@@ -87,10 +87,9 @@ const SKIP_DIRS = new Set([
   "dist",
   ".git",
   "engineering-team",
-  // Visual-harness fixtures and dead fixture data (not in the render path),
-  // consistent with the color/type/spacing/shape guards.
+  // Visual-harness fixtures, consistent with the color/type/spacing/shape
+  // guards.
   "e2e",
-  "data",
   // Test dirs hold guards (which name literals as expectations), never app JSX.
   "test",
 ]);
