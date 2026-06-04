@@ -103,12 +103,21 @@ services:
     environment:
       - DCOSL_RELAY_URL=${DCOSL_RELAY_URL:-wss://dcosl.brainstorm.world/}
       - LIBRARIAN_NSEC=${LIBRARIAN_NSEC}
-      - PER_SUBJECT=${PER_SUBJECT:-300}
+      # Catalog expansion (ADR 0054): the search API pages to a POST-GATE keep
+      # target per genre (~1,250 x 8 ~ 10K), bounded by MAX_PAGES so a low
+      # pass-rate genre cannot page forever. PER_SUBJECT (the old raw-count knob)
+      # is replaced. EDITION_MIN is the gate's edition floor (source of truth in
+      # apps/seeder/src/gate.ts); set here for visibility and validated on boot.
+      - PER_SUBJECT_TARGET=${PER_SUBJECT_TARGET:-1250}
+      - MAX_PAGES=${MAX_PAGES:-60}
+      - EDITION_MIN=${EDITION_MIN:-3}
       - RATE_MS=${RATE_MS:-250}
       - CHECKPOINT_PATH=/data/seed-checkpoint
-      # Bump for the blurb backfill (ADR 0051): CHECKPOINT_EPOCH=2 re-publishes
-      # each record once in place; a second run re-publishes nothing.
-      - CHECKPOINT_EPOCH=${CHECKPOINT_EPOCH:-1}
+      # Epochs: 1=seed, 2=blurb (ADR 0051), 3=cap-2000 (ADR 0052), 4=catalog
+      # expansion + enrichment (ADR 0054). CHECKPOINT_EPOCH=4 re-publishes each
+      # keeper once in place with the new isbn/lang/pages fields; a second run
+      # re-publishes nothing.
+      - CHECKPOINT_EPOCH=${CHECKPOINT_EPOCH:-4}
       # Raw OL description cache on the seeder-data volume so a re-run does not
       # re-hit Open Library (survives an epoch bump).
       - DESC_CACHE_PATH=/data/desc-cache

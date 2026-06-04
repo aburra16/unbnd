@@ -1,5 +1,7 @@
-// Open Library subjects-API work -> @unbnd/schemas BookRecord. ADR 0008.
+// Open Library work -> @unbnd/schemas BookRecord. ADR 0008 (subjects API) +
+// ADR 0054 (search API with inline enrichment signals).
 import type { BookRecord, DListAddress } from "@unbnd/schemas";
+import type { OLSearchDoc } from "./gate";
 
 /** The subset of an Open Library subjects-API work entry we consume. */
 export type OLWork = {
@@ -51,6 +53,66 @@ export function mapWorkToBookRecord(
     ...(work.subject && work.subject.length
       ? { subjects: [...work.subject] }
       : {}),
+    format: "reference",
+    source: "openlibrary",
+    parentHeader,
+  };
+  return record;
+}
+
+const ISBN13_RE = /^(?:978|979)\d{10}$/;
+const ISBN10_RE = /^\d{9}[\dXx]$/;
+
+/** First valid 13-digit ISBN (978/979 prefix) in the array, or undefined. */
+function selectIsbn13(isbn?: readonly string[]): string | undefined {
+  return isbn?.find((v) => ISBN13_RE.test(v));
+}
+
+/** First valid 10-char ISBN (last may be X), uppercased, or undefined. */
+function selectIsbn10(isbn?: readonly string[]): string | undefined {
+  const hit = isbn?.find((v) => ISBN10_RE.test(v));
+  return hit?.toUpperCase();
+}
+
+/**
+ * Map an Open Library *search* doc to a BookRecord, or null if it lacks a
+ * title/first-author. In addition to the base fields (title, author, cover,
+ * openLibraryId, publishYear, subjects) this populates the enrichment fields
+ * the search API supplies inline: `isbn13` (first 978/979 13-digit entry),
+ * `isbn10` (first 10-char entry, uppercased), `pageCount`
+ * (`number_of_pages_median`), and `language` normalized to the `eng` scalar
+ * (the gate guarantees `eng` is present). The slug stays deterministic from the
+ * work key so a re-seed replaces the record in place. Pure / synchronous.
+ */
+export function mapSearchDocToBookRecord(
+  doc: OLSearchDoc,
+  parentHeader: DListAddress<39998>,
+): BookRecord | null {
+  const title = doc.title?.trim();
+  const authorName = doc.author_name?.[0]?.trim();
+  if (!title || !authorName || !doc.key) return null;
+
+  const isbn13 = selectIsbn13(doc.isbn);
+  const isbn10 = selectIsbn10(doc.isbn);
+
+  const record: BookRecord = {
+    slug: deriveSlug(doc.key),
+    title,
+    authorName,
+    openLibraryId: workId(doc.key),
+    ...(typeof doc.cover_i === "number"
+      ? { coverUrl: `https://covers.openlibrary.org/b/id/${doc.cover_i}-L.jpg` }
+      : {}),
+    ...(typeof doc.first_publish_year === "number"
+      ? { publishYear: doc.first_publish_year }
+      : {}),
+    ...(doc.subject && doc.subject.length ? { subjects: [...doc.subject] } : {}),
+    ...(isbn13 ? { isbn13 } : {}),
+    ...(isbn10 ? { isbn10 } : {}),
+    ...(typeof doc.number_of_pages_median === "number"
+      ? { pageCount: doc.number_of_pages_median }
+      : {}),
+    language: "eng",
     format: "reference",
     source: "openlibrary",
     parentHeader,

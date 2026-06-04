@@ -124,8 +124,8 @@ The catalog is seeded from Open Library into DLists on **dcosl**; the local
 strfry then syncs them down. The seeder is a `profiles: [seed]` service, so it
 never runs with the normal stack.
 
-1. Set `LIBRARIAN_NSEC` (and optionally `DCOSL_RELAY_URL`, `PER_SUBJECT`) in
-   `/opt/unbnd/.env`.
+1. Set `LIBRARIAN_NSEC` (and optionally `DCOSL_RELAY_URL`, `PER_SUBJECT_TARGET`,
+   `MAX_PAGES`, `EDITION_MIN`, `CHECKPOINT_EPOCH`) in `/opt/unbnd/.env`.
 2. Run the seeder on the droplet (detached — survives your machine being off):
    ```sh
    cd /opt/unbnd

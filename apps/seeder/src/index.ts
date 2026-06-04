@@ -17,8 +17,10 @@ import {
   type DListAddress,
   type SignedNostrEvent,
 } from "@unbnd/schemas";
-import { fetchSubjectWorks, SEEDER_USER_AGENT } from "./fetch";
-import { deriveSlug, mapWorkToBookRecord, type OLWork } from "./openlibrary";
+import { fetchSubjectSearch, SEEDER_USER_AGENT } from "./search";
+import { deriveSlug, mapSearchDocToBookRecord } from "./openlibrary";
+import { EDITION_MIN, type OLSearchDoc } from "./gate";
+import { dedupBooks, type CollectedBook } from "./dedup";
 import { buildConceptHeaderTemplate } from "./headers";
 import { STARTER_TAXONOMY } from "./taxonomy";
 import { loadCheckpoint } from "./checkpoint";
@@ -56,11 +58,23 @@ type Template = { kind: number; created_at: number; tags: string[][]; content: s
 async function main() {
   const relayUrl = env("DCOSL_RELAY_URL", "wss://dcosl.brainstorm.world/");
   const nsec = env("LIBRARIAN_NSEC");
-  const perSubject = Number(env("PER_SUBJECT", "300"));
+  const perSubjectTarget = Number(env("PER_SUBJECT_TARGET", "1250"));
+  const maxPages = Number(env("MAX_PAGES", "60"));
+  // The edition floor lives in gate.ts as the single source of truth (ADR §2).
+  // The env exists so the floor is visible/auditable in the deployment config;
+  // a mismatch is a config error, surfaced loudly rather than silently ignored.
+  const editionMin = Number(env("EDITION_MIN", String(EDITION_MIN)));
+  if (editionMin !== EDITION_MIN) {
+    throw new Error(
+      `seeder: EDITION_MIN env (${editionMin}) does not match the gate floor (${EDITION_MIN}); ` +
+        `change EDITION_MIN in apps/seeder/src/gate.ts to retune the gate`,
+    );
+  }
   const rateMs = Number(env("RATE_MS", "250"));
   const checkpointPath = env("CHECKPOINT_PATH", "/data/seed-checkpoint");
-  const checkpointEpoch = Number(env("CHECKPOINT_EPOCH", "1"));
+  const checkpointEpoch = Number(env("CHECKPOINT_EPOCH", "4"));
   const descCachePath = env("DESC_CACHE_PATH", "/data/desc-cache");
+  const currentYear = new Date().getUTCFullYear();
 
   const decoded = decode(nsec);
   if (decoded.type !== "nsec") throw new Error("LIBRARIAN_NSEC is not an nsec");
@@ -75,7 +89,8 @@ async function main() {
   const relay = await connectRelay(relayUrl);
   console.log(
     `[seeder] librarian=${librarian.slice(0, 12)} relay=${relayUrl} ` +
-      `per-subject=${perSubject} epoch=${checkpointEpoch} already-done=${checkpoint.size()}`,
+      `per-subject-target=${perSubjectTarget} max-pages=${maxPages} ` +
+      `edition-min=${editionMin} epoch=${checkpointEpoch} already-done=${checkpoint.size()}`,
   );
 
   const publish = async (template: Template, label: string): Promise<boolean> => {
@@ -108,28 +123,38 @@ async function main() {
     await sleep(rateMs);
   }
 
-  // 3. Collect books with the genre bucket(s) they appear under (one record
-  //    per book; a genre assertion per bucket).
-  const books = new Map<string, { work: OLWork; genres: Set<string> }>();
+  // 3. Collect books via the search API (gate applied inside the pager), with
+  //    the genre bucket(s) each appears under. Dedup composes slug-first then an
+  //    ISBN-13 collapse; the first-seen search doc per slug carries the fields
+  //    we map. One record per book; a genre assertion per bucket.
+  const collected: CollectedBook[] = [];
+  const docBySlug = new Map<string, OLSearchDoc>();
   for (const s of SUBJECTS) {
-    const works = await fetchSubjectWorks(s.ol, perSubject);
-    console.log(`[seeder] subject ${s.ol}: ${works.length} works`);
-    for (const work of works) {
-      const slug = deriveSlug(work.key);
-      const entry = books.get(slug) ?? { work, genres: new Set<string>() };
-      entry.genres.add(s.slug);
-      books.set(slug, entry);
+    const docs = await fetchSubjectSearch(s.ol, perSubjectTarget, {
+      maxPages,
+      currentYear,
+      userAgent: SEEDER_USER_AGENT,
+    });
+    console.log(`[seeder] subject ${s.ol}: ${docs.length} gated docs`);
+    for (const doc of docs) {
+      if (!doc.key) continue;
+      const slug = deriveSlug(doc.key);
+      if (!docBySlug.has(slug)) docBySlug.set(slug, doc);
+      const isbn13 = mapSearchDocToBookRecord(doc, booksHeader)?.isbn13;
+      collected.push({ slug, ...(isbn13 ? { isbn13 } : {}), genre: s.slug });
     }
   }
-  console.log(`[seeder] ${books.size} unique books collected`);
+  const books = dedupBooks(collected);
+  console.log(`[seeder] ${books.length} unique books collected`);
 
   // 4. Publish each book record + its baseline genre assertions.
   let records = 0;
   let assertions = 0;
   let skipped = 0;
   let failed = 0;
-  for (const [slug, { work, genres }] of books) {
-    let record = mapWorkToBookRecord(work, booksHeader);
+  for (const { slug, genres } of books) {
+    const doc = docBySlug.get(slug);
+    let record = doc ? mapSearchDocToBookRecord(doc, booksHeader) : null;
     if (!record) {
       skipped++;
       continue;
