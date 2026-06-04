@@ -1,6 +1,6 @@
 # Story 52: Populate book blurbs from Open Library
 
-**Status:** Draft
+**Status:** Done
 **Created:** 2026-06-04
 **Type:** Feature
 
@@ -67,6 +67,6 @@ This improves catalog *quality* (substance per book) rather than catalog *size*,
 
 ## Linked artifacts
 
-- ADR: (filled in after Architecture phase)
-- Test plan: (filled in after Test Design phase)
-- Review: (filled in after Review phase)
+- ADR: `engineering-team/decisions/0051-book-blurbs-openlibrary.md`
+- Test plan: `engineering-team/stories/done/52-book-blurbs-openlibrary.test-plan.md`
+- Review: `engineering-team/reviews/52-book-blurbs-openlibrary.md` (PASS)

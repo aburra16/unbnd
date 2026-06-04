@@ -2,7 +2,7 @@
 
 **Status:** Accepted
 **Date:** 2026-06-04
-**Story:** `engineering-team/stories/52-book-blurbs-openlibrary.md`
+**Story:** `engineering-team/stories/done/52-book-blurbs-openlibrary.md`
 
 **Accepted 2026-06-04.** Backend/data only (schema + detail-page display + effective-book overlay + indexer blurb-mapping already exist). Seeder adds a pure/network-split per-work OL description fetch (`description.ts`, work-level, raw-description disk cache so re-runs don't re-hit OL), a pure `sanitizeDescription` + `capBlurb` (cap = **700**, sentence-then-word-boundary truncation, single `…`), sets the optional `blurb`. **Backfill = epoch-namespaced checkpoint (`CHECKPOINT_EPOCH` bump) + per-record content fingerprint** so a re-seed re-publishes every record once (same d-tag replace), a second run re-publishes nothing, and future imports re-publish only changed records. Fail-open fetch (8s timeout; publish without blurb on error; network errors not cached, genuine no-description cached as null). Re-index = the existing `--profile index` run (no code change). No e2e baseline change (fixture already covers `.bh-blurb`). Gate open-Qs resolved as Implementer latitude within the decision: epoch as in-file key prefix (recommended), conservative trailing-attribution stripping, cap 700.
 

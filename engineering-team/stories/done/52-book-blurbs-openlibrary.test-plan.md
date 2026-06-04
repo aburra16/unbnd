@@ -1,6 +1,6 @@
 # Test Plan: Story 52 — Populate book blurbs from Open Library
 
-**Story:** `engineering-team/stories/52-book-blurbs-openlibrary.md`
+**Story:** `engineering-team/stories/done/52-book-blurbs-openlibrary.md`
 **ADR:** `engineering-team/decisions/0051-book-blurbs-openlibrary.md`
 **Date:** 2026-06-04
 
