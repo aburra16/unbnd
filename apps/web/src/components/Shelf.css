@@ -65,18 +65,12 @@
   max-width: 52ch;
 }
 
+/* Layout/density residue only — the primary skin is owned by the @unbnd/ui
+ * Button primitive (ADR 0045). NORMALIZE (ADR 0045 §2): the off-color --u-ink
+ * text now comes from the primitive as --u-parchment. The 8/16 inset and the
+ * semibold weight stay. */
 .foryou-invite-btn {
   font-size: var(--u-font-size-13);
   font-weight: var(--u-font-weight-semibold);
   padding: var(--u-space-8) var(--u-space-16);
-  border-radius: var(--u-radius);
-  border: none;
-  background: var(--u-amber);
-  color: var(--u-ink);
-  cursor: pointer;
-  transition: background var(--u-duration-120ms) var(--u-ease-default);
-}
-
-.foryou-invite-btn:hover {
-  background: var(--u-amber-hover);
 }

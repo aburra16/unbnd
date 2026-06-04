@@ -40,26 +40,19 @@
   gap: var(--u-space-10);
 }
 
+/* Density/state residue only — the secondary skin is owned by the @unbnd/ui
+ * Button primitive (ADR 0045). NORMALIZE (ADR 0045 §2): the --u-muted text →
+ * --u-ink (JC-2) and the --u-border-hover border → --u-border now come from the
+ * secondary variant. The 11px font and the disabled opacity stay. */
 .pov-btn {
   font-size: var(--u-font-size-11);
-  padding: var(--u-space-5) var(--u-space-12);
-  border-radius: var(--u-radius);
-  border: 1px solid var(--u-border-hover);
-  background: transparent;
-  color: var(--u-muted);
   transition:
     color var(--u-duration-120ms) var(--u-ease-default),
     border-color var(--u-duration-120ms) var(--u-ease-default);
 }
 
-.pov-btn:hover:not(:disabled) {
-  color: var(--u-ink);
-  border-color: var(--u-ink);
-}
-
 .pov-btn:disabled {
   opacity: 0.4;
-  cursor: not-allowed;
 }
 
 .pov-progress {
@@ -108,15 +101,15 @@
   background: var(--u-ink-tint-06);
 }
 
+/* Density residue only — the ghost skin and the unified selected toggle look
+ * (surface-card fill + --u-elevation-1b + --u-radius-6) are owned by the @unbnd/ui
+ * Button primitive (ADR 0045). NORMALIZE (ADR 0045 §2, JC-4): the resting muted
+ * text and the selected --u-elevation-1c/--u-radius-7 unify onto the primitive's
+ * one selected look (--u-elevation-1b + --u-radius-6). The 5/14 inset and the
+ * background-color transition stay. */
 .pov-sw {
-  font-size: var(--u-font-size-12);
-  font-weight: var(--u-font-weight-medium);
   padding: var(--u-space-5) var(--u-space-14);
-  background: transparent;
-  border: none;
-  border-radius: var(--u-radius-7);
   color: var(--u-muted);
-  cursor: pointer;
   transition:
     color var(--u-duration-120ms) var(--u-ease-default),
     background var(--u-duration-120ms) var(--u-ease-default);
@@ -124,13 +117,6 @@
 
 .pov-sw:hover {
   color: var(--u-ink);
-}
-
-.pov-sw-active,
-.pov-sw-active:hover {
-  background: var(--u-surface-card);
-  color: var(--u-ink);
-  box-shadow: var(--u-elevation-1c);
 }
 
 .pov-hint {

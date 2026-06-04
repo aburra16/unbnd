@@ -9,6 +9,7 @@
 // template→NIP-07 sign→submit; custodial: submitCustodial — with no new crypto,
 // showing idle / saving / saved / error IN PLACE.
 import { useState } from "react";
+import { Button } from "@unbnd/ui";
 import { api, ApiError, type PublicBook, type SignedEvent } from "../lib/api";
 import "./AuthorEdit.css";
 
@@ -129,14 +130,16 @@ export function AuthorEdit({
         </p>
       )}
       <div className="author-edit-actions">
-        <button
-          type="button"
+        <Button
+          variant="ink"
+          size="md"
           className="author-edit-save"
+          type="button"
           disabled={status === "saving"}
           onClick={onSave}
         >
           {status === "saving" ? "Saving…" : "Save"}
-        </button>
+        </Button>
         {status === "saved" && (
           <span className="author-edit-ok" role="status">
             Saved

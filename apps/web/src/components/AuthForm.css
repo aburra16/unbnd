@@ -47,6 +47,10 @@
   line-height: var(--u-leading-150);
 }
 
+/* Primary-CTA skin for the one remaining consumer: the link-styled control on
+ * the welcome screen (AuthWelcome's "Find curators to follow" <Link>). The
+ * migrated auth <button>s now use the @unbnd/ui Button primitive (ADR 0045);
+ * this rule stays until that Link moves to the Link primitive (story 10). */
 .auth-submit {
   padding: var(--u-space-12) var(--u-space-16);
   font-size: var(--u-font-size-14);

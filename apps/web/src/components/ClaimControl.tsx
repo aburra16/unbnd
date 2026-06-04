@@ -12,6 +12,7 @@ import {
   type SignedEvent,
 } from "../lib/api";
 import { useSession } from "../hooks/useSession";
+import { Button } from "@unbnd/ui";
 import "./ClaimControl.css";
 
 type Nip07 = {
@@ -85,14 +86,16 @@ export function ClaimControl({
         </p>
       ) : (
         <>
-          <button
-            type="button"
+          <Button
+            variant="secondary"
+            size="md"
             className="claim-btn"
+            type="button"
             disabled={status === "submitting"}
             onClick={onClaim}
           >
             {status === "submitting" ? "Claiming…" : "Claim this book"}
-          </button>
+          </Button>
           {status === "error" && errorMsg && (
             <p className="claim-error" role="alert">
               {errorMsg}

@@ -111,24 +111,10 @@
   color: var(--signal-positive);
 }
 
-.dc-proceed {
-  font-size: var(--u-font-size-13);
-  font-weight: var(--u-font-weight-medium);
-  padding: var(--u-space-9) var(--u-space-18);
-  border-radius: var(--u-radius);
-  border: 1px solid transparent;
-  background: var(--u-ink);
-  color: var(--u-surface-card);
-  cursor: pointer;
-}
-
-.dc-proceed-quiet {
-  background: transparent;
-  border-color: var(--u-ink-tint-20);
-  color: var(--u-ink);
-  font-weight: var(--u-font-weight-regular);
-}
-
-.dc-proceed:hover {
-  opacity: 0.92;
-}
+/* The proceed buttons now go through the @unbnd/ui Button primitive (ADR 0045):
+ * .dc-proceed is variant="ink" md (its 9/18 inset, ink fill, surface-card text,
+ * 8px radius, and opacity-.92 hover are the ink variant's defaults — ZERO-DIFF,
+ * no residue needed). .dc-proceed-quiet is variant="secondary" md — NORMALIZE
+ * (ADR 0045 §2): weight regular → medium and --u-ink-tint-20 border → --u-border
+ * come from the secondary variant; no residue needed. Both class hooks are kept
+ * as no-op anchors for clarity; they carry no skin. */

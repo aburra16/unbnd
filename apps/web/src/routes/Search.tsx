@@ -4,6 +4,7 @@ import { Nav } from "../components/Nav";
 import { Footer } from "../components/Footer";
 import { SearchBox } from "../components/SearchBox";
 import { BookGrid } from "../components/BookGrid";
+import { Button } from "@unbnd/ui";
 import { api, type SearchHit } from "../lib/api";
 import { coverGradient } from "../lib/view-model";
 import type { Book } from "../components/BookCard";
@@ -94,9 +95,16 @@ export function Search() {
           {state.hits.length > 0 && <BookGrid books={state.hits} />}
           {state.hits.length < state.total && (
             <div className="search-more">
-              <button type="button" className="search-more-btn" onClick={loadMore} disabled={loadingMore}>
+              <Button
+                variant="secondary"
+                size="md"
+                className="search-more-btn"
+                type="button"
+                onClick={loadMore}
+                disabled={loadingMore}
+              >
                 {loadingMore ? "Loading…" : "Load more"}
-              </button>
+              </Button>
             </div>
           )}
         </>

@@ -12,6 +12,7 @@ import { api, ApiError, type SignedEvent } from "../lib/api";
 import { Nav } from "../components/Nav";
 import { Footer } from "../components/Footer";
 import { CopyButton } from "../components/CopyButton";
+import { Button } from "@unbnd/ui";
 import { shortNpub } from "../lib/view-model";
 import { useSession } from "../hooks/useSession";
 import {
@@ -198,17 +199,21 @@ export function Settings() {
         )}
 
         <div className="set-actions">
-          <button
-            type="submit"
+          <Button
+            variant="primary"
+            size="md"
             className="set-save"
+            type="submit"
             aria-label="Save Substack link"
             disabled={status === "saving"}
           >
             Save
-          </button>
-          <button
-            type="button"
+          </Button>
+          <Button
+            variant="secondary"
+            size="md"
             className="set-clear"
+            type="button"
             disabled={status === "saving"}
             onClick={() => {
               setValue("");
@@ -216,7 +221,7 @@ export function Settings() {
             }}
           >
             Clear
-          </button>
+          </Button>
         </div>
       </form>
 
@@ -264,14 +269,16 @@ export function Settings() {
           )}
 
           <div className="set-actions">
-            <button
-              type="submit"
+            <Button
+              variant="primary"
+              size="md"
               className="set-save"
+              type="submit"
               aria-label="Save display name"
               disabled={nameStatus === "saving"}
             >
               Save
-            </button>
+            </Button>
           </div>
         </form>
       )}

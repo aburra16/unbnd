@@ -26,19 +26,17 @@
   gap: var(--u-space-6);
 }
 
+/* Density/state residue only — the secondary skin is owned by the @unbnd/ui
+ * Button primitive (ADR 0045). NORMALIZE (ADR 0045 §2): --u-muted text → --u-ink
+ * (JC-2); --u-radius-6 → --u-radius (JC-3); --u-ink-tint-20 border → --u-border.
+ * The 2/8 inset and the disabled opacity stay. */
 .shelfc-remove {
   font-size: var(--u-font-size-12);
-  color: var(--u-muted);
-  background: transparent;
-  border: 1px solid var(--u-ink-tint-20);
-  border-radius: var(--u-radius-6);
   padding: var(--u-space-2) var(--u-space-8);
-  cursor: pointer;
 }
 
 .shelfc-remove:disabled {
   opacity: 0.5;
-  cursor: not-allowed;
 }
 
 .shelfc-gate {
@@ -84,20 +82,15 @@
   gap: var(--u-space-8);
 }
 
+/* Density/state residue only — the ink skin is owned by the @unbnd/ui Button
+ * primitive (ADR 0045). NORMALIZE (ADR 0045 §2, JC-3): --u-radius-6 → --u-radius
+ * (8px). The 8/16 inset and the disabled opacity stay. */
 .shelfc-add {
-  font-size: var(--u-font-size-13);
-  font-weight: var(--u-font-weight-medium);
   padding: var(--u-space-8) var(--u-space-16);
-  border-radius: var(--u-radius-6);
-  cursor: pointer;
-  border: 1px solid transparent;
-  background: var(--u-ink);
-  color: var(--u-surface-card);
 }
 
 .shelfc-add:disabled {
   opacity: 0.5;
-  cursor: not-allowed;
 }
 
 .shelfc-error {

@@ -6,6 +6,7 @@ import { DuplicateCheck } from "../components/DuplicateCheck";
 import { GenrePillSelector } from "../components/GenrePillSelector";
 import { ToggleSwitch } from "../components/ToggleSwitch";
 import { useSession } from "../hooks/useSession";
+import { Button } from "@unbnd/ui";
 import { api, ApiError, type SignedEvent, type SubmissionInput } from "../lib/api";
 import "./Submit.css";
 
@@ -293,13 +294,15 @@ export function Submit() {
               <Link to="/auth">Sign in</Link> to submit a book.
             </p>
           )}
-          <button
-            type="submit"
+          <Button
+            variant="primary"
+            size="lg"
             className="sub-submit-btn"
+            type="submit"
             disabled={!signedIn || status === "submitting"}
           >
             {status === "submitting" ? "Submitting…" : "Submit book"}
-          </button>
+          </Button>
           <p className="sub-submit-note">
             The submission is signed by your key and attributed to your
             profile. See the{" "}

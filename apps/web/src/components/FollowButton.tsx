@@ -14,6 +14,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { api, ApiError, type SignedEvent } from "../lib/api";
 import { useSession } from "../hooks/useSession";
+import { Button } from "@unbnd/ui";
 import "./FollowButton.css";
 
 type Nip07 = {
@@ -129,9 +130,11 @@ export function FollowButton({ target }: { target: string }) {
     const showUnfollow = hovered;
     return (
       <div className="follow-wrap">
-        <button
+        <Button
+          variant="secondary"
+          selected={showUnfollow}
+          className="follow-btn follow-following"
           type="button"
-          className={`follow-btn follow-following${showUnfollow ? " is-unfollow" : ""}`}
           aria-pressed="true"
           aria-label={`Following ${target}, activate to unfollow`}
           disabled={pending}
@@ -149,7 +152,7 @@ export function FollowButton({ target }: { target: string }) {
               <span className="follow-label">Following</span>
             </>
           )}
-        </button>
+        </Button>
         {errorMsg && (
           <p className="follow-error" role="alert">
             {errorMsg}
@@ -162,15 +165,16 @@ export function FollowButton({ target }: { target: string }) {
   // Follow state — the affirmative primary action.
   return (
     <div className="follow-wrap">
-      <button
-        type="button"
+      <Button
+        variant="primary"
         className="follow-btn follow-follow"
+        type="button"
         aria-pressed="false"
         disabled={pending}
         onClick={() => runFollow("follow")}
       >
         <span className="follow-label">Follow</span>
-      </button>
+      </Button>
       {errorMsg && (
         <p className="follow-error" role="alert">
           {errorMsg}

@@ -9,6 +9,7 @@ import { Nav } from "../components/Nav";
 import { Footer } from "../components/Footer";
 import { Breadcrumb } from "../components/Breadcrumb";
 import { useSession } from "../hooks/useSession";
+import { Button } from "@unbnd/ui";
 import { api, type SubmittedBook } from "../lib/api";
 import "./CommunitySubmissions.css";
 
@@ -55,9 +56,11 @@ function PromoteCell({
   if (!submission.canPromote) return null;
 
   return (
-    <button
-      type="button"
+    <Button
+      variant="secondary"
+      size="sm"
       className="cs-promote"
+      type="button"
       disabled={pending}
       onClick={async () => {
         setPending(true);
@@ -70,7 +73,7 @@ function PromoteCell({
       }}
     >
       Promote
-    </button>
+    </Button>
   );
 }
 

@@ -17,6 +17,7 @@ import {
   type SignedEvent,
 } from "../lib/api";
 import { useSession } from "../hooks/useSession";
+import { Button, IconButton } from "@unbnd/ui";
 import "./RatingControl.css";
 
 type Nip07 = {
@@ -166,16 +167,18 @@ export function RatingControl({
           )}
           <div className="rate-stars" role="group" aria-label="Your rating">
             {[1, 2, 3, 4, 5].map((n) => (
-              <button
+              <IconButton
                 key={n}
-                type="button"
+                variant="bare"
+                shape="square"
                 className="rate-star"
+                type="button"
                 aria-label={`Rate ${n} of 5`}
                 aria-pressed={score === n}
                 onClick={() => setScore(n)}
               >
                 <Star filled={n <= score} />
-              </button>
+              </IconButton>
             ))}
           </div>
           <textarea
@@ -195,9 +198,11 @@ export function RatingControl({
               Your rating is in.
             </p>
           )}
-          <button
-            type="button"
+          <Button
+            variant="primary"
+            size="md"
             className="rate-submit"
+            type="button"
             disabled={score < 1 || status === "submitting"}
             onClick={onSubmit}
           >
@@ -206,7 +211,7 @@ export function RatingControl({
               : hasRated
                 ? "Update rating"
                 : "Submit rating"}
-          </button>
+          </Button>
         </div>
       )}
     </section>

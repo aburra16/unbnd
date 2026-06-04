@@ -2,6 +2,7 @@
 // hosts the Personalize trigger. Trust-weighting itself is applied to ratings
 // on book pages; here we surface the state + the entry point.
 import { useTrustView } from "../hooks/useTrustView";
+import { Button } from "@unbnd/ui";
 import "./PoVBar.css";
 
 export function PoVBar() {
@@ -33,24 +34,30 @@ export function PoVBar() {
         {yours && <span className="pov-badge">personalized</span>}
         <div className="pov-right">
           <div className="pov-switcher" role="tablist" aria-label="Rating perspective">
-            <button
+            <Button
+              variant="ghost"
+              size="sm"
+              selected={!yours}
+              className="pov-sw"
               type="button"
               role="tab"
               aria-selected={!yours}
-              className={!yours ? "pov-sw pov-sw-active" : "pov-sw"}
               onClick={() => setView("house")}
             >
               House
-            </button>
-            <button
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              selected={yours}
+              className="pov-sw"
               type="button"
               role="tab"
               aria-selected={yours}
-              className={yours ? "pov-sw pov-sw-active" : "pov-sw"}
               onClick={() => setView("yours")}
             >
               Yours
-            </button>
+            </Button>
           </div>
         </div>
       </div>
@@ -65,9 +72,15 @@ export function PoVBar() {
         <span className="pov-strong">Unbnd house view</span>
         <div className="pov-right">
           {error && <span className="pov-hint pov-error">{error}</span>}
-          <button className="pov-btn" type="button" onClick={personalize}>
+          <Button
+            variant="secondary"
+            size="sm"
+            className="pov-btn"
+            type="button"
+            onClick={personalize}
+          >
             Personalize
-          </button>
+          </Button>
         </div>
       </div>
     );

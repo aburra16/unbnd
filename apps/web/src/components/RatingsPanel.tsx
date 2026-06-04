@@ -9,6 +9,7 @@
 // `useTrustView`. No self-fetch (the double-fetch race is gone).
 import { type RatingsSummary } from "../lib/api";
 import { useTrustView } from "../hooks/useTrustView";
+import { Button } from "@unbnd/ui";
 import { RatingsBlock } from "./RatingsBlock";
 import { RatedByRow } from "./RatedByRow";
 import { ReviewsList } from "./ReviewsList";
@@ -73,30 +74,43 @@ export function RatingsPanel({
       <div className="rp-controls">
         {status === "ready" && (
           <div className="rp-toggle" role="tablist" aria-label="Rating perspective">
-            <button
+            <Button
+              variant="ghost"
+              size="sm"
+              selected={view === "house"}
+              className="rp-tab"
               type="button"
               role="tab"
               aria-selected={view === "house"}
-              className={view === "house" ? "rp-tab rp-tab-on" : "rp-tab"}
               onClick={() => setView("house")}
             >
               House
-            </button>
-            <button
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              selected={view === "yours"}
+              className="rp-tab"
               type="button"
               role="tab"
               aria-selected={view === "yours"}
-              className={view === "yours" ? "rp-tab rp-tab-on" : "rp-tab"}
               onClick={() => setView("yours")}
             >
               Yours
-            </button>
+            </Button>
           </div>
         )}
         {status === "none" && (
-          <button type="button" className="rp-personalize" onClick={personalize}>
+          <Button
+            variant="secondary"
+            size="md"
+            accent
+            className="rp-personalize"
+            type="button"
+            onClick={personalize}
+          >
             Personalize
-          </button>
+          </Button>
         )}
         {status === "building" && (
           <span className="rp-building" role="status">

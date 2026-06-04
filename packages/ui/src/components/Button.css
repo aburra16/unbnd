@@ -1,0 +1,173 @@
+/* Button primitive skin (ADR 0045 §1/§2/§5). References ONLY existing Tier-2
+ * semantic tokens (var(--u-*)); mints no token, so the Story-40..44 color /
+ * spacing / radius / type / motion guards stay clean.
+ *
+ * OWNERSHIP. The primitive owns each variant's SKIN: fill, text color, border,
+ * radius, hover/disabled, and the standardized 2px amber :focus-visible ring
+ * (JC-5). It owns a sensible default DENSITY per size (padding / font-size /
+ * weight). Genuinely-distinct DENSITY/LAYOUT residue (a button's exact padding,
+ * font-size, weight, min-width, align-self, icon gap) stays on a slimmed
+ * additive layout-only class at the call site (ADR 0038 §2) so the already-
+ * consistent buttons render byte-identical (the §2 ZERO-DIFF set). The §2
+ * NORMALIZE rows author their target value here or drop their old skin override.
+ */
+
+.u-btn {
+  font-family: var(--font-sans);
+  cursor: pointer;
+  border-radius: var(--u-radius);
+}
+
+.u-btn:disabled {
+  cursor: default;
+}
+
+/* Standardized keyboard-focus ring on EVERY button (JC-5, WCAG 2.4.7). Renders
+ * only on :focus-visible, so it costs no at-rest baseline. The danger variant
+ * and the secondary danger state override the color below. */
+.u-btn:focus-visible {
+  outline: 2px solid var(--u-amber);
+  outline-offset: 2px;
+}
+
+/* Full-width layout (block prop): the width:100% / flex:1 cases. */
+.u-btn--block {
+  width: 100%;
+}
+
+/* ===================================================================== *
+ * Size defaults (density). A call site that needs a different inset keeps a
+ * slimmed layout-only class; these are the canonical per-size defaults.
+ * ===================================================================== */
+
+.u-btn--sm {
+  font-size: var(--u-font-size-12);
+  font-weight: var(--u-font-weight-medium);
+  padding: var(--u-space-5) var(--u-space-12);
+}
+
+.u-btn--md {
+  font-size: var(--u-font-size-13);
+  font-weight: var(--u-font-weight-medium);
+  padding: var(--u-space-9) var(--u-space-18);
+}
+
+.u-btn--lg {
+  font-size: var(--u-font-size-14);
+  font-weight: var(--u-font-weight-medium);
+  padding: var(--u-space-12) var(--u-space-28);
+}
+
+/* ===================================================================== *
+ * variant="primary" — amber fill, parchment text, 8px radius. The single
+ * accent affirmative action. (set-save / foryou-invite-btn NORMALIZE their
+ * off-color text onto --u-parchment here.)
+ * ===================================================================== */
+
+.u-btn--primary {
+  background: var(--u-amber);
+  color: var(--u-parchment);
+  border: none;
+}
+
+.u-btn--primary:hover:not(:disabled) {
+  background: var(--u-amber-hover);
+}
+
+/* ===================================================================== *
+ * variant="ink" (JC-1) — ink fill, near-white text, 8px radius. "Commit this
+ * curation action." (tagc-apply / shelfc-add / author-edit-save NORMALIZE
+ * their radius onto --u-radius here; author-edit-save's text → --u-surface-card.)
+ * ===================================================================== */
+
+.u-btn--ink {
+  background: var(--u-ink);
+  color: var(--u-surface-card);
+  border: 1px solid transparent;
+}
+
+.u-btn--ink:hover:not(:disabled) {
+  opacity: 0.92;
+}
+
+/* ===================================================================== *
+ * variant="secondary" — transparent fill, ink text, 1px --u-border, 8px radius.
+ * The canonical border collapse (--u-border-hover / --u-ink-tint-20 /
+ * --u-line-warm → --u-border) and the muted→ink text collapse (JC-2) land here.
+ * ===================================================================== */
+
+.u-btn--secondary {
+  background: transparent;
+  color: var(--u-ink);
+  border-color: var(--u-border);
+}
+
+.u-btn--secondary:hover:not(:disabled) {
+  border-color: var(--u-amber);
+}
+
+/* The amber-outline secondary (rp-personalize, JC-2b): the deliberate accent
+ * look kept value-for-value. */
+.u-btn--secondary.u-btn--accent {
+  color: var(--u-amber);
+  border-color: var(--u-amber);
+}
+
+.u-btn--secondary.u-btn--accent:hover:not(:disabled) {
+  background: var(--u-amber-tint-08);
+  border-color: var(--u-amber);
+}
+
+/* The follow "Following" outline carries a danger STATE (the .is-unfollow
+ * reveal). Reproduced as secondary + selected, text+border+focus → negative,
+ * value-for-value. */
+.u-btn--secondary.is-selected {
+  color: var(--signal-negative);
+  border-color: var(--signal-negative);
+  background: var(--u-surface);
+}
+
+.u-btn--secondary.is-selected:focus-visible {
+  outline-color: var(--signal-negative);
+}
+
+/* ===================================================================== *
+ * variant="ghost" — no border, transparent, text-forward. Carries the unified
+ * segmented-toggle selected look (JC-4: surface-card fill + --u-elevation-1b +
+ * --u-radius-6) and full-width menu/footer rows via `block`.
+ * ===================================================================== */
+
+/* Ghost has no border and no fill. Its resting TEXT color varies by call site
+ * (acct-signout ink, searchbox-seeall amber, rp-tab / pov-sw muted), so the
+ * resting color stays on the slimmed call-site class as density/identity residue
+ * rather than being hard-set by the variant. The selected state below unifies
+ * the toggle look. */
+.u-btn--ghost {
+  background: none;
+  border: none;
+}
+
+/* The unified selected toggle look (JC-4) — rp-tab-on / pov-sw-active. */
+.u-btn--ghost.is-selected,
+.u-btn--ghost.is-selected:hover {
+  background: var(--u-surface-card);
+  color: var(--u-ink);
+  box-shadow: var(--u-elevation-1b);
+  border-radius: var(--u-radius-6);
+}
+
+/* ===================================================================== *
+ * variant="danger" — keyed to --signal-negative. Defined for contract
+ * completeness (ADR 0045 §2); mapped to no resting button today (the negative
+ * signal is a state, not a resting variant). Present so the API is complete.
+ * ===================================================================== */
+
+.u-btn--danger {
+  background: transparent;
+  color: var(--signal-negative);
+  border-color: var(--signal-negative);
+}
+
+.u-btn--danger:focus-visible {
+  outline-color: var(--signal-negative);
+}
