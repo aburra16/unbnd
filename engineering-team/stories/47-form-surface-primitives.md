@@ -1,6 +1,8 @@
 # Story 47: Form + surface primitives in `@unbnd/ui` — `Avatar`, `Link`, `Pill`, `Input`/`Field`/`Label`, `Card` — byte-identical migration, the Story-45 Pill/Link deferrals cleared, and the guard set extended
 
-**Status:** Draft
+> **47a DONE (2026-06-04).** The `Link` + `Pill` half (ADR 0047) shipped: both primitives in `@unbnd/ui`, the four Story-45 deferrals cleared (`gps-pill`/`rated-by-more` → `Pill`; `auth-linklike` ×2/`sub-back` → `Link`), the link-as-button affordances (`cta-btn`/`auth-submit`/`auth-btn-secondary`) byte-identical, the button-guard `DEFERRED_CLASSES` shrunk 5→1 (`searchbox-hit`). Reviewer verdict **PASS** — `engineering-team/reviews/47a-link-pill-primitives.md` (PR #90; visual gate green, no baseline change). **47b** (`Avatar` + `Label`/`Field`, ADR 0048) is still pending, so this shared doc is NOT yet moved to `done/`.
+
+**Status:** Draft (47a done; 47b pending)
 **Created:** 2026-06-04
 **Type:** Refactor (behavior-preserving, byte-identical; no visual change — this is NOT a Story-45-style normalization)
 
