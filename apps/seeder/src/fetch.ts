@@ -1,7 +1,9 @@
 // Open Library subjects API fetch (paginated, polite). ADR 0008.
 import type { OLWork } from "./openlibrary";
 
-const UA = "unbnd-seeder/0.1 (+https://unbnd.ink; catalog import)";
+/** Polite User-Agent for all Open Library requests. Single source of truth. */
+export const SEEDER_USER_AGENT = "unbnd-seeder/0.1 (+https://unbnd.ink; catalog import)";
+const UA = SEEDER_USER_AGENT;
 
 const sleep = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
 
