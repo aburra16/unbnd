@@ -106,6 +106,12 @@ services:
       - PER_SUBJECT=${PER_SUBJECT:-300}
       - RATE_MS=${RATE_MS:-250}
       - CHECKPOINT_PATH=/data/seed-checkpoint
+      # Bump for the blurb backfill (ADR 0051): CHECKPOINT_EPOCH=2 re-publishes
+      # each record once in place; a second run re-publishes nothing.
+      - CHECKPOINT_EPOCH=${CHECKPOINT_EPOCH:-1}
+      # Raw OL description cache on the seeder-data volume so a re-run does not
+      # re-hit Open Library (survives an epoch bump).
+      - DESC_CACHE_PATH=/data/desc-cache
     volumes:
       - seeder-data:/data
     restart: "no"

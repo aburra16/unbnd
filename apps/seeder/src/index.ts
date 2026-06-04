@@ -17,11 +17,14 @@ import {
   type DListAddress,
   type SignedNostrEvent,
 } from "@unbnd/schemas";
-import { fetchSubjectWorks } from "./fetch";
+import { fetchSubjectWorks, SEEDER_USER_AGENT } from "./fetch";
 import { deriveSlug, mapWorkToBookRecord, type OLWork } from "./openlibrary";
 import { buildConceptHeaderTemplate } from "./headers";
 import { STARTER_TAXONOMY } from "./taxonomy";
 import { loadCheckpoint } from "./checkpoint";
+import { loadDescCache } from "./desc-cache";
+import { fingerprint } from "./fingerprint";
+import { capBlurb, requestWorkDescription, sanitizeDescription } from "./description";
 import { connectRelay } from "./publish";
 
 const sleep = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
@@ -56,6 +59,8 @@ async function main() {
   const perSubject = Number(env("PER_SUBJECT", "300"));
   const rateMs = Number(env("RATE_MS", "250"));
   const checkpointPath = env("CHECKPOINT_PATH", "/data/seed-checkpoint");
+  const checkpointEpoch = Number(env("CHECKPOINT_EPOCH", "1"));
+  const descCachePath = env("DESC_CACHE_PATH", "/data/desc-cache");
 
   const decoded = decode(nsec);
   if (decoded.type !== "nsec") throw new Error("LIBRARIAN_NSEC is not an nsec");
@@ -65,11 +70,12 @@ async function main() {
   const tagsHeader = buildBookTagsHeaderAddress(librarian);
   const assertionsHeader = buildBookTagAssertionsHeaderAddress(librarian);
 
-  const checkpoint = loadCheckpoint(checkpointPath);
+  const checkpoint = loadCheckpoint(checkpointPath, checkpointEpoch);
+  const descCache = loadDescCache(descCachePath);
   const relay = await connectRelay(relayUrl);
   console.log(
     `[seeder] librarian=${librarian.slice(0, 12)} relay=${relayUrl} ` +
-      `per-subject=${perSubject} already-done=${checkpoint.size()}`,
+      `per-subject=${perSubject} epoch=${checkpointEpoch} already-done=${checkpoint.size()}`,
   );
 
   const publish = async (template: Template, label: string): Promise<boolean> => {
@@ -123,15 +129,50 @@ async function main() {
   let skipped = 0;
   let failed = 0;
   for (const [slug, { work, genres }] of books) {
-    const record = mapWorkToBookRecord(work, booksHeader);
+    let record = mapWorkToBookRecord(work, booksHeader);
     if (!record) {
       skipped++;
       continue;
     }
-    if (!checkpoint.has(slug)) {
+
+    // Enrich with a back-jacket blurb from the work description. Cache the raw
+    // (or a genuine no-description null) so a re-run does not re-hit OL; a
+    // network error is not cached (it retries next run). Fail-open: a fetch
+    // failure publishes the record without a blurb.
+    const workId = record.openLibraryId;
+    if (workId) {
+      const cached = descCache.get(workId);
+      let raw: string | null = null;
+      if (cached) {
+        raw = cached.raw;
+      } else {
+        const result = await requestWorkDescription(workId, {
+          userAgent: SEEDER_USER_AGENT,
+          timeoutMs: 8000,
+        });
+        if (result.ok) {
+          raw = result.raw;
+          descCache.set(workId, raw); // cache genuine result (incl. null)
+        } else {
+          console.warn(`[seeder] description fetch failed (transient): ${slug}`);
+          // Transient failure: do not cache, retry next run. Publish without a blurb.
+        }
+        await sleep(rateMs); // throttle real OL fetches; skip on a cache hit
+      }
+      if (raw !== null) {
+        const blurb = capBlurb(sanitizeDescription(raw));
+        if (blurb) record = { ...record, blurb };
+      }
+    }
+
+    // Gate the book-record publish on the per-record content fingerprint
+    // (epoch-namespaced): unchanged content skips, changed content (e.g. a
+    // newly populated blurb) re-publishes in place via the deterministic d-tag.
+    const bookKey = `book:${slug}:${fingerprint(record)}`;
+    if (!checkpoint.has(bookKey)) {
       const tmpl = toWireTemplate(toBookRecordEvent(record), now()) as Template;
       if (await publish(tmpl, slug)) {
-        checkpoint.add(slug);
+        checkpoint.add(bookKey);
         records++;
       } else {
         failed++;
