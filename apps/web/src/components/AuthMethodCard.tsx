@@ -59,20 +59,6 @@ export function EmailGlyph() {
   return <span className="amc-glyph amc-glyph-at">@</span>;
 }
 
-export function NostrBolt() {
-  return (
-    <svg
-      width="16"
-      height="16"
-      viewBox="0 0 24 24"
-      fill="currentColor"
-      aria-hidden="true"
-    >
-      <path d="M13 2L4 14h6l-1 8 9-12h-6l1-8z" />
-    </svg>
-  );
-}
-
 export function GLetter() {
   return <span className="amc-glyph">G</span>;
 }

@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { LogoMark } from "./LogoMark";
+import { Icon } from "@unbnd/ui";
 import { useSession } from "../hooks/useSession";
 import { AccountMenu } from "./AccountMenu";
 import { SearchBox } from "./SearchBox";
@@ -11,7 +11,7 @@ export function Nav() {
   return (
     <nav className="nav">
       <Link className="nav-logo" to="/">
-        <LogoMark size={26} />
+        <Icon name="logo" size={26} />
         <span className="nav-wordmark">unbnd</span>
       </Link>
       <div className="nav-right">
