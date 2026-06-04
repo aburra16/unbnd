@@ -2,7 +2,7 @@
 
 **Status:** Accepted
 **Date:** 2026-06-04
-**Story:** `engineering-team/stories/50-theming-structure.md`
+**Story:** `engineering-team/stories/done/50-theming-structure.md`
 
 **Accepted 2026-06-04** (auto-mode epic closeout). `[data-theme="<name>"]` overrides the RAW color tier (`--u-raw-color-*`); the 73 semantic color aliases + app CSS (Tier-2 only) follow unchanged, so a skin swap touches no app code. A `[data-theme="dark"]` SKELETON (crude placeholders, marked NOT-finalized, NOT activated — no `data-theme` set) validates the mechanism; elevation re-themes for free (color follows the tints). Theme-completeness guard: every `--u-raw-color-*` under `:root` is redefined under each declared theme (non-color raws / Tier-2 aliases / elevation / `--page-*` are theme-invariant). JS-injected colors (`GENRE_PALETTE`/`SEMANTIC_COLORS`) are a documented out-of-scope boundary for a future real dark mode. ZERO-DIFF default. Open questions are Implementer latitude (guard placement; copy-vs-extract `definedTokens()`; skeleton placeholder values).
 

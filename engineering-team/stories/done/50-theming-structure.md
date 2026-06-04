@@ -1,6 +1,6 @@
 # Story 50: Theming substrate + dark-mode structure
 
-**Status:** Draft
+**Status:** Done
 **Created:** 2026-06-04
 **Type:** Refactor
 
@@ -79,5 +79,5 @@ This is Phase 2 platform hardening (extends PRD §2.11 / Block E), per ADR 0038'
 
 - Epic: `engineering-team/epics/0001-design-system-overhaul-ready.md` (epic story 13)
 - ADR: `engineering-team/decisions/0038-design-system-architecture.md` §1 (themeable token layer); `engineering-team/decisions/0040-color-tokens.md` (two-tier model, the `[data-theme]` re-skin note); (story-specific refining ADR filled in after Architecture phase)
-- Test plan: (filled in after Test Design phase)
-- Review: (filled in after Review phase)
+- Test plan: (the theme-completeness guard `packages/ui/test/architecture-theme-completeness.test.ts`)
+- Review: `engineering-team/reviews/50-theming-structure.md` (PASS)
