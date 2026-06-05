@@ -1,6 +1,6 @@
 # Story 55: Catalog expansion to ~10K with a legitimacy gate and enrichment
 
-**Status:** In progress
+**Status:** Done
 **Created:** 2026-06-04
 **Type:** Feature / Data
 
@@ -89,5 +89,5 @@ The original delete/diff and indexer-deletion-awareness questions have **moved t
 - Depends on / relates to: Story 52 / ADR 0051 (blurb seeding, description disk cache, epoch checkpoint), Story 53 / ADR 0052 (2000-char blurb cap). The blurb path is reused unchanged.
 - Followed by: `engineering-team/stories/56-catalog-prune.md` (the NIP-09 prune of records that fail the new gate, deferred from this story). It depends on Story 55 (the gate function is the shared oracle).
 - ADR: `engineering-team/decisions/0054-catalog-expansion.md`.
-- Test plan: (filled in after Test Design phase)
-- Review: `engineering-team/reviews/55-catalog-expansion.md` (pending).
+- Test plan: `engineering-team/stories/done/55-catalog-expansion.test-plan.md`
+- Review: `engineering-team/reviews/55-catalog-expansion.md` (PASS, 2026-06-04).

@@ -1,6 +1,6 @@
 # Test Plan: Story 55 — Catalog expansion to ~10K (search-API swap + legitimacy gate + ISBN dedup + enrichment)
 
-**Story:** `engineering-team/stories/55-catalog-expansion.md`
+**Story:** `engineering-team/stories/done/55-catalog-expansion.md`
 **ADR:** `engineering-team/decisions/0054-catalog-expansion.md` (Accepted, re-scoped: expand + gate + enrich; prune deferred to Story 56)
 **Date:** 2026-06-04
 **Branch:** `story-55-catalog-expansion`
