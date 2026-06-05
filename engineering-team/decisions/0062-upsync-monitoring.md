@@ -2,7 +2,7 @@
 
 **Status:** Accepted
 **Date:** 2026-06-05
-**Story:** `engineering-team/stories/63-upsync-monitoring.md`
+**Story:** `engineering-team/stories/done/63-upsync-monitoring.md`
 
 **Accepted 2026-06-05.** Add a best-effort, bounded, graceful-degrading sync-health signal that detects a stalled community **up-sync** (kind-39999 ratings + tag assertions not reaching dcosl). A pure, injectable `checkUpsyncBacklog(deps)` diffs a bounded recent window of local-relay community events against dcosl by event id; it returns `in-sync` / `backlog` / `unknown` and is computed periodically by the Story-62 maintenance loop (via a dedicated up-sync interval) and **cached**. A new `GET /health/sync` serves only the cached value — never a live external call on the request path — and is kept off the `/health/data` aggregate so a backlog or `unknown` can never flap the service's liveness. The dual-publish (`propagate.ts` / `withUpSync`), the `unbnd-upsync` cron, and the existing health probes are all unchanged. Block E, PRD §2.11. This story only **observes**; propagation behavior is untouched.
 

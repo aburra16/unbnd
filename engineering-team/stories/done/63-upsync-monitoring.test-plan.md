@@ -1,6 +1,6 @@
 # Test Plan: Story 63 — Up-sync cron verification + sync-health monitoring
 
-**Story:** `engineering-team/stories/63-upsync-monitoring.md`
+**Story:** `engineering-team/stories/done/63-upsync-monitoring.md`
 **ADR:** `engineering-team/decisions/0062-upsync-monitoring.md`
 **Date:** 2026-06-05
 

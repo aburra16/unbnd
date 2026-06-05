@@ -1,8 +1,9 @@
 # Story 63: Up-sync cron verification + sync-health monitoring
 
-**Status:** In progress
+**Status:** Done
 **Created:** 2026-06-05
 **Type:** Hardening / Ops (Block E)
+**Review:** `engineering-team/reviews/63-upsync-monitoring.md` (PASS)
 
 ## Background
 
@@ -92,4 +93,4 @@ For the Architect to resolve during the Architecture phase (the PO does not answ
 
 - ADR: `engineering-team/decisions/0062-upsync-monitoring.md` (to be written by the Architect).
 - Relates to: ADR 0011 / `apps/api/src/nostr/propagate.ts` (`withUpSync` dual-publish — the primary path this observes, unchanged), `ops/cron/unbnd-upsync` + `ops/sync-runbook.md` (the cron backstop + install/verify procedure this extends), ADR 0061 / Story 62 / `apps/api/src/maintenance.ts` (the periodic timer the cached-compute option would use), `apps/api/src/nostr/query.ts` (`queryRelayUrl` — the bounded, timeout-resolving relay read the diff reuses), `apps/api/src/routes/health.ts` (the health router this extends), ADR 0012 (explicit-relay-URL reads).
-- Test plan: `engineering-team/stories/63-upsync-monitoring.test-plan.md` (if the Tester phase runs — see lean-vs-full assessment above).
+- Test plan: `engineering-team/stories/done/63-upsync-monitoring.test-plan.md` (if the Tester phase runs — see lean-vs-full assessment above).
