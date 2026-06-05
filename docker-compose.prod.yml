@@ -146,6 +146,11 @@ services:
       - DCOSL_RELAY_URL=${DCOSL_RELAY_URL:-wss://dcosl.brainstorm.world/}
       - LIBRARIAN_PUBKEY=${LIBRARIAN_PUBKEY}
       - LIBRARIAN_NSEC=${LIBRARIAN_NSEC}
+      # Index-on-write (Story 60 / ADR 0059 §5): the promoter upserts a freshly
+      # promoted book's SearchDocument best-effort after its durable publish.
+      - SEARCH_URL=http://search:7700
+      - SEARCH_API_KEY=${SEARCH_API_KEY}
+      - SEARCH_PROVIDER=${SEARCH_PROVIDER:-meili}
     depends_on:
       db:
         condition: service_healthy

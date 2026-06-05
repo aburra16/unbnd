@@ -161,6 +161,9 @@ importers:
       '@unbnd/schemas':
         specifier: workspace:*
         version: link:../../packages/schemas
+      '@unbnd/search':
+        specifier: workspace:*
+        version: link:../../packages/search
       nostr-tools:
         specifier: 2.10.4
         version: 2.10.4(typescript@5.9.3)
@@ -342,6 +345,10 @@ importers:
         version: 2.1.9(@types/node@22.19.19)(happy-dom@15.11.7)
 
   packages/search:
+    dependencies:
+      '@unbnd/schemas':
+        specifier: workspace:*
+        version: link:../schemas
     devDependencies:
       typescript:
         specifier: ^5.5.3

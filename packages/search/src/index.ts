@@ -6,6 +6,8 @@ import { MeiliProvider } from "./meili";
 import type { ProviderOptions, SearchProvider } from "./types";
 
 export { MeiliProvider } from "./meili";
+export { buildBookDocument } from "./build-document";
+export { reindexBook, type BookReader } from "./reindex-book";
 export type {
   ProviderHealth,
   ProviderName,
