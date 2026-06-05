@@ -14,6 +14,9 @@ export type FingerprintInput = {
   readonly coverUrl?: unknown;
   readonly publishYear?: unknown;
   readonly subjects?: unknown;
+  readonly isbn13?: unknown;
+  readonly language?: unknown;
+  readonly pageCount?: unknown;
 };
 
 function field(value: unknown): string {
@@ -25,7 +28,8 @@ function field(value: unknown): string {
 /**
  * A stable 12-char fingerprint of a record's canonical content. Identical
  * content yields the same fingerprint across runs; any change to title,
- * author, blurb, cover, publish year, or subjects yields a different one.
+ * author, blurb, cover, publish year, subjects, or the enrichment fields
+ * (isbn13, language, pageCount) yields a different one.
  */
 export function fingerprint(record: FingerprintInput): string {
   const canonical = [
@@ -35,6 +39,9 @@ export function fingerprint(record: FingerprintInput): string {
     field(record.coverUrl),
     field(record.publishYear),
     field(record.subjects),
+    field(record.isbn13),
+    field(record.language),
+    field(record.pageCount),
   ].join(""); // ASCII unit separator, absent from the field values
   return createHash("sha256").update(canonical, "utf8").digest("hex").slice(0, 12);
 }
