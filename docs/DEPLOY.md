@@ -88,7 +88,10 @@ deploy)`), runs after **CI** succeeds on `main`:
 1. **build** (matrix: api, web) — checks out the triggering commit SHA, builds
    each image, pushes to GHCR tagged with **that SHA** plus `:latest`.
 2. **deploy** (`needs: build`) — SSHes to the droplet, `git reset --hard
-   <SHA>`, then `UNBND_IMAGE_TAG=<SHA> docker compose pull && up -d`.
+   <SHA>`, persists `UNBND_IMAGE_TAG=<SHA>` in `/opt/unbnd/.env` (ADR 0060), then
+   `UNBND_IMAGE_TAG=<SHA> docker compose pull && up -d`. The persisted tag means a
+   later by-hand profile-worker `run` (seeder/promoter/indexer/shelves/librarian)
+   in a fresh shell resolves to the deployed SHA, not a stale `:latest`.
 
 Because `deploy` `needs` `build`, the droplet can never pull stale images, and
 because it deploys the **exact SHA** (not a mutable `:latest`), code and images
@@ -216,9 +219,11 @@ profile jobs it never starts with the normal stack.
    `SHELF_FAVORITES_MIN_RATINGS=3`, `SHELF_GENRE_COUNT=5`, `SHELF_BOOKS_PER_ROW=10`);
    override in `/opt/unbnd/.env` if desired. The worker uses the same house
    observer as the API (default nosfabrica; `HOUSE_OBSERVER_PUBKEY` to override).
-2. Fire it periodically with a crontab entry (mirroring up-sync), hourly:
+2. Fire it periodically with a crontab entry (mirroring up-sync), hourly. The
+   deploy persists `UNBND_IMAGE_TAG` in `/opt/unbnd/.env` (ADR 0060), which
+   `docker compose` auto-reads, so a bare `run` already targets the deployed SHA:
    ```
-   0 * * * * cd /opt/unbnd && UNBND_IMAGE_TAG=$(git -C /opt/unbnd rev-parse HEAD) docker compose -f docker-compose.prod.yml --profile shelves run --rm shelves >> /var/log/unbnd-shelves.log 2>&1
+   0 * * * * cd /opt/unbnd && docker compose -f docker-compose.prod.yml --profile shelves run --rm shelves >> /var/log/unbnd-shelves.log 2>&1
    ```
    The replace is atomic per refresh; a failed run leaves the previous good cache
    intact. On the thin interim graph every trust shelf is empty (honest empty) —
@@ -347,9 +352,10 @@ falls to the raw fallback prematurely. Cross-reference the divergence checks in
    HOUSE_OBSERVER_PUBKEY=<librarian-hex>
    ```
 
-6. **Restart the readers** so they recompute from the new vantage:
+6. **Restart the readers** so they recompute from the new vantage. The deploy
+   persists `UNBND_IMAGE_TAG` in `/opt/unbnd/.env` (ADR 0060), so both commands
+   resolve to the deployed SHA without a manual export:
    ```sh
-   export UNBND_IMAGE_TAG=$(git rev-parse HEAD)
    docker compose -f docker-compose.prod.yml up -d api
    docker compose -f docker-compose.prod.yml --profile shelves run --rm shelves
    ```

@@ -103,6 +103,13 @@ jobs:
             cd /opt/unbnd
             git fetch --all
             git reset --hard ${{ env.DEPLOY_SHA }}
+            # Persist the deployed tag in .env so a later by-hand profile-worker
+            # `run` (in a fresh shell) resolves to this SHA, not stale :latest.
+            if grep -q '^UNBND_IMAGE_TAG=' .env; then
+              sed -i "s|^UNBND_IMAGE_TAG=.*|UNBND_IMAGE_TAG=${{ env.DEPLOY_SHA }}|" .env
+            else
+              printf '\nUNBND_IMAGE_TAG=%s\n' "${{ env.DEPLOY_SHA }}" >> .env
+            fi
             export UNBND_IMAGE_TAG=${{ env.DEPLOY_SHA }}
             # Pull the exact SHA-tagged images built above; data layer stays :latest.
             docker compose -f docker-compose.prod.yml pull
