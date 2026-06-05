@@ -7,6 +7,7 @@ import {
   fromBookTagEvent,
   fromBookTagAssertionEvent,
   fromWireEvent,
+  isJunkRecord,
   type SignedNostrEvent,
 } from "@unbnd/schemas";
 import type { SearchDocument } from "@unbnd/search";
@@ -56,14 +57,21 @@ export function buildSearchDocuments(
   bookEvents: SignedNostrEvent[],
   taxonomyEvents: SignedNostrEvent[],
   assertionEvents: SignedNostrEvent[],
+  currentYear: number = new Date().getUTCFullYear(),
 ): SearchDocument[] {
   const tax = parseTaxonomy(taxonomyEvents);
   const applied = appliedTagsByBook(assertionEvents);
   const docs: SearchDocument[] = [];
+  let skipped = 0;
 
   for (const e of bookEvents) {
     const rec = parse(e, fromBookRecordEvent);
     if (!rec) continue;
+    if (isJunkRecord(rec, currentYear)) {
+      // Read-time prune (Story 56, ADR 0055 §2): positive junk is never indexed.
+      skipped++;
+      continue;
+    }
 
     const tagNames: string[] = [];
     const genreSlugs: string[] = [];
@@ -93,6 +101,9 @@ export function buildSearchDocuments(
       coverUrl: rec.coverUrl,
       openLibraryId: rec.openLibraryId,
     });
+  }
+  if (skipped > 0) {
+    console.log(`[indexer] skipped ${skipped} junk records`);
   }
   return docs;
 }

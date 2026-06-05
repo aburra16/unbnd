@@ -89,6 +89,57 @@ export function buildBookRecordDTag(slug: string): string {
   return slug;
 }
 
+/**
+ * The junk-title denylist (ADR 0054 §2), case-insensitive and segment-anchored:
+ * each phrase must begin at the start of the title, or after whitespace / `:` /
+ * `(` / `[` / a spaced hyphen, and end at a word boundary. This catches the
+ * study-guide / summary-of / workbook / sparknotes / cliffs-notes / omnibus /
+ * box-set residue, while leaving titles where the word is not at a segment
+ * boundary (e.g. "A Study in Scarlet", "Notes from Underground", a bare
+ * "Summary") untouched.
+ *
+ * This is the SINGLE definition (ADR 0055 §1): apps/seeder/src/gate.ts imports
+ * it from here and re-exports it, so the read-time oracle and the seeder gate
+ * share the exact same denylist.
+ */
+export const JUNK_TITLE_RE =
+  /(?:^|[\s:(\[]|\s-\s)(?:summary of\b|study guide\b|workbook\b|sparknotes\b|cliffs?\s*notes\b|omnibus\b|box\s?set\b|boxed set\b)/i;
+
+/** The earliest publish year a real catalog record admits (ADR 0054 §2). */
+const RECORD_YEAR_MIN = 1800;
+
+/**
+ * True iff a STORED book record is positively junk — i.e. it fails a legitimacy
+ * signal observable on the stored fields. Pure, deterministic, no I/O.
+ * `currentYear` is injected so the function stays pure and tests pin a year.
+ *
+ * Conservative by design (ADR 0055 §1, the "absence is not evidence" rule): it
+ * fires ONLY on positive junk evidence and NEVER on a missing edition_count /
+ * language / pageCount / publishYear — legacy records lack those and absence
+ * does not make a record junk.
+ *
+ * Cover is deliberately NOT a read-time signal (ADR 0055 §1, Refinement
+ * 2026-06-05). This oracle runs at `parseBook` (apps/api/src/books/effective.ts),
+ * the single choke point for EVERY direct-relay book read — including community
+ * submissions and author overlays, where `coverUrl` is OPTIONAL
+ * (apps/api/src/submissions/template.ts; OVERLAY_FIELDS in effective.ts both
+ * carry an optional cover), plus user shelves / For-You / claims. A cover-less
+ * record at this read site is therefore legitimate user content, not junk, and
+ * already renders with the existing gradient fallback rather than being hidden.
+ * The four remaining signals (title, author, denylist, present-out-of-range
+ * year) are unambiguous junk regardless of source or surface. The SEED-TIME gate
+ * (apps/seeder/src/gate.ts, which requires `cover_i`) is unchanged — only this
+ * read-time stored-record oracle drops the cover signal.
+ */
+export function isJunkRecord(book: BookRecord, currentYear: number): boolean {
+  if (!book.title?.trim()) return true; // missing/empty title
+  if (!book.authorName?.trim()) return true; // missing/empty author
+  if (JUNK_TITLE_RE.test(book.title)) return true; // junk-denylist title
+  const y = book.publishYear; // out-of-range year (only if present)
+  if (typeof y === "number" && (y < RECORD_YEAR_MIN || y > currentYear)) return true;
+  return false; // otherwise: keep
+}
+
 export function toBookRecordEvent(record: BookRecord): BookRecordEvent {
   const dTag = buildBookRecordDTag(record.slug);
   const tags: Array<readonly [string, ...string[]]> = [

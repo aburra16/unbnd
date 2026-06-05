@@ -10,6 +10,7 @@ import {
   fromBookAuthorOverlayEvent,
   fromBookRecordEvent,
   fromWireEvent,
+  isJunkRecord,
   type BookAuthorOverlay,
   type BookRecord,
   type SignedNostrEvent,
@@ -54,10 +55,17 @@ function toPublicBook(record: BookRecord): PublicBook {
   };
 }
 
-export function parseBook(event: SignedNostrEvent): PublicBook | null {
+export function parseBook(
+  event: SignedNostrEvent,
+  currentYear: number = new Date().getUTCFullYear(),
+): PublicBook | null {
   try {
     const unsigned = fromWireEvent({ kind: event.kind, content: event.content, tags: event.tags });
-    return toPublicBook(fromBookRecordEvent(unsigned as never));
+    const record = fromBookRecordEvent(unsigned as never);
+    // Read-time prune (Story 56, ADR 0055 §3): junk never resolves to a book,
+    // so every direct-relay surface drops it and a junk slug's detail 404s.
+    if (isJunkRecord(record, currentYear)) return null;
+    return toPublicBook(record);
   } catch {
     return null;
   }

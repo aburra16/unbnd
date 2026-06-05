@@ -119,7 +119,7 @@ export function buildAuthorEditsRouter(deps: AuthorEditsDeps): Router {
       return null;
     }
     const canonical = bookEvents
-      .map(parseBook)
+      .map((e) => parseBook(e))
       .find((b): b is PublicBook => b !== null);
     if (!canonical) return null;
     // This verified author is the single verified claimant; the just-published
