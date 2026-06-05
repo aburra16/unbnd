@@ -16,6 +16,7 @@ import {
   type RevealState,
   type SignedNostrEvent,
 } from "@unbnd/schemas";
+import type { PublishResult } from "@unbnd/relay";
 import { buildAccusatoryRevealEvent } from "./build";
 
 /** A claimed reveal job, as the queue hands it to the cycle. */
@@ -29,18 +30,14 @@ export type RevealJob = {
   readonly attempts: number;
 };
 
-export type PublishOutcome =
-  | { readonly ok: true }
-  | { readonly ok: false; readonly reason?: string };
-
 export type RevealDeps = {
   readonly librarianPubkey: HexPubkey;
   /** Claim a batch of pending reveal rows (status→minting, FOR UPDATE SKIP LOCKED). */
   readonly claimPending: () => Promise<RevealJob[]>;
   /** Librarian-sign a template → a signed event with an id (mirrors finalizeEvent). */
   readonly sign: (template: NostrEventTemplate) => SignedNostrEvent;
-  readonly publishLocal: (event: SignedNostrEvent) => Promise<PublishOutcome>;
-  readonly publishDcosl: (event: SignedNostrEvent) => Promise<PublishOutcome>;
+  readonly publishLocal: (event: SignedNostrEvent) => Promise<PublishResult>;
+  readonly publishDcosl: (event: SignedNostrEvent) => Promise<PublishResult>;
   /** Mark a job done with the minted reveal event id. */
   readonly markDone: (job: RevealJob, mintedId: string) => Promise<void>;
   /** Mark a job failed (retriable) with a reason. */

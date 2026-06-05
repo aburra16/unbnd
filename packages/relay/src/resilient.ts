@@ -1,7 +1,7 @@
-// Self-healing relay wrapper for the seeder publish path (ADR 0056 §2).
+// Self-healing relay wrapper for the worker publish path (ADR 0056 §2).
 //
 // Wraps a RelayConnection so a transport REJECTION (a dead socket, surfaced by
-// the hardened connectRelay in publish.ts) triggers a reconnect + bounded
+// the hardened connectRelay in connect.ts) triggers a reconnect + bounded
 // exponential-backoff retry of the SAME event. A RESOLVED result ({ok:true} or
 // a relay NACK {ok:false}) is the relay's answer, not a transport problem, so it
 // is returned as-is with no reconnect. Exhausting the attempt budget throws a
@@ -15,10 +15,14 @@
 // at worst a redundant replace.
 //
 // The same RelayConnection interface is exposed, so index.ts swaps it in with no
-// seed-loop change. The connect and sleep seams are injected for deterministic
-// tests (no real sockets, no real timers).
+// seed-loop change. The `query` read is a thin pass-through to the current
+// connection (ADR 0058 §Q1): NO reconnect/retry on a read, because a REQ has no
+// re-send idempotency story and no caller asks for read-retry; a read fault
+// surfaces unchanged (resolves [] on timeout). The connect and sleep seams are
+// injected for deterministic tests (no real sockets, no real timers).
 import type { SignedNostrEvent } from "@unbnd/schemas";
-import { connectRelay, type PublishResult, type RelayConnection } from "./publish";
+import { connectRelay } from "./connect";
+import type { PublishResult, RelayConnection, RelayFilter } from "./types";
 
 const defaultSleep = (ms: number) =>
   new Promise<void>((resolve) => setTimeout(resolve, ms));
@@ -98,6 +102,11 @@ export async function connectResilientRelay(
       throw new Error(
         `relay unreachable after ${attempts} attempts: ${lastError?.message ?? "unknown"}`,
       );
+    },
+    // Thin pass-through to the current connection (ADR 0058 §Q1): a read has no
+    // re-send idempotency story, so it is NOT wrapped in reconnect/retry.
+    query(filter: RelayFilter, timeoutMs?: number): Promise<SignedNostrEvent[]> {
+      return current.query(filter, timeoutMs);
     },
     close() {
       current.close();
