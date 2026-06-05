@@ -1,4 +1,5 @@
 // Env-var validation per ADR 0002.
+import { SESSION_LIFETIME_MS } from "./auth/sessions";
 import type { FixtureSpec, TrustProviderName } from "./trust";
 
 export type Config = {
@@ -118,6 +119,23 @@ export type Config = {
    * no-op on today's thin graph). Always set by `loadConfig`; optional here.
    */
   readonly foryouCandidateRaters?: number;
+  /**
+   * Idle TTL for the custodial ephemeral key store (Story 62 / ADR 0061). A
+   * wrapped session key whose `lastUsedAt` is older than this is swept. Env
+   * `EPHEMERAL_KEY_TTL_MS`, validated as a positive integer, default
+   * `SESSION_LIFETIME_MS` (30 days) — a key idle past a full session lifetime
+   * belongs to an abandoned/expired session. Always set by `loadConfig`;
+   * optional here only so partial test fixtures need not set it.
+   */
+  readonly ephemeralKeyTtlMs?: number;
+  /**
+   * How often the periodic maintenance timer ticks (Story 62 / ADR 0061),
+   * running the ephemeral key sweep + the expired-session/challenge DB sweeps.
+   * Env `MAINTENANCE_INTERVAL_MS`, validated as a positive integer, default 1h.
+   * Always set by `loadConfig`; optional here only so partial test fixtures need
+   * not set it.
+   */
+  readonly maintenanceIntervalMs?: number;
 };
 
 const DEFAULT_TRUST_RELAYS = [
@@ -264,6 +282,41 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
     );
   }
 
+  // Ephemeral key idle TTL (ADR 0061). Positive integer ms; default
+  // SESSION_LIFETIME_MS (30 days).
+  const ephemeralKeyTtlRaw = withDefault(
+    env,
+    "EPHEMERAL_KEY_TTL_MS",
+    String(SESSION_LIFETIME_MS),
+  );
+  const ephemeralKeyTtlMs = Number(ephemeralKeyTtlRaw);
+  if (
+    !Number.isFinite(ephemeralKeyTtlMs) ||
+    ephemeralKeyTtlMs < 1 ||
+    !Number.isInteger(ephemeralKeyTtlMs)
+  ) {
+    throw new Error(
+      `config: EPHEMERAL_KEY_TTL_MS must be a positive integer; got ${JSON.stringify(ephemeralKeyTtlRaw)}`,
+    );
+  }
+
+  // Maintenance timer interval (ADR 0061). Positive integer ms; default 1h.
+  const maintenanceIntervalRaw = withDefault(
+    env,
+    "MAINTENANCE_INTERVAL_MS",
+    String(60 * 60 * 1000),
+  );
+  const maintenanceIntervalMs = Number(maintenanceIntervalRaw);
+  if (
+    !Number.isFinite(maintenanceIntervalMs) ||
+    maintenanceIntervalMs < 1 ||
+    !Number.isInteger(maintenanceIntervalMs)
+  ) {
+    throw new Error(
+      `config: MAINTENANCE_INTERVAL_MS must be a positive integer; got ${JSON.stringify(maintenanceIntervalRaw)}`,
+    );
+  }
+
   const databaseUrl = required(env, "DATABASE_URL");
 
   const backupEncryptionKey = required(env, "BACKUP_ENCRYPTION_KEY");
@@ -372,6 +425,8 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
     foryouMinRatings,
     foryouBooks,
     foryouCandidateRaters,
+    ephemeralKeyTtlMs,
+    maintenanceIntervalMs,
     neo4jBoltUrl: withDefault(env, "NEO4J_BOLT_URL", "bolt://localhost:7687"),
     neo4jUser: withDefault(env, "NEO4J_USER", "neo4j"),
     neo4jPassword,

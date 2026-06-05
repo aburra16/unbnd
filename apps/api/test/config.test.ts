@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { loadConfig } from "../src/config";
+import { SESSION_LIFETIME_MS } from "../src/auth/sessions";
 
 const ALL_REQUIRED = {
   NEO4J_PASSWORD: "tapestry-local-dev",
@@ -259,6 +260,56 @@ describe("loadConfig — SEARCH_TRUST_BLEND (ADR 0035)", () => {
     expect(() =>
       loadConfig({ ...ALL_REQUIRED, SEARCH_TRUST_BLEND: "lots" }),
     ).toThrow(/SEARCH_TRUST_BLEND/);
+  });
+});
+
+// Story 62 / ADR 0061: the maintenance-sweeper knobs.
+//   - EPHEMERAL_KEY_TTL_MS: idle TTL for the custodial ephemeral key store;
+//     defaults to SESSION_LIFETIME_MS (30 days) — a key idle longer than a full
+//     session lifetime belongs to an abandoned/expired session.
+//   - MAINTENANCE_INTERVAL_MS: how often the periodic timer ticks; default 1h.
+// SEAM ASSUMED (flag for the Implementer): these are routed through `loadConfig`
+// onto `config.ephemeralKeyTtlMs` / `config.maintenanceIntervalMs`. If the
+// Implementer instead keeps them as `maintenance.ts` constants (not config),
+// move these assertions there and delete this block.
+describe("loadConfig — maintenance sweeper knobs (ADR 0061)", () => {
+  it("defaults EPHEMERAL_KEY_TTL_MS to SESSION_LIFETIME_MS (30 days)", () => {
+    const c = loadConfig({ ...ALL_REQUIRED });
+    expect(c.ephemeralKeyTtlMs).toBe(SESSION_LIFETIME_MS);
+    expect(typeof c.ephemeralKeyTtlMs).toBe("number");
+  });
+
+  it("respects an explicit EPHEMERAL_KEY_TTL_MS override", () => {
+    const c = loadConfig({ ...ALL_REQUIRED, EPHEMERAL_KEY_TTL_MS: "60000" });
+    expect(c.ephemeralKeyTtlMs).toBe(60_000);
+  });
+
+  it("throws when EPHEMERAL_KEY_TTL_MS is not a positive integer", () => {
+    expect(() =>
+      loadConfig({ ...ALL_REQUIRED, EPHEMERAL_KEY_TTL_MS: "nope" }),
+    ).toThrow(/EPHEMERAL_KEY_TTL_MS/);
+    expect(() =>
+      loadConfig({ ...ALL_REQUIRED, EPHEMERAL_KEY_TTL_MS: "0" }),
+    ).toThrow(/EPHEMERAL_KEY_TTL_MS/);
+  });
+
+  it("defaults MAINTENANCE_INTERVAL_MS to one hour", () => {
+    const c = loadConfig({ ...ALL_REQUIRED });
+    expect(c.maintenanceIntervalMs).toBe(60 * 60 * 1000);
+  });
+
+  it("respects an explicit MAINTENANCE_INTERVAL_MS override", () => {
+    const c = loadConfig({ ...ALL_REQUIRED, MAINTENANCE_INTERVAL_MS: "30000" });
+    expect(c.maintenanceIntervalMs).toBe(30_000);
+  });
+
+  it("throws when MAINTENANCE_INTERVAL_MS is not a positive integer", () => {
+    expect(() =>
+      loadConfig({ ...ALL_REQUIRED, MAINTENANCE_INTERVAL_MS: "abc" }),
+    ).toThrow(/MAINTENANCE_INTERVAL_MS/);
+    expect(() =>
+      loadConfig({ ...ALL_REQUIRED, MAINTENANCE_INTERVAL_MS: "-5" }),
+    ).toThrow(/MAINTENANCE_INTERVAL_MS/);
   });
 });
 
