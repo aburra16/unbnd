@@ -225,6 +225,140 @@ profile jobs it never starts with the normal stack.
    the homepage falls back to the labeled non-trust "Recently added" / "Explore
    genres" sections — until the trust graph fills in.
 
+## Librarian identity (Story 58 / ADR 0057)
+
+The librarian worker publishes Unbnd's own librarian identity and registers it
+for GrapeRank, so the operator can move the house trust graph onto it. It holds
+`LIBRARIAN_NSEC` (the same adopted key the seeder and promoter use) and runs off
+the internet-facing path under the `librarian` compose profile, so it never
+starts with the normal stack. Two subcommands:
+
+- `profile` publishes the librarian kind-0 (display name, logo, role
+  description) to dcosl plus the profile relays.
+- `follows` publishes the librarian kind-3 seed-follow list to the trust relays
+  plus the general relays (never dcosl, which rejects kind-3), then triggers
+  GrapeRank for the librarian observer.
+
+**Firewall:** `SEED_CURATORS` and the profile content are a business decision
+supplied out of band. No real curator pubkey or name lives in the repo or in
+`.env.production.example`. The operator fills `SEED_CURATORS` (a CSV of
+64-lowercase-hex pubkeys), `LIBRARIAN_NAME`, and the optional profile fields in
+`/opt/unbnd/.env` on the droplet.
+
+```sh
+cd /opt/unbnd
+# publish the kind-0 profile
+docker compose -f docker-compose.prod.yml --profile librarian run --rm librarian profile
+# publish the kind-3 seed-follow list + trigger GrapeRank
+docker compose -f docker-compose.prod.yml --profile librarian run --rm librarian follows
+```
+
+Both runs are idempotent. The kind-3 merge preserves every existing follow and
+adds only the missing seed curators, so a re-run drops nothing. The kind-0 is a
+replaceable event. The kind-3 publish is the durable step: if it fails to the
+trust relays the run exits non-zero and the operator re-runs. The GrapeRank
+trigger is best-effort; a failed trigger logs and the run still exits zero,
+because Brainstorm's crawler picks up the published follows on its own schedule.
+
+### Secret management for `LIBRARIAN_NSEC`
+
+The adopted librarian key is the production identity, so it is protected at rest
+rather than regenerated. KMS/Vault is deferred (PRD §2.1); the initial target is
+`age`-based encryption on the droplet plus a confirmed offline copy held out of
+band by the operator.
+
+1. **Generate an `age` identity** (root-only), once per droplet:
+   ```sh
+   sudo mkdir -p /opt/unbnd/secrets && sudo chmod 700 /opt/unbnd/secrets
+   age-keygen -o /opt/unbnd/secrets/librarian-age.key
+   sudo chmod 600 /opt/unbnd/secrets/librarian-age.key
+   # note the `Public key:` line it prints — that is the recipient.
+   ```
+   The identity file (the private `age` key) stays root-owned at mode `600` and
+   never leaves the droplet.
+
+2. **Encrypt the nsec at rest** under that recipient, then remove the plaintext
+   from `.env`:
+   ```sh
+   printf '%s' "$LIBRARIAN_NSEC" \
+     | age -r <age-recipient-pubkey> -o /opt/unbnd/secrets/librarian.nsec.age
+   sudo chmod 600 /opt/unbnd/secrets/librarian.nsec.age
+   ```
+   Keep `LIBRARIAN_NSEC` out of the committed `.env` once encrypted. Decrypt it
+   into the environment only at run time, scoped to the single one-off:
+   ```sh
+   LIBRARIAN_NSEC=$(age -d -i /opt/unbnd/secrets/librarian-age.key \
+     /opt/unbnd/secrets/librarian.nsec.age) \
+     docker compose -f docker-compose.prod.yml --profile librarian run --rm \
+     -e LIBRARIAN_NSEC librarian follows
+   ```
+   The seeder and promoter one-offs decrypt the same way. The plaintext nsec
+   never persists on disk and is never logged.
+
+3. **Backup and rotation.** Rotation here is re-encrypting the same nsec under a
+   new `age` identity, not minting a new key (the adopt decision keeps every
+   catalog address canonical). To rotate the encryption: generate a fresh `age`
+   identity, re-encrypt the nsec under the new recipient, replace
+   `librarian.nsec.age`, and destroy the old identity. Back up
+   `librarian.nsec.age` and the identity file together to encrypted operator
+   storage; either alone is useless.
+
+4. **Offline redundant copy.** Hold one copy of the plaintext nsec out of band
+   (paper or a hardware secret store), in a location separate from the droplet.
+   This is the recovery path if the droplet and its backups are both lost. The
+   offline copy never enters the repo, a chat, or a ticket.
+
+### House-observer swap and verify
+
+Moving the house point of view onto the librarian is a config change
+(`HOUSE_OBSERVER_PUBKEY`), no code change. The repo default stays nosfabrica; the
+operator overrides it via `.env` only after the librarian's identity is published
+and its GrapeRank scores exist. The hard ordering rule (PRD §2.0): publish the
+kind-3 and register GrapeRank **before** the swap, otherwise every trust read
+falls to the raw fallback prematurely. Cross-reference the divergence checks in
+[`ops/trust-seed-harness.md`](../ops/trust-seed-harness.md).
+
+1. **Publish the kind-0 profile:**
+   ```sh
+   docker compose -f docker-compose.prod.yml --profile librarian run --rm librarian profile
+   ```
+   Confirm it is resolvable (the worker logs the publish; spot-check a nostr
+   client or the profile relays).
+
+2. **Publish the kind-3 and trigger GrapeRank:**
+   ```sh
+   docker compose -f docker-compose.prod.yml --profile librarian run --rm librarian follows
+   ```
+   Confirm the kind-3 landed on the trust relays and the trigger queued (or note
+   that it will be crawled on Brainstorm's schedule).
+
+3. **Wait for scores.** Poll until the librarian has kind-30382 scores from its
+   own vantage. Brainstorm crawl latency is minutes, sometimes longer. Probe
+   `GET <BRAINSTORM_API_URL>/setup/<librarian-hex>` or use the harness
+   `hasScores`-style check.
+
+4. **Verify weighted-vs-raw from the librarian point of view** using
+   `ops/trust-seed-harness.md`, with `HOUSE_OBSERVER_PUBKEY` pointed at the
+   librarian in a staged check, to confirm a reproducible divergence before the
+   live flip.
+
+5. **Set the house observer** in `/opt/unbnd/.env`:
+   ```
+   HOUSE_OBSERVER_PUBKEY=<librarian-hex>
+   ```
+
+6. **Restart the readers** so they recompute from the new vantage:
+   ```sh
+   export UNBND_IMAGE_TAG=$(git rev-parse HEAD)
+   docker compose -f docker-compose.prod.yml up -d api
+   docker compose -f docker-compose.prod.yml --profile shelves run --rm shelves
+   ```
+
+7. **Re-verify.** The weighted view now reflects the librarian's seed graph.
+   Most signals correctly show the labeled "community consensus" raw fallback
+   until the seed graph and ratings grow (PRD §2.5). A thin starting graph is the
+   honest starting state, by design.
+
 ## Rollback
 
 Pin the app services to a previous image tag (CI tags every image with its

@@ -197,6 +197,35 @@ services:
         condition: service_started
     restart: "no"
 
+  # Librarian identity worker (ADR 0057). Never starts with the normal stack —
+  # only via the operator one-offs:
+  #   docker compose --profile librarian run --rm librarian profile
+  #   docker compose --profile librarian run --rm librarian follows
+  # `profile` publishes the librarian kind-0 (display name / logo / role) to
+  # dcosl + the profile relays. `follows` publishes the kind-3 seed-follow list
+  # to the trust relays + general relays (never dcosl, which rejects kind-3) and
+  # then triggers GrapeRank for the librarian observer. The third service to hold
+  # LIBRARIAN_NSEC (after seeder/promoter) — off the internet-facing path.
+  # SEED_CURATORS and the profile content are operator-supplied out of band.
+  librarian:
+    image: ghcr.io/aburra16/unbnd-librarian:${UNBND_IMAGE_TAG:-latest}
+    profiles: ["librarian"]
+    environment:
+      - LIBRARIAN_NSEC=${LIBRARIAN_NSEC}
+      - DCOSL_RELAY_URL=${DCOSL_RELAY_URL:-wss://dcosl.brainstorm.world/}
+      - TRUST_RELAYS=${TRUST_RELAYS:-}
+      - PROFILE_RELAYS=${PROFILE_RELAYS:-}
+      - LIBRARIAN_GENERAL_RELAYS=${LIBRARIAN_GENERAL_RELAYS:-}
+      - SEED_CURATORS=${SEED_CURATORS:-}
+      - LIBRARIAN_NAME=${LIBRARIAN_NAME:-}
+      - LIBRARIAN_ABOUT=${LIBRARIAN_ABOUT:-}
+      - LIBRARIAN_PICTURE_URL=${LIBRARIAN_PICTURE_URL:-}
+      - LIBRARIAN_NIP05=${LIBRARIAN_NIP05:-}
+      - TRUST_PROVIDER=${TRUST_PROVIDER:-brainstorm}
+      - BRAINSTORM_API_URL=${BRAINSTORM_API_URL:-https://brainstormserver.nosfabrica.com}
+      - RELAY_PUBLISH_TIMEOUT_MS=${RELAY_PUBLISH_TIMEOUT_MS:-10000}
+    restart: "no"
+
   search:
     container_name: unbnd-search
     image: getmeili/meilisearch:v1.10

@@ -44,6 +44,8 @@ jobs:
             dockerfile: apps/indexer/Dockerfile
           - name: shelves
             dockerfile: apps/shelves/Dockerfile
+          - name: librarian
+            dockerfile: apps/librarian/Dockerfile
     steps:
       - name: Checkout (pinned to the built SHA)
         uses: actions/checkout@v4

@@ -127,7 +127,7 @@ export function connectRelay(
           });
         },
         query(filter: RelayFilter, timeoutMs = 10_000) {
-          return new Promise<SignedNostrEvent[]>((res) => {
+          return new Promise<SignedNostrEvent[]>((res, rej) => {
             const subId = `relay-${Math.random().toString(36).slice(2)}`;
             const timer = setTimeout(() => {
               const sub = subs.get(subId);
@@ -140,7 +140,17 @@ export function connectRelay(
               res(sub ? sub.events : []);
             }, timeoutMs);
             subs.set(subId, { events: [], resolve: res, timer });
-            ws.send(JSON.stringify(["REQ", subId, filter]));
+            // Mirror publish's send-throw guard: a synchronous transport failure
+            // on the leading REQ clears the bounded timer, drops the sub, and
+            // REJECTS — never leaving a pending timer that would fire (and send a
+            // CLOSE that throws again) after the caller already saw the error.
+            try {
+              ws.send(JSON.stringify(["REQ", subId, filter]));
+            } catch (err) {
+              clearTimeout(timer);
+              subs.delete(subId);
+              rej(err instanceof Error ? err : new Error(String(err)));
+            }
           });
         },
         close() {
