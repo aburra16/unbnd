@@ -1,6 +1,6 @@
 # Test Plan: Story 62 — Periodic maintenance sweeper (ephemeral key-map + orphaned DB sweepers)
 
-**Story:** `engineering-team/stories/62-maintenance-sweeper.md`
+**Story:** `engineering-team/stories/done/62-maintenance-sweeper.md`
 **ADR:** `engineering-team/decisions/0061-maintenance-sweeper.md`
 **Date:** 2026-06-05
 **Base commit:** `6bc96fb` (branch `story-62-maintenance-sweeper`)

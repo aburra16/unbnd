@@ -2,7 +2,7 @@
 
 **Status:** Accepted
 **Date:** 2026-06-05
-**Story:** `engineering-team/stories/62-maintenance-sweeper.md`
+**Story:** `engineering-team/stories/done/62-maintenance-sweeper.md`
 
 **Accepted 2026-06-05.** Add an idle-TTL sweep to the custodial ephemeral key store (`apps/api/src/auth/ephemeral.ts`) and a single periodic **maintenance timer** started in `main()` that runs three sweeps each tick: the ephemeral key sweep, the existing-but-unwired `sweepExpiredSessions()`, and `sweepExpiredChallenges()`. The timer is `unref()`'d (never holds the process open), fault-isolated (one sweep failing logs + does not stop the others), and configurable. Block E / PRD §2.11. No change to the wrap/unwrap crypto, the custodial signing flow, or the session/challenge lifetimes.
 

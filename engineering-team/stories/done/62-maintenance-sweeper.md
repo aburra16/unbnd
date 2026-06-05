@@ -1,6 +1,6 @@
 # Story 62: Periodic maintenance sweeper (ephemeral key-map + orphaned DB sweepers)
 
-**Status:** In progress
+**Status:** Done
 **Created:** 2026-06-05
 **Type:** Hardening (Block E)
 
@@ -50,4 +50,4 @@ For the Architect: the exact `lastUsedAt` seam + clock injection for tests (a mo
 ## Linked artifacts
 
 - ADR: `engineering-team/decisions/0061-maintenance-sweeper.md`
-- Review: `engineering-team/reviews/62-maintenance-sweeper.md` (pending)
+- Review: `engineering-team/reviews/62-maintenance-sweeper.md`
