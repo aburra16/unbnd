@@ -1,34 +1,29 @@
-// Persistent relay connection + EVENT->OK publish, for seeding to dcosl.
-// ADR 0008. One socket, sequential publishes, await the matching OK.
-// ADR 0056 §1 hardens this transport primitive: a synchronous send-throw and a
+// Persistent relay connection + EVENT->OK publish + a one-shot REQ read, for the
+// worker apps (seeder, promoter, and the Story-58 librarian). ADR 0008. One
+// socket, sequential publishes, await the matching OK.
+//
+// ADR 0056 §1 hardens the transport primitive: a synchronous send-throw and a
 // post-open close/error become a transport REJECTION (distinguishable from a
-// relay NACK, which stays a resolved {ok:false}), and the WebSocket is
-// injectable so the behavior is unit-tested without a real network.
+// relay NACK, which stays a resolved {ok:false}), and the WebSocket is injectable
+// so the behavior is unit-tested without a real network. ADR 0058 folds the
+// promoter's one-shot REQ read (`query`) onto the same hardened connection, so
+// both capabilities live in one audited place.
 import { WebSocket } from "ws";
 import type { SignedNostrEvent } from "@unbnd/schemas";
+import type {
+  PublishResult,
+  RelayConnection,
+  RelayFilter,
+  WebSocketLike,
+} from "./types";
 
-export type PublishResult =
-  | { readonly ok: true; readonly id: string }
-  | { readonly ok: false; readonly reason: string };
-
-export type RelayConnection = {
-  publish(event: SignedNostrEvent, timeoutMs?: number): Promise<PublishResult>;
-  close(): void;
-};
-
-/** The slice of the `ws` WebSocket API this module drives. */
-export type WebSocketLike = {
-  on(event: string, listener: (...args: unknown[]) => void): void;
-  once(event: string, listener: (...args: unknown[]) => void): void;
-  send(data: string): void;
-  close(): void;
-};
+export type { RelayConnection, WebSocketLike } from "./types";
 
 export type ConnectRelayOptions = {
   createWebSocket?: (url: string) => WebSocketLike;
 };
 
-/** Open a WebSocket to `url` and resolve once it is ready to publish. */
+/** Open a WebSocket to `url` and resolve once it is ready to publish/query. */
 export function connectRelay(
   url: string,
   opts: ConnectRelayOptions = {},
@@ -42,6 +37,14 @@ export function connectRelay(
       {
         resolve: (r: PublishResult) => void;
         reject: (err: Error) => void;
+        timer: NodeJS.Timeout;
+      }
+    >();
+    const subs = new Map<
+      string,
+      {
+        events: SignedNostrEvent[];
+        resolve: (e: SignedNostrEvent[]) => void;
         timer: NodeJS.Timeout;
       }
     >();
@@ -69,17 +72,35 @@ export function connectRelay(
       } catch {
         return;
       }
-      if (!Array.isArray(msg) || msg[0] !== "OK") return;
-      const id = String(msg[1]);
-      const waiter = pending.get(id);
-      if (!waiter) return;
-      clearTimeout(waiter.timer);
-      pending.delete(id);
-      waiter.resolve(
-        msg[2] === true
-          ? { ok: true, id }
-          : { ok: false, reason: String(msg[3] ?? "rejected") },
-      );
+      if (!Array.isArray(msg)) return;
+      if (msg[0] === "OK") {
+        const id = String(msg[1]);
+        const waiter = pending.get(id);
+        if (!waiter) return;
+        clearTimeout(waiter.timer);
+        pending.delete(id);
+        waiter.resolve(
+          msg[2] === true
+            ? { ok: true, id }
+            : { ok: false, reason: String(msg[3] ?? "rejected") },
+        );
+      } else if (msg[0] === "EVENT") {
+        const subId = String(msg[1]);
+        const sub = subs.get(subId);
+        if (sub && msg[2]) sub.events.push(msg[2] as SignedNostrEvent);
+      } else if (msg[0] === "EOSE") {
+        const subId = String(msg[1]);
+        const sub = subs.get(subId);
+        if (!sub) return;
+        clearTimeout(sub.timer);
+        subs.delete(subId);
+        try {
+          ws.send(JSON.stringify(["CLOSE", subId]));
+        } catch {
+          // ignore
+        }
+        sub.resolve(sub.events);
+      }
     });
 
     ws.once("open", () => {
@@ -105,9 +126,28 @@ export function connectRelay(
             }
           });
         },
+        query(filter: RelayFilter, timeoutMs = 10_000) {
+          return new Promise<SignedNostrEvent[]>((res) => {
+            const subId = `relay-${Math.random().toString(36).slice(2)}`;
+            const timer = setTimeout(() => {
+              const sub = subs.get(subId);
+              subs.delete(subId);
+              try {
+                ws.send(JSON.stringify(["CLOSE", subId]));
+              } catch {
+                // ignore
+              }
+              res(sub ? sub.events : []);
+            }, timeoutMs);
+            subs.set(subId, { events: [], resolve: res, timer });
+            ws.send(JSON.stringify(["REQ", subId, filter]));
+          });
+        },
         close() {
           for (const { timer } of pending.values()) clearTimeout(timer);
+          for (const { timer } of subs.values()) clearTimeout(timer);
           pending.clear();
+          subs.clear();
           try {
             ws.close();
           } catch {

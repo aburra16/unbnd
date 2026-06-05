@@ -1,28 +1,28 @@
-// Failing tests for Story 57 (seeder relay-publish resilience), per ADR 0056
-// §1 "Harden connectRelay (the transport primitive)".
+// Relocated from apps/seeder/test/publish-resilience.test.ts (Story 59, ADR
+// 0058 §Q3). These pin the hardened transport contract on the shared
+// `connectRelay(url, opts?)` now living in `packages/relay/src/connect.ts`.
 //
-// These pin the hardened transport contract on `connectRelay(url, opts?)`:
+// The contract (ADR 0056 §1, carried verbatim into @unbnd/relay):
 //   - opts.createWebSocket?: (url) => WebSocketLike  — an injected WS factory so
 //     open/message/close/error/send-throw are driven deterministically with no
-//     real network (ADR §1 "Injectable WebSocket").
+//     real network.
 //   - a synchronous `send` throw REJECTS the publish promise with a transport
-//     Error and clears the pending timer (ADR §1 "Send throw -> reject").
+//     Error and clears the pending timer.
 //   - a post-open `close`/`error` REJECTS every pending publish promptly (not at
 //     the 10s timeout) and marks the connection dead, so a subsequent publish
-//     rejects immediately without sending (ADR §1 "Post-open death").
+//     rejects immediately without sending.
 //   - a genuine relay NACK `["OK", id, false, reason]` still RESOLVES
-//     {ok:false, reason} (ADR §1 "Relay NACK unchanged") — a relay rejection
-//     stays distinguishable from a transport failure.
+//     {ok:false, reason} — a relay rejection stays distinguishable from a
+//     transport failure.
+//   - the happy path: open → send → OK → resolves {ok:true, id}.
 //
-// `connectRelay` already exists, so it is imported directly. The tests are RED
-// because the `opts.createWebSocket` seam does not exist yet: today
-// `connectRelay(url)` ignores a second argument and constructs the real `ws`
-// WebSocket, so the injected fake is never driven and none of the scripted
-// events reach the connection — the assertions fail (and the connect promise
-// never resolves through the fake, surfaced via a guarded timeout below).
+// RED reason (Story 59): `../src/connect` does NOT exist yet — the Implementer
+// creates it. The import fails to resolve at runtime, so every test in this
+// suite fails with a readable "Cannot find module ../src/connect" — an
+// assertion/module-level red, not a tsc wall.
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { connectRelay } from "../src/publish";
-import type { RelayConnection } from "../src/publish";
+import { connectRelay } from "../src/connect";
+import type { RelayConnection } from "../src/connect";
 import type { SignedNostrEvent } from "@unbnd/schemas";
 
 type Handler = (...args: unknown[]) => void;
@@ -81,14 +81,11 @@ function fakeWebSocket() {
 
 const EVENT = { id: "evt-1" } as unknown as SignedNostrEvent;
 
-// The hardened 2-arg signature ADR 0056 §1 adds:
+// The hardened 2-arg signature ADR 0056 §1 / ADR 0058 pins:
 //   connectRelay(url, opts?: { createWebSocket?: (url) => WebSocketLike })
-// It does not exist on `connectRelay` yet, so we pin it as a local type and cast
-// the (currently 1-arg) export to it. This keeps `pnpm -r typecheck` clean (no
-// TS2554 arity error) while the test stays RED at the assertion level: today's
-// connectRelay ignores the second arg and opens the real `ws` socket, so the
-// injected fake is never driven. Once the Implementer adds the `createWebSocket`
-// option, this cast lines up with the real signature.
+// Pinned as a local type and cast onto the export so the suite stays an
+// assertion/module-level red (missing ../src/connect) rather than a tsc arity
+// trip once the module exists.
 type HardenedConnectRelay = (
   url: string,
   opts?: { createWebSocket?: (url: string) => unknown },

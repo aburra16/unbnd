@@ -27,7 +27,7 @@ import { loadCheckpoint } from "./checkpoint";
 import { loadDescCache } from "./desc-cache";
 import { fingerprint } from "./fingerprint";
 import { capBlurb, requestWorkDescription, sanitizeDescription } from "./description";
-import { connectResilientRelay } from "./resilient-relay";
+import { connectResilientRelay } from "@unbnd/relay";
 
 const sleep = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
 const now = () => Math.floor(Date.now() / 1000);

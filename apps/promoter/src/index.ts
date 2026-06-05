@@ -19,6 +19,7 @@ import {
   type NostrEventTemplate,
   type SignedNostrEvent,
 } from "@unbnd/schemas";
+import type { PublishResult } from "@unbnd/relay";
 import { mapSubmissionToCatalogRecord, type ParsedSubmission } from "./build";
 
 /** A claimed promotion job, as the queue hands it to the loop. */
@@ -30,10 +31,6 @@ export type PromotionJob = {
   readonly attempts: number;
 };
 
-export type PublishOutcome =
-  | { readonly ok: true }
-  | { readonly ok: false; readonly reason?: string };
-
 export type PromoterDeps = {
   /** The librarian pubkey (hex) — the canonical record's author / `books` owner. */
   readonly librarianPubkey: HexPubkey;
@@ -44,9 +41,9 @@ export type PromoterDeps = {
   /** Librarian-sign a template → a signed event with an id (mirrors finalizeEvent). */
   readonly sign: (template: NostrEventTemplate) => SignedNostrEvent;
   /** Publish to the local relay. */
-  readonly publishLocal: (event: SignedNostrEvent) => Promise<PublishOutcome>;
+  readonly publishLocal: (event: SignedNostrEvent) => Promise<PublishResult>;
   /** Publish to dcosl so it propagates like every catalog record. */
-  readonly publishDcosl: (event: SignedNostrEvent) => Promise<PublishOutcome>;
+  readonly publishDcosl: (event: SignedNostrEvent) => Promise<PublishResult>;
   /** Mark a job done with the canonical event id. */
   readonly markDone: (job: PromotionJob, canonicalId: string) => Promise<void>;
   /** Mark a job failed (retriable) with a reason. */

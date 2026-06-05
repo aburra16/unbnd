@@ -18,7 +18,7 @@ import {
 } from "@unbnd/schemas";
 import { runPromotionCycle, type PromoterDeps } from "./index";
 import { createQueue } from "./queue";
-import { connectRelay } from "./relay";
+import { connectRelay } from "@unbnd/relay";
 import { createRevealQueue } from "./reveal/queue";
 import { runRevealCommand } from "./reveal/cli";
 import { runRevealCycle, type RevealDeps } from "./reveal/cycle";

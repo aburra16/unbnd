@@ -1,5 +1,6 @@
-// Failing tests for Story 57 (seeder relay-publish resilience), per ADR 0056
-// §2 "connectResilientRelay (the self-healing wrapper)".
+// Relocated from apps/seeder/test/resilient-relay.test.ts (Story 59, ADR 0058
+// §Q3). Pins the self-healing wrapper `connectResilientRelay` now living in
+// `packages/relay/src/resilient.ts` (ADR 0056 §2 body, unchanged).
 //
 // The resilient layer wraps a RelayConnection: a transport REJECTION triggers a
 // reconnect + bounded exponential-backoff retry of the SAME event; a RESOLVED
@@ -12,31 +13,15 @@
 // asked to wait and resolves immediately — so the backoff schedule is asserted
 // without any real timers or sockets.
 //
-// `resilient-relay` is loaded via the opaque specifier loader (see _load.ts) so
-// the not-yet-existing module is a clean assertion-level red ("module not
-// found" as a readable test failure), not a tsc TS2307 compile wall.
+// ADR 0058 §Q3: the seeder's `_load.ts` opaque-loader indirection is DROPPED.
+// In @unbnd/relay the module exists at `../src/resilient`, so this is a DIRECT
+// static import. The suite is RED for Story 59 because `../src/resilient` (and
+// `../src/types`) do not exist yet — the Implementer creates them — so the
+// import fails to resolve: a readable module-level red, not a tsc wall.
 import { describe, expect, it, vi } from "vitest";
-import { loadSeederModule } from "./_load";
-import type { PublishResult, RelayConnection } from "../src/publish";
+import { connectResilientRelay } from "../src/resilient";
+import type { PublishResult, RelayConnection } from "../src/types";
 import type { SignedNostrEvent } from "@unbnd/schemas";
-
-type ConnectResilientRelayOpts = {
-  url: string;
-  connect?: (url: string) => Promise<RelayConnection>;
-  attempts?: number;
-  baseMs?: number;
-  maxMs?: number;
-  sleep?: (ms: number) => Promise<void>;
-  onReconnect?: (info: unknown) => void;
-};
-
-type ResilientRelayModule = {
-  connectResilientRelay: (
-    opts: ConnectResilientRelayOpts,
-  ) => Promise<RelayConnection>;
-};
-
-const load = () => loadSeederModule<ResilientRelayModule>("resilient-relay");
 
 // A minimal signed event; only `.id` is read by the publish path under test.
 const EVENT = { id: "evt-1" } as unknown as SignedNostrEvent;
@@ -44,7 +29,8 @@ const EVENT = { id: "evt-1" } as unknown as SignedNostrEvent;
 /**
  * A scripted RelayConnection whose `publish` plays back the supplied steps in
  * order. Each step is either a resolved PublishResult or a rejection (an Error
- * standing in for a transport failure). `close` is a spy.
+ * standing in for a transport failure). `query` is a no-op (the seeder/resilient
+ * publish path under test never reads). `close` is a spy.
  */
 type Step = { resolve: PublishResult } | { reject: Error };
 function scriptedConnection(steps: Step[]): RelayConnection & {
@@ -63,6 +49,9 @@ function scriptedConnection(steps: Step[]): RelayConnection & {
         ? Promise.reject(step.reject)
         : Promise.resolve(step.resolve);
     },
+    query(): Promise<SignedNostrEvent[]> {
+      return Promise.resolve([]);
+    },
     close,
   };
   return conn;
@@ -80,8 +69,6 @@ function fakeSleep() {
 
 describe("connectResilientRelay — transient reject is ridden through", () => {
   it("reconnects and retries when the first publish rejects, then surfaces a single {ok:true}", async () => {
-    const { connectResilientRelay } = await load();
-
     // First underlying connection: its publish rejects (transport drop).
     const first = scriptedConnection([{ reject: new Error("broken pipe") }]);
     // Second connection (after reconnect): its publish resolves ok.
@@ -112,8 +99,6 @@ describe("connectResilientRelay — transient reject is ridden through", () => {
 
 describe("connectResilientRelay — sustained outage exhausts then throws", () => {
   it("retries up to `attempts` with capped exponential backoff, then throws a clear error", async () => {
-    const { connectResilientRelay } = await load();
-
     // Every underlying publish rejects: a genuine sustained outage.
     const makeDead = () =>
       scriptedConnection([{ reject: new Error("ECONNRESET") }]);
@@ -139,8 +124,6 @@ describe("connectResilientRelay — sustained outage exhausts then throws", () =
   });
 
   it("caps the backoff at maxMs once baseMs*2^i would exceed it", async () => {
-    const { connectResilientRelay } = await load();
-
     const connect = vi.fn(() =>
       Promise.resolve(scriptedConnection([{ reject: new Error("down") }])),
     );
@@ -164,8 +147,6 @@ describe("connectResilientRelay — sustained outage exhausts then throws", () =
 
 describe("connectResilientRelay — a relay NACK is not a transport failure", () => {
   it("returns a resolved {ok:false} as-is without reconnecting or sleeping", async () => {
-    const { connectResilientRelay } = await load();
-
     const only = scriptedConnection([
       { resolve: { ok: false, reason: "blocked" } },
     ]);
@@ -195,8 +176,6 @@ describe("connectResilientRelay — a relay NACK is not a transport failure", ()
 
 describe("connectResilientRelay — happy path does not reconnect", () => {
   it("returns {ok:true} on the first try with no extra connect and no sleep", async () => {
-    const { connectResilientRelay } = await load();
-
     const only = scriptedConnection([{ resolve: { ok: true, id: "evt-1" } }]);
     const connect = vi.fn(() => Promise.resolve(only));
     const { sleep, delays } = fakeSleep();
@@ -221,8 +200,6 @@ describe("connectResilientRelay — happy path does not reconnect", () => {
 
 describe("connectResilientRelay — ADR defaults apply when knobs are omitted", () => {
   it("defaults to 6 attempts / 500ms base / 8000ms cap (asserted via the exhaustion schedule)", async () => {
-    const { connectResilientRelay } = await load();
-
     const connect = vi.fn(() =>
       Promise.resolve(scriptedConnection([{ reject: new Error("down") }])),
     );
@@ -247,8 +224,6 @@ describe("connectResilientRelay — ADR defaults apply when knobs are omitted", 
 
 describe("connectResilientRelay — close() delegates to the current connection", () => {
   it("closes the underlying connection that is currently held", async () => {
-    const { connectResilientRelay } = await load();
-
     const only = scriptedConnection([{ resolve: { ok: true, id: "evt-1" } }]);
     const connect = vi.fn(() => Promise.resolve(only));
     const { sleep } = fakeSleep();
