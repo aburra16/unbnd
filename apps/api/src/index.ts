@@ -36,7 +36,12 @@ import { reconcileCustodialKind0 } from "./profile/reconcile-kind0";
 import { distinctFollowCount } from "./profile/follow-count";
 import { withUpSync } from "./nostr/propagate";
 import { resolveTrustProvider } from "./trust";
-import { queryEvents, queryEventsPaged } from "./nostr/query";
+import { queryEvents, queryEventsPaged, queryRelayUrlChecked } from "./nostr/query";
+import {
+  checkUpsyncBacklog,
+  getUpsyncHealth,
+  startUpsyncHealthMonitor,
+} from "./health/upsync";
 import { resolveProvider, reindexBook as reindexBookHelper } from "@unbnd/search";
 import {
   asHexPubkey,
@@ -176,6 +181,7 @@ async function main() {
       probeTapestry: () => probeTapestry(config),
       probePostgres: () => probePostgres(config),
       searchProvider,
+      readUpsyncHealth: getUpsyncHealth,
     }),
   );
 
@@ -573,6 +579,30 @@ async function main() {
       sessions: () => sweepExpiredSessions(),
       challenges: () => sweepExpiredChallenges(),
     },
+    // eslint-disable-next-line no-console
+    log: console.log,
+  });
+
+  // Up-sync sync-health monitor (ADR 0062, Story 63): periodically diff a bounded
+  // recent window of local community writes (kind-39999 ratings + tag assertions)
+  // against dcosl and cache the result for GET /health/sync. Best-effort,
+  // unref()'d, fault-isolated; never touches the request path. Reads degrade to
+  // `unknown` when dcosl/librarian is unconfigured.
+  const upsyncWindowMs = config.upsyncCheckWindowMs ?? 30 * 60 * 1000;
+  const upsyncLimit = config.upsyncCheckLimit ?? 500;
+  startUpsyncHealthMonitor({
+    intervalMs: config.upsyncCheckIntervalMs ?? 5 * 60 * 1000,
+    check: () =>
+      checkUpsyncBacklog({
+        readLocal: (f) => queryRelayUrlChecked(config.strfryUrl, f),
+        readDcosl: config.dcoslRelayUrl
+          ? (f) => queryRelayUrlChecked(config.dcoslRelayUrl as string, f)
+          : null,
+        librarianPubkey: config.librarianPubkey ?? null,
+        now: Date.now,
+        windowMs: upsyncWindowMs,
+        limit: upsyncLimit,
+      }),
     // eslint-disable-next-line no-console
     log: console.log,
   });

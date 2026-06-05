@@ -7,7 +7,9 @@ import type { SignedNostrEvent } from "@unbnd/schemas";
 export type NostrFilter = {
   readonly kinds?: number[];
   readonly authors?: string[];
+  readonly ids?: string[];
   readonly limit?: number;
+  readonly since?: number;
   readonly until?: number;
   // Tag filters such as "#a", "#t".
   readonly [tagFilter: `#${string}`]: string[] | undefined;
@@ -67,6 +69,69 @@ export function queryRelayUrl(
     });
 
     ws.on("error", () => finish());
+  });
+}
+
+/**
+ * Success-signalling one-shot REQ→EOSE read (ADR 0062 §2). Unlike
+ * `queryRelayUrl` (which resolves-on-error, making a failed read
+ * indistinguishable from "0 events"), this resolves `{ ok:true, events }` only
+ * when EOSE was demonstrably seen within the timeout, and `{ ok:false,
+ * events:[] }` on timeout / socket error. The sync-health check needs that
+ * distinction so an unreachable dcosl is never mistaken for "in-sync".
+ * `queryRelayUrl`/`queryEvents` stay byte-identical (resolve-on-error, bare
+ * array); this is an additive sibling.
+ */
+export function queryRelayUrlChecked(
+  relayUrl: string,
+  filter: NostrFilter,
+  timeoutMs = QUERY_TIMEOUT_MS,
+): Promise<{ ok: boolean; events: SignedNostrEvent[] }> {
+  return new Promise<{ ok: boolean; events: SignedNostrEvent[] }>((resolve) => {
+    const collected: SignedNostrEvent[] = [];
+    let settled = false;
+    const finish = (ok: boolean) => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timer);
+      try {
+        ws.close();
+      } catch {
+        // ignore
+      }
+      resolve(ok ? { ok: true, events: collected } : { ok: false, events: [] });
+    };
+
+    const ws = new WebSocket(relayUrl);
+    const timer = setTimeout(() => {
+      try {
+        ws.terminate();
+      } catch {
+        // ignore
+      }
+      finish(false);
+    }, timeoutMs);
+
+    ws.on("open", () => {
+      ws.send(JSON.stringify(["REQ", SUB_ID, filter]));
+    });
+
+    ws.on("message", (data) => {
+      let msg: unknown;
+      try {
+        msg = JSON.parse(data.toString());
+      } catch {
+        return;
+      }
+      if (!Array.isArray(msg) || msg[1] !== SUB_ID) return;
+      if (msg[0] === "EVENT" && msg[2] && typeof msg[2] === "object") {
+        collected.push(msg[2] as SignedNostrEvent);
+      } else if (msg[0] === "EOSE") {
+        finish(true);
+      }
+    });
+
+    ws.on("error", () => finish(false));
   });
 }
 
