@@ -1,9 +1,11 @@
 # Test Plan: Story 56 — Prune existing catalog junk via a read-time filter
 
-**Story:** `engineering-team/stories/56-catalog-prune.md`
+**Story:** `engineering-team/stories/done/56-catalog-prune.md`
 **ADR:** `engineering-team/decisions/0055-catalog-prune.md` (Accepted — read-time filter, NOT NIP-09 deletion)
 **Date:** 2026-06-05
 **Branch:** `story-56-catalog-prune`
+
+> **Refinement (2026-06-05, applied in the green commit):** "missing cover" was DROPPED as a read-time junk signal (see ADR 0055's "Refinement" note). `parseBook` serves community submissions + author overlays + user shelves where `coverUrl` is optional legitimate content, so a cover-less record is KEPT, not junk. The cover rows below describe the original red set; the implemented tests assert cover-less → kept. The other four signals (missing title/author, denylist title, present out-of-range year) are unchanged.
 
 ## Scope
 

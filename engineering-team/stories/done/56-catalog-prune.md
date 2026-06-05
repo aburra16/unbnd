@@ -1,6 +1,6 @@
 # Story 56: Prune existing catalog junk that fails the legitimacy gate
 
-**Status:** In progress
+**Status:** Done
 **Created:** 2026-06-04
 **Type:** Feature / Data
 
@@ -53,4 +53,4 @@ For the Tester / Implementer:
 - **Decision:** `engineering-team/decisions/0055-catalog-prune.md` — the read-time-filter design (shared oracle home + name, indexer filter site, the API read-path map, the flush decision, the book-detail 404 decision, and the recorded weakness vs hard-delete).
 - **Depends on:** Story 55 / ADR 0054 — the legitimacy gate is the source of the shared junk signals and `JUNK_TITLE_RE`; ADR 0054 also preserves the set-aside kind-5 hard-delete design.
 - Test plan: (filled in after Test Design phase)
-- Review: `engineering-team/reviews/56-catalog-prune.md` (pending).
+- Review: `engineering-team/reviews/56-catalog-prune.md` (PASS, 2026-06-05).

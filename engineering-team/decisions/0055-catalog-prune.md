@@ -2,7 +2,7 @@
 
 **Status:** Accepted
 **Date:** 2026-06-05
-**Story:** `engineering-team/stories/56-catalog-prune.md`
+**Story:** `engineering-team/stories/done/56-catalog-prune.md`
 
 ## Context
 
