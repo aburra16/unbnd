@@ -48,6 +48,13 @@ export type PromoterDeps = {
   readonly markDone: (job: PromotionJob, canonicalId: string) => Promise<void>;
   /** Mark a job failed (retriable) with a reason. */
   readonly markFailed: (job: PromotionJob, reason: string) => Promise<void>;
+  /**
+   * Best-effort index-on-write hook (Story 60 / ADR 0059 §5). Fired AFTER the
+   * durable publish + markDone so a freshly promoted book is findable in search
+   * WITHOUT a batch run. A reindex failure is logged + swallowed and NEVER fails
+   * the job (markDone is the contract). Absent → no live index update.
+   */
+  readonly reindexBook?: (bookSlug: string) => Promise<void> | void;
   /** Wall-clock for the signed event's created_at; deterministic in tests. */
   readonly now?: () => number;
 };
@@ -100,6 +107,21 @@ async function promoteOne(deps: PromoterDeps, job: PromotionJob): Promise<void> 
     return;
   }
   await deps.markDone(job, signed.id);
+
+  // Best-effort index-on-write (ADR 0059 §5): only AFTER the durable publish +
+  // markDone (the contract). A reindex failure is logged + swallowed and NEVER
+  // fails the job (markDone already ran).
+  if (deps.reindexBook) {
+    try {
+      await deps.reindexBook(job.slug);
+    } catch (err) {
+      console.warn(
+        `[index-on-write] promoter reindex ${job.slug} failed: ${
+          err instanceof Error ? err.message : String(err)
+        }`,
+      );
+    }
+  }
 }
 
 /** One promotion run: claim, then process each job independently. */

@@ -37,7 +37,14 @@ import { distinctFollowCount } from "./profile/follow-count";
 import { withUpSync } from "./nostr/propagate";
 import { resolveTrustProvider } from "./trust";
 import { queryEvents, queryEventsPaged } from "./nostr/query";
-import { resolveProvider } from "@unbnd/search";
+import { resolveProvider, reindexBook as reindexBookHelper } from "@unbnd/search";
+import {
+  asHexPubkey,
+  buildBookRecordsHeaderAddress,
+  buildBookTagsHeaderAddress,
+  buildBookTagAssertionsHeaderAddress,
+  formatAddress,
+} from "@unbnd/schemas";
 import {
   createCustodialUser,
   createOrLoadSovereignUser,
@@ -478,7 +485,36 @@ async function main() {
       queryPaged: userEventDeps.queryPaged,
     }),
   );
-  app.use("/", buildTagsRouter(userEventDeps));
+  // Index-on-write (Story 60 / ADR 0059 §4): a best-effort, fire-and-forget
+  // single-book reindex fired by the tags route AFTER a durable assertion
+  // publish. The reader issues three scoped, per-book relay reads (ADR 0059 §3):
+  // the book record (#z books-header + #d slug), the taxonomy (#z book-tags),
+  // and THIS book's assertions (#z assertions + #a book address). The doc is
+  // rebuilt via the shared @unbnd/search builder (RAW consensus) and upserted
+  // through the resolved SearchProvider; the helper swallows all failures.
+  const lib = config.librarianPubkey ? asHexPubkey(config.librarianPubkey) : undefined;
+  const booksZ = lib ? formatAddress(buildBookRecordsHeaderAddress(lib)) : "";
+  const tagsZ = lib ? formatAddress(buildBookTagsHeaderAddress(lib)) : "";
+  const assertZ = lib ? formatAddress(buildBookTagAssertionsHeaderAddress(lib)) : "";
+  const makeBookReader = (slug: string) => async () => {
+    const bookAddr = `39999:${lib}:${slug}`;
+    const [bookEvents, taxonomyEvents, assertionEvents] = await Promise.all([
+      queryEvents(config, { kinds: [39999], "#z": [booksZ], "#d": [slug], limit: 1 }),
+      queryEvents(config, { kinds: [39999], "#z": [tagsZ] }),
+      queryEvents(config, { kinds: [39999], "#z": [assertZ], "#a": [bookAddr] }),
+    ]);
+    return { bookEvent: bookEvents[0] ?? null, taxonomyEvents, assertionEvents };
+  };
+  const reindexBook = (slug: string): void => {
+    if (!lib) return; // no librarian configured → no live index path
+    void reindexBookHelper(
+      searchProvider,
+      makeBookReader(slug),
+      slug,
+      new Date().getUTCFullYear(),
+    );
+  };
+  app.use("/", buildTagsRouter({ ...userEventDeps, reindexBook }));
   app.use("/", buildShelvesRouter(userEventDeps));
   app.use(
     "/",

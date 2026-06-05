@@ -12,6 +12,7 @@ export type PublishResult =
 export type RelayFilter = {
   kinds?: number[];
   authors?: string[];
+  "#a"?: string[];
   "#d"?: string[];
   "#z"?: string[];
   limit?: number;

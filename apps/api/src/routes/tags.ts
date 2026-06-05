@@ -53,6 +53,15 @@ export type TagsDeps = {
   ) => Promise<SignedNostrEvent | null>;
   /** Trust-weighting source (ADR 0014/0025). Absent → raw community reads. */
   readonly trust?: TrustProvider;
+  /**
+   * Best-effort index-on-write hook (Story 60 / ADR 0059 §4). Fired
+   * fire-and-forget AFTER a durable assertion publish succeeds, with the book
+   * slug, on BOTH the sovereign and custodial branches. Absent → no live index
+   * update (a deployment without search degrades cleanly; the batch indexer is
+   * the backstop). The route decides WHETHER to reindex; the shared
+   * @unbnd/search `reindexBook` helper decides HOW.
+   */
+  readonly reindexBook?: (bookSlug: string) => void;
 };
 
 function cookieOf(req: Request): string | undefined {
@@ -81,6 +90,37 @@ function payloadTagSlug(event: SignedNostrEvent): string | undefined {
     return assertion.tagSlug;
   } catch {
     return undefined;
+  }
+}
+
+/**
+ * The CANONICAL asserted BOOK slug from a signed assertion event's parsed JSON
+ * payload (`bookTagAssertion.bookSlug`) — the SAME field the index-on-write
+ * doc-build keys on. Returns undefined if the payload can't be parsed.
+ */
+function payloadBookSlug(event: SignedNostrEvent): string | undefined {
+  try {
+    const assertion = fromBookTagAssertionEvent(
+      fromWireEvent({ kind: event.kind, content: event.content, tags: event.tags }) as never,
+    );
+    return assertion.bookSlug;
+  } catch {
+    return undefined;
+  }
+}
+
+/**
+ * Fire the best-effort index-on-write hook (ADR 0059 §4) fire-and-forget: only
+ * when a slug + hook are present, and wrapped so a SYNCHRONOUS throw from the
+ * injected hook never reaches the route (the 200 must return regardless — the
+ * shared `reindexBook` helper already swallows async failures internally).
+ */
+function fireReindex(deps: TagsDeps, bookSlug: string | undefined): void {
+  if (!deps.reindexBook || !bookSlug) return;
+  try {
+    deps.reindexBook(bookSlug);
+  } catch {
+    // best-effort: never fails the user write (ADR 0059 §7)
   }
 }
 
@@ -367,6 +407,9 @@ export function buildTagsRouter(deps: TagsDeps): Router {
         if (!published.ok) {
           return void res.status(502).json({ error: { code: "publish_failed", message: "Could not publish." } });
         }
+        // Best-effort index-on-write (ADR 0059 §4): only on durable publish
+        // success, fire-and-forget, never blocks or fails the 200.
+        fireReindex(deps, bookSlug as string | undefined);
         return void res.status(200).json({ ok: true });
       }
 
@@ -376,6 +419,9 @@ export function buildTagsRouter(deps: TagsDeps): Router {
       if (!published.ok) {
         return void res.status(502).json({ error: { code: "publish_failed", message: "Could not publish." } });
       }
+      // Best-effort index-on-write (ADR 0059 §4): the book slug comes from the
+      // SAME canonical payload field the read keys off (bookTagAssertion.bookSlug).
+      fireReindex(deps, payloadBookSlug(event as SignedNostrEvent));
       res.status(200).json({ ok: true });
     } catch (err) {
       next(err);
