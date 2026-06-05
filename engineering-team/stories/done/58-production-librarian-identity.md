@@ -1,6 +1,6 @@
 # Story 58: Production librarian identity (adopt + secure) and the house-observer swap enablers
 
-**Status:** In progress
+**Status:** Done
 **Created:** 2026-06-05
 **Type:** Feature / Ops
 
@@ -111,5 +111,5 @@ For the Architect to resolve during the Architecture phase (the PO does not answ
 - PRD: §2.0 (sequencing / trust-data decoupling), **§2.1 (production librarian identity — adopt + secure, the keystone)**, §2.5 (house-observer swap + trust-weighted consensus — its last unmet criterion is what this unblocks).
 - Reuses: Story 57 / ADR 0056 (resilient relay client), Story 23 / ADR-0031 era kind-3 follow path (`follow-template.ts`, the ADR-0031 `LIBRARIAN_NSEC`-off-API guard), the fixture provider + seed harness (ADR 0017, `ops/trust-seed-harness.md`).
 - ADR: `engineering-team/decisions/0057-production-librarian-identity.md` (Architect to write).
-- Test plan: (filled in after Test Design phase)
-- Review: (filled in after Review phase)
+- Test plan: `engineering-team/stories/done/58-production-librarian-identity.test-plan.md`
+- Review: `engineering-team/reviews/58-production-librarian-identity.md` (PASS, 2026-06-05)

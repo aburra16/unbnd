@@ -2,7 +2,7 @@
 
 **Status:** Accepted
 **Date:** 2026-06-05
-**Story:** `engineering-team/stories/58-production-librarian-identity.md`
+**Story:** `engineering-team/stories/done/58-production-librarian-identity.md`
 
 **Accepted 2026-06-05.** Stand up the engineering mechanisms that let the operator publish Unbnd's own librarian identity (kind-0 profile + kind-3 seed-follow list), register it for GrapeRank, manage its secret safely, and swap the house observer onto it. The librarian publishers ship as **one new profile-gated worker, `apps/librarian`**, with two subcommands — `profile` (publish kind-0) and `follows` (publish kind-3 + trigger GrapeRank) — mirroring the seeder/promoter pattern so `LIBRARIAN_NSEC` stays off the API (the ADR-0031 guard stays green). The decided values below let the Tester write the red set against pure builders + a mocked provider, and let the Implementer build with no further design calls. No change to the trust-weighting machinery (§2.5), no web/UI/API behavioral change, no catalog re-signing, no new DList shape.
 

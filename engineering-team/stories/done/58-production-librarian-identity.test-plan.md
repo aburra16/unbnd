@@ -1,6 +1,6 @@
 # Test Plan: Story 58 — Production librarian identity (adopt + secure) and the house-observer swap enablers
 
-**Story:** `engineering-team/stories/58-production-librarian-identity.md`
+**Story:** `engineering-team/stories/done/58-production-librarian-identity.md`
 **ADR:** `engineering-team/decisions/0057-production-librarian-identity.md`
 **Date:** 2026-06-05
 
