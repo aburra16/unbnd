@@ -75,24 +75,6 @@ describe("parseBook — returns null for junk (Story 56, ADR 0055 §3)", () => {
     expect(parseBook(bookEvent({ slug: "j1", title: "Summary of Dune" }), CURRENT_YEAR)).toBeNull();
   });
 
-  it("returns null for a record missing a cover", async () => {
-    const { parseBook } = await load();
-    const rec: BookRecord = {
-      slug: "no-cover",
-      title: "Cover-less Book",
-      authorName: "Some Author",
-      format: "reference",
-      source: "openlibrary",
-      parentHeader: HDR,
-      blurb: "x",
-      publishYear: 2000,
-      // coverUrl intentionally omitted
-    };
-    const t = toWireTemplate(toBookRecordEvent(rec), 1);
-    const e = { id: "no-cover", pubkey: LIB, sig: "x", ...t } as SignedNostrEvent;
-    expect(parseBook(e, CURRENT_YEAR)).toBeNull();
-  });
-
   it("returns null for a record with a publishYear after currentYear", async () => {
     const { parseBook } = await load();
     expect(
@@ -124,5 +106,30 @@ describe("parseBook — conservative: a plausible legacy record still parses", (
     const book = parseBook(e, CURRENT_YEAR);
     expect(book).not.toBeNull();
     expect(book?.slug).toBe("legacy");
+  });
+
+  // Refinement 2026-06-05 (ADR 0055 §1): cover is NOT a read-time junk signal.
+  // parseBook is the choke point for community submissions and author overlays
+  // where coverUrl is OPTIONAL legitimate content (it renders with the gradient
+  // fallback), so a cover-less but otherwise-clean record must parse, not return
+  // null.
+  it("returns a PublicBook for a record missing a cover (cover is not a junk signal)", async () => {
+    const { parseBook } = await load();
+    const rec: BookRecord = {
+      slug: "no-cover",
+      title: "Cover-less Book",
+      authorName: "Some Author",
+      format: "reference",
+      source: "openlibrary",
+      parentHeader: HDR,
+      blurb: "x",
+      publishYear: 2000,
+      // coverUrl intentionally omitted
+    };
+    const t = toWireTemplate(toBookRecordEvent(rec), 1);
+    const e = { id: "no-cover", pubkey: LIB, sig: "x", ...t } as SignedNostrEvent;
+    const book = parseBook(e, CURRENT_YEAR);
+    expect(book).not.toBeNull();
+    expect(book?.slug).toBe("no-cover");
   });
 });

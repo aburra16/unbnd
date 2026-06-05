@@ -87,7 +87,10 @@ describe("buildSearchDocuments — skips junk records (Story 56, ADR 0055 §2)",
     expect(docs.map((d) => d.id)).not.toContain("junk-title");
   });
 
-  it("excludes a record with a missing cover", async () => {
+  // Refinement 2026-06-05 (ADR 0055 §1): cover is NOT a junk signal. A cover-less
+  // but otherwise-clean record is legitimate content and is STILL indexed (it
+  // renders with the gradient fallback rather than being hidden).
+  it("indexes a record with a missing cover (cover is not a junk signal)", async () => {
     const { buildSearchDocuments } = await load();
     // Build a clean event, then strip the cover tag/payload to simulate a stored
     // cover-less record (an explicit absent coverUrl).
@@ -105,7 +108,7 @@ describe("buildSearchDocuments — skips junk records (Story 56, ADR 0055 §2)",
     const t = toWireTemplate(toBookRecordEvent(rec), 1);
     const e = { id: "no-cover", pubkey: LIB, sig: "x", ...t } as SignedNostrEvent;
     const docs = buildSearchDocuments([e], [], [], CURRENT_YEAR);
-    expect(docs.map((d) => d.id)).not.toContain("no-cover");
+    expect(docs.map((d) => d.id)).toContain("no-cover");
   });
 
   it("excludes a record with an out-of-range publishYear (> currentYear)", async () => {

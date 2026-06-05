@@ -13,9 +13,9 @@ import {
 import { resolveProvider, type ProviderName } from "@unbnd/search";
 import { queryRelay, queryAllPages } from "./relay";
 import { buildSearchDocuments } from "./build-documents";
+import { runIndex } from "./run-index";
 
 const KIND = 39999;
-const BATCH = 500;
 
 function env(name: string, fallback?: string): string {
   const v = process.env[name];
@@ -53,15 +53,10 @@ async function main() {
     `[indexer] read ${books.length} books, ${taxonomy.length} taxonomy, ${assertions.length} assertions`,
   );
 
-  const docs = buildSearchDocuments(books, taxonomy, assertions);
+  const docs = buildSearchDocuments(books, taxonomy, assertions, new Date().getUTCFullYear());
   console.log(`[indexer] built ${docs.length} documents`);
 
-  await provider.configureIndex();
-  for (let i = 0; i < docs.length; i += BATCH) {
-    const batch = docs.slice(i, i + BATCH);
-    await provider.index(batch);
-    console.log(`[indexer] indexed ${Math.min(i + BATCH, docs.length)}/${docs.length}`);
-  }
+  await runIndex(provider, docs);
   console.log(`[indexer] done: ${docs.length} documents indexed`);
 }
 

@@ -54,7 +54,7 @@ export function buildBooksRouter(deps: BooksDeps): Router {
         deps.query({ kinds: [KIND], "#z": [verifiedConcept()], "#a": [bookAtag(slug)] }),
         deps.query({ kinds: [KIND], "#z": [editsConcept()], "#a": [bookAtag(slug)] }),
       ]);
-      const book = bookEvents.map(parseBook).find((b): b is PublicBook => b !== null);
+      const book = bookEvents.map((e) => parseBook(e)).find((b): b is PublicBook => b !== null);
       if (!book) {
         return void res.status(404).json({ error: { code: "not_found", message: "No such book." } });
       }
@@ -116,7 +116,7 @@ export function buildBooksRouter(deps: BooksDeps): Router {
       const books = events
         .slice()
         .sort((a, b) => b.created_at - a.created_at)
-        .map(parseBook)
+        .map((e) => parseBook(e))
         .filter((b): b is PublicBook => b !== null)
         .slice(0, limit);
       res.status(200).json({ books });

@@ -6,7 +6,7 @@
 
 ## Context
 
-Story 55 / ADR 0054 shipped the catalog expansion, the legitimacy gate (`apps/seeder/src/gate.ts`), and in-place enrichment. It deliberately did **not** remove the legacy records that fail the new gate: junk seeded before the gate (vanity one-offs, study guides, pamphlets, box sets, records with no cover or an out-of-range year) persists on the relay and in the app. Story 56 makes that junk stop appearing in Unbnd.
+Story 55 / ADR 0054 shipped the catalog expansion, the legitimacy gate (`apps/seeder/src/gate.ts`), and in-place enrichment. It deliberately did **not** remove the legacy records that fail the new gate: junk seeded before the gate (vanity one-offs, study guides, pamphlets, box sets, records with an out-of-range year) persists on the relay and in the app. Story 56 makes that junk stop appearing in Unbnd.
 
 ADR 0054's "Deferred to Story 56 (prune existing junk)" subsection designed the prune as an in-protocol **NIP-09 kind-5 read→diff→delete** pass on the relay. That design carries a verified blocker (ADR 0054 §"Deletion propagation — the integration gap"): the seeder publishes to **dcosl**, but catalog data reaches the **local** strfry (the indexer's source via `STRFRY_URL`) only through the down-sync cron `/etc/cron.d/unbnd-sync` (`--dir down`), whose filter pulls **only kinds 39998/39999** (per `ops/sync-runbook.md`). A kind-5 published to dcosl never reaches the local strfry, so the indexer — which rebuilds from local relay state — would never drop the deleted book; the prune would silently no-op. Making the kind-5 prune real would require a down-sync filter change to propagate librarian kind-5, plus an unverified confirmation that the local strfry honors NIP-09 deletion on REQ (stubbed in stories 28b/30b, never exercised in this deployment).
 
@@ -14,7 +14,7 @@ ADR 0054's "Deferred to Story 56 (prune existing junk)" subsection designed the 
 
 ### Verified survey (read directly against source, 2026-06-05)
 
-- **What a read-time check can see.** The stored `BookRecord` (`packages/schemas/src/BookRecord.ts`) carries `slug`, `title`, `authorName`, `coverUrl`, `publishYear`, `subjects`, `isbn13`, `isbn10`, `openLibraryId`, `language`, `pageCount`, `blurb`, `format`, `source`. It does **not** carry `edition_count` or `readinglog_count` — those are Open-Library search-doc signals consumed by the seeder gate at collect time and never persisted. So a stored-record check has **title, author, cover, publishYear** as positive junk signals; it has **no** edition-count signal. Legacy records also frequently lack `language` and `pageCount` (they predate enrichment). This is exactly ADR 0054's conservative-diff rule: absence of edition/language/pages is **not** evidence of junk.
+- **What a read-time check can see.** The stored `BookRecord` (`packages/schemas/src/BookRecord.ts`) carries `slug`, `title`, `authorName`, `coverUrl`, `publishYear`, `subjects`, `isbn13`, `isbn10`, `openLibraryId`, `language`, `pageCount`, `blurb`, `format`, `source`. It does **not** carry `edition_count` or `readinglog_count` — those are Open-Library search-doc signals consumed by the seeder gate at collect time and never persisted. So a stored-record check has **title, author, denylist-title, publishYear** as positive junk signals; it has **no** edition-count signal and (per the Refinement below) deliberately does **not** treat a missing `coverUrl` as junk, since `parseBook` serves community/author content where cover-less is legitimate. Legacy records also frequently lack `language` and `pageCount` (they predate enrichment). This is exactly ADR 0054's conservative-diff rule: absence of edition/language/pages is **not** evidence of junk.
 - **The shared denylist lives in the seeder today.** `JUNK_TITLE_RE` and `EDITION_MIN` are exported from `apps/seeder/src/gate.ts`. The denylist is a pure, I/O-free regex with no seeder-only dependency, so it can move to a shared package and be imported by the seeder unchanged.
 - **`@unbnd/schemas` is the common import.** `apps/seeder`, `apps/indexer`, and `apps/api` all depend on `@unbnd/schemas` (`workspace:*`), and it already owns `BookRecord` and its (de)serializers. It is the natural single home for a `BookRecord`-shaped junk oracle and the denylist.
 - **The indexer build site.** `apps/indexer/src/build-documents.ts` `buildSearchDocuments()` loops `bookEvents`, calls `parse(e, fromBookRecordEvent)`, skips on parse failure (`if (!rec) continue;`), and pushes a `SearchDocument`. This is the one place documents are minted from records, and it is pure/testable. A junk record skipped here is never indexed → absent from search and genre browse.
@@ -91,11 +91,15 @@ const RECORD_YEAR_MIN = 1800;
  * Conservative by design (ADR 0054's "absence is not evidence" rule): it fires
  * ONLY on positive junk evidence and NEVER on a missing edition_count / language
  * / pageCount — legacy records lack those and absence does not make a record junk.
+ *
+ * Cover is deliberately NOT a signal (see Refinement 2026-06-05 below): the
+ * oracle runs at `parseBook`, which serves community submissions and author
+ * overlays where `coverUrl` is optional legitimate content, and a cover-less
+ * record renders with the gradient fallback rather than being hidden.
  */
 export function isJunkRecord(book: BookRecord, currentYear: number): boolean {
   if (!book.title?.trim()) return true;                       // missing/empty title
   if (!book.authorName?.trim()) return true;                  // missing/empty author
-  if (!book.coverUrl?.trim()) return true;                    // missing cover
   if (JUNK_TITLE_RE.test(book.title)) return true;            // junk-denylist title
   const y = book.publishYear;                                 // out-of-range year
   if (typeof y === "number" && (y < RECORD_YEAR_MIN || y > currentYear)) return true;
@@ -107,10 +111,12 @@ Signal-by-signal correspondence to the Story-55 gate, and the deliberate differe
 
 - **title** — positive: empty/missing → junk. (Same as gate.)
 - **author** — positive: empty/missing → junk. (Same as gate.)
-- **cover** — positive: missing `coverUrl` → junk. (The gate checks `cover_i`; the stored equivalent is `coverUrl`.)
+- **cover** — **NOT a read-time signal** (Refinement 2026-06-05). The seed-time gate checks `cover_i`, but this oracle runs at `parseBook` — the single choke point for every direct-relay read, including community submissions (`apps/api/src/submissions/template.ts`, `coverUrl?: string`) and author overlays (`OVERLAY_FIELDS` carries `coverUrl`), plus user shelves / For-You / claims. A cover-less record at this read site is legitimate user content, not junk, and renders with the existing gradient fallback rather than being hidden. So the read-time oracle deliberately does **not** flag a missing `coverUrl`. The SEED-TIME gate is unchanged.
 - **denylist** — positive: `JUNK_TITLE_RE.test(title)` → junk. The **exact** shared regex. (Same as gate.)
 - **year** — positive: a `publishYear` **present** and `< 1800` or `> currentYear` → junk. **Absent year is NOT junk** here. (The gate fails an absent year because a fresh OL search doc always carries one; a legacy stored record may legitimately lack it, and absence is not positive evidence — ADR 0054's conservative rule.)
-- **editions / language / pages — deliberately NOT checked.** `edition_count` is not stored at all. `language` and `pageCount` are absent on legacy records; absence is not evidence. Checking them would over-delete plausibly-legitimate legacy records, violating the conservative rule. The four positive signals above remove the structural junk; the stored-field oracle does not attempt the edition floor.
+- **editions / language / pages — deliberately NOT checked.** `edition_count` is not stored at all. `language` and `pageCount` are absent on legacy records; absence is not evidence. Checking them would over-delete plausibly-legitimate legacy records, violating the conservative rule. The four positive signals above (title, author, denylist, present-out-of-range year) remove the structural junk; the stored-field oracle does not attempt the edition floor and does not treat a missing cover as junk.
+
+**Refinement (2026-06-05).** The oracle initially included a fifth signal — missing `coverUrl` → junk — mirroring the seed-time gate's `cover_i` check. It was dropped once it was confirmed that `parseBook` (`apps/api/src/books/effective.ts`), the read-time site, serves **mixed** content: community submissions (`apps/api/src/submissions/template.ts`, where `coverUrl?: string` is optional) and author overlays (`OVERLAY_FIELDS` includes `coverUrl`), as well as user shelves / For-You / claims. A cover-less book at `parseBook` is therefore legitimate user content, and "missing cover = junk" would wrongly **hide** it; a cover-less book already renders with the gradient fallback. The other four signals are unambiguous junk regardless of source or surface, so they remain. The SEED-TIME gate (`apps/seeder/src/gate.ts` `gateWork`, which still requires `cover_i`) is **unchanged** — only this read-time stored-record oracle drops the cover signal. Confirming proof: 22 pre-existing test suites with legitimate cover-less fixtures were failing under the cover signal; dropping the over-aggressive signal (not adding covers to those fixtures) is what makes them pass.
 
 This is the **single oracle** used at both the indexer and the API, so the app is internally consistent (§6).
 
@@ -201,7 +207,7 @@ Concrete anchors. The Architect is read-only on source; these are targets for th
 - **No edit: `apps/api/src/routes/search.ts`** — index-covered.
 - **No edit: `packages/search/*`** — `deleteAll()` already exists (ADR 0013, `meili.ts`).
 - **No edit: `packages/schemas` serializers** — no schema change; the oracle reads existing fields.
-- **Tests (Tester's surface):** `isJunkRecord` per-signal (empty title/author/cover → junk; denylist title → junk; present out-of-range year → junk; **absent** year/language/pageCount/edition → keep; full record → keep), all sharing the moved `JUNK_TITLE_RE`; indexer build skips junk and counts it; `parseBook` returns null for junk (so `/api/books/:slug` 404s); the seeder gate's `JUNK_TITLE_RE` is the imported one (no behavior change).
+- **Tests (Tester's surface):** `isJunkRecord` per-signal (empty title/author → junk; denylist title → junk; present out-of-range year → junk; **absent** year/language/pageCount/edition → keep; **missing cover → keep** per the Refinement; full record → keep), all sharing the moved `JUNK_TITLE_RE`; indexer build skips junk and counts it; `parseBook` returns null for junk (so `/api/books/:slug` 404s); the seeder gate's `JUNK_TITLE_RE` is the imported one (no behavior change).
 
 ## Out of scope
 

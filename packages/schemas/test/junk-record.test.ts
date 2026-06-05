@@ -93,16 +93,21 @@ describe("isJunkRecord — author signal (positive junk)", () => {
   });
 });
 
-describe("isJunkRecord — cover signal (positive junk)", () => {
-  it("flags a record with a missing coverUrl (absent)", async () => {
+// Refinement 2026-06-05 (ADR 0055 §1): cover is NOT a read-time junk signal.
+// The oracle runs at parseBook, which serves community submissions and author
+// overlays where coverUrl is OPTIONAL legitimate content; a cover-less record
+// renders with the gradient fallback, not hidden. So a missing/empty cover, all
+// else equal, must NOT be flagged as junk.
+describe("isJunkRecord — cover is NOT a junk signal (ADR 0055 Refinement)", () => {
+  it("keeps a record with a missing coverUrl (absent), all else clean", async () => {
     const { isJunkRecord } = await load();
     const { coverUrl: _omit, ...noCover } = cleanBook;
-    expect(isJunkRecord(noCover as BookRecord, CURRENT_YEAR)).toBe(true);
+    expect(isJunkRecord(noCover as BookRecord, CURRENT_YEAR)).toBe(false);
   });
 
-  it("flags a record with an empty-string coverUrl", async () => {
+  it("keeps a record with an empty-string coverUrl, all else clean", async () => {
     const { isJunkRecord } = await load();
-    expect(isJunkRecord({ ...cleanBook, coverUrl: "" }, CURRENT_YEAR)).toBe(true);
+    expect(isJunkRecord({ ...cleanBook, coverUrl: "" }, CURRENT_YEAR)).toBe(false);
   });
 });
 

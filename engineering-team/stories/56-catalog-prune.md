@@ -6,7 +6,7 @@
 
 ## Background
 
-Story 55 shipped the catalog expansion, the legitimacy gate (`apps/seeder/src/gate.ts`), and in-place enrichment of still-passing books. It deliberately did **not** remove the legacy records that fail the new gate: junk seeded before the gate (vanity one-offs, study guides, pamphlets, box sets, records with no cover or an out-of-range year) persists on the relay and in the app.
+Story 55 shipped the catalog expansion, the legitimacy gate (`apps/seeder/src/gate.ts`), and in-place enrichment of still-passing books. It deliberately did **not** remove the legacy records that fail the new gate: junk seeded before the gate (vanity one-offs, study guides, pamphlets, box sets, records with an out-of-range year) persists on the relay and in the app.
 
 This story makes that junk stop appearing in Unbnd. The chosen approach is a **read-time filter**, not relay deletion. A pure junk oracle reuses the Story-55 gate's conservative junk signals on the **stored** `BookRecord`, applied at the two sites every surface flows through: the indexer (which builds the search index) and the API's `parseBook` (which serves every direct-relay book read). A junk record is never indexed and never resolves to a `PublicBook`, so it is invisible across search, genre browse, recent/home, book detail, shelves, For-You, and claimed books. The record stays on the relay; it is simply never surfaced.
 
@@ -14,12 +14,12 @@ This story makes that junk stop appearing in Unbnd. The chosen approach is a **r
 
 ## User-facing description
 
-As a Reader browsing and searching Unbnd, I want the junk records that predate the legitimacy gate (vanity one-offs, study guides, pamphlets, box sets, records with no cover or an implausible year) to be **gone** from browse, search, and book detail, so that the catalog is uniformly trustworthy rather than clean only for books added after the gate.
+As a Reader browsing and searching Unbnd, I want the junk records that predate the legitimacy gate (vanity one-offs, study guides, pamphlets, box sets, records with an implausible year) to be **gone** from browse, search, and book detail, so that the catalog is uniformly trustworthy rather than clean only for books added after the gate.
 
 ## Acceptance criteria
 
-- [ ] **The shared junk oracle.** A pure `isJunkRecord(book, currentYear)` in `@unbnd/schemas` returns true on **positive junk evidence** observable on a stored `BookRecord`: missing/empty title, missing/empty author, missing cover, junk-denylist title, or a **present** `publishYear` outside `1800..currentYear`. It is deterministic and I/O-free (`currentYear` injected).
-- [ ] **Conservative — absence is not junk.** `isJunkRecord` returns **false** (keep) when a record merely lacks `language`, `pageCount`, or a `publishYear` (an absent year is not positive evidence), and it never reads `edition_count` (not stored). A plausibly-legitimate legacy record that simply predates enrichment is never flagged.
+- [ ] **The shared junk oracle.** A pure `isJunkRecord(book, currentYear)` in `@unbnd/schemas` returns true on **positive junk evidence** observable on a stored `BookRecord`: missing/empty title, missing/empty author, junk-denylist title, or a **present** `publishYear` outside `1800..currentYear`. It is deterministic and I/O-free (`currentYear` injected). **Cover is NOT a read-time signal** (Refinement 2026-06-05): the oracle runs at `parseBook`, which serves community submissions and author overlays where `coverUrl` is optional legitimate content, so a missing cover does not flag a record as junk. The seed-time gate's `cover_i` check is unchanged.
+- [ ] **Conservative — absence is not junk.** `isJunkRecord` returns **false** (keep) when a record merely lacks `coverUrl`, `language`, `pageCount`, or a `publishYear` (an absent year is not positive evidence), and it never reads `edition_count` (not stored). A plausibly-legitimate legacy record that simply predates enrichment, or a cover-less community/author record, is never flagged.
 - [ ] **One denylist, not two.** The oracle reuses the **exact** `JUNK_TITLE_RE` from Story 55, which now lives in `@unbnd/schemas`; `apps/seeder/src/gate.ts` imports it from there. The seeder gate's behavior (`gateWork` / `gateReason`) is unchanged — there is a single denylist definition in the codebase.
 - [ ] **Indexer skips junk.** `apps/indexer/src/build-documents.ts` skips any record for which `isJunkRecord` is true (after the existing parse guard), so junk is never indexed → absent from search and genre browse. The number skipped is counted and logged.
 - [ ] **API read paths filter junk.** `parseBook` (`apps/api/src/books/effective.ts`) returns `null` for a junk record, so every direct-relay surface drops it: recent/home (`GET /api/books`), batch hydrate (`?slugs=`), house shelves, For-You, user shelves, and claimed books. The book-detail route (`GET /api/books/:slug`) returns **404** for a junk slug (it already 404s when no book parses).
