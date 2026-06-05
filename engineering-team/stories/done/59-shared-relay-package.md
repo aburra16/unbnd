@@ -1,8 +1,9 @@
 # Story 59: Extract a shared `@unbnd/relay` client; migrate seeder + promoter
 
-**Status:** In progress
+**Status:** Done
 **Created:** 2026-06-05
 **Type:** Refactor / Tech-debt
+**Review:** `engineering-team/reviews/59-shared-relay-package.md` (PASS)
 
 ## Background
 

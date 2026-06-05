@@ -1,6 +1,6 @@
 # Test Plan: Story 59 — Extract a shared `@unbnd/relay` package; migrate seeder + promoter
 
-**Story:** `engineering-team/stories/59-shared-relay-package.md`
+**Story:** `engineering-team/stories/done/59-shared-relay-package.md`
 **ADR:** `engineering-team/decisions/0058-shared-relay-package.md` (Accepted)
 **Date:** 2026-06-05
 **Branch:** `story-59-shared-relay-package`

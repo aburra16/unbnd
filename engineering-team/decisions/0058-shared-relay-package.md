@@ -2,7 +2,7 @@
 
 **Status:** Accepted
 **Date:** 2026-06-05
-**Story:** `engineering-team/stories/59-shared-relay-package.md`
+**Story:** `engineering-team/stories/done/59-shared-relay-package.md`
 
 **Accepted 2026-06-05.** Extract ONE workspace package `@unbnd/relay` that is the **union** of the two diverged worker relay clients — the seeder's Story-57 **hardened** `connectRelay` + `connectResilientRelay` (ADR 0056, publish-only) and the promoter's `connectRelay` (not hardened, but carrying a one-shot `REQ` read). The union `RelayConnection` folds `publish` + the `REQ` read (`query`) + `close`; the seeder's `PublishResult` is the single canonical result type (it is a strict superset of the promoter's `PublishOutcome`). Both workers migrate onto the package and their local copies are deleted, so the hardening + the read live in one audited place and the next worker (the Story-58 librarian) imports it instead of copying it. Pure transport-layer refactor: no event kinds, tags, DList shapes, schema, web, or API change. The only intended behavioral delta is the promoter inheriting the Story-57 hardening — strictly an improvement, verified by its existing tests staying green. `apps/api`'s own multi-relay publisher (`apps/api/src/nostr/publish.ts`) is a separate concern and is OUT of scope (verified untouched — it does not import the worker `connectRelay`).
 
