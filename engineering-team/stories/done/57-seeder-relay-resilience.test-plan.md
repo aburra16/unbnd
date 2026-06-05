@@ -1,6 +1,6 @@
 # Test Plan: Story 57 — Seeder relay-publish resilience (auto-reconnect + bounded retry)
 
-**Story:** `engineering-team/stories/57-seeder-relay-resilience.md`
+**Story:** `engineering-team/stories/done/57-seeder-relay-resilience.md`
 **ADR:** `engineering-team/decisions/0056-seeder-relay-resilience.md` (Accepted)
 **Date:** 2026-06-05
 **Branch:** `story-57-seeder-relay-resilience`

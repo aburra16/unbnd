@@ -2,7 +2,7 @@
 
 **Status:** Accepted
 **Date:** 2026-06-05
-**Story:** `engineering-team/stories/57-seeder-relay-resilience.md`
+**Story:** `engineering-team/stories/done/57-seeder-relay-resilience.md`
 
 **Accepted 2026-06-05.** Harden the seeder's transport primitive `connectRelay` (`apps/seeder/src/publish.ts`) so a dead socket is surfaced as a promise rejection rather than a thrown crash or a silent timeout grind, and add a thin self-healing wrapper `connectResilientRelay` (new `apps/seeder/src/resilient-relay.ts`) that reconnects with bounded exponential backoff and retries the failed publish. The wrapper exposes the same `RelayConnection` interface, so `index.ts` swaps it in with no change to the seed loop. A transient drop is ridden through transparently; a sustained outage throws after `RELAY_RECONNECT_ATTEMPTS` so the run exits cleanly and the operator re-runs (the epoch checkpoint resumes). A genuine relay NACK (`OK:false`) stays a resolved `{ok:false}` and is never reconnect-retried. The seeder-only scope is deliberate (the duplicate `connectRelay` in `apps/promoter` is short-lived and far less exposed; a shared-client extraction is a logged follow-up). No event-shape, schema, web, API, or checkpoint change.
 

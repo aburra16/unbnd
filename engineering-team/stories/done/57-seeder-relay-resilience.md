@@ -1,6 +1,6 @@
 # Story 57: Seeder relay-publish resilience (auto-reconnect + bounded retry)
 
-**Status:** In progress
+**Status:** Done
 **Created:** 2026-06-05
 **Type:** Hardening / Ops
 
@@ -65,6 +65,6 @@ None blocking. Retry defaults (6 attempts, 500ms→8s capped backoff) are sensib
 ## Linked artifacts
 
 - ADR: `engineering-team/decisions/0056-seeder-relay-resilience.md`
-- Test plan: `engineering-team/stories/57-seeder-relay-resilience.test-plan.md` (Tester)
-- Review: `engineering-team/reviews/57-seeder-relay-resilience.md` (pending)
+- Test plan: `engineering-team/stories/done/57-seeder-relay-resilience.test-plan.md` (Tester)
+- Review: `engineering-team/reviews/57-seeder-relay-resilience.md` (PASS)
 - Follow-up: extract a shared resilient relay client and migrate `apps/promoter` off its duplicate `connectRelay`.
