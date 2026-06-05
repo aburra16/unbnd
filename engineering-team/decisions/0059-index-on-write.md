@@ -2,7 +2,7 @@
 
 **Status:** Accepted
 **Date:** 2026-06-05
-**Story:** `engineering-team/stories/60-index-on-write.md`
+**Story:** `engineering-team/stories/done/60-index-on-write.md`
 
 ## Context
 

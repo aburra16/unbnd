@@ -1,8 +1,9 @@
 # Story 60: Index-on-write — incremental, best-effort search index updates on live API writes
 
-**Status:** In progress
+**Status:** Done
 **Created:** 2026-06-05
 **Type:** Hardening
+**Review:** `engineering-team/reviews/60-index-on-write.md` (PASS)
 
 ## Background
 
@@ -121,4 +122,4 @@ For the Architect to resolve during the Architecture phase (the PO does not answ
 
 - ADR: `engineering-team/decisions/0059-index-on-write.md` (to be written by the Architect).
 - Relates to: ADR 0013 (search provider seam — the write goes through the neutral surface), ADR 0011 / `propagate.ts` (best-effort off-critical-path side-effect pattern this mirrors), Story 56 / ADR 0055 (`isJunkRecord` read-time prune — honored on the incremental path), ADR 0035 / Story 34 (`rerank.ts` — query-time trust ranking that stays out of the index), ADR 0031 / Story 30 (`apps/promoter` — where the promotion index hook lives), ADR 0009 (`bookTagAssertion` — the primary index-on-write trigger).
-- Test plan: `engineering-team/stories/60-index-on-write.test-plan.md` (to be written in the Test-Design phase).
+- Test plan: `engineering-team/stories/done/60-index-on-write.test-plan.md`.

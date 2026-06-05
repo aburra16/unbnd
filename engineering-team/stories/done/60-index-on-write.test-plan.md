@@ -1,6 +1,6 @@
 # Test Plan: Story 60 — Index-on-write (incremental, best-effort search index updates on live writes)
 
-**Story:** `engineering-team/stories/60-index-on-write.md`
+**Story:** `engineering-team/stories/done/60-index-on-write.md`
 **ADR:** `engineering-team/decisions/0059-index-on-write.md`
 **Date:** 2026-06-05
 **Branch:** `story-60-index-on-write`
