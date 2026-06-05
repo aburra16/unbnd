@@ -134,6 +134,16 @@ never runs with the normal stack.
    ```
    It is idempotent (re-run safe) and resumable (checkpoint on the
    `seeder-data` volume), so an interrupted run continues where it left off.
+
+   The publish path rides through a transient dcosl drop (ADR 0056): on a
+   transport reject it reconnects and retries the same event with bounded
+   exponential backoff, tunable via `RELAY_RECONNECT_ATTEMPTS` (default 6),
+   `RELAY_RECONNECT_BASE_MS` (500), and `RELAY_RECONNECT_MAX_MS` (8000); a
+   sustained outage exits cleanly after the attempt budget so the checkpoint
+   resumes on a re-run. A retry after a reconnect may re-send an event the
+   relay accepted just before the drop, which is safe: kind-39999 records
+   replace in place by their deterministic d-tag, and a checkpoint key is
+   recorded only on a confirmed `{ok:true}`.
 3. **Sync the catalog into the local relay** (so the app serves it). Run once
    after seeding, then on a cron:
    ```sh

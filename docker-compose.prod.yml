@@ -121,6 +121,12 @@ services:
       # Raw OL description cache on the seeder-data volume so a re-run does not
       # re-hit Open Library (survives an epoch bump).
       - DESC_CACHE_PATH=/data/desc-cache
+      # Relay resilience (ADR 0056): ride through a transient dcosl drop by
+      # reconnecting + retrying with bounded exponential backoff; exit after
+      # ATTEMPTS on a sustained outage so the checkpoint resumes on a re-run.
+      - RELAY_RECONNECT_ATTEMPTS=${RELAY_RECONNECT_ATTEMPTS:-6}
+      - RELAY_RECONNECT_BASE_MS=${RELAY_RECONNECT_BASE_MS:-500}
+      - RELAY_RECONNECT_MAX_MS=${RELAY_RECONNECT_MAX_MS:-8000}
     volumes:
       - seeder-data:/data
     restart: "no"
