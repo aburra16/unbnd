@@ -1,6 +1,6 @@
 # Story 61: Pin profile-worker image tags to the deployed SHA
 
-**Status:** In progress
+**Status:** Done
 **Created:** 2026-06-05
 **Type:** Hardening / Ops (Block E)
 
@@ -49,5 +49,5 @@ None. CI/ops + docs only.
 ## Linked artifacts
 
 - ADR: `engineering-team/decisions/0060-image-tag-pinning.md`
-- Review: `engineering-team/reviews/61-image-tag-pinning.md` (pending)
+- Review: `engineering-team/reviews/61-image-tag-pinning.md` (PASS)
 - Lean cycle (Implement → independent Review) — CI/ops change, no app logic to red→green.

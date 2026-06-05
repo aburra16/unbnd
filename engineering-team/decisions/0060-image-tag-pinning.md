@@ -2,7 +2,7 @@
 
 **Status:** Accepted
 **Date:** 2026-06-05
-**Story:** `engineering-team/stories/61-image-tag-pinning.md`
+**Story:** `engineering-team/stories/done/61-image-tag-pinning.md`
 
 **Accepted 2026-06-05.** The staging deploy (`.github/workflows/staging.yml`) persists `UNBND_IMAGE_TAG=<DEPLOY_SHA>` into `/opt/unbnd/.env` (idempotent single-line upsert, no other line touched), so every later `docker compose` invocation — including a by-hand `--profile <p> run --rm <svc>` for a profile-gated worker — resolves `image: …unbnd-<svc>:${UNBND_IMAGE_TAG:-latest}` to the **deployed SHA** instead of a stale `:latest`. The always-on deploy is otherwise unchanged. Runbooks drop the manual `pull <svc>` / `export UNBND_IMAGE_TAG` steps. A compose-consistency guard locks "every `ghcr.io/aburra16/unbnd-*` service uses the `${UNBND_IMAGE_TAG…}` variable" so the drift can't recur. Block E / PRD §2.11.
 
