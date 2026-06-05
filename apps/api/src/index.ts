@@ -57,17 +57,25 @@ import {
   issueSession,
   resolveSession,
   revokeSession,
+  sweepExpiredSessions,
+  SESSION_LIFETIME_MS,
   tokenToId,
 } from "./auth/sessions";
 import {
   rememberSessionKey,
   forgetSessionKey,
+  sweepExpiredSessionKeys,
   useSessionKey,
   NoSessionKeyError,
 } from "./auth/ephemeral";
 import { finalizeEvent } from "nostr-tools/pure";
 import type { SignedNostrEvent } from "@unbnd/schemas";
-import { consumeChallenge, issueChallenge } from "./auth/challenges";
+import {
+  consumeChallenge,
+  issueChallenge,
+  sweepExpiredChallenges,
+} from "./auth/challenges";
+import { startMaintenanceSweeper } from "./maintenance";
 import { verifySignedChallenge } from "./auth/nostr";
 
 async function main() {
@@ -551,6 +559,22 @@ async function main() {
   app.listen(config.port, () => {
     // eslint-disable-next-line no-console
     console.log(`unbnd-api listening on :${config.port}`);
+  });
+
+  // Background hygiene (ADR 0061): evict idle custodial keys + run the expired
+  // session/challenge DB sweeps on a periodic, unref()'d, fault-isolated timer.
+  // Best-effort; never affects request handling.
+  const ephemeralKeyTtlMs = config.ephemeralKeyTtlMs ?? SESSION_LIFETIME_MS;
+  startMaintenanceSweeper({
+    intervalMs: config.maintenanceIntervalMs ?? 60 * 60 * 1000,
+    ephemeralTtlMs: ephemeralKeyTtlMs,
+    sweeps: {
+      keys: () => sweepExpiredSessionKeys(Date.now(), ephemeralKeyTtlMs),
+      sessions: () => sweepExpiredSessions(),
+      challenges: () => sweepExpiredChallenges(),
+    },
+    // eslint-disable-next-line no-console
+    log: console.log,
   });
 }
 

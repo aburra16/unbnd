@@ -18,6 +18,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   NoSessionKeyError,
+  __resetSessionKeyStore,
   forgetSessionKey,
   rememberSessionKey,
   sweepExpiredSessionKeys,
@@ -37,6 +38,12 @@ function freshSid() {
   n += 1;
   return n.toString(16).padStart(64, "0");
 }
+
+// Isolate the process-local store per test (entries otherwise leak across the
+// `it` blocks below and pollute the store-wide count assertions).
+beforeEach(() => {
+  __resetSessionKeyStore();
+});
 
 describe("sweepExpiredSessionKeys — idle eviction (ADR 0061)", () => {
   beforeEach(() => {
