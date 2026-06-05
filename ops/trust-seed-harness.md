@@ -76,6 +76,15 @@ exactly reproducible; use Mode A for deterministic demos and CI-equivalent check
 
 ---
 
+## House-observer swap
+
+Once Unbnd's own librarian identity is published and registered for GrapeRank,
+the operator moves the house point of view onto it. That procedure (publish the
+librarian kind-0 + kind-3, register GrapeRank, then the config-only
+`HOUSE_OBSERVER_PUBKEY` swap and re-verify) lives in
+[`docs/DEPLOY.md`](../docs/DEPLOY.md) under "House-observer swap and verify"
+(Story 58 / ADR 0057). Mode B above is the divergence check it references.
+
 ## Notes
 - The fixture provider and the Brainstorm provider implement the identical
   `TrustProvider` interface, so the consuming features (weighted ratings today;

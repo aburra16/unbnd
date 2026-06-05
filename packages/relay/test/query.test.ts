@@ -31,6 +31,9 @@ type Handler = (...args: unknown[]) => void;
 function fakeWebSocket() {
   const handlers = new Map<string, Handler[]>();
   const sent: string[] = [];
+  // When set, `send` throws on the first frame whose verb starts with this
+  // string — used to exercise a transport failure on the leading `REQ`.
+  let throwOnVerb: string | null = null;
 
   const add = (ev: string, fn: Handler) => {
     const list = handlers.get(ev) ?? [];
@@ -55,6 +58,12 @@ function fakeWebSocket() {
       add(ev, wrap);
     }),
     send: vi.fn((data: string) => {
+      if (throwOnVerb !== null) {
+        const parsed = JSON.parse(data) as unknown[];
+        if (Array.isArray(parsed) && parsed[0] === throwOnVerb) {
+          throw new Error(`send failed on ${throwOnVerb}`);
+        }
+      }
       sent.push(data);
     }),
     close: vi.fn(),
@@ -67,6 +76,10 @@ function fakeWebSocket() {
       emit("message", Buffer.from(JSON.stringify(["EVENT", subId, event]))),
     emitEose: (subId: string) =>
       emit("message", Buffer.from(JSON.stringify(["EOSE", subId]))),
+    // make `send` throw on the next frame with this leading verb.
+    makeSendThrowOn: (verb: string) => {
+      throwOnVerb = verb;
+    },
   };
   return ws;
 }
@@ -165,6 +178,41 @@ describe("connectRelay.query — bounded timeout resolves what accumulated", () 
     await vi.advanceTimersByTimeAsync(10_001);
 
     await expect(p).resolves.toEqual([EV_A]);
+  });
+});
+
+// NEW for Story 58 (ADR 0057): the librarian worker's fetch-existing-kind-3 step
+// is the first hot user of `query`. This hardens the leading `REQ` send: a
+// synchronous `send` throw on the `REQ` must REJECT the query (a transport
+// failure surfaced to the caller, mirroring publish's send-throw guard) AND
+// clear the bounded timer — never throw synchronously out of the call site nor
+// leak a timer that fires after the rejection.
+//
+// RED reason (Story 58): the current `query` sends the `REQ` WITHOUT a try/catch
+// (unlike `publish`), and registers the sub + timer BEFORE the send. So a send
+// throw leaves the timer pending; advancing past the timeout fires it and the
+// timer's own `ws.send(["CLOSE", …])` throws again. This case fails until the
+// Implementer guards the `REQ` send (catch → clear timer → delete sub → reject).
+describe("connectRelay.query — REQ send throw is a transport reject (Story 58)", () => {
+  it("rejects the query with a transport Error and clears the pending timer", async () => {
+    const ws = fakeWebSocket();
+    const relay = await connectWithFakeWs(ws);
+
+    ws.makeSendThrowOn("REQ");
+    const p = relay.query(FILTER, 10_000);
+
+    // A transport failure REJECTS (not a hang, not a synchronous throw at the
+    // call site).
+    await expect(p).rejects.toThrow(Error);
+
+    // The bounded timer was cleared on the reject path — no timer is left
+    // pending. (Unguarded `query` registers the sub + timer BEFORE the `REQ`
+    // send, so a send throw leaks the timer: getTimerCount() stays > 0.)
+    expect(vi.getTimerCount()).toBe(0);
+
+    // And advancing past the timeout produces no stray resolution / no second
+    // send-throw from a leaked CLOSE timer.
+    await vi.advanceTimersByTimeAsync(11_000);
   });
 });
 
