@@ -27,7 +27,7 @@ import { loadCheckpoint } from "./checkpoint";
 import { loadDescCache } from "./desc-cache";
 import { fingerprint } from "./fingerprint";
 import { capBlurb, requestWorkDescription, sanitizeDescription } from "./description";
-import { connectRelay } from "./publish";
+import { connectResilientRelay } from "./resilient-relay";
 
 const sleep = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
 const now = () => Math.floor(Date.now() / 1000);
@@ -74,6 +74,12 @@ async function main() {
   const checkpointPath = env("CHECKPOINT_PATH", "/data/seed-checkpoint");
   const checkpointEpoch = Number(env("CHECKPOINT_EPOCH", "4"));
   const descCachePath = env("DESC_CACHE_PATH", "/data/desc-cache");
+  // Relay resilience (ADR 0056): a transient dcosl drop is ridden through by
+  // reconnecting and retrying with bounded exponential backoff; a sustained
+  // outage exits after RELAY_RECONNECT_ATTEMPTS so the checkpoint resumes.
+  const reconnectAttempts = Number(env("RELAY_RECONNECT_ATTEMPTS", "6"));
+  const reconnectBaseMs = Number(env("RELAY_RECONNECT_BASE_MS", "500"));
+  const reconnectMaxMs = Number(env("RELAY_RECONNECT_MAX_MS", "8000"));
   const currentYear = new Date().getUTCFullYear();
 
   const decoded = decode(nsec);
@@ -86,7 +92,19 @@ async function main() {
 
   const checkpoint = loadCheckpoint(checkpointPath, checkpointEpoch);
   const descCache = loadDescCache(descCachePath);
-  const relay = await connectRelay(relayUrl);
+  // A retry after a reconnect may re-send an event the relay accepted just
+  // before the drop; this is safe (kind-39999 replaces in place by d-tag, and a
+  // checkpoint key is recorded only on a confirmed {ok:true}).
+  const relay = await connectResilientRelay({
+    url: relayUrl,
+    attempts: reconnectAttempts,
+    baseMs: reconnectBaseMs,
+    maxMs: reconnectMaxMs,
+    onReconnect: ({ attempt, attempts, delayMs, error }) =>
+      console.warn(
+        `[seeder] relay reconnect attempt ${attempt}/${attempts} after ${delayMs}ms: ${error.message}`,
+      ),
+  });
   console.log(
     `[seeder] librarian=${librarian.slice(0, 12)} relay=${relayUrl} ` +
       `per-subject-target=${perSubjectTarget} max-pages=${maxPages} ` +
