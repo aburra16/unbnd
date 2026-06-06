@@ -31,6 +31,6 @@ As a Trusting Reader, I want to see how closely each person who rated a book mat
 1. **Batching:** a book can have many raters, so the per-byline match wants one batched computation (the viewer vs all of the book's raters) rather than N round-trips. The exact endpoint shape is the Architect's call; the product intent is one efficient read per page.
 
 ## Linked artifacts
-- ADR: (filled in after Architecture phase)
+- ADR: `engineering-team/decisions/0065-taste-match-book-detail.md` (Accepted)
 - Test plan: (filled in after Test Design phase)
 - Review: (filled in after Review phase)
