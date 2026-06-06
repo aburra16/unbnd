@@ -33,6 +33,10 @@ As a reader (Founding Curator or Trusting Reader), I want to see how closely my 
 1. **Minimum overlap threshold** (PRD open question 1): ship a configurable minimum starting at **5 co-rated books**, tunable without a code change. (PO recommendation, approved.)
 2. **v1 metric is raw agreement** on co-rated books; the trust-weighted variant is deferred. The exact agreement formula is the Architect's call; product intent is "higher means they agree more often." (PO recommendation, approved.)
 
+## Deviations
+- **`.env.example`:** ADR 0064 Consequences said to add `TASTE_MATCH_MIN_OVERLAP` to `.env.example`. Followed the established repo convention instead: no optional-with-default knob is listed there (`CURATOR_THRESHOLD`, `SEARCH_TRUST_BLEND`, `FORYOU_*` are all absent). The knob is validated with a default of 5 in `loadConfig`.
+- **Loading skeleton:** the design guide specifies a loading skeleton for the chip. v1 renders nothing while the brief fetch is in flight and the chip appears on resolve (no flash of wrong content); the designed empty / below-threshold / value states are all implemented. The skeleton is deferred (small, non-blocking).
+
 ## Linked artifacts
 - ADR: `engineering-team/decisions/0064-taste-match-profiles.md` (Accepted)
 - Test plan: `engineering-team/stories/65-taste-match-profiles.test-plan.md`

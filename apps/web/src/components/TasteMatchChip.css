@@ -1,0 +1,11 @@
+/* Story 65 / ADR 0064 — Taste Match chip placement. Token-only (no raw values).
+   The positive state is an @unbnd/ui neutral Pill; this only positions it and
+   styles the honest empty line. */
+.taste-match-chip {
+  margin-top: var(--u-space-3);
+}
+
+.taste-match-empty {
+  margin: var(--u-space-3) 0 0;
+  color: var(--u-muted);
+}

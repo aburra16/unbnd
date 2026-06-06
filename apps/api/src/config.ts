@@ -120,6 +120,14 @@ export type Config = {
    */
   readonly foryouCandidateRaters?: number;
   /**
+   * Minimum number of co-rated books two users must share before a taste-match
+   * percentage is shown (Story 65 / ADR 0064); below it the profile shows an
+   * honest "not enough overlap yet". Env `TASTE_MATCH_MIN_OVERLAP`, validated as
+   * an integer ≥ 1, default 5. Always set by `loadConfig`; optional here only so
+   * partial test fixtures need not set it.
+   */
+  readonly tasteMatchMinOverlap?: number;
+  /**
    * Idle TTL for the custodial ephemeral key store (Story 62 / ADR 0061). A
    * wrapped session key whose `lastUsedAt` is older than this is swept. Env
    * `EPHEMERAL_KEY_TTL_MS`, validated as a positive integer, default
@@ -300,6 +308,19 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
   ) {
     throw new Error(
       `config: FORYOU_CANDIDATE_RATERS must be a positive integer ≥ 1; got ${JSON.stringify(foryouCandidateRatersRaw)}`,
+    );
+  }
+
+  // Taste-match minimum co-rated overlap (ADR 0064). Integer ≥ 1; default 5.
+  const tasteMatchMinOverlapRaw = withDefault(env, "TASTE_MATCH_MIN_OVERLAP", "5");
+  const tasteMatchMinOverlap = Number(tasteMatchMinOverlapRaw);
+  if (
+    !Number.isFinite(tasteMatchMinOverlap) ||
+    tasteMatchMinOverlap < 1 ||
+    !Number.isInteger(tasteMatchMinOverlap)
+  ) {
+    throw new Error(
+      `config: TASTE_MATCH_MIN_OVERLAP must be a positive integer ≥ 1; got ${JSON.stringify(tasteMatchMinOverlapRaw)}`,
     );
   }
 
@@ -495,6 +516,7 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
     foryouMinRatings,
     foryouBooks,
     foryouCandidateRaters,
+    tasteMatchMinOverlap,
     ephemeralKeyTtlMs,
     maintenanceIntervalMs,
     upsyncCheckWindowMs,

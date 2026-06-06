@@ -576,6 +576,15 @@ export const api = {
         `/api/profile/${encodeURIComponent(npub)}/stats`,
       );
     },
+    // Taste Match (Story 65 / ADR 0064): observer-relative agreement between the
+    // signed-in viewer and the path npub. `signedIn:false` when signed out;
+    // `self` when viewing your own profile; otherwise the match (honest below the
+    // overlap threshold). Read-time, never cached.
+    tasteMatch(npub: string) {
+      return authFetch<TasteMatchResult>(
+        `/api/profile/${encodeURIComponent(npub)}/taste-match`,
+      );
+    },
     // Follow / unfollow the kind-3 contact list (ADR 0023). Sovereign: fetch the
     // server-merged unsigned kind-3 template, sign it with NIP-07, submit.
     // Custodial: the server merges + signs. Status is the viewer's own kind-3
@@ -695,3 +704,18 @@ export const api = {
     return authFetch<ForYou>("/api/foryou");
   },
 };
+
+// Taste Match response (Story 65 / ADR 0064). Discriminated so a thresholdMet
+// match always carries its percentage. The web hides the chip on `signedIn:false`
+// and `self`.
+export type TasteMatchResult =
+  | { signedIn: false }
+  | { signedIn: true; self: true }
+  | { signedIn: true; self: false; thresholdMet: false; commonBooks: number }
+  | {
+      signedIn: true;
+      self: false;
+      thresholdMet: true;
+      commonBooks: number;
+      percentage: number;
+    };

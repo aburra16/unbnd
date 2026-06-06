@@ -109,6 +109,42 @@ export function ownRatedSlugs(events: SignedNostrEvent[]): Set<string> {
   return slugs;
 }
 
+/**
+ * Map each book the author currently rates to its score (Story 65 / ADR 0064).
+ * The same author-scoped, latest-wins-by-slug fold as `countOwnRatings` (all
+ * events share one author, so latest-wins keys by BOOK, never by pubkey), but it
+ * keeps the score so the taste-match metric can intersect two users' rating maps.
+ * Malformed events are skipped; a re-rating of the same book collapses to its
+ * latest score.
+ */
+export function scoreBySlug(events: SignedNostrEvent[]): Map<string, number> {
+  const latest = new Map<string, { createdAt: number; score: number }>();
+  for (const event of events) {
+    let bookSlug: string;
+    let score: number;
+    try {
+      const rating = fromBookRatingEvent(
+        fromWireEvent({
+          kind: event.kind,
+          content: event.content,
+          tags: event.tags,
+        }) as never,
+      );
+      bookSlug = rating.bookSlug;
+      score = rating.score;
+    } catch {
+      continue; // skip anything that is not a well-formed rating
+    }
+    const prior = latest.get(bookSlug);
+    if (!prior || event.created_at > prior.createdAt) {
+      latest.set(bookSlug, { createdAt: event.created_at, score });
+    }
+  }
+  const out = new Map<string, number>();
+  for (const [slug, v] of latest) out.set(slug, v.score);
+  return out;
+}
+
 export function rawFromParsed(deduped: ParsedRating[]): RatingsSummary {
   const count = deduped.length;
   const average = count === 0 ? null : deduped.reduce((s, r) => s + r.score, 0) / count;

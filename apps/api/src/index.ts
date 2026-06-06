@@ -14,6 +14,7 @@ import { buildHomepageShelvesRouter } from "./routes/homepage-shelves";
 import { buildForYouRouter } from "./routes/foryou";
 import { buildProfileRouter } from "./routes/profile";
 import { buildProfileStatsRouter } from "./routes/profile-stats";
+import { buildTasteMatchRouter } from "./routes/profile-taste-match";
 import { buildProfileSubstackRouter } from "./routes/profile-substack";
 import { buildProfileDisplayNameRouter } from "./routes/profile-display-name";
 import { buildProfileFollowRouter } from "./routes/profile-follow";
@@ -432,6 +433,16 @@ async function main() {
       config,
       sessionUser: resolveSessionUser,
       query: userEventDeps.query,
+      queryPaged: userEventDeps.queryPaged,
+    }),
+  );
+  // Taste Match (Story 65 / ADR 0064): observer-relative, read-time — the
+  // signed-in viewer vs the path npub. Hidden when signed out; self on own profile.
+  app.use(
+    "/",
+    buildTasteMatchRouter({
+      config,
+      sessionUser: resolveSessionUser,
       queryPaged: userEventDeps.queryPaged,
     }),
   );

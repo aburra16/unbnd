@@ -18,6 +18,7 @@ import { Avatar, Container } from "@unbnd/ui";
 import { BookGrid } from "../components/BookGrid";
 import { ProfileStats } from "../components/ProfileStats";
 import { FollowButton } from "../components/FollowButton";
+import { TasteMatchChip } from "../components/TasteMatchChip";
 import { toCardBook, shortNpub } from "../lib/view-model";
 import { useProfileMeta, displayNameOf } from "../hooks/useProfileMeta";
 import { NotFound } from "./NotFound";
@@ -110,6 +111,7 @@ export function Profile() {
               {npub}
             </p>
           )}
+          {npub && <TasteMatchChip target={npub} />}
           {meta?.about && <p className="me-about">{meta.about}</p>}
           {meta?.substack && (
             <a
