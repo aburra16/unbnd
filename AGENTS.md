@@ -114,4 +114,13 @@ If a request tries to expand into any of these, the Product Owner pauses and ask
 | Engineering team — Write failing tests | `/design-tests` |
 | Engineering team — Implement | `/implement-feature` |
 | Engineering team — Review a diff | `/review-changes` |
+| Engineering team — Close a book of work (audit + return edge) | `/close-book` |
 | Engineering team — Advisory mode | `/discuss` |
+| Product team — Discovery (problem space) | `/discover` |
+| Product team — User modeling (personas, journeys) | `/model-users` |
+| Product team — Scope & prioritization | `/scope` |
+| Product team — Domain modeling (entities) | `/model-domain` |
+| Product team — Experience design (screens, guide) | `/design-experience` |
+| Product team — Assemble the PRD + style guide | `/assemble-prd` |
+| Product team — Decompose the PRD into stories | `/decompose-stories` |
+| Product team — Advisory mode | `/discuss-product` |
