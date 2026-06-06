@@ -2,7 +2,7 @@
 
 **Status:** Accepted
 **Date:** 2026-06-06
-**Story:** `engineering-team/stories/66-taste-match-book-detail.md`
+**Story:** `engineering-team/stories/done/66-taste-match-book-detail.md`
 
 ## Context
 

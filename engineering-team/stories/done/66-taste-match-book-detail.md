@@ -1,6 +1,6 @@
 # Story 66: Taste Match on book detail, and taste-sorted raters
 
-**Status:** Approved
+**Status:** Done
 **Created:** 2026-06-06
 **Type:** Feature
 
@@ -37,5 +37,5 @@ As a Trusting Reader, I want to see how closely each person who rated a book mat
 
 ## Linked artifacts
 - ADR: `engineering-team/decisions/0065-taste-match-book-detail.md` (Accepted)
-- Test plan: `engineering-team/stories/66-taste-match-book-detail.test-plan.md`
+- Test plan: `engineering-team/stories/done/66-taste-match-book-detail.test-plan.md`
 - Review: (filled in after Review phase)

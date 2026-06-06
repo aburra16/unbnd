@@ -1,6 +1,6 @@
 # Test Plan: Story 66 — Taste Match on book detail, and taste-sorted raters
 
-**Story:** `engineering-team/stories/66-taste-match-book-detail.md`
+**Story:** `engineering-team/stories/done/66-taste-match-book-detail.md`
 **ADR:** `engineering-team/decisions/0065-taste-match-book-detail.md`
 **Date:** 2026-06-06
 
