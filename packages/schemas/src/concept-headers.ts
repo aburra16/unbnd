@@ -25,6 +25,9 @@ export const BOOK_AUTHOR_VERIFIED_HEADER_SLUG = "author-verified";
  * here. The book-tags read scans this concept (per book, #a-scoped) to surface
  * a revealed accusatory tag at read time (filter-at-view-time). */
 export const BOOK_ACCUSATORY_REVEALS_HEADER_SLUG = "accusatory-reveals";
+/** ADR 0066: trusted-user curator-role vouches z-tag here. The curator count-gate
+ * reads this concept (per subject, #p-scoped) to resolve curator status. */
+export const CURATOR_ROLES_HEADER_SLUG = "curator-roles";
 
 function header(
   librarianPubkey: HexPubkey,
@@ -109,4 +112,10 @@ export function buildBookAccusatoryRevealsHeaderAddress(
   librarianPubkey: HexPubkey,
 ): DListAddress<39998> {
   return header(librarianPubkey, BOOK_ACCUSATORY_REVEALS_HEADER_SLUG);
+}
+
+export function buildCuratorRolesHeaderAddress(
+  librarianPubkey: HexPubkey,
+): DListAddress<39998> {
+  return header(librarianPubkey, CURATOR_ROLES_HEADER_SLUG);
 }

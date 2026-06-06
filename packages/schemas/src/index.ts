@@ -10,4 +10,5 @@ export * from "./BookClaim";
 export * from "./AuthorVerifiedAssertion";
 export * from "./AccusatoryReveal";
 export * from "./BookAuthorOverlay";
+export * from "./CuratorRoleAssertion";
 export * from "./BookShelf";

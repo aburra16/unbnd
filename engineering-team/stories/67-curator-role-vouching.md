@@ -33,5 +33,5 @@ As a Founding Curator, I want my vouch for another reader to count toward making
 
 ## Linked artifacts
 - ADR: `engineering-team/decisions/0066-curator-role-vouching.md` (Accepted)
-- Test plan: (filled in after Test Design phase)
+- Test plan: `engineering-team/stories/67-curator-role-vouching.test-plan.md`
 - Review: (filled in after Review phase)
