@@ -17,6 +17,7 @@ import { buildProfileStatsRouter } from "./routes/profile-stats";
 import { buildProfileSubstackRouter } from "./routes/profile-substack";
 import { buildProfileDisplayNameRouter } from "./routes/profile-display-name";
 import { buildProfileFollowRouter } from "./routes/profile-follow";
+import { buildOlLookupRouter } from "./routes/ol-lookup";
 import { buildSearchRouter } from "./routes/search";
 import { buildTrustRouter } from "./routes/trust";
 import { buildHealthRouter } from "./routes/health";
@@ -471,6 +472,9 @@ async function main() {
     "/",
     buildSearchRouter({ searchProvider, config, query: userEventDeps.query, trust }),
   );
+  // Story 64 / ADR 0063: public, best-effort OL metadata lookup for the submit
+  // form's autofill. No session/config/trust deps; the real `fetch` proxies OL.
+  app.use("/", buildOlLookupRouter({ fetchImpl: fetch }));
   app.use(
     "/",
     buildTrustRouter({

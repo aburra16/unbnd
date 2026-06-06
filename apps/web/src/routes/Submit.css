@@ -104,6 +104,45 @@
   margin-top: var(--u-space-2);
 }
 
+/* Story 64 / ADR 0063: the OL autofill provenance line. Quiet, token-styled. */
+.sub-autofill-note {
+  font-size: var(--u-font-size-12);
+  color: var(--u-muted);
+  line-height: var(--u-leading-150);
+}
+
+/* The cover preview (ADR 0063 §4): a fixed-size cover-shaped box so a URL swap or
+ * an onError flip never reflows the form (no layout jank). Mirrors `.bh-cover`. */
+.sub-cover-preview {
+  flex: 0 0 96px;
+  width: 96px;
+  height: 144px;
+  border-radius: var(--u-radius-5);
+  overflow: hidden;
+  box-shadow: var(--u-elevation-3);
+}
+
+.sub-cover-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.sub-cover-fallback {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: flex-end;
+  padding: var(--u-space-10);
+}
+
+.sub-cover-fallback-title {
+  font-size: var(--u-font-size-11);
+  font-weight: var(--u-font-weight-semibold);
+  line-height: var(--u-leading-130);
+}
+
 .sub-submit-area {
   display: flex;
   flex-direction: column;

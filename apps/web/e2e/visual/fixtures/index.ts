@@ -15,6 +15,7 @@ import type {
   BookTags,
   ForYou,
   HomepageShelves,
+  OlLookup,
   ProfileMeta,
   ProfileStatsResponse,
   PublicBook,
@@ -112,6 +113,21 @@ const HOMEPAGE_SHELVES: HomepageShelves = {
 };
 
 const FORYOU: ForYou = { state: "anonymous", books: [] };
+
+// Story 64 / ADR 0063 §5: the OL autofill lookup body for the /submit baseline.
+// The `coverUrl` points at a same-origin `/api/*` path so the route-mock fulfills
+// it (as JSON, not an image), making the preview <img> error out to the gradient
+// fallback — the recommended self-contained capture state (no external
+// covers.openlibrary.org image, no binary fixture). The autofilled text fields +
+// the "Filled from Open Library" affordance still render.
+const OL_LOOKUP: OlLookup = {
+  found: true,
+  title: "The Fixture Novel",
+  authorName: "A. Fixture",
+  coverUrl: "/api/ol/fixture-cover.jpg",
+  pageCount: 320,
+  publishYear: 2021,
+};
 
 const TRUST_STATUS = {
   enabled: false,
@@ -217,6 +233,9 @@ const API_ROUTES: Matcher[] = [
   { test: (u) => u.pathname === "/api/foryou", body: FORYOU },
   { test: (u) => u.pathname === "/api/trust/status", body: TRUST_STATUS },
   { test: (u) => u.pathname === "/api/search", body: SEARCH_RESULT },
+  // Story 64 / ADR 0063: the OL metadata lookup the submit form debounces on a
+  // valid ISBN. Matched ahead of the catch-all so the autofill resolves.
+  { test: (u) => u.pathname === "/api/ol/lookup", body: OL_LOOKUP },
   { test: (u) => u.pathname === `/api/books/${FIXTURE_SLUG}/tags`, body: BOOK_TAGS },
   { test: (u) => u.pathname === `/api/books/${FIXTURE_SLUG}/ratings`, body: BOOK_RATINGS },
   { test: (u) => u.pathname === `/api/books/${FIXTURE_SLUG}`, body: BOOK_GET },
