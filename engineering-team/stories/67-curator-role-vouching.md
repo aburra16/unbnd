@@ -32,6 +32,6 @@ As a Founding Curator, I want my vouch for another reader to count toward making
 2. **Emergent-gate coexistence (PRD §11 Q3):** the existing Phase-2 house-weight gate (`canPromote`, weight ≥ `CURATOR_THRESHOLD`) also confers curator status, OR'd with vouching + the seed allowlist (curator = seed OR vouched OR emergent), keeping it as the cold-start fallback. (PO recommendation, approved; Architect to confirm the resolution.)
 
 ## Linked artifacts
-- ADR: (filled in after Architecture phase)
+- ADR: `engineering-team/decisions/0066-curator-role-vouching.md` (Accepted)
 - Test plan: (filled in after Test Design phase)
 - Review: (filled in after Review phase)
