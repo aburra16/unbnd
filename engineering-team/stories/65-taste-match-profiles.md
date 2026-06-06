@@ -35,5 +35,5 @@ As a reader (Founding Curator or Trusting Reader), I want to see how closely my 
 
 ## Linked artifacts
 - ADR: `engineering-team/decisions/0064-taste-match-profiles.md` (Accepted)
-- Test plan: (filled in after Test Design phase)
+- Test plan: `engineering-team/stories/65-taste-match-profiles.test-plan.md`
 - Review: (filled in after Review phase)

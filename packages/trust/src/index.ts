@@ -20,6 +20,10 @@ export type {
 export { dedupeRatings, weightedRatings } from "./ratings";
 export type { ParsedRating, PublicRating, WeightedRatings } from "./ratings";
 
+// Story 65 / ADR 0064 — observer-relative taste-match metric (raw agreement v1).
+export { computeTasteMatch } from "./taste-match";
+export type { TasteMatch } from "./taste-match";
+
 export function resolveTrustProvider(opts: TrustOptions): TrustProvider {
   switch (opts.provider) {
     case "brainstorm":
