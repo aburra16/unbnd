@@ -63,12 +63,27 @@ test.describe("visual regression", () => {
   });
 
   test("submit", async ({ page }) => {
-    await mockApi(page, { auth: "signed-out" });
+    // Story 64 / ADR 0063 §5: drive the harness INTO the populated form so the
+    // baseline captures the autofill affordance + cover preview. Signed-in so the
+    // submit affordances render in the real interactive state; the OL lookup is
+    // mocked (OL_LOOKUP) so the debounced autofill resolves deterministically.
+    await mockApi(page, { auth: "signed-in" });
     await page.goto("/submit");
-    // At-rest sentinel: the search-first duplicate-check prompt inside the form
-    // shell. No fetch at rest, so this is the deterministic baseline.
+    // Search-first: type a query, then proceed past the duplicate check.
+    await page
+      .getByLabel("Search the catalog for an existing book")
+      .fill("The Fixture Novel");
+    await page
+      .getByRole("button", { name: /Add it anyway|Add this book/i })
+      .first()
+      .click();
+    // Enter a valid ISBN to trigger the debounced OL lookup → autofill.
+    await page.locator("#sub-isbn13").fill("9780140328721");
+    // Ready-state sentinel: the autofill affordance proves the lookup resolved
+    // and the empty fields were filled. The preview renders the gradient fallback
+    // (the mocked cover URL resolves to JSON, so the <img> errors out).
     await expect(
-      page.locator(".dc-title", { hasText: "Is the book already on Unbnd?" }),
+      page.locator(".sub-autofill-note", { hasText: "Filled from Open Library" }),
     ).toBeVisible();
     await expect(page).toHaveScreenshot("submit.png", { fullPage: true });
   });
