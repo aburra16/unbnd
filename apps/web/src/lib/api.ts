@@ -592,6 +592,13 @@ export const api = {
         `/api/profile/${encodeURIComponent(npub)}/taste-match`,
       );
     },
+    // Curator status (Story 67 / ADR 0066): seed OR vouched OR emergent, resolved
+    // server-side from the house vantage. Drives the profile Curator badge.
+    curatorStatus(npub: string) {
+      return authFetch<{ isCurator: boolean }>(
+        `/api/profile/${encodeURIComponent(npub)}/curator`,
+      );
+    },
     // Follow / unfollow the kind-3 contact list (ADR 0023). Sovereign: fetch the
     // server-merged unsigned kind-3 template, sign it with NIP-07, submit.
     // Custodial: the server merges + signs. Status is the viewer's own kind-3

@@ -42,6 +42,8 @@ vi.mock("../../src/lib/api", () => ({
       followStatus: (...a: unknown[]) => followStatusMock(...a),
       claimedBooks: (...a: unknown[]) => claimedBooksMock(...a),
       meStats: (...a: unknown[]) => meStatsMock(...a),
+      // Story 67 / ADR 0066: the CuratorBadge resolves curator status on mount.
+      curatorStatus: vi.fn().mockResolvedValue({ isCurator: false }),
     },
     shelves: { mine: (...a: unknown[]) => shelvesMineMock(...a) },
     submissions: { mine: (...a: unknown[]) => submissionsMineMock(...a) },

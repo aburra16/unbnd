@@ -6,18 +6,85 @@
 // throwing seam → every count 0 → no one is a curator, never throws. Asserter
 // weights are fetched in ONE batched weights(house, [...distinct asserters]) call.
 // Clones apps/api/src/author-verified/verify.ts `computeVerification`.
-//
-// STUB (red): the real count-gate lands in implementation.
-import type { SignedNostrEvent } from "@unbnd/schemas";
+import {
+  fromCuratorRoleEvent,
+  fromWireEvent,
+  type SignedNostrEvent,
+} from "@unbnd/schemas";
 import type { TrustProvider } from "../trust";
 
+type ParsedVouch = {
+  /** The asserter who signed (the event author). */
+  asserter: string;
+  /** The subject being vouched (the #p target). */
+  subject: string;
+  polarity: number;
+  createdAt: number;
+};
+
+function parse(event: SignedNostrEvent): ParsedVouch | null {
+  try {
+    const unsigned = fromWireEvent({
+      kind: event.kind,
+      content: event.content,
+      tags: event.tags,
+    });
+    const a = fromCuratorRoleEvent(unsigned as never);
+    return {
+      asserter: event.pubkey,
+      subject: a.subjectPubkey,
+      polarity: a.polarity,
+      createdAt: event.created_at,
+    };
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * The subset of `candidateHexes` that cleared the vouch count-gate from the house
+ * vantage. Pure modulo the injected TrustProvider. Never throws.
+ */
 export async function computeCuratorStatus(
-  _events: SignedNostrEvent[],
-  _candidateHexes: readonly string[],
-  _houseObserverHex: string | undefined,
-  _floor: number,
-  _minAsserters: number,
-  _trust: TrustProvider,
+  events: SignedNostrEvent[],
+  candidateHexes: readonly string[],
+  houseObserverHex: string | undefined,
+  floor: number,
+  minAsserters: number,
+  trust: TrustProvider,
 ): Promise<string[]> {
-  throw new Error("computeCuratorStatus: not implemented (Story 67)");
+  // Dedupe per (asserter, subject) keeping the latest created_at.
+  const latest = new Map<string, ParsedVouch>();
+  for (const e of events) {
+    const a = parse(e);
+    if (!a) continue;
+    const key = `${a.asserter}|${a.subject}`;
+    const prior = latest.get(key);
+    if (!prior || a.createdAt > prior.createdAt) latest.set(key, a);
+  }
+
+  // Batched weight fetch over the union of distinct asserters (no N+1).
+  const distinctAsserters = [...new Set([...latest.values()].map((a) => a.asserter))];
+  let weights = new Map<string, number>();
+  if (houseObserverHex && distinctAsserters.length > 0) {
+    try {
+      weights = await trust.weights(houseObserverHex, distinctAsserters);
+    } catch {
+      weights = new Map();
+    }
+  }
+
+  const candidates = new Set(candidateHexes);
+  const counted = new Map<string, Set<string>>();
+  for (const a of latest.values()) {
+    if (!candidates.has(a.subject)) continue;
+    if (a.asserter === a.subject) continue; // self-excluded
+    if (a.polarity !== 1) continue; // latest dispute → does not count
+    if ((weights.get(a.asserter) ?? 0) < floor) continue; // below-floor → does not count
+    const set = counted.get(a.subject) ?? new Set<string>();
+    set.add(a.asserter);
+    counted.set(a.subject, set);
+  }
+
+  return candidateHexes.filter((hex) => (counted.get(hex)?.size ?? 0) >= minAsserters);
 }

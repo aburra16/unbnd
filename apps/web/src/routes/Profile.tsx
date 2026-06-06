@@ -19,6 +19,7 @@ import { BookGrid } from "../components/BookGrid";
 import { ProfileStats } from "../components/ProfileStats";
 import { FollowButton } from "../components/FollowButton";
 import { TasteMatchChip } from "../components/TasteMatchChip";
+import { CuratorBadge } from "../components/CuratorBadge";
 import { toCardBook, shortNpub } from "../lib/view-model";
 import { useProfileMeta, displayNameOf } from "../hooks/useProfileMeta";
 import { NotFound } from "./NotFound";
@@ -105,6 +106,7 @@ export function Profile() {
         <Avatar label={name} seed={npub ?? ""} picture={meta?.picture} size={72} />
         <div className="me-id">
           <h1 className="me-name">{name}</h1>
+          {npub && <CuratorBadge npub={npub} />}
           {meta?.nip05 && <p className="me-nip05">{meta.nip05}</p>}
           {npub && (
             <p className="me-npub" title={npub}>

@@ -128,6 +128,21 @@ export type Config = {
    */
   readonly tasteMatchMinOverlap?: number;
   /**
+   * Curator-vouch count-gate (Story 67 / ADR 0066): a subject becomes a curator
+   * when ≥ this many distinct asserters (each at/above `curatorThreshold`, the
+   * reused weight floor) have net-vouched. Env `CURATOR_VOUCH_MIN_ASSERTERS`, a
+   * positive integer, default 10. Always set by `loadConfig`; optional here so
+   * partial test fixtures need not set it.
+   */
+  readonly curatorVouchMinAsserters?: number;
+  /**
+   * Operator seed-curator allowlist (Story 67 / ADR 0066): hex pubkeys that are
+   * curators regardless of vouch count (the cold-start lever). Env
+   * `CURATOR_SEED_PUBKEYS` (comma-separated hex), default empty. Always set by
+   * `loadConfig`; optional here.
+   */
+  readonly curatorSeedPubkeys?: readonly string[];
+  /**
    * Idle TTL for the custodial ephemeral key store (Story 62 / ADR 0061). A
    * wrapped session key whose `lastUsedAt` is older than this is swept. Env
    * `EPHEMERAL_KEY_TTL_MS`, validated as a positive integer, default
@@ -324,6 +339,33 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
     );
   }
 
+  // Curator-vouch count-gate (ADR 0066). Positive integer; default 10.
+  const curatorVouchMinAssertersRaw = withDefault(env, "CURATOR_VOUCH_MIN_ASSERTERS", "10");
+  const curatorVouchMinAsserters = Number(curatorVouchMinAssertersRaw);
+  if (
+    !Number.isFinite(curatorVouchMinAsserters) ||
+    curatorVouchMinAsserters < 1 ||
+    !Number.isInteger(curatorVouchMinAsserters)
+  ) {
+    throw new Error(
+      `config: CURATOR_VOUCH_MIN_ASSERTERS must be a positive integer ≥ 1; got ${JSON.stringify(curatorVouchMinAssertersRaw)}`,
+    );
+  }
+
+  // Operator seed-curator allowlist (ADR 0066). Comma-separated hex; default empty.
+  const curatorSeedRaw = env.CURATOR_SEED_PUBKEYS;
+  const curatorSeedPubkeys =
+    curatorSeedRaw && curatorSeedRaw.length > 0
+      ? curatorSeedRaw.split(",").map((s) => s.trim().toLowerCase()).filter(Boolean)
+      : [];
+  for (const hex of curatorSeedPubkeys) {
+    if (!/^[0-9a-f]{64}$/.test(hex)) {
+      throw new Error(
+        `config: CURATOR_SEED_PUBKEYS must be comma-separated 64-hex pubkeys; got ${JSON.stringify(hex)}`,
+      );
+    }
+  }
+
   // Ephemeral key idle TTL (ADR 0061). Positive integer ms; default
   // SESSION_LIFETIME_MS (30 days).
   const ephemeralKeyTtlRaw = withDefault(
@@ -517,6 +559,8 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
     foryouBooks,
     foryouCandidateRaters,
     tasteMatchMinOverlap,
+    curatorVouchMinAsserters,
+    curatorSeedPubkeys,
     ephemeralKeyTtlMs,
     maintenanceIntervalMs,
     upsyncCheckWindowMs,

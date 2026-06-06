@@ -16,6 +16,7 @@ import { buildProfileRouter } from "./routes/profile";
 import { buildProfileStatsRouter } from "./routes/profile-stats";
 import { buildTasteMatchRouter } from "./routes/profile-taste-match";
 import { buildBookTasteMatchesRouter } from "./routes/book-taste-matches";
+import { buildCuratorRolesRouter } from "./routes/curator-roles";
 import { buildProfileSubstackRouter } from "./routes/profile-substack";
 import { buildProfileDisplayNameRouter } from "./routes/profile-display-name";
 import { buildProfileFollowRouter } from "./routes/profile-follow";
@@ -504,6 +505,19 @@ async function main() {
     }),
   );
   app.use("/", buildRatingsRouter(userEventDeps));
+  // Curator-role vouching (Story 67 / ADR 0066): the gated vouch write + the
+  // curator-status read (seed OR vouched OR emergent).
+  app.use(
+    "/",
+    buildCuratorRolesRouter({
+      config,
+      sessionUser: resolveSessionUser,
+      query: userEventDeps.query,
+      trust,
+      publish,
+      custodialSign,
+    }),
+  );
   // Book-detail per-rater taste match (Story 66 / ADR 0065): observer-relative,
   // read-time, two bounded reads. Signed out → { signedIn:false }.
   app.use(

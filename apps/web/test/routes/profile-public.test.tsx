@@ -59,6 +59,8 @@ vi.mock("../../src/lib/api", () => ({
       // books; mock it empty so the new "Books by this author" section is absent
       // (these Story-20 identity/shelves assertions are unchanged).
       claimedBooks: vi.fn().mockResolvedValue({ books: [] }),
+      // Story 67 / ADR 0066: the CuratorBadge resolves curator status on mount.
+      curatorStatus: vi.fn().mockResolvedValue({ isCurator: false }),
     },
   },
 }));

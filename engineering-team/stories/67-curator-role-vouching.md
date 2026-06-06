@@ -31,6 +31,11 @@ As a Founding Curator, I want my vouch for another reader to count toward making
 1. **Gate knobs (PRD §11 Q2):** the asserter count `N` and the per-asserter weight floor `W` (seed placeholder N=10, W=0.2 on the 0–1 scale). Recommendation: ship them configurable (like `CURATOR_THRESHOLD`), operator-tuned; the seed allowlist covers cold-start so `N` can be meaningful. (PO recommendation, approved.)
 2. **Emergent-gate coexistence (PRD §11 Q3):** the existing Phase-2 house-weight gate (`canPromote`, weight ≥ `CURATOR_THRESHOLD`) also confers curator status, OR'd with vouching + the seed allowlist (curator = seed OR vouched OR emergent), keeping it as the cold-start fallback. (PO recommendation, approved; Architect to confirm the resolution.)
 
+## Deviations
+- **Submit endpoint beyond the tests:** the test plan pins `GET /curator` + `POST /curator-roles/template` (self-vouch gate). The implementation also includes `POST /api/curator-roles` (tier-branched submit, a faithful clone of the author-verified submit) so a vouch can actually be recorded end-to-end (the button is #68). `publish`/`custodialSign` are optional deps; the submit degrades to 503 if unwired.
+- **CuratorBadge fetches unconditionally:** curator status is public (house-relative), so the badge resolves it on mount regardless of the viewer's session. That broke three existing Profile route tests whose `api` mock lacked `curatorStatus`; their boundary mock was extended (resolving `{ isCurator:false }`). Assertions unchanged — dependency maintenance, like #66.
+- **Schema as contract (test phase):** `CuratorRoleAssertion` was implemented in Test Design because the resolver/route tests build fixtures from it; its round-trip test passes as a contract test.
+
 ## Linked artifacts
 - ADR: `engineering-team/decisions/0066-curator-role-vouching.md` (Accepted)
 - Test plan: `engineering-team/stories/67-curator-role-vouching.test-plan.md`

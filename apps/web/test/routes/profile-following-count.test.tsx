@@ -43,6 +43,7 @@ vi.mock("../../src/lib/api", () => ({
       stats: (...a: unknown[]) => statsMock(...a),
       followStatus: (...a: unknown[]) => followStatusMock(...a),
       claimedBooks: vi.fn().mockResolvedValue({ books: [] }),
+      curatorStatus: vi.fn().mockResolvedValue({ isCurator: false }),
     },
   },
 }));
