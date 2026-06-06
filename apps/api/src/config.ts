@@ -136,6 +136,27 @@ export type Config = {
    * not set it.
    */
   readonly maintenanceIntervalMs?: number;
+  /**
+   * The recent-window bound for the up-sync sync-health check (Story 63 / ADR
+   * 0062): `since = now − window`. Env `UPSYNC_CHECK_WINDOW_MS`, validated as a
+   * positive integer, default 30 min (~6 cron cycles of margin). Always set by
+   * `loadConfig`; optional here only so partial test fixtures need not set it.
+   */
+  readonly upsyncCheckWindowMs?: number;
+  /**
+   * Per-REQ cap on the up-sync sync-health local read (Story 63 / ADR 0062).
+   * Tracks strfry's `maxFilterLimit`; keeps the check a cheap one-shot. Env
+   * `UPSYNC_CHECK_LIMIT`, validated as a positive integer, default 500. Always
+   * set by `loadConfig`; optional here.
+   */
+  readonly upsyncCheckLimit?: number;
+  /**
+   * How often the dedicated up-sync health monitor recomputes + caches (Story 63
+   * / ADR 0062). Tracks the 5-min up-sync cron. Env `UPSYNC_CHECK_INTERVAL_MS`,
+   * validated as a positive integer, default 5 min. Always set by `loadConfig`;
+   * optional here.
+   */
+  readonly upsyncCheckIntervalMs?: number;
 };
 
 const DEFAULT_TRUST_RELAYS = [
@@ -317,6 +338,55 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
     );
   }
 
+  // Up-sync sync-health check window (ADR 0062). Positive integer ms; default
+  // 30 min (~6 cron cycles of margin).
+  const upsyncCheckWindowRaw = withDefault(
+    env,
+    "UPSYNC_CHECK_WINDOW_MS",
+    String(30 * 60 * 1000),
+  );
+  const upsyncCheckWindowMs = Number(upsyncCheckWindowRaw);
+  if (
+    !Number.isFinite(upsyncCheckWindowMs) ||
+    upsyncCheckWindowMs < 1 ||
+    !Number.isInteger(upsyncCheckWindowMs)
+  ) {
+    throw new Error(
+      `config: UPSYNC_CHECK_WINDOW_MS must be a positive integer; got ${JSON.stringify(upsyncCheckWindowRaw)}`,
+    );
+  }
+
+  // Up-sync sync-health check cap (ADR 0062). Positive integer; default 500.
+  const upsyncCheckLimitRaw = withDefault(env, "UPSYNC_CHECK_LIMIT", "500");
+  const upsyncCheckLimit = Number(upsyncCheckLimitRaw);
+  if (
+    !Number.isFinite(upsyncCheckLimit) ||
+    upsyncCheckLimit < 1 ||
+    !Number.isInteger(upsyncCheckLimit)
+  ) {
+    throw new Error(
+      `config: UPSYNC_CHECK_LIMIT must be a positive integer; got ${JSON.stringify(upsyncCheckLimitRaw)}`,
+    );
+  }
+
+  // Up-sync sync-health monitor interval (ADR 0062). Positive integer ms;
+  // default 5 min (tracks the up-sync cron).
+  const upsyncCheckIntervalRaw = withDefault(
+    env,
+    "UPSYNC_CHECK_INTERVAL_MS",
+    String(5 * 60 * 1000),
+  );
+  const upsyncCheckIntervalMs = Number(upsyncCheckIntervalRaw);
+  if (
+    !Number.isFinite(upsyncCheckIntervalMs) ||
+    upsyncCheckIntervalMs < 1 ||
+    !Number.isInteger(upsyncCheckIntervalMs)
+  ) {
+    throw new Error(
+      `config: UPSYNC_CHECK_INTERVAL_MS must be a positive integer; got ${JSON.stringify(upsyncCheckIntervalRaw)}`,
+    );
+  }
+
   const databaseUrl = required(env, "DATABASE_URL");
 
   const backupEncryptionKey = required(env, "BACKUP_ENCRYPTION_KEY");
@@ -427,6 +497,9 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
     foryouCandidateRaters,
     ephemeralKeyTtlMs,
     maintenanceIntervalMs,
+    upsyncCheckWindowMs,
+    upsyncCheckLimit,
+    upsyncCheckIntervalMs,
     neo4jBoltUrl: withDefault(env, "NEO4J_BOLT_URL", "bolt://localhost:7687"),
     neo4jUser: withDefault(env, "NEO4J_USER", "neo4j"),
     neo4jPassword,

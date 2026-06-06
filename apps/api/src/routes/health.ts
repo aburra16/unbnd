@@ -1,6 +1,7 @@
 import express, { type Router } from "express";
 import type { Config } from "../config";
 import type { SearchProvider } from "@unbnd/search";
+import type { UpsyncHealth } from "../health/upsync";
 
 export type HealthDeps = {
   readonly config: Config;
@@ -25,7 +26,28 @@ export type HealthDeps = {
     latencyMs?: number;
   }>;
   readonly searchProvider: SearchProvider;
+  /**
+   * Cached up-sync sync-health reader (ADR 0062). Optional: when absent, the
+   * `/health/sync` endpoint serves a pre-first-run `unknown` so the router stays
+   * usable in partial test fixtures. NEVER added to the `/health/data`
+   * aggregate — a backlog/unknown must not flap liveness.
+   */
+  readonly readUpsyncHealth?: () => UpsyncHealth;
 };
+
+/** Pre-first-run `unknown` served when no cache reader is injected. */
+function preFirstRunUpsyncHealth(): UpsyncHealth {
+  return {
+    status: "unknown",
+    backlog: 0,
+    oldestUnpropagatedAgeMs: null,
+    capped: false,
+    windowMs: 0,
+    limit: 0,
+    reason: "not yet computed",
+    checkedAtMs: null,
+  };
+}
 
 export function buildHealthRouter(deps: HealthDeps): Router {
   const router = express.Router();
@@ -71,6 +93,14 @@ export function buildHealthRouter(deps: HealthDeps): Router {
     };
 
     res.status(result.ok ? 200 : 503).json(result);
+  });
+
+  // Up-sync sync-health (ADR 0062). Serves the cached value verbatim, ALWAYS
+  // HTTP 200 (a backlog/unknown is an eventually-consistent backstop signal, not
+  // a liveness failure). Off the `/health/data` aggregate entirely.
+  router.get("/health/sync", (_req, res) => {
+    const read = deps.readUpsyncHealth ?? preFirstRunUpsyncHealth;
+    res.status(200).json(read());
   });
 
   return router;
