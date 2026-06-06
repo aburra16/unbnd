@@ -1,0 +1,226 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Unbnd · Close the Social Loop — wireframes</title>
+<style>
+  /* Tokens mirror @unbnd/ui (packages/ui/styles/tokens.css). Wireframe-only;
+     the build references the real tokens, never these literals. */
+  :root {
+    --accent: #C4763C; --accent-hover: #B06A35; --accent-soft: rgba(196,118,60,0.10);
+    --bg: #FAF6F0; --warm: #FFFBF6; --surface: #FFFFFF; --ink: #1A1A2E;
+    --ink-muted: #6B6B7B; --line: rgba(26,26,46,0.08);
+    --positive: #1D9E75; --negative: #DC3545; --sovereign: #7845FF;
+    --radius: 10px; --radius-sm: 6px;
+    --font-sans: ui-sans-serif, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    --font-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--font-sans); line-height: 1.5; }
+  header.top { background: var(--surface); border-bottom: 1px solid var(--line); padding: 14px 24px; display: flex; align-items: center; gap: 16px; position: sticky; top: 0; z-index: 5; }
+  header.top .mark { font-weight: 700; letter-spacing: -0.02em; }
+  header.top nav { margin-left: auto; display: flex; gap: 18px; color: var(--ink-muted); font-size: 14px; }
+  header.top nav .curate { color: var(--accent); font-weight: 600; }
+  main { max-width: 980px; margin: 0 auto; padding: 28px 24px 80px; }
+  h2.section { font-size: 13px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink-muted); margin: 40px 0 12px; border-top: 1px solid var(--line); padding-top: 18px; }
+  h2.section:first-of-type { border-top: 0; }
+  .frame { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 20px; margin-bottom: 16px; }
+  .muted { color: var(--ink-muted); }
+  .row { display: flex; gap: 16px; align-items: flex-start; }
+  .stack { display: flex; flex-direction: column; gap: 8px; }
+  .btn { display: inline-flex; align-items: center; gap: 8px; background: var(--accent); color: #fff; border: 0; border-radius: var(--radius-sm); padding: 9px 14px; font: inherit; font-weight: 600; cursor: pointer; }
+  .btn.ghost { background: transparent; color: var(--accent); border: 1px solid var(--accent); }
+  .btn.sov { background: var(--sovereign); }
+  .pill { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px; font-size: 13px; }
+  .pill.match { background: rgba(26,26,46,0.05); color: var(--ink); }
+  .pill.match b { font-weight: 700; }
+  .pill.curator { background: var(--accent-soft); color: var(--accent-hover); font-weight: 600; }
+  .pill.genre { background: rgba(26,26,46,0.05); color: var(--ink-muted); }
+  .pill.contested { background: transparent; color: var(--ink-muted); text-decoration: line-through; border: 1px dashed var(--line); }
+  .avatar { width: 56px; height: 56px; border-radius: 999px; background: linear-gradient(135deg, var(--accent-hover), var(--accent)); color: #fff; display: grid; place-items: center; font-weight: 700; font-size: 20px; flex: none; }
+  .avatar.sm { width: 32px; height: 32px; font-size: 13px; }
+  .dot { width: 9px; height: 9px; border-radius: 999px; display: inline-block; }
+  .dot.pos { background: var(--positive); } .dot.neg { background: var(--negative); }
+  .signal { display: inline-flex; align-items: center; gap: 8px; font-size: 14px; }
+  .signal.pos { color: var(--positive); } .signal.neg { color: var(--negative); }
+  .empty { border: 1px dashed var(--line); border-radius: var(--radius); padding: 20px; text-align: center; color: var(--ink-muted); background: var(--warm); }
+  .skel { background: linear-gradient(90deg, rgba(26,26,46,0.06), rgba(26,26,46,0.03), rgba(26,26,46,0.06)); border-radius: var(--radius-sm); height: 14px; }
+  .card { width: 132px; flex: none; }
+  .cover { height: 180px; border-radius: var(--radius-sm); background: linear-gradient(160deg, #d8d4cc, #efebe4); margin-bottom: 8px; }
+  .shelf { display: flex; gap: 14px; overflow-x: auto; padding-bottom: 6px; }
+  .note { font-size: 12px; color: var(--ink-muted); margin: 6px 0 0; }
+  .tag-label { font-size: 11px; color: var(--ink-muted); background: var(--warm); border: 1px solid var(--line); border-radius: 4px; padding: 1px 6px; margin-left: 8px; }
+  .step { border-left: 3px solid var(--sovereign); padding: 4px 0 4px 16px; margin: 0 0 18px; }
+  .step h4 { margin: 0 0 4px; }
+  .keybox { font-family: var(--font-mono); font-size: 13px; background: var(--bg); border: 1px solid var(--line); border-radius: var(--radius-sm); padding: 12px; word-break: break-all; color: var(--ink); }
+  .toggle { font-size: 13px; color: var(--ink-muted); }
+  .toggle b { color: var(--accent); }
+  .legend { font-size: 12px; color: var(--ink-muted); }
+</style>
+</head>
+<body>
+<header class="top">
+  <span class="mark">unbnd</span>
+  <nav>
+    <span>Browse</span><span>Search</span><span class="curate">Curate</span><span>Profile</span>
+  </nav>
+</header>
+<main>
+  <p class="muted">Wireframes for the Phase 3 modules only. They sit on the existing <b>@unbnd/ui</b> system (amber accent, parchment ground, ink text). Each module shows its live state and its honest empty state. Block tags note build order.</p>
+
+  <!-- PROFILE -->
+  <h2 class="section" id="profile">Curator profile · taste match, vouching, curator badge, followers</h2>
+  <div class="frame">
+    <div class="row">
+      <div class="avatar">EM</div>
+      <div class="stack" style="flex:1">
+        <div class="row" style="align-items:center; gap:10px">
+          <strong style="font-size:20px">Elena Marsh</strong>
+          <span class="pill curator">Curator</span>
+        </div>
+        <div class="muted">Short fiction, translated literature. Editor at a small press.</div>
+        <div class="row" style="gap:10px; align-items:center; margin-top:4px">
+          <span class="pill match"><b>87% match</b> · 24 books in common</span>
+          <span class="legend">from your viewpoint <span class="tag-label">Block 1</span></span>
+        </div>
+        <div class="row" style="gap:18px; margin-top:6px" class="muted">
+          <span class="muted"><b>312</b> rated</span><span class="muted"><b>41</b> reviews</span>
+          <span class="muted"><b>58</b> followers</span><span class="muted"><b>120</b> following</span>
+        </div>
+      </div>
+      <div class="stack" style="align-items:flex-end">
+        <button class="btn ghost">Follow</button>
+        <button class="btn">Vouch as curator</button>
+        <span class="note">3 trusted people vouched <span class="tag-label">Block 1</span></span>
+      </div>
+    </div>
+  </div>
+  <div class="row">
+    <div class="frame" style="flex:1">
+      <div class="muted" style="font-size:13px; margin-bottom:8px">Taste match · thin-graph state</div>
+      <span class="pill match">Not enough overlap yet</span>
+      <p class="note">Shown when you and Elena have rated fewer than the threshold of books in common. Rate more books you have both read and a match appears. Never a hollow number.</p>
+    </div>
+    <div class="frame" style="flex:1">
+      <div class="muted" style="font-size:13px; margin-bottom:8px">Vouch · not eligible</div>
+      <p class="note">A viewer not yet trusted enough to vouch sees no vouch control at all, rather than a disabled button that explains why they fall short.</p>
+    </div>
+  </div>
+
+  <!-- BOOK -->
+  <h2 class="section" id="book">Book detail · hype-gap, taste-sorted raters, contested tags</h2>
+  <div class="frame">
+    <div class="row">
+      <div class="cover" style="width:120px; height:170px"></div>
+      <div class="stack" style="flex:1">
+        <strong style="font-size:20px">The Salt Houses</strong>
+        <div class="muted">by Nadia Owens</div>
+        <div class="row" style="gap:14px; align-items:center; margin-top:6px">
+          <span><b>4.6</b> trusted · <span class="muted">4.1 community</span></span>
+          <span class="signal pos"><span class="dot pos"></span> Hidden gem · your network rates this above the crowd <span class="tag-label">Block 2</span></span>
+        </div>
+        <div class="row" style="gap:8px; flex-wrap:wrap; margin-top:8px">
+          <span class="pill genre">literary</span>
+          <span class="pill genre">translated</span>
+          <span class="pill contested">ai-generated <span style="text-decoration:none" class="tag-label">contested · Block 2</span></span>
+        </div>
+      </div>
+    </div>
+    <div style="border-top:1px solid var(--line); margin-top:16px; padding-top:14px">
+      <div class="row" style="align-items:center">
+        <strong>Rated by people you trust</strong>
+        <span class="toggle" style="margin-left:auto">Sort: <b>Most trusted</b> · Best taste match <span class="tag-label">Block 1</span></span>
+      </div>
+      <div class="row" style="gap:20px; margin-top:12px">
+        <div class="row" style="gap:8px; align-items:center"><div class="avatar sm">EM</div><div class="stack"><span>Elena Marsh</span><span class="pill match" style="font-size:11px"><b>87% match</b></span></div></div>
+        <div class="row" style="gap:8px; align-items:center"><div class="avatar sm">JP</div><div class="stack"><span>Jon Park</span><span class="pill match" style="font-size:11px"><b>72% match</b></span></div></div>
+      </div>
+    </div>
+  </div>
+  <div class="frame">
+    <div class="muted" style="font-size:13px; margin-bottom:8px">Hype-gap · the three states</div>
+    <div class="stack">
+      <span class="signal pos"><span class="dot pos"></span> Hidden gem · your network rates this above the crowd</span>
+      <span class="signal neg"><span class="dot neg"></span> Overhyped · people you trust are cooler on this than the crowd</span>
+      <span class="muted">Consensus · nothing is shown (honest silence)</span>
+      <p class="note">Renders only when a handful of trusted raters exist. Below that, no signal at all. The viewpoint follows the House / Yours toggle.</p>
+    </div>
+  </div>
+
+  <!-- HOME -->
+  <h2 class="section" id="home">Homepage · Hidden Gems shelf</h2>
+  <div class="frame">
+    <div class="row" style="align-items:center"><strong>Hidden gems for you</strong><span class="toggle" style="margin-left:auto">Viewpoint: <b>Yours</b> · House</span></div>
+    <div class="shelf" style="margin-top:12px">
+      <div class="card"><div class="cover"></div><div style="font-size:13px">The Salt Houses</div><div class="muted" style="font-size:12px">Nadia Owens</div></div>
+      <div class="card"><div class="cover"></div><div style="font-size:13px">Quiet Machines</div><div class="muted" style="font-size:12px">R. Adeyemi</div></div>
+      <div class="card"><div class="cover"></div><div style="font-size:13px">The Lent Year</div><div class="muted" style="font-size:12px">M. Halloran</div></div>
+      <div class="card"><div class="cover"></div><div style="font-size:13px">Northing</div><div class="muted" style="font-size:12px">P. Vasquez</div></div>
+    </div>
+  </div>
+  <div class="empty">
+    <strong>No hidden gems yet</strong>
+    <p style="margin:6px 0 0">As people you trust rate more books, the ones they love that the crowd missed show up here. Follow a few curators to start.</p>
+    <p class="note">The cold-start on-ramp: emptiness becomes an instruction, not a dead end.</p>
+  </div>
+
+  <!-- SOVEREIGNTY -->
+  <h2 class="section" id="sovereignty">Settings · sovereignty upgrade (take ownership of your key)</h2>
+  <div class="frame" style="border-left:4px solid var(--sovereign)">
+    <div class="step">
+      <h4>1 · The choice</h4>
+      <p class="muted" style="margin:0">Right now we hold your key so signing in is easy. You can take your key and use this identity in any nostr app, or keep it as a backup. Once you have it, keeping it safe is up to you.</p>
+      <button class="btn sov" style="margin-top:10px">Take ownership</button>
+    </div>
+    <div class="step">
+      <h4>2 · Confirm</h4>
+      <p class="muted" style="margin:0">One deliberate confirmation. <label class="muted"><input type="checkbox" disabled> I understand I am responsible for keeping this key safe.</label></p>
+    </div>
+    <div class="step">
+      <h4>3 · Your key, shown once</h4>
+      <div class="keybox">nsec1q9w8e7r6t5y4u3i2o1p0a9s8d7f6g5h4j3k2l1z0x9c8v7b6n5m4 …</div>
+      <div class="row" style="gap:10px; margin-top:8px"><button class="btn ghost">Copy</button><label class="muted"><input type="checkbox" disabled> I have saved it. It will not be shown again.</label></div>
+    </div>
+    <div class="step" style="border-color:var(--positive)">
+      <h4>4 · Done</h4>
+      <p class="muted" style="margin:0">You own your key. Your account still works here as normal.</p>
+    </div>
+    <p class="note">Purple marks this as a weighty, distinct action, never the routine amber. Calm, never alarmist. Always dismissible. <span class="tag-label">Block 2</span></p>
+  </div>
+
+  <!-- SHARED -->
+  <h2 class="section" id="shared">Shared-link landing · value before account, and the unfurl card</h2>
+  <div class="row">
+    <div class="frame" style="flex:1.4">
+      <div class="muted" style="font-size:13px; margin-bottom:8px">Reader arrives via a curator's link · no account</div>
+      <strong style="font-size:18px">The Salt Houses</strong>
+      <div class="muted">Shared by Elena Marsh · "The quietest book I read this year."</div>
+      <div class="row" style="gap:10px; margin-top:8px"><span><b>4.6</b> trusted</span><span class="signal pos"><span class="dot pos"></span> Hidden gem</span></div>
+      <div class="frame" style="margin-top:12px; background:var(--warm)">
+        <span>Create a free account to rate or save this.</span>
+        <button class="btn" style="margin-left:10px">Create account</button>
+      </div>
+      <p class="note">The page reads fully without an account. The gate sits at the write action, not the read. Answers the reader account-wall problem. <span class="tag-label">Block 2</span></p>
+    </div>
+    <div class="frame" style="flex:1">
+      <div class="muted" style="font-size:13px; margin-bottom:8px">Unfurl card (as seen on other platforms)</div>
+      <div class="row" style="gap:12px"><div class="cover" style="width:70px;height:100px"></div>
+        <div class="stack"><strong>The Salt Houses</strong><span class="muted">Nadia Owens</span><span><b>4.1</b> · 1.2k ratings</span><span class="muted" style="font-size:12px">literary · translated</span></div>
+      </div>
+      <p class="note">Uses the <b>raw</b> community rating, because a shared card is viewer-independent. A per-viewer weighted number would mislead out of context. (Resolves open question 3.)</p>
+    </div>
+  </div>
+
+  <!-- STATES REF -->
+  <h2 class="section">Loading states (skeletons, never bare spinners)</h2>
+  <div class="frame">
+    <div class="stack" style="max-width:340px">
+      <div class="skel" style="width:60%"></div>
+      <div class="skel" style="width:90%"></div>
+      <div class="row" style="gap:14px; margin-top:6px"><div class="card"><div class="skel" style="height:180px"></div></div><div class="card"><div class="skel" style="height:180px"></div></div></div>
+    </div>
+  </div>
+</main>
+</body>
+</html>
