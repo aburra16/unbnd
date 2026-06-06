@@ -4,7 +4,7 @@
 // short npub (no trust tier until GrapeRank).
 import { GENRE_PALETTE } from "@unbnd/ui";
 import type { Book } from "../components/BookCard";
-import type { PublicBook } from "./api";
+import type { PublicBook, PublicRating, BylineTasteMatch } from "./api";
 
 // Brand-adjacent gradient palette for the cover fallback. Picked
 // deterministically from the slug so a book always gets the same cover.
@@ -12,6 +12,18 @@ import type { PublicBook } from "./api";
 // the hash → cover mapping is byte-identical to the former inline rows.
 const COVERS: ReadonlyArray<{ from: string; to: string; ink: string }> =
   GENRE_PALETTE.map((r) => ({ from: r.bg, to: r.coverTo, ink: r.ink }));
+
+/**
+ * Order rater/reviewer bylines by taste match (Story 66 / ADR 0065): raters whose
+ * match clears the threshold first, by `percentage` desc; everyone else after, in
+ * their original (trust) order. Stable. STUB: real reorder lands in impl.
+ */
+export function sortRatingsByTasteMatch(
+  ratings: PublicRating[],
+  _matches: Record<string, BylineTasteMatch>,
+): PublicRating[] {
+  return ratings;
+}
 
 function hash(seed: string): number {
   let h = 2166136261;

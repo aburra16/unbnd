@@ -145,6 +145,19 @@ export function scoreBySlug(events: SignedNostrEvent[]): Map<string, number> {
   return out;
 }
 
+/**
+ * Group a multi-author set of rating events into a per-author score map (Story
+ * 66 / ADR 0065): `authorHex -> (bookSlug -> latest score)`. Generalizes
+ * `scoreBySlug` across authors so the book-detail taste-match can compute the
+ * viewer vs each rater from a single batched read. STUB (red): real grouping in
+ * implementation.
+ */
+export function scoresByAuthor(
+  _events: SignedNostrEvent[],
+): Map<string, Map<string, number>> {
+  return new Map();
+}
+
 export function rawFromParsed(deduped: ParsedRating[]): RatingsSummary {
   const count = deduped.length;
   const average = count === 0 ? null : deduped.reduce((s, r) => s + r.score, 0) / count;

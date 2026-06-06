@@ -12,7 +12,7 @@
 // 19), so a rater who also appears in a review byline resolves a single kind-0.
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import type { PublicRating } from "../lib/api";
+import type { PublicRating, BylineTasteMatch } from "../lib/api";
 import { useProfileMeta, displayNameOf } from "../hooks/useProfileMeta";
 import { shortNpub } from "../lib/view-model";
 import { Avatar, Pill } from "@unbnd/ui";
@@ -62,7 +62,14 @@ function RaterGridItem({ rating }: { rating: PublicRating }) {
   );
 }
 
-export function RatedByRow({ ratings }: { ratings: PublicRating[] }) {
+export function RatedByRow({
+  ratings,
+}: {
+  ratings: PublicRating[];
+  // Per-rater taste match (Story 66 / ADR 0065), keyed by npub. STUB: ignored
+  // until implementation renders the byline chip + applies the taste sort.
+  tasteMatches?: Record<string, BylineTasteMatch>;
+}) {
   const [expanded, setExpanded] = useState(false);
 
   // Dedup by npub so a rater listed twice (defensive) is one badge; preserve

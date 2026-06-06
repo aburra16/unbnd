@@ -719,3 +719,16 @@ export type TasteMatchResult =
       commonBooks: number;
       percentage: number;
     };
+
+// Per-rater taste match for the book-detail bylines (Story 66 / ADR 0065).
+export type BylineTasteMatch = {
+  commonBooks: number;
+  thresholdMet: boolean;
+  percentage?: number;
+};
+
+// The book-detail taste-matches read, keyed by rater npub. The web hides chips
+// + the sort control on `signedIn:false`.
+export type TasteMatchesResult =
+  | { signedIn: false }
+  | { signedIn: true; matches: Record<string, BylineTasteMatch> };

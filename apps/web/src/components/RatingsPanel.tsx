@@ -7,7 +7,7 @@
 // BookDetail) does the fetching; this panel renders the `house`/`yours`/`status`
 // slices it is handed and keeps owning the House⇄Yours toggle chrome via
 // `useTrustView`. No self-fetch (the double-fetch race is gone).
-import { type RatingsSummary } from "../lib/api";
+import { type RatingsSummary, type BylineTasteMatch } from "../lib/api";
 import { useTrustView } from "../hooks/useTrustView";
 import { Button } from "@unbnd/ui";
 import { RatingsBlock } from "./RatingsBlock";
@@ -27,6 +27,12 @@ export function RatingsPanel({
   house: RatingsSummary | null;
   yours: RatingsSummary | null;
   status: "loading" | "ready" | "error";
+  // Story 66 / ADR 0065. Provided only when signed in; presence drives the
+  // Most-trusted / Best-taste-match sort control + the byline chips. STUB:
+  // ignored until implementation renders the toggle and applies the sort.
+  tasteMatches?: Record<string, BylineTasteMatch>;
+  sortBy?: "trusted" | "match";
+  onSortChange?: (sort: "trusted" | "match") => void;
 }) {
   const { status, view, setView, personalize, error } = useTrustView();
 
