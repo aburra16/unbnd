@@ -1,0 +1,16 @@
+## Story <N>: <Title>
+
+**PRD section(s):** §X.Y
+**Persona(s):** <Primary persona name>
+**Block:** <Block name — a suggested grouping/sequence, not a folder>
+
+**Description:** One sentence describing what this story delivers.
+
+**Acceptance criteria:**
+- [ ] <Observable condition 1>
+- [ ] <Observable condition 2>
+- [ ] <Observable condition 3>
+
+**Dependencies:** Story <M> must ship first because <reason>. (Or: none.)
+
+**Notes for engineering:** Context the Product Owner should relay to the Architect — domain nuances, edge cases, things not obvious from the acceptance criteria. (Engineering promotes this to a flat `engineering-team/stories/<n>-<slug>.md` via `/plan-feature`.)

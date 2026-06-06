@@ -57,3 +57,19 @@ When the verdict is PASS, do these three things in the same review commit (or a 
 This keeps `engineering-team/stories/` showing only in-flight work. Shipped stories remain readable in `done/` and the git history shows the transition.
 
 > **For Product Owner (Phase 1):** when picking the next story number, scan **both** `engineering-team/stories/` AND `engineering-team/stories/done/` for the highest existing `<n>` — numbers are never reused.
+
+## Completion detection — offer to close the book
+
+The moment a *book of work* can become complete is always "the last story just passed review." So after a PASS, check the book this story belongs to (`engineering-team/audits/<book-slug>/book.md`, if one is open):
+
+- **PRD-backed (structural):** are all stories tracing to the anchor's §sections now `Done` (in `stories/done/`)? If yes → the book looks complete.
+- **No-PRD (semantic):** is every bullet of the acceptance frame now satisfied by what shipped? If yes → the book looks complete.
+
+When a book looks complete, **offer — don't auto-run:**
+
+> Your original ask was *<anchor summary>*. What's shipped now covers it: *<evidence, linked to stories>*. This book of work looks complete — want me to close it? I'll generate the build audit and the PRD {addendum|seed}.
+
+- **Yes** → run `/close-book` (Phase 6). The human's "yes" is the invocation.
+- **Not yet / also need X** → extend the acceptance frame (or note the remaining PRD scope), leave the book `Open`, write nothing.
+
+The system never *declares* a book done — it *proposes* done and the human ratifies. That's the safety valve against false-positive completion. A natural-language "I think that's everything" triggers the same offer — see `CLAUDE.md` → "Intent Detection". If no `book.md` is open for this work, skip this step (book tracking is opt-in at intake).
