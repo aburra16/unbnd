@@ -34,6 +34,6 @@ As a reader (Founding Curator or Trusting Reader), I want to see how closely my 
 2. **v1 metric is raw agreement** on co-rated books; the trust-weighted variant is deferred. The exact agreement formula is the Architect's call; product intent is "higher means they agree more often." (PO recommendation, approved.)
 
 ## Linked artifacts
-- ADR: (filled in after Architecture phase)
+- ADR: `engineering-team/decisions/0064-taste-match-profiles.md` (Accepted)
 - Test plan: (filled in after Test Design phase)
 - Review: (filled in after Review phase)
