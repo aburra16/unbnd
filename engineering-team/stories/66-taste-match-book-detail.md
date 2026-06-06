@@ -30,6 +30,11 @@ As a Trusting Reader, I want to see how closely each person who rated a book mat
 ## Open questions
 1. **Batching:** a book can have many raters, so the per-byline match wants one batched computation (the viewer vs all of the book's raters) rather than N round-trips. The exact endpoint shape is the Architect's call; the product intent is one efficient read per page.
 
+## Deviations
+- **Reviewer bylines too:** AC-1 says "each rater AND reviewer byline." The tests pin `RatedByRow`; the implementation also threads `tasteMatches` into `ReviewsList` so reviewer bylines show the chip (story completeness, not separately unit-tested).
+- **Existing hook test mock extended:** `useBookRatings` now also reads `api.ratings.tasteMatches`, so `apps/web/test/hooks/use-book-ratings.test.tsx`'s boundary `api` mock gained that method (resolving `{ signedIn:true, matches:{} }`). Assertions unchanged; this is dependency maintenance, not a changed expectation.
+- **Loading skeleton deferred:** chips and the sort control appear when the matches fetch resolves; no separate loading skeleton (consistent with Story #65).
+
 ## Linked artifacts
 - ADR: `engineering-team/decisions/0065-taste-match-book-detail.md` (Accepted)
 - Test plan: `engineering-team/stories/66-taste-match-book-detail.test-plan.md`

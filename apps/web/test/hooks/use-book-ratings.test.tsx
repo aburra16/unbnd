@@ -22,9 +22,16 @@ const trustMock = vi.fn();
 vi.mock("../../src/hooks/useTrustView", () => ({ useTrustView: () => trustMock() }));
 
 const listMock = vi.fn();
+const tasteMatchesMock = vi.fn();
 vi.mock("../../src/lib/api", () => ({
   ApiError: class ApiError extends Error {},
-  api: { ratings: { list: (...a: unknown[]) => listMock(...a) } },
+  api: {
+    ratings: {
+      list: (...a: unknown[]) => listMock(...a),
+      // Story 66 / ADR 0065: the hook now also reads per-rater taste matches.
+      tasteMatches: (...a: unknown[]) => tasteMatchesMock(...a),
+    },
+  },
 }));
 
 // The hook is a NEW file (ADR 0029 §3 / Ripple). Static import → red collection
@@ -70,6 +77,7 @@ beforeEach(() => {
   listMock.mockReset().mockImplementation(async (_s: string, observer?: string) =>
     observer ? YOURS : HOUSE,
   );
+  tasteMatchesMock.mockReset().mockResolvedValue({ signedIn: true, matches: {} });
 });
 afterEach(() => vi.clearAllMocks());
 

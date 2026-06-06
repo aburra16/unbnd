@@ -15,6 +15,7 @@ import { buildForYouRouter } from "./routes/foryou";
 import { buildProfileRouter } from "./routes/profile";
 import { buildProfileStatsRouter } from "./routes/profile-stats";
 import { buildTasteMatchRouter } from "./routes/profile-taste-match";
+import { buildBookTasteMatchesRouter } from "./routes/book-taste-matches";
 import { buildProfileSubstackRouter } from "./routes/profile-substack";
 import { buildProfileDisplayNameRouter } from "./routes/profile-display-name";
 import { buildProfileFollowRouter } from "./routes/profile-follow";
@@ -503,6 +504,17 @@ async function main() {
     }),
   );
   app.use("/", buildRatingsRouter(userEventDeps));
+  // Book-detail per-rater taste match (Story 66 / ADR 0065): observer-relative,
+  // read-time, two bounded reads. Signed out → { signedIn:false }.
+  app.use(
+    "/",
+    buildBookTasteMatchesRouter({
+      config,
+      sessionUser: resolveSessionUser,
+      query: userEventDeps.query,
+      queryPaged: userEventDeps.queryPaged,
+    }),
+  );
   app.use("/", buildClaimsRouter(userEventDeps));
   app.use("/", buildAuthorVerifiedRouter(userEventDeps));
   app.use("/", buildAuthorEditsRouter(userEventDeps));

@@ -91,3 +91,11 @@
   letter-spacing: var(--u-tracking-p50);
   margin-top: var(--u-space-2);
 }
+
+/* Story 66 / ADR 0065 — taste-match chip on an expanded rater byline.
+   Token-only; neutral (informational), never the amber accent. */
+.rated-by-match {
+  font-size: var(--u-font-size-11);
+  color: var(--u-muted);
+  margin-top: var(--u-space-2);
+}

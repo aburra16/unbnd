@@ -153,9 +153,43 @@ export function scoreBySlug(events: SignedNostrEvent[]): Map<string, number> {
  * implementation.
  */
 export function scoresByAuthor(
-  _events: SignedNostrEvent[],
+  events: SignedNostrEvent[],
 ): Map<string, Map<string, number>> {
-  return new Map();
+  // authorHex -> (bookSlug -> { createdAt, score }) — latest-wins per (author, book).
+  const byAuthor = new Map<string, Map<string, { createdAt: number; score: number }>>();
+  for (const event of events) {
+    let bookSlug: string;
+    let score: number;
+    try {
+      const rating = fromBookRatingEvent(
+        fromWireEvent({
+          kind: event.kind,
+          content: event.content,
+          tags: event.tags,
+        }) as never,
+      );
+      bookSlug = rating.bookSlug;
+      score = rating.score;
+    } catch {
+      continue; // skip anything that is not a well-formed rating
+    }
+    let books = byAuthor.get(event.pubkey);
+    if (!books) {
+      books = new Map();
+      byAuthor.set(event.pubkey, books);
+    }
+    const prior = books.get(bookSlug);
+    if (!prior || event.created_at > prior.createdAt) {
+      books.set(bookSlug, { createdAt: event.created_at, score });
+    }
+  }
+  const out = new Map<string, Map<string, number>>();
+  for (const [author, books] of byAuthor) {
+    const m = new Map<string, number>();
+    for (const [slug, v] of books) m.set(slug, v.score);
+    out.set(author, m);
+  }
+  return out;
 }
 
 export function rawFromParsed(deduped: ParsedRating[]): RatingsSummary {

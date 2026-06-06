@@ -5,9 +5,16 @@
 // reconcile the aggregate + own-rating slices from a single source after a write
 // (the POST already returns the refreshed summary — no double-fetch).
 import { useCallback, useEffect, useRef, useState } from "react";
-import { api, type PublicRating, type RatingsSummary } from "../lib/api";
+import {
+  api,
+  type PublicRating,
+  type RatingsSummary,
+  type BylineTasteMatch,
+} from "../lib/api";
 import { useSession } from "./useSession";
 import { useTrustView } from "./useTrustView";
+
+export type RatingSort = "trusted" | "match";
 
 export type UseBookRatings = {
   house: RatingsSummary | null;
@@ -16,6 +23,10 @@ export type UseBookRatings = {
   status: "loading" | "ready" | "error";
   applyWrite: (summary: RatingsSummary, ownRating: PublicRating) => void;
   reload: () => Promise<void>;
+  // Story 66 / ADR 0065: per-rater taste match (signed-in only) + the byline sort.
+  tasteMatches: Record<string, BylineTasteMatch> | null;
+  sortBy: RatingSort;
+  setSortBy: (sort: RatingSort) => void;
 };
 
 /**
@@ -42,6 +53,8 @@ export function useBookRatings(slug: string): UseBookRatings {
   const [yours, setYours] = useState<RatingsSummary | null>(null);
   const [yourRating, setYourRating] = useState<PublicRating | null>(null);
   const [status, setStatus] = useState<"loading" | "ready" | "error">("loading");
+  const [tasteMatches, setTasteMatches] = useState<Record<string, BylineTasteMatch> | null>(null);
+  const [sortBy, setSortBy] = useState<RatingSort>("trusted");
 
   // The own-rating slice is held separately from the aggregate slices so that
   // toggling House⇄Yours never re-derives it from `weighted` (the honesty seam).
@@ -71,6 +84,28 @@ export function useBookRatings(slug: string): UseBookRatings {
       })
       .catch(() => {
         if (!cancelled) setStatus("error");
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [slug, ownNpub]);
+
+  // Story 66 / ADR 0065: the per-rater taste matches for this book's raters,
+  // observer-relative to the signed-in viewer. Fetched once per (slug, viewer);
+  // absent when signed out (the panel hides the chips + the sort control).
+  useEffect(() => {
+    if (!ownNpub) {
+      setTasteMatches(null);
+      return;
+    }
+    let cancelled = false;
+    api.ratings
+      .tasteMatches(slug)
+      .then((r) => {
+        if (!cancelled) setTasteMatches(r.signedIn ? r.matches : null);
+      })
+      .catch(() => {
+        if (!cancelled) setTasteMatches(null);
       });
     return () => {
       cancelled = true;
@@ -110,5 +145,15 @@ export function useBookRatings(slug: string): UseBookRatings {
     [],
   );
 
-  return { house, yours, yourRating, status, applyWrite, reload: loadHouse };
+  return {
+    house,
+    yours,
+    yourRating,
+    status,
+    applyWrite,
+    reload: loadHouse,
+    tasteMatches,
+    sortBy,
+    setSortBy,
+  };
 }

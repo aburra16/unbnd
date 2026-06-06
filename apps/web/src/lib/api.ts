@@ -372,6 +372,13 @@ export const api = {
         `/api/books/${encodeURIComponent(bookSlug)}/ratings${q}`,
       );
     },
+    // Per-rater taste match for the book's raters (Story 66 / ADR 0065), keyed by
+    // npub. `signedIn:false` when signed out. Read-time, never cached.
+    tasteMatches(bookSlug: string) {
+      return authFetch<TasteMatchesResult>(
+        `/api/books/${encodeURIComponent(bookSlug)}/taste-matches`,
+      );
+    },
   },
   // Author claiming (Story 31 / ADR 0032). Both tiers reuse the shipped
   // template→sign→submit (sovereign) / server-signed (custodial) paths — no new

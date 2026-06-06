@@ -26,10 +26,12 @@ function RaterBadge({
   rating,
   size,
   detailed,
+  match,
 }: {
   rating: PublicRating;
   size?: number;
   detailed?: boolean;
+  match?: BylineTasteMatch;
 }) {
   const meta = useProfileMeta(rating.npub);
   const name = displayNameOf(meta, shortNpub(rating.npub));
@@ -47,6 +49,9 @@ function RaterBadge({
           <span className="rated-by-score" aria-hidden="true">
             ★ {rating.score}
           </span>
+          {match?.thresholdMet && typeof match.percentage === "number" && (
+            <span className="rated-by-match">{match.percentage}% match</span>
+          )}
         </span>
       )}
     </Link>
@@ -54,20 +59,26 @@ function RaterBadge({
 }
 
 // One expanded-grid cell, scoping a single rater's badge + name + score.
-function RaterGridItem({ rating }: { rating: PublicRating }) {
+function RaterGridItem({
+  rating,
+  match,
+}: {
+  rating: PublicRating;
+  match?: BylineTasteMatch;
+}) {
   return (
     <li className="rated-by-cell">
-      <RaterBadge rating={rating} detailed />
+      <RaterBadge rating={rating} match={match} detailed />
     </li>
   );
 }
 
 export function RatedByRow({
   ratings,
+  tasteMatches,
 }: {
   ratings: PublicRating[];
-  // Per-rater taste match (Story 66 / ADR 0065), keyed by npub. STUB: ignored
-  // until implementation renders the byline chip + applies the taste sort.
+  // Per-rater taste match (Story 66 / ADR 0065), keyed by npub.
   tasteMatches?: Record<string, BylineTasteMatch>;
 }) {
   const [expanded, setExpanded] = useState(false);
@@ -98,7 +109,7 @@ export function RatedByRow({
       {expanded ? (
         <ul className="rated-by-grid">
           {shown.map((r) => (
-            <RaterGridItem key={r.npub} rating={r} />
+            <RaterGridItem key={r.npub} rating={r} match={tasteMatches?.[r.npub]} />
           ))}
         </ul>
       ) : (

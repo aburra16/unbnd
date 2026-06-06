@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import type { PublicRating } from "../lib/api";
+import type { PublicRating, BylineTasteMatch } from "../lib/api";
 import { shortNpub } from "../lib/view-model";
 import { useProfileMeta, displayNameOf } from "../hooks/useProfileMeta";
 import "./ReviewsList.css";
@@ -7,6 +7,8 @@ import "./ReviewsList.css";
 type Props = {
   // The full ratings list; only those with review text are shown.
   ratings: PublicRating[];
+  // Per-rater taste match (Story 66 / ADR 0065), keyed by npub.
+  tasteMatches?: Record<string, BylineTasteMatch>;
 };
 
 function stars(n: number) {
@@ -17,17 +19,22 @@ function stars(n: number) {
 // Per-byline leaf so the cached useProfileMeta hook sits at a stable mount
 // (mirrors RaterBadge). Resolves the reviewer's kind-0 display name, falling
 // back to shortNpub, and links the byline to their profile (AC-9 / AC-2).
-function ReviewByline({ npub }: { npub: string }) {
+function ReviewByline({ npub, match }: { npub: string; match?: BylineTasteMatch }) {
   const meta = useProfileMeta(npub);
   const name = displayNameOf(meta, shortNpub(npub));
   return (
-    <Link to={`/profile/${npub}`} className="review-name">
-      {name}
-    </Link>
+    <span className="review-byline">
+      <Link to={`/profile/${npub}`} className="review-name">
+        {name}
+      </Link>
+      {match?.thresholdMet && typeof match.percentage === "number" && (
+        <span className="review-match">{match.percentage}% match</span>
+      )}
+    </span>
   );
 }
 
-export function ReviewsList({ ratings }: Props) {
+export function ReviewsList({ ratings, tasteMatches }: Props) {
   const reviews = ratings.filter(
     (r) => typeof r.reviewText === "string" && r.reviewText.trim() !== "",
   );
@@ -43,7 +50,7 @@ export function ReviewsList({ ratings }: Props) {
           <li className="review" key={`${r.npub}:${r.reviewDate}`}>
             <header className="review-head">
               <div className="review-id">
-                <ReviewByline npub={r.npub} />
+                <ReviewByline npub={r.npub} match={tasteMatches?.[r.npub]} />
                 <div className="review-sub">
                   <span className="review-stars" aria-hidden="true">
                     {stars(r.score)}

@@ -8,6 +8,7 @@
 // slices it is handed and keeps owning the House⇄Yours toggle chrome via
 // `useTrustView`. No self-fetch (the double-fetch race is gone).
 import { type RatingsSummary, type BylineTasteMatch } from "../lib/api";
+import { sortRatingsByTasteMatch } from "../lib/view-model";
 import { useTrustView } from "../hooks/useTrustView";
 import { Button } from "@unbnd/ui";
 import { RatingsBlock } from "./RatingsBlock";
@@ -22,6 +23,9 @@ export function RatingsPanel({
   house,
   yours,
   status: dataStatus,
+  tasteMatches,
+  sortBy = "trusted",
+  onSortChange,
 }: {
   slug: string;
   house: RatingsSummary | null;
@@ -75,9 +79,40 @@ export function RatingsPanel({
     caption = "Community consensus from all ratings. No trusted ratings for this book yet.";
   }
 
+  // Story 66 / ADR 0065: when signed in (tasteMatches present) and the viewer
+  // chose "Best taste match", reorder the bylines by their match; default trust.
+  const displayReviews =
+    sortBy === "match" && tasteMatches
+      ? sortRatingsByTasteMatch(reviews, tasteMatches)
+      : reviews;
+
   return (
     <div className="ratings-panel">
       <div className="rp-controls">
+        {tasteMatches && (
+          <div className="rp-sort" role="group" aria-label="Sort ratings">
+            <Button
+              variant="ghost"
+              size="sm"
+              selected={sortBy !== "match"}
+              className="rp-tab"
+              type="button"
+              onClick={() => onSortChange?.("trusted")}
+            >
+              Most trusted
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              selected={sortBy === "match"}
+              className="rp-tab"
+              type="button"
+              onClick={() => onSortChange?.("match")}
+            >
+              Best taste match
+            </Button>
+          </div>
+        )}
         {status === "ready" && (
           <div className="rp-toggle" role="tablist" aria-label="Rating perspective">
             <Button
@@ -127,8 +162,8 @@ export function RatingsPanel({
       {error && <p className="rp-error" role="alert">{error}</p>}
       <p className="rp-caption">{caption}</p>
       <RatingsBlock average={average} count={count} countNoun={countNoun} label={label} emptyNote={emptyNote} />
-      <RatedByRow ratings={reviews} />
-      <ReviewsList ratings={reviews} />
+      <RatedByRow ratings={displayReviews} tasteMatches={tasteMatches} />
+      <ReviewsList ratings={displayReviews} tasteMatches={tasteMatches} />
     </div>
   );
 }

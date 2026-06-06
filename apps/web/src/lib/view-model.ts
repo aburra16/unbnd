@@ -20,9 +20,23 @@ const COVERS: ReadonlyArray<{ from: string; to: string; ink: string }> =
  */
 export function sortRatingsByTasteMatch(
   ratings: PublicRating[],
-  _matches: Record<string, BylineTasteMatch>,
+  matches: Record<string, BylineTasteMatch>,
 ): PublicRating[] {
-  return ratings;
+  const pct = (npub: string): number | null => {
+    const m = matches[npub];
+    return m && m.thresholdMet && typeof m.percentage === "number" ? m.percentage : null;
+  };
+  return ratings
+    .map((r, i) => ({ r, i }))
+    .sort((a, b) => {
+      const pa = pct(a.r.npub);
+      const pb = pct(b.r.npub);
+      if (pa === null && pb === null) return a.i - b.i; // both unmatched: original order
+      if (pa === null) return 1; // unmatched after matched
+      if (pb === null) return -1;
+      return pb - pa || a.i - b.i; // matched: percentage desc, stable
+    })
+    .map((x) => x.r);
 }
 
 function hash(seed: string): number {

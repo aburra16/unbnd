@@ -182,6 +182,9 @@ export function BookDetail() {
           house={ratings.house}
           yours={ratings.yours}
           status={ratings.status}
+          tasteMatches={ratings.tasteMatches ?? undefined}
+          sortBy={ratings.sortBy}
+          onSortChange={ratings.setSortBy}
         />
       )}
       {slug && (
