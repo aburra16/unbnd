@@ -257,6 +257,18 @@ export type ForYou = {
   books: PublicBook[];
 };
 
+// Story 64 / ADR 0063: the OL metadata lookup result for submit-form autofill.
+// `found: false` carries every "no usable result" case; the endpoint is always
+// 200, so `api.ol.lookup` resolves (never throws) and the web reads `found`.
+export type OlLookup = {
+  found: boolean;
+  title?: string;
+  authorName?: string;
+  coverUrl?: string;
+  pageCount?: number;
+  publishYear?: number;
+};
+
 export class ApiError extends Error {
   constructor(
     readonly status: number,
@@ -478,6 +490,12 @@ export const api = {
         `/api/submissions/${encodeURIComponent(slug)}/promote`,
         { method: "POST" },
       );
+    },
+  },
+  // Story 64 / ADR 0063: best-effort OL metadata lookup for submit-form autofill.
+  ol: {
+    lookup(isbn: string) {
+      return authFetch<OlLookup>(`/api/ol/lookup?isbn=${encodeURIComponent(isbn)}`);
     },
   },
   trust: {

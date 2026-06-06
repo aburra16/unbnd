@@ -15,6 +15,7 @@ import type {
   BookTags,
   ForYou,
   HomepageShelves,
+  OlLookup,
   ProfileMeta,
   ProfileStatsResponse,
   PublicBook,
@@ -23,19 +24,6 @@ import type {
   SearchResult,
   Shelf,
 } from "../../../src/lib/api";
-
-// Story 64 / ADR 0063: the OL autofill lookup response shape. Declared locally
-// (not imported from src/lib/api) so this fixture typechecks before the
-// Implementer adds the real `OlLookup` export + `api.ol.lookup`. The Implementer
-// should swap this for `import type { OlLookup }` once that export lands.
-type OlLookup = {
-  found: boolean;
-  title?: string;
-  authorName?: string;
-  coverUrl?: string;
-  pageCount?: number;
-  publishYear?: number;
-};
 
 // Canonical fixture identifiers (ADR 0039 "Canonical fixtures"). These are
 // fixture constants, never real catalog data, so they never drift with the

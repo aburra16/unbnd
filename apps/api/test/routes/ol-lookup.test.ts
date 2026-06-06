@@ -115,10 +115,10 @@ const FOUND_DOC: OlSearchDoc = {
 const ISBN = "9780140328721";
 const COVER_BY_ISBN = `https://covers.openlibrary.org/b/isbn/${ISBN}-L.jpg`;
 
-async function makeApp(fetchImpl: FetchImpl) {
+async function makeApp(fetchImpl: FetchImpl, opts?: { timeoutMs?: number }) {
   const { buildOlLookupRouter } = await loadOlLookup();
   const app = express();
-  app.use("/", buildOlLookupRouter({ fetchImpl }));
+  app.use("/", buildOlLookupRouter({ fetchImpl, ...opts }));
   return app;
 }
 
@@ -219,19 +219,14 @@ describe("GET /api/ol/lookup — best-effort, always 200, never a 5xx (ADR 0063 
 
 describe("GET /api/ol/lookup — bounded by a timeout (ADR 0063 §2)", () => {
   it("aborts a hung OL and resolves 200 { found:false } (does not hang the request)", async () => {
-    vi.useFakeTimers();
-    try {
-      const app = await makeApp(hangingFetch());
-      // Drive the request; advance past the 5s budget so the route's
-      // AbortController fires and the catch resolves to { found:false }.
-      const pending = request(app).get(`/api/ol/lookup?isbn=${ISBN}`);
-      await vi.advanceTimersByTimeAsync(6000);
-      const res = await pending;
-      expect(res.status).toBe(200);
-      expect(res.body).toEqual({ found: false });
-    } finally {
-      vi.useRealTimers();
-    }
+    // A short REAL timeout (injected) drives the route's AbortController against
+    // a fetch that hangs until aborted, so the catch resolves to { found:false }.
+    // (Fake timers do not compose with supertest's socket I/O, so the abort
+    // budget is shrunk via the injectable timeoutMs instead.)
+    const app = await makeApp(hangingFetch(), { timeoutMs: 20 });
+    const res = await request(app).get(`/api/ol/lookup?isbn=${ISBN}`);
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual({ found: false });
   });
 
   it("passes an AbortSignal to the OL fetch", async () => {

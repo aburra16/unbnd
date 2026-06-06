@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link as RouterLink } from "react-router-dom";
 import { Nav } from "../components/Nav";
 import { Footer } from "../components/Footer";
@@ -6,9 +6,27 @@ import { DuplicateCheck } from "../components/DuplicateCheck";
 import { GenrePillSelector } from "../components/GenrePillSelector";
 import { ToggleSwitch } from "../components/ToggleSwitch";
 import { useSession } from "../hooks/useSession";
+import { coverGradient } from "../lib/view-model";
 import { Button, Container, Field, Label, Link } from "@unbnd/ui";
 import { api, ApiError, type SignedEvent, type SubmissionInput } from "../lib/api";
 import "./Submit.css";
+
+// Story 64 / ADR 0063: the five autofillable fields lifted to controlled state so
+// an OL ISBN lookup can fill them. Each input keeps its `name=`, so `onSubmit`'s
+// `FormData` read (both the sovereign + custodial paths) is unchanged.
+type AutofillField = "title" | "author" | "cover" | "year" | "pages";
+type Fields = Record<AutofillField, string>;
+const EMPTY_FIELDS: Fields = { title: "", author: "", cover: "", year: "", pages: "" };
+
+const OL_DEBOUNCE_MS = 500;
+
+/** The same ISBN rule as DuplicateCheck / the API endpoint: 13 or 10 digits/X. */
+function normalizeIsbn(s: string): string | null {
+  const cleaned = s.replace(/[^0-9Xx]/g, "").toUpperCase();
+  return cleaned.length === 13 || cleaned.length === 10 ? cleaned : null;
+}
+
+type AutofillStatus = "idle" | "loading" | "found" | "not-found";
 
 type Nip07 = {
   signEvent: (t: {
@@ -70,6 +88,91 @@ export function Submit() {
   const [status, setStatus] = useState<"idle" | "submitting" | "done" | "error">("idle");
   const [error, setError] = useState<string | null>(null);
 
+  // Story 64 / ADR 0063 §3: the five autofillable fields are controlled (seeded
+  // from `adding.title`); a per-field `dirty` set locks a field once the user
+  // edits it (autofill writes never set dirty). The ISBN inputs drive the
+  // debounced lookup but are not autofill targets.
+  const [fields, setFields] = useState<Fields>({ ...EMPTY_FIELDS, title: adding?.title ?? "" });
+  const [dirty, setDirty] = useState<Set<AutofillField>>(new Set());
+  const [isbn13, setIsbn13] = useState("");
+  const [isbn10, setIsbn10] = useState("");
+  const [autofill, setAutofill] = useState<AutofillStatus>("idle");
+  const [coverBroken, setCoverBroken] = useState(false);
+  const lookupSeq = useRef(0);
+
+  // Seed/reset the controlled fields when the user (re)enters the form for a
+  // book — keeps the existing `defaultValue={adding.title}` prefill behavior.
+  useEffect(() => {
+    setFields({ ...EMPTY_FIELDS, title: adding?.title ?? "" });
+    setDirty(new Set());
+    setIsbn13("");
+    setIsbn10("");
+    setAutofill("idle");
+  }, [adding]);
+
+  // A fresh cover URL gets a fresh load attempt.
+  useEffect(() => {
+    setCoverBroken(false);
+  }, [fields.cover]);
+
+  function editField(key: AutofillField, value: string) {
+    setFields((f) => ({ ...f, [key]: value }));
+    setDirty((d) => {
+      const next = new Set(d);
+      next.add(key);
+      return next;
+    });
+  }
+
+  // The debounced OL lookup (mirrors DuplicateCheck's seq-guarded debounce). On a
+  // valid ISBN-13 or ISBN-10, after 500ms of pause, call `api.ol.lookup` once and
+  // fill each returned field iff it is empty AND untouched-by-the-user.
+  const isbn = normalizeIsbn(isbn13) ?? normalizeIsbn(isbn10);
+  useEffect(() => {
+    if (!isbn) {
+      setAutofill("idle");
+      return;
+    }
+    const mine = ++lookupSeq.current;
+    const timer = setTimeout(() => {
+      setAutofill("loading");
+      api.ol
+        .lookup(isbn)
+        .then((result) => {
+          if (mine !== lookupSeq.current) return;
+          if (!result.found) {
+            setAutofill("not-found");
+            return;
+          }
+          const incoming: Partial<Fields> = {
+            title: result.title,
+            author: result.authorName,
+            cover: result.coverUrl,
+            year: result.publishYear != null ? String(result.publishYear) : undefined,
+            pages: result.pageCount != null ? String(result.pageCount) : undefined,
+          };
+          setFields((prev) => {
+            const next = { ...prev };
+            for (const key of Object.keys(incoming) as AutofillField[]) {
+              const value = incoming[key];
+              // Never-clobber: fill iff empty AND not dirtied by the user.
+              if (value && prev[key] === "" && !dirty.has(key)) {
+                next[key] = value;
+              }
+            }
+            return next;
+          });
+          setAutofill("found");
+        })
+        .catch(() => {
+          if (mine !== lookupSeq.current) return;
+          // A failed lookup leaves the form fully usable; show the no-match line.
+          setAutofill("not-found");
+        });
+    }, OL_DEBOUNCE_MS);
+    return () => clearTimeout(timer);
+  }, [isbn, dirty]);
+
   function toggleGenre(slug: string) {
     setSelectedGenres((prev) =>
       prev.includes(slug)
@@ -83,6 +186,10 @@ export function Submit() {
   const isSovereign =
     session.status === "signed-in" && session.user.email === null;
   const signedIn = session.status === "signed-in";
+
+  // The cover preview fallback gradient (the BookHeader/BookCard pattern), seeded
+  // by the title since a submission has no slug yet — a stable, deterministic seed.
+  const coverFallback = coverGradient(fields.title || adding?.title || "submission");
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -172,13 +279,27 @@ export function Submit() {
               <Label className="u-label--inline" htmlFor="sub-title-in">
                 Title <span className="sub-req">required</span>
               </Label>
-              <input id="sub-title-in" name="title" type="text" required defaultValue={adding.title} />
+              <input
+                id="sub-title-in"
+                name="title"
+                type="text"
+                required
+                value={fields.title}
+                onChange={(e) => editField("title", e.target.value)}
+              />
             </Field>
             <Field className="sub-field">
               <Label className="u-label--inline" htmlFor="sub-author">
                 Author name <span className="sub-req">required</span>
               </Label>
-              <input id="sub-author" name="author" type="text" required />
+              <input
+                id="sub-author"
+                name="author"
+                type="text"
+                required
+                value={fields.author}
+                onChange={(e) => editField("author", e.target.value)}
+              />
             </Field>
           </div>
 
@@ -195,11 +316,25 @@ export function Submit() {
           <div className="sub-row">
             <Field className="sub-field">
               <Label className="u-label--inline" htmlFor="sub-isbn13">ISBN-13</Label>
-              <input id="sub-isbn13" name="isbn13" type="text" placeholder="9780000000000" />
+              <input
+                id="sub-isbn13"
+                name="isbn13"
+                type="text"
+                placeholder="9780000000000"
+                value={isbn13}
+                onChange={(e) => setIsbn13(e.target.value)}
+              />
             </Field>
             <Field className="sub-field">
               <Label className="u-label--inline" htmlFor="sub-isbn10">ISBN-10</Label>
-              <input id="sub-isbn10" name="isbn10" type="text" placeholder="0000000000" />
+              <input
+                id="sub-isbn10"
+                name="isbn10"
+                type="text"
+                placeholder="0000000000"
+                value={isbn10}
+                onChange={(e) => setIsbn10(e.target.value)}
+              />
             </Field>
           </div>
 
@@ -213,11 +348,21 @@ export function Submit() {
                 min={1500}
                 max={new Date().getFullYear() + 1}
                 placeholder="2025"
+                value={fields.year}
+                onChange={(e) => editField("year", e.target.value)}
               />
             </Field>
             <Field className="sub-field">
               <Label className="u-label--inline" htmlFor="sub-pages">Page count</Label>
-              <input id="sub-pages" name="pages" type="number" min={1} placeholder="320" />
+              <input
+                id="sub-pages"
+                name="pages"
+                type="number"
+                min={1}
+                placeholder="320"
+                value={fields.pages}
+                onChange={(e) => editField("pages", e.target.value)}
+              />
             </Field>
             <Field className="sub-field">
               <Label className="u-label--inline" htmlFor="sub-lang">Language</Label>
@@ -230,6 +375,18 @@ export function Submit() {
               </select>
             </Field>
           </div>
+
+          {autofill === "loading" && (
+            <p className="sub-autofill-note">Looking up this ISBN…</p>
+          )}
+          {autofill === "found" && (
+            <p className="sub-autofill-note">Filled from Open Library. Edit anything.</p>
+          )}
+          {autofill === "not-found" && (
+            <p className="sub-autofill-note">
+              No match on Open Library. Add the details by hand.
+            </p>
+          )}
         </div>
 
         <div className="sub-section">
@@ -256,12 +413,35 @@ export function Submit() {
                 name="cover"
                 type="url"
                 placeholder="https://covers.openlibrary.org/..."
+                value={fields.cover}
+                onChange={(e) => editField("cover", e.target.value)}
               />
               <span className="sub-hint">
                 A direct link to a JPEG or PNG. Use the publisher's image when
                 possible.
               </span>
             </Field>
+            <div className="sub-cover-preview">
+              {fields.cover && !coverBroken ? (
+                <img
+                  className="sub-cover-img"
+                  src={fields.cover}
+                  alt=""
+                  loading="lazy"
+                  onError={() => setCoverBroken(true)}
+                  onLoad={() => setCoverBroken(false)}
+                />
+              ) : (
+                <div
+                  className="sub-cover-fallback"
+                  style={{ background: `linear-gradient(155deg, ${coverFallback.from}, ${coverFallback.to})` }}
+                >
+                  <span className="sub-cover-fallback-title" style={{ color: coverFallback.ink }}>
+                    {fields.title || adding.title || "Cover preview"}
+                  </span>
+                </div>
+              )}
+            </div>
             <Field className="sub-field">
               <Label className="u-label--inline" htmlFor="sub-purchase">Where to read</Label>
               <input
