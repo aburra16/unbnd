@@ -1,8 +1,9 @@
 # Story 64: Open Library metadata autofill + cover preview on submit
 
-**Status:** In progress
+**Status:** Done
 **Created:** 2026-06-06
 **Type:** Feature / Hardening
+**Review:** `engineering-team/reviews/64-submit-autofill.md`
 
 ## Background
 

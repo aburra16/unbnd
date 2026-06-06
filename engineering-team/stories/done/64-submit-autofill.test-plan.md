@@ -1,6 +1,6 @@
 # Test Plan: Story 64 — Open Library metadata autofill + cover preview on submit
 
-**Story:** `engineering-team/stories/64-submit-autofill.md`
+**Story:** `engineering-team/stories/done/64-submit-autofill.md`
 **ADR:** `engineering-team/decisions/0063-submit-autofill.md`
 **Date:** 2026-06-06
 
