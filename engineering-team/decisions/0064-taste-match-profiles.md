@@ -2,7 +2,7 @@
 
 **Status:** Accepted
 **Date:** 2026-06-06
-**Story:** `engineering-team/stories/65-taste-match-profiles.md`
+**Story:** `engineering-team/stories/done/65-taste-match-profiles.md`
 
 ## Context
 

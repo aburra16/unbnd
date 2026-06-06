@@ -1,6 +1,6 @@
 # Story 65: Taste Match on curator profiles
 
-**Status:** Approved
+**Status:** Done
 **Created:** 2026-06-06
 **Type:** Feature
 
@@ -39,5 +39,5 @@ As a reader (Founding Curator or Trusting Reader), I want to see how closely my 
 
 ## Linked artifacts
 - ADR: `engineering-team/decisions/0064-taste-match-profiles.md` (Accepted)
-- Test plan: `engineering-team/stories/65-taste-match-profiles.test-plan.md`
+- Test plan: `engineering-team/stories/done/65-taste-match-profiles.test-plan.md`
 - Review: (filled in after Review phase)

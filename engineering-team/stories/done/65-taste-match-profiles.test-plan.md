@@ -1,6 +1,6 @@
 # Test Plan: Story 65 — Taste Match on curator profiles
 
-**Story:** `engineering-team/stories/65-taste-match-profiles.md`
+**Story:** `engineering-team/stories/done/65-taste-match-profiles.md`
 **ADR:** `engineering-team/decisions/0064-taste-match-profiles.md`
 **Date:** 2026-06-06
 
