@@ -2,7 +2,7 @@
 
 **Status:** Accepted
 **Date:** 2026-06-06
-**Story:** `engineering-team/stories/70-hype-gap-indicator.md`
+**Story:** `engineering-team/stories/done/70-hype-gap-indicator.md`
 
 ## Context
 

@@ -1,6 +1,6 @@
 # Story 70: Hype-gap indicator on book detail
 
-**Status:** Approved
+**Status:** Done
 **Created:** 2026-06-06
 **Type:** Feature
 
@@ -34,5 +34,5 @@ As a Trusting Reader, I want to see when the people I trust rate a book very dif
 
 ## Linked artifacts
 - ADR: `engineering-team/decisions/0068-hype-gap-indicator.md` (Accepted)
-- Test plan: `engineering-team/stories/70-hype-gap-indicator.test-plan.md`
+- Test plan: `engineering-team/stories/done/70-hype-gap-indicator.test-plan.md`
 - Review: (filled in after Review phase)

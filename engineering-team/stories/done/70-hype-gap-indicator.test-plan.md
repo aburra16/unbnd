@@ -1,6 +1,6 @@
 # Test Plan: Story 70 — Hype-gap indicator on book detail
 
-**Story:** `engineering-team/stories/70-hype-gap-indicator.md`
+**Story:** `engineering-team/stories/done/70-hype-gap-indicator.md`
 **ADR:** `engineering-team/decisions/0068-hype-gap-indicator.md`
 **Date:** 2026-06-06
 
