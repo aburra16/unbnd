@@ -158,7 +158,7 @@ export function Home() {
           {state.trust.favorites.length > 0 && (
             <Shelf title="Community Favorites" books={state.trust.favorites} />
           )}
-          {/* Hidden Gems (ADR 0069): the discovery payoff of the trust layer —
+          {/* Hidden Gems (ADR 0069): the discovery payoff of the trust layer,
               books the trusted network rates far above the crowd. Unlike the
               shelves above, it is ALWAYS present: with gems it shows the shelf;
               empty (cold-start) it shows an on-ramp naming what starts it. */}
