@@ -42,6 +42,6 @@ For the Architect (Phase 2):
 3. **Serve + cache.** Where the count is computed/served (extend the profile-stats endpoint vs a dedicated read) and its caching posture, consistent with the existing trust reads. Honest-empty when the source has no datum.
 
 ## Linked artifacts
-- ADR: (filled in after Architecture phase)
+- ADR: `engineering-team/decisions/0072-followers-count-nip85.md` (Accepted)
 - Test plan: (filled in after Test Design phase)
 - Review: (filled in after Review phase)
