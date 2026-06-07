@@ -39,6 +39,9 @@ From `product-team/stories-queue.md`, 18 stories in 3 ordered blocks. Each is pr
 - #81 `contested-tag-treatment` — contested-tag treatment
 - #82 `code-debt-cleanup` — code-debt cleanup *(+ operator ops task: age-encrypt the librarian key)*
 
+## Deploy / ops notes *(carry into the deploy step)*
+- **#72 link unfurls — `PUBLIC_ORIGIN` (api):** the droplet `.env` must set `PUBLIC_ORIGIN=https://staging.unbnd.ink` (default is `http://localhost:5181`). The unfurl cards' `og:url`/`og:image` and the oEmbed same-origin validation derive from it; if left at the localhost default, cards carry localhost URLs and oEmbed rejects real links. Already referenced by `docker-compose.prod.yml` (api service). Post-deploy smoke: `curl -A "facebookexternalhit/1.1" https://staging.unbnd.ink/book/<slug>` returns the card document; a browser UA returns `index.html`. (Review #72, finding 2.)
+
 ## Provenance
 - **Mode:** PRD-backed (anchor = `product-team/prd/social-loop.md`).
 - **Confidence at close:** to be set at book-close.
