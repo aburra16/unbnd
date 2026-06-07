@@ -14,12 +14,14 @@ const FIXTURE_CREATED_AT = 1;
 export class FixtureTrustProvider implements TrustProvider {
   readonly name: TrustProviderName = "fixture";
   readonly #weights: Readonly<Record<string, Readonly<Record<string, number>>>>;
+  readonly #followers: Readonly<Record<string, Readonly<Record<string, number>>>>;
   readonly #scored: Set<string>;
   readonly #challenge: string | null | undefined;
   readonly #personalizeOk: boolean;
 
   constructor(spec: FixtureSpec) {
     this.#weights = spec.weights ?? {};
+    this.#followers = spec.followers ?? {};
     const seeded =
       spec.scoredObservers ??
       Object.keys(this.#weights).filter(
@@ -43,6 +45,23 @@ export class FixtureTrustProvider implements TrustProvider {
       const w = row[target];
       if (typeof w === "number" && w > 0) {
         out.set(target, Math.min(1, w));
+      }
+    }
+    return out;
+  }
+
+  // Story 74 / ADR 0072 — follower counts from the configured spec. A present
+  // datum (including 0) is returned; an absent target is omitted (honest absence).
+  async followers(
+    observerHex: string,
+    targetHexes: readonly string[],
+  ): Promise<Map<string, number>> {
+    const row = this.#followers[observerHex] ?? {};
+    const out = new Map<string, number>();
+    for (const target of targetHexes) {
+      const n = row[target];
+      if (typeof n === "number" && Number.isFinite(n)) {
+        out.set(target, Math.max(0, Math.trunc(n)));
       }
     }
     return out;

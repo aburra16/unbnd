@@ -8,6 +8,7 @@
 import express, { type Request, type Router } from "express";
 import { parse as parseCookie } from "cookie";
 import type { Config } from "../config";
+import type { TrustProvider } from "@unbnd/trust";
 import type { NostrFilter, PagedResult } from "../nostr/query";
 import type { SignedNostrEvent } from "@unbnd/schemas";
 import { countOwnRatings } from "../ratings/summary";
@@ -35,6 +36,10 @@ type Stats = {
   // throwing kind-3 read (omit-on-throw, never a fabricated 0). Honest +
   // uncapped — one user's own bounded contact list in a single event.
   followingCount?: number;
+  // Story 74 / ADR 0072: trust-anchored followers count (the NIP-85 attestation),
+  // read from the house vantage. Omitted on 0 / no datum (honest-empty → the web
+  // shows "No followers yet.").
+  followersCount?: number;
   capped?: CappedKey[];
 };
 
@@ -54,6 +59,9 @@ export type ProfileStatsDeps = {
   // Paginating author-scoped read (ADR 0021). Pages past the relay's 500 cap and
   // returns { events, capped }; statsFor counts `.events` and flags `.capped`.
   readonly queryPaged: (filter: NostrFilter) => Promise<PagedResult>;
+  // The neutral trust seam (Story 74 / ADR 0072) — read the followers count from
+  // the house vantage. Optional + best-effort; absent → no followers count.
+  readonly trust?: TrustProvider;
   // Injectable clock for the public-twin TTL cache (ADR 0020 Decision 4).
   readonly now?: () => number;
 };
@@ -112,7 +120,26 @@ export function buildProfileStatsRouter(deps: ProfileStatsDeps): Router {
       () => ({ ok: false as const }),
     );
 
-    const [ratings, tags, following] = await Promise.all([ratingsP, tagsP, followingP]);
+    // A fifth parallel, independently-wrapped read (Story 74 / ADR 0072): the
+    // trust-anchored followers count from the HOUSE vantage. Best-effort — no
+    // trust seam or no house observer yields no datum; the seam never throws but
+    // we wrap anyway. NEVER a `#p` relay scan (it is a trust read).
+    const followersP = (async () => {
+      const house = deps.config.houseObserverPubkey;
+      if (!deps.trust || !house) return undefined;
+      const m = await deps.trust.followers(house, [author]);
+      return m.get(author);
+    })().then(
+      (n) => ({ ok: true as const, n }),
+      () => ({ ok: false as const }),
+    );
+
+    const [ratings, tags, following, followers] = await Promise.all([
+      ratingsP,
+      tagsP,
+      followingP,
+      followersP,
+    ]);
 
     const stats: Stats = {};
     const capped: CappedKey[] = [];
@@ -127,6 +154,9 @@ export function buildProfileStatsRouter(deps: ProfileStatsDeps): Router {
       if (tags.capped) capped.push("tagsApplied");
     }
     if (following.ok) stats.followingCount = following.n;
+    // Omit on 0 / no datum → the web shows "No followers yet." (AC-3/AC-4).
+    if (followers.ok && typeof followers.n === "number" && followers.n > 0)
+      stats.followersCount = followers.n;
     if (capped.length > 0) stats.capped = capped;
     return stats;
   }

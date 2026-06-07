@@ -80,4 +80,29 @@ describe("FixtureTrustProvider (ADR 0017)", () => {
     expect(p.name).toBe("fixture");
     expect(p).toBeInstanceOf(FixtureTrustProvider);
   });
+
+  // Story 74 / ADR 0072 — followers() from the fixture spec.
+  describe("followers", () => {
+    const fspec: FixtureSpec = {
+      weights: { [O]: { [A]: 0.9 } },
+      followers: { [O]: { [A]: 42, [B]: 0 } },
+    };
+
+    it("returns configured follower counts for targets with a datum (including 0)", async () => {
+      const m = await new FixtureTrustProvider(fspec).followers(O, [A, B, C]);
+      expect(m.get(A)).toBe(42);
+      expect(m.get(B)).toBe(0); // a real datum of 0 is present
+      expect(m.has(C)).toBe(false); // no datum → absent
+    });
+
+    it("empty map for an unknown observer", async () => {
+      const m = await new FixtureTrustProvider(fspec).followers("e".repeat(64), [A]);
+      expect(m.size).toBe(0);
+    });
+
+    it("empty map when the spec has no followers data at all (honest-empty)", async () => {
+      const m = await new FixtureTrustProvider(spec).followers(O, [A, B]);
+      expect(m.size).toBe(0);
+    });
+  });
 });

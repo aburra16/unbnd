@@ -98,6 +98,7 @@ export class BrainstormProvider implements TrustProvider {
   readonly #now: () => number;
   readonly #serviceKeys = new Map<string, Cached<{ key: string; relayHint?: string } | null>>();
   readonly #weights = new Map<string, Cached<Map<string, number>>>();
+  readonly #followersCache = new Map<string, Cached<Map<string, number>>>();
 
   constructor(
     opts: { apiUrl: string; relays: readonly string[] },
@@ -138,15 +139,28 @@ export class BrainstormProvider implements TrustProvider {
     return value;
   }
 
-  async weights(observerHex: string, targetHexes: readonly string[]): Promise<Map<string, number>> {
+  /**
+   * The shared per-target read for the trusted-assertion (kind-30382) events:
+   * resolve the observer's service key, union the configured relays + the /setup
+   * hint, read the events authored by that key for the targets, and reduce them
+   * with `pick` (per-event value, or null to skip). The union keeps the LARGEST
+   * value per target; still-fresh cached values fill targets not re-queried.
+   * Best-effort: no service key or a read failure yields whatever is in cache (or
+   * empty); never throws. `weights()` and `followers()` differ only in `pick`.
+   */
+  async #readAssertionUnion(
+    observerHex: string,
+    targetHexes: readonly string[],
+    cache: Map<string, Cached<Map<string, number>>>,
+    pick: (event: SignedNostrEvent) => number | null,
+  ): Promise<Map<string, number>> {
     if (targetHexes.length === 0) return new Map();
-    const cached = this.#weights.get(observerHex);
+    const cached = cache.get(observerHex);
     const fresh = cached && this.#now() - cached.at < WEIGHT_TTL_MS ? cached.value : null;
 
     const svc = await this.#serviceKey(observerHex);
     if (!svc) return new Map();
 
-    // Union the configured relays + the /setup relay hint.
     const relays = svc.relayHint && !this.#relays.includes(svc.relayHint)
       ? [...this.#relays, svc.relayHint]
       : this.#relays;
@@ -167,21 +181,39 @@ export class BrainstormProvider implements TrustProvider {
         }
         for (const e of events) {
           const d = tag(e, "d");
-          const rankStr = tag(e, "rank");
-          if (!d || rankStr === undefined) continue;
-          const rank = Number(rankStr);
-          if (!Number.isFinite(rank)) continue;
-          const w = Math.max(0, Math.min(1, rank / 100));
+          if (!d) continue;
+          const v = pick(e);
+          if (v === null) continue;
           const prev = out.get(d);
-          if (prev === undefined || w > prev) out.set(d, w); // union: keep the strongest
+          if (prev === undefined || v > prev) out.set(d, v); // union: keep the largest
         }
       }),
     );
 
-    // Merge any still-fresh cached weights (covers targets not re-queried).
+    // Merge any still-fresh cached values (covers targets not re-queried).
     if (fresh) for (const [k, v] of fresh) if (!out.has(k)) out.set(k, v);
-    this.#weights.set(observerHex, { value: out, at: this.#now() });
+    cache.set(observerHex, { value: out, at: this.#now() });
     return out;
+  }
+
+  async weights(observerHex: string, targetHexes: readonly string[]): Promise<Map<string, number>> {
+    return this.#readAssertionUnion(observerHex, targetHexes, this.#weights, (e) => {
+      const rankStr = tag(e, "rank");
+      if (rankStr === undefined) return null;
+      const rank = Number(rankStr);
+      return Number.isFinite(rank) ? Math.max(0, Math.min(1, rank / 100)) : null;
+    });
+  }
+
+  // Story 74 / ADR 0072 — follower counts from the SAME trusted-assertion events
+  // the weights read fetches (the `followers` tag), via the same service key.
+  async followers(observerHex: string, targetHexes: readonly string[]): Promise<Map<string, number>> {
+    return this.#readAssertionUnion(observerHex, targetHexes, this.#followersCache, (e) => {
+      const followersStr = tag(e, "followers");
+      if (followersStr === undefined) return null;
+      const n = Number(followersStr);
+      return Number.isFinite(n) ? Math.max(0, Math.trunc(n)) : null;
+    });
   }
 
   async hasScores(observerHex: string): Promise<boolean> {

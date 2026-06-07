@@ -442,6 +442,8 @@ async function main() {
       sessionUser: resolveSessionUser,
       query: userEventDeps.query,
       queryPaged: userEventDeps.queryPaged,
+      // Story 74 / ADR 0072: the followers count reads the trust seam (house vantage).
+      trust,
     }),
   );
   // Taste Match (Story 65 / ADR 0064): observer-relative, read-time — the

@@ -161,3 +161,10 @@
   font-size: var(--u-font-size-13);
   color: var(--u-amber);
 }
+
+/* Honest empty state for the followers count (Story 74 / ADR 0072). */
+.profile-followers-empty {
+  margin: var(--u-space-8) 0 0;
+  font-size: var(--u-font-size-13);
+  color: var(--u-muted);
+}

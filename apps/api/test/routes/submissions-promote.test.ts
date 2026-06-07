@@ -133,6 +133,7 @@ describe("POST /api/submissions/:slug/promote — honest degrade closes the gate
         throw new Error("trust backend down");
       }),
       hasScores: vi.fn(async () => false),
+      followers: vi.fn(async () => new Map()),
       authChallenge: vi.fn(async () => null),
       personalize: vi.fn(async () => false),
     };

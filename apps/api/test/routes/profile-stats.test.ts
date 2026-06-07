@@ -21,6 +21,7 @@ import {
   type SignedNostrEvent,
 } from "@unbnd/schemas";
 import type { Config } from "../../src/config";
+import type { TrustProvider } from "@unbnd/trust";
 import {
   buildProfileStatsRouter,
   type ProfileStatsDeps,
@@ -196,5 +197,44 @@ describe("GET /api/profile/me/stats — honesty rule (AC-8)", () => {
     expect("booksRated" in res.body.stats).toBe(false);
     expect("reviews" in res.body.stats).toBe(false);
     expect(res.body.stats.tagsApplied).toBe(1); // the surviving read still reports
+  });
+});
+
+describe("GET /api/profile/me/stats — followers count (Story 74 / ADR 0072)", () => {
+  const HOUSE = asHexPubkey("c".repeat(63) + "d");
+  const houseCfg = { ...cfg, houseObserverPubkey: HOUSE } as Config;
+  const followersTrust = (m: Map<string, number>) =>
+    ({ followers: vi.fn(async () => m) }) as unknown as TrustProvider;
+
+  it("returns followersCount from trust.followers read at the house vantage", async () => {
+    const trust = followersTrust(new Map([[USER, 7]]));
+    const { app } = makeApp({ config: houseCfg, trust });
+    const res = await request(app).get("/api/profile/me/stats");
+    expect(res.status).toBe(200);
+    expect(res.body.stats.followersCount).toBe(7);
+  });
+
+  it("omits followersCount when the source has no datum (honest-empty → 'No followers yet.')", async () => {
+    const { app } = makeApp({ config: houseCfg, trust: followersTrust(new Map()) });
+    const res = await request(app).get("/api/profile/me/stats");
+    expect(res.status).toBe(200);
+    expect("followersCount" in res.body.stats).toBe(false);
+  });
+
+  it("omits followersCount on a 0 datum", async () => {
+    const { app } = makeApp({ config: houseCfg, trust: followersTrust(new Map([[USER, 0]])) });
+    const res = await request(app).get("/api/profile/me/stats");
+    expect("followersCount" in res.body.stats).toBe(false);
+  });
+
+  it("introduces no #p relay scan (AC-2)", async () => {
+    const seen: Array<Record<string, unknown>> = [];
+    const query = vi.fn(async (f: Record<string, unknown>) => {
+      seen.push(f);
+      return [];
+    });
+    const { app } = makeApp({ config: houseCfg, trust: followersTrust(new Map([[USER, 7]])), query });
+    await request(app).get("/api/profile/me/stats");
+    for (const f of seen) expect(f["#p"]).toBeUndefined();
   });
 });
