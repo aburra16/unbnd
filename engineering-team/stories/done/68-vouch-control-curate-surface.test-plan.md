@@ -1,6 +1,6 @@
 # Test Plan: Story 68 — Vouch control + the Curate surface
 
-**Story:** `engineering-team/stories/68-vouch-control-curate-surface.md`
+**Story:** `engineering-team/stories/done/68-vouch-control-curate-surface.md`
 **ADR:** `engineering-team/decisions/0067-vouch-control-curate-surface.md`
 **Date:** 2026-06-06
 

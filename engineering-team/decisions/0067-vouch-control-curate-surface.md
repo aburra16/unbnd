@@ -2,7 +2,7 @@
 
 **Status:** Accepted
 **Date:** 2026-06-06
-**Story:** `engineering-team/stories/68-vouch-control-curate-surface.md`
+**Story:** `engineering-team/stories/done/68-vouch-control-curate-surface.md`
 
 ## Context
 

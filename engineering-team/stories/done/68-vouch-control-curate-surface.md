@@ -1,6 +1,6 @@
 # Story 68: Vouch control + the Curate surface
 
-**Status:** Approved
+**Status:** Done
 **Created:** 2026-06-06
 **Type:** Feature
 
@@ -37,5 +37,5 @@ As a Founding Curator, I want a clear way to vouch for someone as a curator and 
 
 ## Linked artifacts
 - ADR: `engineering-team/decisions/0067-vouch-control-curate-surface.md` (Accepted)
-- Test plan: `engineering-team/stories/68-vouch-control-curate-surface.test-plan.md`
+- Test plan: `engineering-team/stories/done/68-vouch-control-curate-surface.test-plan.md`
 - Review: (filled in after Review phase)
