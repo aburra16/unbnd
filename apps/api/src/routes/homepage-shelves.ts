@@ -30,6 +30,8 @@ export type CachedShelfSet = {
   readonly computedAt: string | null;
   readonly trending: string[];
   readonly favorites: string[];
+  /** Story 71 / ADR 0069. Optional: old cache rows (pre-#71) lack it → read as []. */
+  readonly hiddenGems?: string[];
   readonly genres: CachedShelfGenre[];
 };
 
@@ -57,6 +59,7 @@ export function buildHomepageShelvesRouter(deps: HomepageShelvesDeps): Router {
           computedAt: null,
           trending: { books: [] },
           favorites: { books: [] },
+          hiddenGems: { books: [] },
           genres: [],
         });
       }
@@ -73,8 +76,10 @@ export function buildHomepageShelvesRouter(deps: HomepageShelvesDeps): Router {
           distinct.push(slug);
         }
       };
+      const cachedGems = set.hiddenGems ?? [];
       for (const s of set.trending) collect(s);
       for (const s of set.favorites) collect(s);
+      for (const s of cachedGems) collect(s);
       for (const g of set.genres) for (const s of g.books) collect(s);
 
       const bySlug = new Map<string, PublicBook>();
@@ -99,6 +104,7 @@ export function buildHomepageShelvesRouter(deps: HomepageShelvesDeps): Router {
         computedAt: set.computedAt,
         trending: { books: hydrate(set.trending) },
         favorites: { books: hydrate(set.favorites) },
+        hiddenGems: { books: hydrate(cachedGems) },
         genres: set.genres.map((g) => ({
           slug: g.slug,
           name: g.name,

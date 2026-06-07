@@ -67,6 +67,7 @@ const SHELF_DEFS = {
   favoritesMinRatings: 3,
   genreCount: 5,
   booksPerRow: 10,
+  hiddenGemsMargin: 0.5,
 } as const;
 
 /** A signed kind-39999 book record under the `books` concept (catalog member). */
@@ -534,5 +535,67 @@ describe("runShelvesCycle — AC-6: atomic replace leaves the prior cache intact
 
     expect(cache.replaceShelves).toHaveBeenCalledTimes(1);
     expect(cache.replaceShelves.mock.calls[0]![0]).toBe(HOUSE);
+  });
+});
+
+// ── Story 71 / ADR 0069: Hidden Gems — highest positive hype-gap ──────────────
+// A book's hype-gap = trusted average − the crowd's raw average. A gem is a book
+// the trusted network rates well above the crowd. Mix trusted + untrusted raters
+// so the trusted average diverges from the all-ratings raw mean.
+
+/** N trusted (weighted) + N untrusted (zero-weight) raters at the given scores. */
+function gemBook(slug: string, trustedScore: number, untrustedScore: number) {
+  const trusted = [0, 1, 2].map(() =>
+    ratingEvent({ bookSlug: slug, score: trustedScore, createdAt: NOW - 2 * DAY }),
+  );
+  const untrusted = [0, 1, 2].map(() =>
+    ratingEvent({ bookSlug: slug, score: untrustedScore, createdAt: NOW - 2 * DAY }),
+  );
+  return { slug, trusted, untrusted };
+}
+
+function gemDeps(gems: ReturnType<typeof gemBook>[], trustOn = true) {
+  const readConcept = makeReadConcept({
+    [BOOKS_Z]: gems.map((g) => bookEvent(g.slug, g.slug)),
+    [RATINGS_Z]: gems.flatMap((g) => [...g.trusted, ...g.untrusted].map((r) => r.event)),
+  });
+  const weightRow = trustOn
+    ? Object.fromEntries(gems.flatMap((g) => g.trusted.map((r) => [r.pubkey, 0.9])))
+    : {};
+  return baseDeps({ readConcept, trust: trustProvider(weightRow) });
+}
+
+describe("computeShelves — Hidden Gems: positive hype-gap, gated + ranked", () => {
+  it("ranks by gap (trusted above crowd) desc; excludes consensus and overhyped", async () => {
+    const out = await computeShelves(
+      gemDeps([
+        gemBook("gem", 5, 2), // trusted 5, raw 3.5 → gap 1.5
+        gemBook("big-gem", 5, 1), // trusted 5, raw 3.0 → gap 2.0 (ranks first)
+        gemBook("consensus", 4, 4), // gap 0 → excluded
+        gemBook("overhyped", 2, 5), // gap negative → excluded
+      ]),
+    );
+    expect(slugsOf(out.hiddenGems)).toEqual(["big-gem", "gem"]);
+  });
+
+  it("excludes a wide-gap book below the trusted-rater minimum", async () => {
+    // 1 trusted 5 + 3 untrusted 1 → a wide gap, but trustedCount 1 < favoritesMinRatings 3.
+    const thinTrusted = [ratingEvent({ bookSlug: "thin", score: 5, createdAt: NOW - 2 * DAY })];
+    const thinUntrusted = [0, 1, 2].map(() =>
+      ratingEvent({ bookSlug: "thin", score: 1, createdAt: NOW - 2 * DAY }),
+    );
+    const readConcept = makeReadConcept({
+      [BOOKS_Z]: [bookEvent("thin", "Thin")],
+      [RATINGS_Z]: [...thinTrusted, ...thinUntrusted].map((r) => r.event),
+    });
+    const out = await computeShelves(
+      baseDeps({ readConcept, trust: trustProvider({ [thinTrusted[0]!.pubkey]: 0.9 }) }),
+    );
+    expect(slugsOf(out.hiddenGems)).toEqual([]);
+  });
+
+  it("honest empty when there is no trusted signal", async () => {
+    const out = await computeShelves(gemDeps([gemBook("gem", 5, 2)], false));
+    expect(out.hiddenGems).toEqual([]);
   });
 });
