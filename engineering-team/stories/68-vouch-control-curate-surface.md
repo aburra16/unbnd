@@ -31,6 +31,6 @@ As a Founding Curator, I want a clear way to vouch for someone as a curator and 
 2. **Vouch count source:** "N trusted people vouched" needs the trusted-asserter count for a subject (the #67 read returns only the boolean today). Architect to decide whether to extend that read or add a sibling.
 
 ## Linked artifacts
-- ADR: (filled in after Architecture phase)
+- ADR: `engineering-team/decisions/0067-vouch-control-curate-surface.md` (Accepted)
 - Test plan: (filled in after Test Design phase)
 - Review: (filled in after Review phase)
