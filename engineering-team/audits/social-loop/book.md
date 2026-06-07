@@ -41,6 +41,7 @@ From `product-team/stories-queue.md`, 18 stories in 3 ordered blocks. Each is pr
 
 ## Deploy / ops notes *(carry into the deploy step)*
 - **#72 link unfurls — `PUBLIC_ORIGIN` (api):** the droplet `.env` must set `PUBLIC_ORIGIN=https://staging.unbnd.ink` (default is `http://localhost:5181`). The unfurl cards' `og:url`/`og:image` and the oEmbed same-origin validation derive from it; if left at the localhost default, cards carry localhost URLs and oEmbed rejects real links. Already referenced by `docker-compose.prod.yml` (api service). Post-deploy smoke: `curl -A "facebookexternalhit/1.1" https://staging.unbnd.ink/book/<slug>` returns the card document; a browser UA returns `index.html`. (Review #72, finding 2.)
+- **#74 followers count — Brainstorm follower datum (source availability):** the followers count reads the `followers` value off the trust provider's per-target attestation (the same read as trust weights). Until the Brainstorm backend actually publishes that value for the house vantage's targets, `followers()` returns empty and every profile shows "No followers yet." — correct by construction, no code change needed to light it up. Verify once the source is live: a profile with known followers shows a "Followers" cell. (Review #74, finding 2.)
 
 ## Provenance
 - **Mode:** PRD-backed (anchor = `product-team/prd/social-loop.md`).
