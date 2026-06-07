@@ -12,6 +12,7 @@ import { sortRatingsByTasteMatch } from "../lib/view-model";
 import { useTrustView } from "../hooks/useTrustView";
 import { Button } from "@unbnd/ui";
 import { RatingsBlock } from "./RatingsBlock";
+import { HypeGapIndicator } from "./HypeGapIndicator";
 import { RatedByRow } from "./RatedByRow";
 import { ReviewsList } from "./ReviewsList";
 import "./RatingsPanel.css";
@@ -162,6 +163,11 @@ export function RatingsPanel({
       {error && <p className="rp-error" role="alert">{error}</p>}
       <p className="rp-caption">{caption}</p>
       <RatingsBlock average={average} count={count} countNoun={countNoun} label={label} emptyNote={emptyNote} />
+      <HypeGapIndicator
+        rawAverage={active.average}
+        trustedAverage={w?.average ?? null}
+        trustedCount={w?.trustedCount ?? 0}
+      />
       <RatedByRow ratings={displayReviews} tasteMatches={tasteMatches} />
       <ReviewsList ratings={displayReviews} tasteMatches={tasteMatches} />
     </div>

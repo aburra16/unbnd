@@ -1,0 +1,16 @@
+/* Story 70 / ADR 0068 — the hype-gap signal. Token-only. The dot carries the
+   signal colour; the muted text label carries the meaning (legible w/o colour). */
+.hype-gap {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--u-space-2);
+  margin: var(--u-space-3) 0 0;
+  color: var(--u-muted);
+  font-size: var(--u-font-size-13);
+}
+.hype-gap-hidden-gem .hype-gap-dot {
+  color: var(--signal-positive);
+}
+.hype-gap-overhyped .hype-gap-dot {
+  color: var(--signal-negative);
+}
