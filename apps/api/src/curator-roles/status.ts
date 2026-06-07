@@ -88,3 +88,18 @@ export async function computeCuratorStatus(
 
   return candidateHexes.filter((hex) => (counted.get(hex)?.size ?? 0) >= minAsserters);
 }
+
+/**
+ * The count of distinct above-floor asserters whose latest polarity for `subjectHex`
+ * is APPLY (Story 68 / ADR 0067) — the "N trusted people vouched" figure. Self-
+ * vouches excluded. Honest degrade → 0. STUB: real count in implementation.
+ */
+export async function trustedVouchCount(
+  _events: SignedNostrEvent[],
+  _subjectHex: string,
+  _houseObserverHex: string | undefined,
+  _floor: number,
+  _trust: TrustProvider,
+): Promise<number> {
+  return 0;
+}

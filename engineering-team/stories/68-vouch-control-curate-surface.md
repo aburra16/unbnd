@@ -32,5 +32,5 @@ As a Founding Curator, I want a clear way to vouch for someone as a curator and 
 
 ## Linked artifacts
 - ADR: `engineering-team/decisions/0067-vouch-control-curate-surface.md` (Accepted)
-- Test plan: (filled in after Test Design phase)
+- Test plan: `engineering-team/stories/68-vouch-control-curate-surface.test-plan.md`
 - Review: (filled in after Review phase)
