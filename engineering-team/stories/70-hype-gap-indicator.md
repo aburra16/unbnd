@@ -33,6 +33,6 @@ As a Trusting Reader, I want to see when the people I trust rate a book very dif
 2. **Trusted-rater minimum:** the "handful" threshold for showing the signal at all. Recommendation: reuse an existing trusted-count bar rather than a new knob where one fits.
 
 ## Linked artifacts
-- ADR: (filled in after Architecture phase)
+- ADR: `engineering-team/decisions/0068-hype-gap-indicator.md` (Accepted)
 - Test plan: (filled in after Test Design phase)
 - Review: (filled in after Review phase)
