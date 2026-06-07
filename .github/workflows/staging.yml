@@ -48,7 +48,7 @@ jobs:
             dockerfile: apps/librarian/Dockerfile
     steps:
       - name: Checkout (pinned to the built SHA)
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           ref: ${{ env.DEPLOY_SHA }}
 
