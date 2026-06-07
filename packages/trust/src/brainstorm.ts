@@ -184,6 +184,14 @@ export class BrainstormProvider implements TrustProvider {
     return out;
   }
 
+  // Story 74 / ADR 0072 — STUB (Test Design): real body lands in Implementation.
+  async followers(
+    _observerHex: string,
+    _targetHexes: readonly string[],
+  ): Promise<Map<string, number>> {
+    return new Map();
+  }
+
   async hasScores(observerHex: string): Promise<boolean> {
     const svc = await this.#serviceKey(observerHex);
     if (!svc) return false;

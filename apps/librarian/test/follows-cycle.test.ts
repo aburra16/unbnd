@@ -63,6 +63,7 @@ function fakeTrust(
     calls,
     name: "fixture",
     weights: vi.fn(async () => new Map()),
+    followers: vi.fn(async () => new Map()),
     hasScores: vi.fn(async () => false),
     authChallenge:
       over.authChallenge ??

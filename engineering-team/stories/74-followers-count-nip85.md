@@ -43,5 +43,5 @@ For the Architect (Phase 2):
 
 ## Linked artifacts
 - ADR: `engineering-team/decisions/0072-followers-count-nip85.md` (Accepted)
-- Test plan: (filled in after Test Design phase)
+- Test plan: `engineering-team/stories/74-followers-count-nip85.test-plan.md`
 - Review: (filled in after Review phase)

@@ -134,6 +134,7 @@ describe("computeCuratorStatus — batched weights + honest degrade", () => {
         throw new Error("trust backend down");
       }),
       hasScores: vi.fn(async () => false),
+      followers: vi.fn(async () => new Map()),
       authChallenge: vi.fn(async () => null),
       personalize: vi.fn(async () => false),
     };

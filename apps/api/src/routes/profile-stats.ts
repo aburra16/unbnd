@@ -8,6 +8,7 @@
 import express, { type Request, type Router } from "express";
 import { parse as parseCookie } from "cookie";
 import type { Config } from "../config";
+import type { TrustProvider } from "@unbnd/trust";
 import type { NostrFilter, PagedResult } from "../nostr/query";
 import type { SignedNostrEvent } from "@unbnd/schemas";
 import { countOwnRatings } from "../ratings/summary";
@@ -35,6 +36,10 @@ type Stats = {
   // throwing kind-3 read (omit-on-throw, never a fabricated 0). Honest +
   // uncapped — one user's own bounded contact list in a single event.
   followingCount?: number;
+  // Story 74 / ADR 0072: trust-anchored followers count (the NIP-85 attestation),
+  // read from the house vantage. Omitted on 0 / no datum (honest-empty → the web
+  // shows "No followers yet.").
+  followersCount?: number;
   capped?: CappedKey[];
 };
 
@@ -54,6 +59,9 @@ export type ProfileStatsDeps = {
   // Paginating author-scoped read (ADR 0021). Pages past the relay's 500 cap and
   // returns { events, capped }; statsFor counts `.events` and flags `.capped`.
   readonly queryPaged: (filter: NostrFilter) => Promise<PagedResult>;
+  // The neutral trust seam (Story 74 / ADR 0072) — read the followers count from
+  // the house vantage. Optional + best-effort; absent → no followers count.
+  readonly trust?: TrustProvider;
   // Injectable clock for the public-twin TTL cache (ADR 0020 Decision 4).
   readonly now?: () => number;
 };

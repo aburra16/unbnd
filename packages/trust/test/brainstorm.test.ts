@@ -156,3 +156,62 @@ describe("BrainstormProvider personalization", () => {
     expect(await p.personalize(OBS, {} as never)).toBe(false);
   });
 });
+
+// Story 74 / ADR 0072 — followers count from the same kind:30382 events the
+// weights read fetches (the `followers` tag), via the `30382:rank` service key.
+describe("BrainstormProvider.followers", () => {
+  const ev = (d: string, followers: number, withTag = true): SignedNostrEvent =>
+    ({
+      id: d,
+      pubkey: SVC,
+      sig: "s",
+      kind: 30382,
+      created_at: 1,
+      tags: withTag
+        ? [["d", d], ["rank", "50"], ["followers", String(followers)]]
+        : [["d", d], ["rank", "50"]],
+      content: "",
+    }) as SignedNostrEvent;
+
+  it("resolves the service key and maps the 30382 followers tag to counts", async () => {
+    const query = vi.fn(async () => [ev(T1, 42), ev(T2, 0)]);
+    const p = new BrainstormProvider(
+      { apiUrl: "https://api", relays: ["wss://r1"] },
+      { fetchImpl: setupFetch(), query },
+    );
+    const m = await p.followers(OBS, [T1, T2]);
+    expect(m.get(T1)).toBe(42);
+    expect(m.get(T2)).toBe(0); // a real datum of 0
+    expect(query).toHaveBeenCalledWith(
+      expect.any(String),
+      expect.objectContaining({ kinds: [30382], authors: [SVC], "#d": [T1, T2] }),
+    );
+  });
+
+  it("omits a target whose 30382 event has no followers tag (honest absence)", async () => {
+    const query = vi.fn(async () => [ev(T1, 0, false)]);
+    const p = new BrainstormProvider(
+      { apiUrl: "https://api", relays: ["wss://r1"] },
+      { fetchImpl: setupFetch(), query },
+    );
+    expect((await p.followers(OBS, [T1])).has(T1)).toBe(false);
+  });
+
+  it("honest-empty when the observer has no 30382:rank provider", async () => {
+    const p = new BrainstormProvider(
+      { apiUrl: "https://api", relays: ["wss://r1"] },
+      { fetchImpl: setupFetch([["30382:followers", SVC]]), query: vi.fn(async () => []) },
+    );
+    expect((await p.followers(OBS, [T1])).size).toBe(0);
+  });
+
+  it("no targets → no query", async () => {
+    const query = vi.fn(async () => []);
+    const p = new BrainstormProvider(
+      { apiUrl: "https://api", relays: ["wss://r1"] },
+      { fetchImpl: setupFetch(), query },
+    );
+    expect((await p.followers(OBS, [])).size).toBe(0);
+    expect(query).not.toHaveBeenCalled();
+  });
+});

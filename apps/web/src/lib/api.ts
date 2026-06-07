@@ -184,6 +184,9 @@ export type ProfileStatsResponse = {
   // The target's own kind-3 `p`-tag count (ADR 0023, AC-9). Present only when
   // the kind-3 read succeeded (a true 0 is present); absent on omit-on-throw.
   followingCount?: number;
+  // Trust-anchored followers count (Story 74 / ADR 0072, the NIP-85 attestation).
+  // Omitted on 0 / no datum → the profile shows "No followers yet."
+  followersCount?: number;
   // Keys whose underlying read hit the relay-cap ceiling (ADR 0021): their value
   // is a floor ("N+"), not exact. Absent/empty ⇒ nothing capped.
   capped?: ("booksRated" | "reviews" | "tagsApplied")[];

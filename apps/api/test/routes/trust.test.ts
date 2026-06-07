@@ -22,6 +22,7 @@ function provider(over: Partial<TrustProvider> = {}): TrustProvider {
     name: "brainstorm",
     weights: vi.fn(async () => new Map()),
     hasScores: vi.fn(async () => false),
+    followers: vi.fn(async () => new Map()),
     authChallenge: vi.fn(async () => CHAL_TEMPLATE),
     personalize: vi.fn(async () => true),
     ...over,

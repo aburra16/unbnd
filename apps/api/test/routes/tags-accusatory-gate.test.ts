@@ -320,6 +320,7 @@ describe("POST /api/tags — honest degrade closes the accusatory write (AC-7)",
         throw new Error("trust backend down");
       }),
       hasScores: vi.fn(async () => false),
+      followers: vi.fn(async () => new Map()),
       authChallenge: vi.fn(async () => null),
       personalize: vi.fn(async () => false),
     };
@@ -374,6 +375,7 @@ describe("GET /api/books/:slug/tags — canAssertAccusatory picker flag (AC-1)",
       name: "fixture" as const,
       weights,
       hasScores: vi.fn(async () => true),
+      followers: vi.fn(async () => new Map()),
       authChallenge: vi.fn(async () => null),
       personalize: vi.fn(async () => false),
     };

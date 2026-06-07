@@ -14,12 +14,14 @@ const FIXTURE_CREATED_AT = 1;
 export class FixtureTrustProvider implements TrustProvider {
   readonly name: TrustProviderName = "fixture";
   readonly #weights: Readonly<Record<string, Readonly<Record<string, number>>>>;
+  readonly #followers: Readonly<Record<string, Readonly<Record<string, number>>>>;
   readonly #scored: Set<string>;
   readonly #challenge: string | null | undefined;
   readonly #personalizeOk: boolean;
 
   constructor(spec: FixtureSpec) {
     this.#weights = spec.weights ?? {};
+    this.#followers = spec.followers ?? {};
     const seeded =
       spec.scoredObservers ??
       Object.keys(this.#weights).filter(
@@ -46,6 +48,15 @@ export class FixtureTrustProvider implements TrustProvider {
       }
     }
     return out;
+  }
+
+  // Story 74 / ADR 0072 — STUB (Test Design): real body lands in Implementation.
+  async followers(
+    _observerHex: string,
+    _targetHexes: readonly string[],
+  ): Promise<Map<string, number>> {
+    void this.#followers; // STUB: the real read uses this in Implementation.
+    return new Map();
   }
 
   async hasScores(observerHex: string): Promise<boolean> {

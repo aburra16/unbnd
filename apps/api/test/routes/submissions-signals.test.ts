@@ -164,6 +164,7 @@ describe("GET /api/submissions/:slug/signals — honest degrade (AC-6)", () => {
         throw new Error("down");
       }),
       hasScores: vi.fn(async () => false),
+      followers: vi.fn(async () => new Map()),
       authChallenge: vi.fn(async () => null),
       personalize: vi.fn(async () => false),
     };

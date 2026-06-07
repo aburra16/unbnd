@@ -170,6 +170,7 @@ describe("GET /api/books/:slug/tags — AC-7 honest degrade", () => {
         throw new Error("trust backend down");
       }),
       hasScores: vi.fn(async () => true),
+      followers: vi.fn(async () => new Map()),
       // CONTRACT MIGRATION (ADR 0026): authChallenge returns the unsigned
       // kind-27235 template now, not a bare string. These tag tests never call
       // it; the mock is updated to the new return type for compilation.

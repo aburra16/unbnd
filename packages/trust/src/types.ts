@@ -17,6 +17,8 @@ export type { NostrEventTemplate };
 export type FixtureSpec = {
   /** observerHex → (targetHex → weight in (0,1]). Absent target = not trusted. */
   readonly weights: Readonly<Record<string, Readonly<Record<string, number>>>>;
+  /** observerHex → (targetHex → follower count ≥ 0). Story 74. Absent = no datum. */
+  readonly followers?: Readonly<Record<string, Readonly<Record<string, number>>>>;
   /** Observers `hasScores()` reports true for. Default: observers with weights. */
   readonly scoredObservers?: readonly string[];
   /** Canned `authChallenge()` value; null = none. undefined = deterministic default. */
@@ -47,6 +49,16 @@ export interface TrustProvider {
    * to the raw view), never throws.
    */
   weights(
+    observerHex: string,
+    targetHexes: readonly string[],
+  ): Promise<Map<string, number>>;
+  /**
+   * Trust-anchored follower COUNTS for each target, from the observer's vantage
+   * (the NIP-85 follower attestation, Story 74 / ADR 0072). A target with no datum is absent
+   * from the map (a present count may be 0). Counts are non-negative integers.
+   * Best-effort: a backend failure resolves to an empty map, never throws.
+   */
+  followers(
     observerHex: string,
     targetHexes: readonly string[],
   ): Promise<Map<string, number>>;

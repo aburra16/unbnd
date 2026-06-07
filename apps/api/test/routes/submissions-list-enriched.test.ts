@@ -275,6 +275,7 @@ describe("GET /api/submissions — canPromote enrichment (USER-level, computed o
           throw new Error("trust backend down");
         }),
         hasScores: vi.fn(async () => false),
+        followers: vi.fn(async () => new Map()),
         authChallenge: vi.fn(async () => null),
         personalize: vi.fn(async () => false),
       };
