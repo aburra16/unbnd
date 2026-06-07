@@ -76,10 +76,13 @@ function renderButton(props: { target?: string } = {}) {
 }
 
 describe("FollowButton — render rules (AC-1)", () => {
-  it("signed-out → renders a sign-in affordance (link to /auth), no follow control", async () => {
+  it("signed-out → renders the create-account prompt (link to /auth), no follow control (Story 73)", async () => {
     sessionMock.mockReturnValue({ status: "signed-out", refresh: vi.fn() });
     renderButton();
-    const link = await screen.findByRole("link", { name: /sign in to follow/i });
+    expect(
+      await screen.findByText(/create a free account to follow this curator\./i),
+    ).toBeInTheDocument();
+    const link = screen.getByRole("link", { name: /create account/i });
     expect(link).toHaveAttribute("href", "/auth");
     expect(screen.queryByRole("button", { name: /follow/i })).not.toBeInTheDocument();
     expect(followStatusMock).not.toHaveBeenCalled();

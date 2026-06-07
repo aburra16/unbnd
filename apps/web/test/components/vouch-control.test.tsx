@@ -49,10 +49,14 @@ const renderVouch = (target = TARGET) =>
   );
 
 describe("VouchButton — visibility (AC-1)", () => {
-  it("signed out → renders nothing, does not query eligibility", () => {
+  it("signed out → renders the account prompt, does not query eligibility (Story 73)", async () => {
     sessionMock.mockReturnValue({ status: "signed-out", refresh: vi.fn() });
-    const { container } = renderVouch();
-    expect(container).toBeEmptyDOMElement();
+    renderVouch();
+    // The silent dead end is closed: a signed-out reader now sees the gate.
+    expect(await screen.findByText(/create a free account to vouch for this curator\./i)).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /create account/i })).toHaveAttribute("href", "/auth");
+    // Still must not probe vouch eligibility while signed out.
+    expect(vouchStatusMock).not.toHaveBeenCalled();
   });
 
   it("viewing your OWN profile → renders nothing", () => {

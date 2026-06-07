@@ -48,5 +48,5 @@ For the Architect (Phase 2):
 
 ## Linked artifacts
 - ADR: `engineering-team/decisions/0071-value-before-account.md` (Accepted)
-- Test plan: (filled in after Test Design phase)
+- Test plan: `engineering-team/stories/73-value-before-account.test-plan.md`
 - Review: (filled in after Review phase)

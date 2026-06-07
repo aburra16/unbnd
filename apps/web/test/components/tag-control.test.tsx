@@ -66,10 +66,13 @@ function renderControl(tags: BookTags = EMPTY) {
 }
 
 describe("TagControl — gating", () => {
-  it("prompts sign-in and offers no picker when signed out", async () => {
+  it("prompts account creation and offers no picker when signed out (Story 73)", async () => {
     sessionMock.mockReturnValue({ status: "signed-out", refresh: vi.fn() });
     renderControl();
-    expect(await screen.findByText(/sign in/i)).toBeInTheDocument();
+    expect(
+      await screen.findByText(/create a free account to suggest a genre or style\./i),
+    ).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /create account/i })).toHaveAttribute("href", "/auth");
     expect(screen.queryByRole("combobox")).not.toBeInTheDocument();
   });
 
