@@ -35,16 +35,6 @@
   margin-bottom: var(--u-space-14);
 }
 
-.tagc-gate {
-  font-size: var(--u-font-size-13);
-  color: var(--u-muted);
-}
-
-.tagc-gate a {
-  color: var(--u-amber);
-  font-weight: var(--u-font-weight-medium);
-}
-
 .tagc-form {
   display: flex;
   flex-direction: column;

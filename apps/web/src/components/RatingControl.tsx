@@ -8,7 +8,7 @@
 // prompt. Editing republishes under the existing addressable d-tag (replace) via
 // the EXISTING per-tier write path — no new write path, no new crypto.
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { AccountPrompt } from "./AccountPrompt";
 import {
   api,
   ApiError,
@@ -138,11 +138,7 @@ export function RatingControl({
 
   return (
     <section className="rate" aria-label="Rate this book">
-      {session.status === "signed-out" && (
-        <p className="rate-gate">
-          <Link to="/auth">Sign in</Link> to rate this book.
-        </p>
-      )}
+      {session.status === "signed-out" && <AccountPrompt action="rate" />}
 
       {session.status === "signed-in" && (
         <div className="rate-form">

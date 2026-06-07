@@ -11,16 +11,6 @@
   font-size: var(--u-font-size-95rem);
 }
 
-.rate-gate {
-  margin: 0;
-  color: var(--u-muted);
-}
-
-.rate-gate a {
-  color: var(--u-amber);
-  font-weight: var(--u-font-weight-semibold);
-}
-
 .rate-form {
   display: flex;
   flex-direction: column;

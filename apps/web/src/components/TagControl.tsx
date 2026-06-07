@@ -4,7 +4,7 @@
 // Genre + style only — quality-signal writes are deferred, accusatory tags are
 // never offered here.
 import { useEffect, useMemo, useState } from "react";
-import { Link } from "react-router-dom";
+import { AccountPrompt } from "./AccountPrompt";
 import {
   api,
   ApiError,
@@ -154,11 +154,7 @@ export function TagControl({ bookSlug, tags, onChanged }: Props) {
         </div>
       )}
 
-      {session.status === "signed-out" && (
-        <p className="tagc-gate">
-          <Link to="/auth">Sign in</Link> to apply or dispute a genre or style.
-        </p>
-      )}
+      {session.status === "signed-out" && <AccountPrompt action="tag" />}
 
       {session.status === "signed-in" && (
         <div className="tagc-form">

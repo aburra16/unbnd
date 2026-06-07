@@ -60,27 +60,6 @@
   white-space: nowrap;
 }
 
-/* The sign-in affordance shown to signed-out visitors. */
-.follow-signin {
-  display: inline-block;
-  margin-top: var(--u-space-10);
-  color: var(--u-amber);
-  font-weight: var(--u-font-weight-semibold);
-  font-size: var(--u-font-size-92rem);
-  text-decoration: none;
-}
-
-.follow-signin:hover {
-  color: var(--u-amber-hover);
-  text-decoration: underline;
-}
-
-.follow-signin:focus-visible {
-  outline: 2px solid var(--u-amber);
-  outline-offset: 2px;
-  border-radius: var(--u-radius-4);
-}
-
 .follow-error {
   margin: 0;
   color: var(--signal-negative);

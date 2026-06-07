@@ -5,6 +5,7 @@ import { Footer } from "../components/Footer";
 import { DuplicateCheck } from "../components/DuplicateCheck";
 import { GenrePillSelector } from "../components/GenrePillSelector";
 import { ToggleSwitch } from "../components/ToggleSwitch";
+import { AccountPrompt } from "../components/AccountPrompt";
 import { useSession } from "../hooks/useSession";
 import { coverGradient } from "../lib/view-model";
 import { Button, Container, Field, Label, Link } from "@unbnd/ui";
@@ -470,11 +471,7 @@ export function Submit() {
           {status === "error" && error && (
             <p className="sub-error" role="alert">{error}</p>
           )}
-          {!signedIn && session.status !== "loading" && (
-            <p className="sub-submit-note">
-              <RouterLink to="/auth">Sign in</RouterLink> to submit a book.
-            </p>
-          )}
+          {!signedIn && session.status !== "loading" && <AccountPrompt action="submit" />}
           <Button
             variant="primary"
             size="lg"

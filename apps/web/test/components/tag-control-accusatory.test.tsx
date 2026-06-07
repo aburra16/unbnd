@@ -116,8 +116,10 @@ describe("TagControl — accusatory picker offer (AC-1)", () => {
     sessionMock.mockReturnValue({ status: "signed-out", refresh: vi.fn() });
     const tags: BookTagsR = { ...EMPTY, canAssertAccusatory: true };
     renderControl(tags);
-    // Signed-out has no picker at all.
-    expect(await screen.findByText(/sign in/i)).toBeInTheDocument();
+    // Signed-out has no picker at all — only the create-account prompt.
+    expect(
+      await screen.findByText(/create a free account to suggest a genre or style\./i),
+    ).toBeInTheDocument();
     expect(screen.queryByRole("combobox")).not.toBeInTheDocument();
   });
 });
