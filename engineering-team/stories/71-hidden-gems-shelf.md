@@ -13,10 +13,11 @@ Anchor: `product-team/prd/social-loop.md` §5.3, §7. Wireframe: `social-loop-wi
 As a Trusting Reader, I want a homepage shelf of books my trusted network rates far above the crowd, so that I can discover hidden gems I would never find through popularity.
 
 ## Acceptance criteria
-- [ ] The homepage shows a Hidden Gems shelf of books with the highest positive hype-gap (trusted average above the crowd average) from the active viewpoint.
-- [ ] The shelf exists on both House and Yours and surfaces different books under each.
+- [ ] The homepage shows a Hidden Gems shelf of books with the highest positive hype-gap (trusted average above the crowd's raw average) from the house viewpoint.
 - [ ] When empty, the shelf shows an on-ramp explaining what will appear and that following curators starts it.
-- [ ] The shelf refreshes on a schedule, not per request.
+- [ ] The shelf refreshes on a schedule, not per request (computed by the off-path `apps/shelves` worker into the per-observer cache).
+
+> Scope (ADR 0069, Option A, PO-approved): #71 delivers the **House** Hidden Gems shelf (scheduled). The **Yours** per-user variant (read-time, like For-You — "surfaces different books under each viewpoint") is a thin fast-follow, **#71b**.
 
 ## DList shapes touched
 - Reuses `book-ratings` (raw + observer-weighted averages), computed by the off-path `apps/shelves` worker into the per-observer homepage cache. No new concept.
@@ -24,12 +25,13 @@ As a Trusting Reader, I want a homepage shelf of books my trusted network rates 
 ## Out of scope
 - The book-detail hype-gap indicator (#70, shipped).
 - Any change to the trust-weighted average computation or the existing shelves (Trending / Favorites / genre rows).
+- The Yours read-time per-user Hidden Gems (fast-follow #71b, per ADR 0069 Option A).
 
 ## Open questions
 1. **Ranking + gate:** rank by the size of the positive hype-gap (trusted − raw), among books with a meaningful gap and enough trusted raters. Recommendation: reuse #70's classification idea (the margin + trusted-rater minimum) server-side in the worker, rather than a new knob set.
 2. **Cache shape:** whether Hidden Gems is a new row in the existing per-observer homepage cache or a sibling. Architect's call against the `apps/shelves` worker.
 
 ## Linked artifacts
-- ADR: (filled in after Architecture phase)
+- ADR: `engineering-team/decisions/0069-hidden-gems-shelf.md` (Accepted)
 - Test plan: (filled in after Test Design phase)
 - Review: (filled in after Review phase)
