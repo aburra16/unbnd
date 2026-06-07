@@ -45,6 +45,6 @@ For the Architect (Phase 2) — this is an architecture addition, not a one-endp
 4. **"Top tags" definition.** Which tags, how many, and their ordering on the card (e.g., the book's net-positive genre/tag assertions, top N). Architect confirms against the existing tag aggregation.
 
 ## Linked artifacts
-- ADR: (filled in after Architecture phase)
+- ADR: `engineering-team/decisions/0070-link-unfurls-oembed.md` (Accepted)
 - Test plan: (filled in after Test Design phase)
 - Review: (filled in after Review phase)
