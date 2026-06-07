@@ -34,5 +34,5 @@ As a Trusting Reader, I want to see when the people I trust rate a book very dif
 
 ## Linked artifacts
 - ADR: `engineering-team/decisions/0068-hype-gap-indicator.md` (Accepted)
-- Test plan: (filled in after Test Design phase)
+- Test plan: `engineering-team/stories/70-hype-gap-indicator.test-plan.md`
 - Review: (filled in after Review phase)

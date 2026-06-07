@@ -39,6 +39,20 @@ export function sortRatingsByTasteMatch(
     .map((x) => x.r);
 }
 
+// Story 70 / ADR 0068 — the hype-gap classification: the crowd's raw average vs
+// the viewer's trusted (observer-weighted) average. STUB: real logic in impl.
+export type HypeGap = "hidden-gem" | "overhyped" | "consensus" | null;
+export const HYPE_GAP_MARGIN = 0.5;
+export const HYPE_GAP_MIN_TRUSTED = 2;
+
+export function classifyHypeGap(
+  _rawAverage: number | null,
+  _trustedAverage: number | null,
+  _trustedCount: number,
+): HypeGap {
+  throw new Error("classifyHypeGap: not implemented (Story 70)");
+}
+
 function hash(seed: string): number {
   let h = 2166136261;
   for (let i = 0; i < seed.length; i++) {
