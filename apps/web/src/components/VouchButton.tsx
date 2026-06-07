@@ -5,6 +5,7 @@
 import { useEffect, useState } from "react";
 import { Button } from "@unbnd/ui";
 import { useSession } from "../hooks/useSession";
+import { AccountPrompt } from "./AccountPrompt";
 import { api, type SignedEvent } from "../lib/api";
 
 type Nostr = { signEvent: (template: unknown) => Promise<SignedEvent> };
@@ -39,6 +40,9 @@ export function VouchButton({ target }: { target: string }) {
     };
   }, [signedIn, isSelf, target]);
 
+  // Signed-out: the gate at the write (Story 73). Branch before the eligibility
+  // state so a signed-out reader sees the prompt and we never query eligibility.
+  if (session.status === "signed-out") return <AccountPrompt action="vouch" />;
   if (!signedIn || isSelf || !canVouch) return null;
 
   const action = vouched ? "withdraw" : "vouch";

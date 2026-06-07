@@ -321,10 +321,13 @@ describe("RatingControl — AC-7: custodial reauth_required on edit", () => {
 });
 
 describe("RatingControl — AC-8: signed-out", () => {
-  it("signed-out: no 'Your rating' zone, no prefilled control, the sign-in prompt renders", async () => {
+  it("signed-out: no 'Your rating' zone, no prefilled control, the create-account prompt renders", async () => {
     sessionMock.mockReturnValue({ status: "signed-out", refresh: vi.fn() });
     renderControl({ yourRating: null });
-    expect(await screen.findByRole("link", { name: /sign in/i })).toBeInTheDocument();
+    expect(
+      await screen.findByText(/create a free account to rate this book\./i),
+    ).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /create account/i })).toHaveAttribute("href", "/auth");
     expect(screen.queryByRole("group", { name: /your rating/i })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /rate 4 of 5/i })).not.toBeInTheDocument();
     expect(templateMock).not.toHaveBeenCalled();

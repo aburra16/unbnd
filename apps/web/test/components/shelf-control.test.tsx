@@ -61,10 +61,13 @@ function renderControl() {
 }
 
 describe("ShelfControl — gating (AC-6)", () => {
-  it("prompts sign-in and offers no shelf picker when signed out", async () => {
+  it("prompts account creation and offers no shelf picker when signed out (Story 73)", async () => {
     sessionMock.mockReturnValue({ status: "signed-out", refresh: vi.fn() });
     renderControl();
-    expect(await screen.findByText(/sign in/i)).toBeInTheDocument();
+    expect(
+      await screen.findByText(/create a free account to save this book to a shelf\./i),
+    ).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /create account/i })).toHaveAttribute("href", "/auth");
     expect(screen.queryByRole("combobox")).not.toBeInTheDocument();
   });
 

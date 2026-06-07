@@ -172,10 +172,13 @@ describe("RatingControl — sovereign session (first rating, never-rated)", () =
 });
 
 describe("RatingControl — gating", () => {
-  it("shows a sign-in prompt and does not call the API when signed out", async () => {
+  it("shows the create-account prompt and does not call the API when signed out (Story 73)", async () => {
     sessionMock.mockReturnValue({ status: "signed-out", refresh: vi.fn() });
     renderControl({ yourRating: null });
-    expect(await screen.findByRole("link", { name: /sign in/i })).toBeInTheDocument();
+    expect(
+      await screen.findByText(/create a free account to rate this book\./i),
+    ).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /create account/i })).toHaveAttribute("href", "/auth");
     expect(templateMock).not.toHaveBeenCalled();
     expect(signEvent).not.toHaveBeenCalled();
   });

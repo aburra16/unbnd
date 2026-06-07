@@ -77,10 +77,12 @@ describe("Submit — publish (custodial)", () => {
     expect(await screen.findByRole("heading", { name: /Submission received/i })).toBeInTheDocument();
   });
 
-  it("blocks submit when signed out", () => {
+  it("blocks submit and shows the create-account prompt when signed out (Story 73)", () => {
     sessionMock.mockReturnValue({ status: "signed-out", refresh: vi.fn() });
     renderSubmit();
     fireEvent.click(screen.getByRole("button", { name: /proceed-stub/i }));
     expect(screen.getByRole("button", { name: /^submit book$/i })).toBeDisabled();
+    expect(screen.getByText(/create a free account to submit a book\./i)).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /create account/i })).toHaveAttribute("href", "/auth");
   });
 });

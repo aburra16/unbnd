@@ -11,7 +11,7 @@
 // in a negative treatment on hover/focus). No icon library — the check is
 // hand-authored SVG. Tokens-only styling.
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { AccountPrompt } from "./AccountPrompt";
 import { api, ApiError, type SignedEvent } from "../lib/api";
 import { useSession } from "../hooks/useSession";
 import { Button, Icon } from "@unbnd/ui";
@@ -52,11 +52,7 @@ export function FollowButton({ target }: { target: string }) {
   }, [isSignedIn, isOwnProfile, target]);
 
   if (session.status === "signed-out") {
-    return (
-      <Link className="follow-signin" to="/auth">
-        Sign in to follow
-      </Link>
-    );
+    return <AccountPrompt action="follow" />;
   }
   if (session.status === "loading" || isOwnProfile) return null;
   // Status not resolved yet — render nothing rather than guess the state.

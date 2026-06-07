@@ -39,16 +39,6 @@
   opacity: 0.5;
 }
 
-.shelfc-gate {
-  font-size: var(--u-font-size-13);
-  color: var(--u-muted);
-}
-
-.shelfc-gate a {
-  color: var(--u-amber);
-  font-weight: var(--u-font-weight-medium);
-}
-
 .shelfc-form {
   display: flex;
   flex-direction: column;

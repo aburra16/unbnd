@@ -6,7 +6,7 @@
 // the book is on another default moves it (retract old, apply new — two writes,
 // AC-5).
 import { useEffect, useMemo, useState } from "react";
-import { Link } from "react-router-dom";
+import { AccountPrompt } from "./AccountPrompt";
 import { toShelfSlug } from "@unbnd/schemas";
 import {
   api,
@@ -202,11 +202,7 @@ export function ShelfControl({ bookSlug }: Props) {
         </div>
       )}
 
-      {session.status === "signed-out" && (
-        <p className="shelfc-gate">
-          <Link to="/auth">Sign in</Link> to add this book to a shelf.
-        </p>
-      )}
+      {session.status === "signed-out" && <AccountPrompt action="save" />}
 
       {session.status === "signed-in" && (
         <div className="shelfc-form">
