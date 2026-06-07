@@ -244,6 +244,8 @@ export type HomepageShelves = {
   computedAt: string | null;
   trending: { books: PublicBook[] };
   favorites: { books: PublicBook[] };
+  // Story 71 / ADR 0069. Optional for back-compat with older serve responses.
+  hiddenGems?: { books: PublicBook[] };
   genres: HomepageShelfGenre[];
 };
 

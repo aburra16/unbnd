@@ -97,6 +97,35 @@ describe("GET /api/homepage/shelves — honest empty when the cache is empty (AC
   });
 });
 
+describe("GET /api/homepage/shelves — Hidden Gems (Story 71 / ADR 0069)", () => {
+  it("hydrates the cached Hidden Gems slugs in order", async () => {
+    const known = {
+      g1: bookEvent("g1", "Gem One"),
+      g2: bookEvent("g2", "Gem Two"),
+    };
+    const set: CachedShelfSet = {
+      computedAt: "2026-06-02T10:00:00Z",
+      trending: [],
+      favorites: [],
+      hiddenGems: ["g1", "g2"],
+      genres: [],
+    };
+    const { app } = makeApp({
+      query: makeQuery(known),
+      readShelfCache: makeReadShelfCache(set),
+    });
+    const res = await request(app).get("/api/homepage/shelves");
+    expect(res.status).toBe(200);
+    expect(res.body.hiddenGems.books.map((b: { slug: string }) => b.slug)).toEqual(["g1", "g2"]);
+  });
+
+  it("returns an empty Hidden Gems shelf when the cache has none", async () => {
+    const { app } = makeApp();
+    const res = await request(app).get("/api/homepage/shelves");
+    expect(res.body.hiddenGems).toEqual({ books: [] });
+  });
+});
+
 describe("GET /api/homepage/shelves — hydrates cached slugs in order (AC-3/AC-4)", () => {
   it("groups by kind, orders by position, and hydrates each slug to a PublicBook", async () => {
     const known = {

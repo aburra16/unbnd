@@ -33,5 +33,5 @@ As a Trusting Reader, I want a homepage shelf of books my trusted network rates 
 
 ## Linked artifacts
 - ADR: `engineering-team/decisions/0069-hidden-gems-shelf.md` (Accepted)
-- Test plan: (filled in after Test Design phase)
+- Test plan: `engineering-team/stories/71-hidden-gems-shelf.test-plan.md`
 - Review: (filled in after Review phase)

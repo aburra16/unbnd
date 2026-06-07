@@ -93,6 +93,38 @@ describe("Home — trust shelves render from api.homepage.shelves() (AC-1/2/3)",
   });
 });
 
+describe("Home — Hidden Gems shelf (Story 71 / ADR 0069)", () => {
+  it("renders a Hidden Gems shelf with its books when the cache has gems", async () => {
+    homepageShelvesMock.mockResolvedValue({
+      computedAt: "2026-06-02T10:00:00Z",
+      trending: { books: [] },
+      favorites: { books: [] },
+      hiddenGems: { books: [book("salt-houses", "The Salt Houses")] },
+      genres: [],
+    } satisfies HomepageShelves);
+
+    renderHome();
+
+    expect(await screen.findByText(/hidden gems/i)).toBeInTheDocument();
+    expect(screen.getByText("The Salt Houses")).toBeInTheDocument();
+  });
+
+  it("shows the on-ramp empty state when Hidden Gems is empty (cold-start)", async () => {
+    homepageShelvesMock.mockResolvedValue({
+      computedAt: null,
+      trending: { books: [] },
+      favorites: { books: [] },
+      hiddenGems: { books: [] },
+      genres: [],
+    } satisfies HomepageShelves);
+
+    renderHome();
+
+    expect(await screen.findByText(/hidden gems/i)).toBeInTheDocument();
+    expect(screen.getByText(/follow a few curators/i)).toBeInTheDocument();
+  });
+});
+
 describe("Home — empty trust shelves are honestly absent, never filler (AC-5)", () => {
   it("does not render a Trending shelf header when trending is empty", async () => {
     homepageShelvesMock.mockResolvedValue({

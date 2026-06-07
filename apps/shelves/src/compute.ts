@@ -47,6 +47,8 @@ export type ShelfGenre = {
 export type ShelfSet = {
   readonly trending: ShelfRow[];
   readonly favorites: ShelfRow[];
+  /** Story 71 / ADR 0069: highest positive hype-gap (trusted above the crowd). */
+  readonly hiddenGems: ShelfRow[];
   readonly genres: ShelfGenre[];
 };
 
@@ -88,7 +90,7 @@ export type ShelfCycleDeps = ShelfComputeDeps & {
   readonly cache: ShelvesCache;
 };
 
-const EMPTY: ShelfSet = { trending: [], favorites: [], genres: [] };
+const EMPTY: ShelfSet = { trending: [], favorites: [], hiddenGems: [], genres: [] };
 
 /** The bookSlug a rating event targets (the `["t", <bookSlug>]` tag / payload). */
 function ratingBookSlug(event: SignedNostrEvent): string | null {
@@ -275,7 +277,10 @@ export async function computeShelves(deps: ShelfComputeDeps): Promise<ShelfSet> 
     .slice(0, deps.defs.genreCount)
     .map((g) => ({ slug: g.slug, name: g.name, books: g.books }));
 
-  return { trending, favorites, genres: genresOut };
+  // Story 71 / ADR 0069 — Hidden Gems. STUB: real ranking lands in implementation.
+  const hiddenGems: ShelfRow[] = [];
+
+  return { trending, favorites, hiddenGems, genres: genresOut };
 }
 
 /** The catalog book slug from a kind-39999 book record event, or null. */

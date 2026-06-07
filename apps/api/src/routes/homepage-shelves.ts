@@ -30,6 +30,8 @@ export type CachedShelfSet = {
   readonly computedAt: string | null;
   readonly trending: string[];
   readonly favorites: string[];
+  /** Story 71 / ADR 0069. Optional: old cache rows (pre-#71) lack it → read as []. */
+  readonly hiddenGems?: string[];
   readonly genres: CachedShelfGenre[];
 };
 
