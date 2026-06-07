@@ -592,12 +592,43 @@ export const api = {
         `/api/profile/${encodeURIComponent(npub)}/taste-match`,
       );
     },
-    // Curator status (Story 67 / ADR 0066): seed OR vouched OR emergent, resolved
-    // server-side from the house vantage. Drives the profile Curator badge.
+    // Curator status (Story 67/68 / ADR 0066/0067): seed OR vouched OR emergent,
+    // plus the trusted-vouch count. Drives the profile Curator badge + count.
     curatorStatus(npub: string) {
-      return authFetch<{ isCurator: boolean }>(
+      return authFetch<{ isCurator: boolean; vouchCount: number }>(
         `/api/profile/${encodeURIComponent(npub)}/curator`,
       );
+    },
+    // The session user's own status + vouch-eligibility (Story 68 / ADR 0067).
+    // Drives the Curate nav (isCurator) + the Vouch control visibility (canVouch).
+    meCurator() {
+      return authFetch<{ isCurator: boolean; canVouch: boolean }>("/api/me/curator");
+    },
+    // Does the session user currently vouch this subject (the control's state).
+    vouchStatus(npub: string) {
+      return authFetch<{ vouched: boolean }>(
+        `/api/profile/${encodeURIComponent(npub)}/vouch-status`,
+      );
+    },
+    // Vouch / withdraw (Story 68): sovereign fetches the template, signs, submits;
+    // custodial is server-signed. Mirrors the follow write path.
+    vouchTemplate(input: { subject: string; action: "vouch" | "withdraw" }) {
+      return authFetch<{ template: NostrEventTemplate }>("/api/curator-roles/template", {
+        method: "POST",
+        body: JSON.stringify(input),
+      });
+    },
+    vouch(event: SignedEvent) {
+      return authFetch<{ ok: boolean }>("/api/curator-roles", {
+        method: "POST",
+        body: JSON.stringify({ event }),
+      });
+    },
+    vouchCustodial(input: { subject: string; action: "vouch" | "withdraw" }) {
+      return authFetch<{ ok: boolean }>("/api/curator-roles", {
+        method: "POST",
+        body: JSON.stringify(input),
+      });
     },
     // Follow / unfollow the kind-3 contact list (ADR 0023). Sovereign: fetch the
     // server-merged unsigned kind-3 template, sign it with NIP-07, submit.

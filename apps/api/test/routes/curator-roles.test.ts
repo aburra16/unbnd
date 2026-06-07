@@ -100,7 +100,7 @@ describe("GET /api/profile/:id/curator — status = seed OR vouched OR emergent"
     const app = makeApp({});
     const res = await request(app).get(`/api/profile/${SEED}/curator`);
     expect(res.status).toBe(200);
-    expect(res.body).toEqual({ isCurator: true });
+    expect(res.body).toMatchObject({ isCurator: true });
   });
 
   it("a pubkey vouched by ≥ N trusted asserters is a curator", async () => {
@@ -117,7 +117,7 @@ describe("GET /api/profile/:id/curator — status = seed OR vouched OR emergent"
     const app = makeApp({});
     const res = await request(app).get(`/api/profile/${NOBODY}/curator`);
     expect(res.status).toBe(200);
-    expect(res.body).toEqual({ isCurator: false });
+    expect(res.body).toMatchObject({ isCurator: false });
   });
 
   it("a single trusted vouch (below N=2) is not enough", async () => {

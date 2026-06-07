@@ -42,17 +42,18 @@ function parse(event: SignedNostrEvent): ParsedVouch | null {
 }
 
 /**
- * The subset of `candidateHexes` that cleared the vouch count-gate from the house
- * vantage. Pure modulo the injected TrustProvider. Never throws.
+ * The map `subject -> set of distinct above-floor asserters whose latest polarity
+ * is APPLY` for the candidate subjects, from the house vantage. Self-vouches
+ * excluded; one batched weights call; honest degrade → empty. The shared core of
+ * `computeCuratorStatus` and `trustedVouchCount`.
  */
-export async function computeCuratorStatus(
+async function countedAsserters(
   events: SignedNostrEvent[],
   candidateHexes: readonly string[],
   houseObserverHex: string | undefined,
   floor: number,
-  minAsserters: number,
   trust: TrustProvider,
-): Promise<string[]> {
+): Promise<Map<string, Set<string>>> {
   // Dedupe per (asserter, subject) keeping the latest created_at.
   const latest = new Map<string, ParsedVouch>();
   for (const e of events) {
@@ -85,21 +86,37 @@ export async function computeCuratorStatus(
     set.add(a.asserter);
     counted.set(a.subject, set);
   }
+  return counted;
+}
 
+/**
+ * The subset of `candidateHexes` that cleared the vouch count-gate (≥ minAsserters)
+ * from the house vantage. Pure modulo the injected TrustProvider. Never throws.
+ */
+export async function computeCuratorStatus(
+  events: SignedNostrEvent[],
+  candidateHexes: readonly string[],
+  houseObserverHex: string | undefined,
+  floor: number,
+  minAsserters: number,
+  trust: TrustProvider,
+): Promise<string[]> {
+  const counted = await countedAsserters(events, candidateHexes, houseObserverHex, floor, trust);
   return candidateHexes.filter((hex) => (counted.get(hex)?.size ?? 0) >= minAsserters);
 }
 
 /**
  * The count of distinct above-floor asserters whose latest polarity for `subjectHex`
  * is APPLY (Story 68 / ADR 0067) — the "N trusted people vouched" figure. Self-
- * vouches excluded. Honest degrade → 0. STUB: real count in implementation.
+ * vouches excluded. Honest degrade → 0.
  */
 export async function trustedVouchCount(
-  _events: SignedNostrEvent[],
-  _subjectHex: string,
-  _houseObserverHex: string | undefined,
-  _floor: number,
-  _trust: TrustProvider,
+  events: SignedNostrEvent[],
+  subjectHex: string,
+  houseObserverHex: string | undefined,
+  floor: number,
+  trust: TrustProvider,
 ): Promise<number> {
-  return 0;
+  const counted = await countedAsserters(events, [subjectHex], houseObserverHex, floor, trust);
+  return counted.get(subjectHex)?.size ?? 0;
 }

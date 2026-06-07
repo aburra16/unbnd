@@ -30,6 +30,11 @@ As a Founding Curator, I want a clear way to vouch for someone as a curator and 
 1. **Two distinct viewer signals:** the "Vouch" control needs the viewer's *vouch-eligibility* (their own house-weight ≥ the threshold, the #67 write gate), while the "Curate" nav needs the viewer's *curator status* (seed OR vouched OR emergent). Recommendation: Curate nav = curator status; Vouch control = vouch-eligibility. The exact read(s) exposing these for the session user are the Architect's call.
 2. **Vouch count source:** "N trusted people vouched" needs the trusted-asserter count for a subject (the #67 read returns only the boolean today). Architect to decide whether to extend that read or add a sibling.
 
+## Deviations
+- **`GET /api/profile/:id/curator` gained `vouchCount`** (additive per ADR 0067), which broke #67's two strict `toEqual({isCurator})` route assertions; relaxed them to `toMatchObject` (assertions unchanged in intent). The `computeCuratorStatus` gate in the route is now expressed via `trustedVouchCount(...) >= minAsserters` (same result), so `computeCuratorStatus` is no longer imported by the route (still exported + used by #67's tests).
+- **`CurateNavLink` resilience:** it lives in the global `Nav`, so its `meCurator` fetch is wrapped (`Promise.resolve().then(...)→.catch`) to never crash `Nav` on a failure or an absent method in a partial test mock. Avoids editing ~15 signed-in route-test mocks for a nav-internal fetch.
+- **Two `curatorStatus` reads per profile:** the `CuratorBadge` (isCurator) and the Profile vouch-count both read `curatorStatus`; left as two reads to avoid reworking the #67 `CuratorBadge` contract. Minor; could be unified later.
+
 ## Linked artifacts
 - ADR: `engineering-team/decisions/0067-vouch-control-curate-surface.md` (Accepted)
 - Test plan: `engineering-team/stories/68-vouch-control-curate-surface.test-plan.md`

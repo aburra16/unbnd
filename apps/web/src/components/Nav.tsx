@@ -3,6 +3,7 @@ import { Icon } from "@unbnd/ui";
 import { useSession } from "../hooks/useSession";
 import { AccountMenu } from "./AccountMenu";
 import { SearchBox } from "./SearchBox";
+import { CurateNavLink } from "./CurateNavLink";
 import "./Nav.css";
 
 export function Nav() {
@@ -24,6 +25,7 @@ export function Nav() {
         <Link className="nav-link" to="/submit">
           Submit a book
         </Link>
+        <CurateNavLink />
         {session.status === "signed-in" ? (
           <AccountMenu user={session.user} onSignedOut={session.refresh} />
         ) : session.status === "signed-out" ? (

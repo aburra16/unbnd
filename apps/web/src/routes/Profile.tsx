@@ -20,6 +20,7 @@ import { ProfileStats } from "../components/ProfileStats";
 import { FollowButton } from "../components/FollowButton";
 import { TasteMatchChip } from "../components/TasteMatchChip";
 import { CuratorBadge } from "../components/CuratorBadge";
+import { VouchButton } from "../components/VouchButton";
 import { toCardBook, shortNpub } from "../lib/view-model";
 import { useProfileMeta, displayNameOf } from "../hooks/useProfileMeta";
 import { NotFound } from "./NotFound";
@@ -58,6 +59,8 @@ export function Profile() {
   const [stats, setStats] = useState<ProfileStatsResponse | null>(null);
   // Story 31 / ADR 0032: catalog books this author has claimed. Absent when empty.
   const [claimedBooks, setClaimedBooks] = useState<PublicBook[]>([]);
+  // Story 68: "N trusted people vouched" for this profile's owner.
+  const [vouchCount, setVouchCount] = useState(0);
   // NotFound only when the npub is unresolvable — the twins answer 404 (AC-6).
   // A valid-but-empty profile leaves this false and renders the empty states.
   const [notFound, setNotFound] = useState(false);
@@ -87,6 +90,10 @@ export function Profile() {
       .claimedBooks(npub)
       .then((r) => !cancelled && setClaimedBooks(r.books))
       .catch(() => !cancelled && setClaimedBooks([]));
+    api.profile
+      .curatorStatus(npub)
+      .then((r) => !cancelled && setVouchCount(r.vouchCount ?? 0))
+      .catch(() => undefined);
     return () => {
       cancelled = true;
     };
@@ -107,6 +114,11 @@ export function Profile() {
         <div className="me-id">
           <h1 className="me-name">{name}</h1>
           {npub && <CuratorBadge npub={npub} />}
+          {vouchCount > 0 && (
+            <p className="me-vouches">
+              {vouchCount} trusted {vouchCount === 1 ? "person" : "people"} vouched
+            </p>
+          )}
           {meta?.nip05 && <p className="me-nip05">{meta.nip05}</p>}
           {npub && (
             <p className="me-npub" title={npub}>
@@ -126,6 +138,7 @@ export function Profile() {
             </a>
           )}
           {npub && <FollowButton target={npub} />}
+          {npub && <VouchButton target={npub} />}
         </div>
       </header>
 
