@@ -20,6 +20,10 @@ import type { Book } from "../components/BookCard";
 type TrustShelves = {
   trending: Book[];
   favorites: Book[];
+  // Story 71 / ADR 0069: books the trusted network rates far above the crowd
+  // (highest positive hype-gap). Unlike the other trust shelves, when empty this
+  // one shows a cold-start on-ramp rather than being absent (AC-2).
+  hiddenGems: Book[];
   genres: { slug: string; name: string; books: Book[] }[];
 };
 
@@ -39,7 +43,7 @@ type State =
       foryou: ForYouState;
     };
 
-const EMPTY_TRUST: TrustShelves = { trending: [], favorites: [], genres: [] };
+const EMPTY_TRUST: TrustShelves = { trending: [], favorites: [], hiddenGems: [], genres: [] };
 // Degrade target: a failed For-You fetch renders nothing (never blanks the page).
 const EMPTY_FORYOU: ForYouState = { state: "anonymous", books: [] };
 
@@ -47,6 +51,8 @@ function toTrustShelves(shelves: HomepageShelves): TrustShelves {
   return {
     trending: shelves.trending.books.map(toCardBook),
     favorites: shelves.favorites.books.map(toCardBook),
+    // Optional on the wire (back-compat with pre-71 serve responses) → [].
+    hiddenGems: (shelves.hiddenGems?.books ?? []).map(toCardBook),
     genres: shelves.genres.map((g) => ({
       slug: g.slug,
       name: g.name,
@@ -125,16 +131,16 @@ export function Home() {
             <Shelf title="For you" books={state.foryou.books} />
           )}
           {state.foryou.state === "not_personalized" && (
-            <section className="shelf-section foryou-invite">
+            <section className="shelf-section shelf-invite">
               <h2 className="shelf-title">For you</h2>
-              <p className="foryou-invite-body">
+              <p className="shelf-invite-body">
                 Build your web of trust and this shelf fills with books the
                 curators you follow rate highly.
               </p>
               <Button
                 variant="primary"
                 size="md"
-                className="foryou-invite-btn"
+                className="shelf-invite-btn"
                 type="button"
                 onClick={personalize}
               >
@@ -152,6 +158,22 @@ export function Home() {
           {state.trust.favorites.length > 0 && (
             <Shelf title="Community Favorites" books={state.trust.favorites} />
           )}
+          {/* Hidden Gems (ADR 0069): the discovery payoff of the trust layer —
+              books the trusted network rates far above the crowd. Unlike the
+              shelves above, it is ALWAYS present: with gems it shows the shelf;
+              empty (cold-start) it shows an on-ramp naming what starts it. */}
+          {state.trust.hiddenGems.length > 0 ? (
+            <Shelf title="Hidden Gems" books={state.trust.hiddenGems} />
+          ) : (
+            <section className="shelf-section shelf-invite">
+              <h2 className="shelf-title">Hidden Gems</h2>
+              <p className="shelf-invite-body">
+                Follow a few curators and this shelf fills with books your
+                trusted network rates far above the crowd.
+              </p>
+            </section>
+          )}
+
           {state.trust.genres
             .filter((g) => g.books.length > 0)
             .map((g) => (

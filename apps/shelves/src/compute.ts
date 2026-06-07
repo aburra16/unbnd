@@ -277,8 +277,26 @@ export async function computeShelves(deps: ShelfComputeDeps): Promise<ShelfSet> 
     .slice(0, deps.defs.genreCount)
     .map((g) => ({ slug: g.slug, name: g.name, books: g.books }));
 
-  // Story 71 / ADR 0069 — Hidden Gems. STUB: real ranking lands in implementation.
-  const hiddenGems: ShelfRow[] = [];
+  // ── Hidden Gems (Story 71 / ADR 0069): highest positive hype-gap ──
+  // gap = the house-trusted weighted average − the crowd's raw (all-ratings)
+  // mean. A gem is a book the trusted network rates well ABOVE the crowd. Gated
+  // by the same trusted-rater minimum as Favorites (no new knob) AND a margin so
+  // consensus books (gap ≈ 0) and overhyped books (negative gap) never surface.
+  const gemScores: Array<{ slug: string; gap: number }> = [];
+  for (const [slug, deduped] of dedupedByBook) {
+    const weighted = weightedRatings(deduped, weights, observerNpub);
+    if (!weighted) continue; // no trusted signal → not a gem (honest empty)
+    if (weighted.trustedCount < deps.defs.favoritesMinRatings) continue;
+    if (deduped.length === 0) continue;
+    const rawAverage = deduped.reduce((sum, r) => sum + r.score, 0) / deduped.length;
+    const gap = weighted.average - rawAverage;
+    if (gap < deps.defs.hiddenGemsMargin) continue; // consensus + overhyped excluded
+    gemScores.push({ slug, gap });
+  }
+  gemScores.sort((a, b) => b.gap - a.gap || a.slug.localeCompare(b.slug));
+  const hiddenGems: ShelfRow[] = gemScores
+    .slice(0, deps.defs.booksPerRow)
+    .map((x) => ({ bookSlug: x.slug }));
 
   return { trending, favorites, hiddenGems, genres: genresOut };
 }
