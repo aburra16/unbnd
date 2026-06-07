@@ -1,4 +1,4 @@
-/* The shared write-gate account prompt (Story 73 / ADR 0071). Tokens only — the
+/* The shared write-gate account prompt (Story 73 / ADR 0071). Tokens only: the
  * muted explanatory line + the amber Create-account affordance, mirroring the
  * gate styling it replaced (.rate-gate body + .follow-signin CTA). It sits inline
  * inside a write control's signed-out branch, never as an interstitial. */

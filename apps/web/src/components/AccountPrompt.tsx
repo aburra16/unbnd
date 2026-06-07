@@ -1,7 +1,7 @@
 // The shared write-gate account prompt (Story 73 / ADR 0071). One component,
 // keyed by an `action`, renders a consistent "Create a free account to <phrase>."
 // line + a "Create account" CTA to /auth. Every write control's signed-out
-// branch uses this — it is the single, on-message gate at the write (never on
+// branch uses this. It is the single, on-message gate at the write (never on
 // read, never an interstitial). The CTA is a router <Link> (correct navigation
 // semantics + respects the no-raw-<button> guard); /auth already serves both
 // account creation and existing sign-in.
