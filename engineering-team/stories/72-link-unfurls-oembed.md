@@ -46,5 +46,5 @@ For the Architect (Phase 2) — this is an architecture addition, not a one-endp
 
 ## Linked artifacts
 - ADR: `engineering-team/decisions/0070-link-unfurls-oembed.md` (Accepted)
-- Test plan: (filled in after Test Design phase)
-- Review: (filled in after Review phase)
+- Test plan: `engineering-team/stories/72-link-unfurls-oembed.test-plan.md`
+- Review: `engineering-team/reviews/72-link-unfurls-oembed.md` (PASS)

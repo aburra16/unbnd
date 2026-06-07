@@ -10,6 +10,8 @@ import { probeStrfry } from "./probes/strfry";
 import { probeTapestry } from "./probes/tapestry";
 import { buildAuthRouter } from "./routes/auth";
 import { buildBooksRouter } from "./routes/books";
+import { buildUnfurlRouter } from "./routes/unfurl";
+import { buildUnfurlReaders } from "./unfurl/readers";
 import { buildHomepageShelvesRouter } from "./routes/homepage-shelves";
 import { buildForYouRouter } from "./routes/foryou";
 import { buildProfileRouter } from "./routes/profile";
@@ -406,6 +408,10 @@ async function main() {
   };
 
   app.use("/", buildBooksRouter({ config, query: userEventDeps.query, trust }));
+  // Link-unfurl service (Story 72 / ADR 0070): per-book OG/Twitter card document
+  // (Caddy reverse-proxies social crawlers to /unfurl/book/:slug) + the oEmbed
+  // JSON endpoint. RAW reads only — never a trust call. Humans keep the SPA.
+  app.use("/", buildUnfurlRouter({ config, ...buildUnfurlReaders({ config, query: userEventDeps.query }) }));
   // Homepage trust-shelf serve API (ADR 0036 §3) — serve-from-cache only; the
   // off-path `apps/shelves` worker computes + writes the cache. Read-only, public.
   app.use(

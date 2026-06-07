@@ -24,6 +24,26 @@
 		file_server
 	}
 
+	# Link unfurls (Story 72 / ADR 0070). A recognized social crawler hitting a
+	# book URL is reverse-proxied to the API's unfurl service, which returns a
+	# per-book Open Graph / Twitter card document (those crawlers do not run JS,
+	# so the SPA's client-rendered tags are invisible to them). Every non-crawler
+	# request falls through to the static SPA below, so the human read path is
+	# untouched. An unrecognized crawler simply gets the SPA's generic card
+	# (graceful degrade). The oEmbed JSON endpoint rides the /api/* proxy above.
+	handle /book/* {
+		@crawler header_regexp User-Agent (?i)(facebookexternalhit|twitterbot|slackbot|discordbot|whatsapp|telegrambot|linkedinbot|redditbot|pinterest|embedly|googlebot|bingbot|bot|crawl|spider|preview|unfurl|embed)
+		handle @crawler {
+			rewrite * /unfurl{uri}
+			reverse_proxy api:8787
+		}
+		handle {
+			root * /srv
+			try_files {path} /index.html
+			file_server
+		}
+	}
+
 	# Everything else is the SPA.
 	handle {
 		root * /srv
