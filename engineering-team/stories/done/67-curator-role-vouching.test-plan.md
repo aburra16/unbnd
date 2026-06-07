@@ -1,6 +1,6 @@
 # Test Plan: Story 67 — Curator status by trusted-user vouching
 
-**Story:** `engineering-team/stories/67-curator-role-vouching.md`
+**Story:** `engineering-team/stories/done/67-curator-role-vouching.md`
 **ADR:** `engineering-team/decisions/0066-curator-role-vouching.md`
 **Date:** 2026-06-06
 

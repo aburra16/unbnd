@@ -2,7 +2,7 @@
 
 **Status:** Accepted
 **Date:** 2026-06-06
-**Story:** `engineering-team/stories/67-curator-role-vouching.md`
+**Story:** `engineering-team/stories/done/67-curator-role-vouching.md`
 
 ## Context
 

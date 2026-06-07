@@ -1,6 +1,6 @@
 # Story 67: Curator status by trusted-user vouching
 
-**Status:** Approved
+**Status:** Done
 **Created:** 2026-06-06
 **Type:** Feature
 
@@ -38,5 +38,5 @@ As a Founding Curator, I want my vouch for another reader to count toward making
 
 ## Linked artifacts
 - ADR: `engineering-team/decisions/0066-curator-role-vouching.md` (Accepted)
-- Test plan: `engineering-team/stories/67-curator-role-vouching.test-plan.md`
+- Test plan: `engineering-team/stories/done/67-curator-role-vouching.test-plan.md`
 - Review: (filled in after Review phase)
