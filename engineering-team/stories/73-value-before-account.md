@@ -47,6 +47,6 @@ For the Architect (Phase 2):
 3. **Routing target.** Whether "Create account" routes to the existing `/auth` entry (which already bootstraps a custodial account) with a return-to-page, or a dedicated create path. Architect confirms against the shipped auth flow.
 
 ## Linked artifacts
-- ADR: (filled in after Architecture phase)
+- ADR: `engineering-team/decisions/0071-value-before-account.md` (Accepted)
 - Test plan: (filled in after Test Design phase)
 - Review: (filled in after Review phase)
