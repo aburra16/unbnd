@@ -50,13 +50,21 @@ export class FixtureTrustProvider implements TrustProvider {
     return out;
   }
 
-  // Story 74 / ADR 0072 — STUB (Test Design): real body lands in Implementation.
+  // Story 74 / ADR 0072 — follower counts from the configured spec. A present
+  // datum (including 0) is returned; an absent target is omitted (honest absence).
   async followers(
-    _observerHex: string,
-    _targetHexes: readonly string[],
+    observerHex: string,
+    targetHexes: readonly string[],
   ): Promise<Map<string, number>> {
-    void this.#followers; // STUB: the real read uses this in Implementation.
-    return new Map();
+    const row = this.#followers[observerHex] ?? {};
+    const out = new Map<string, number>();
+    for (const target of targetHexes) {
+      const n = row[target];
+      if (typeof n === "number" && Number.isFinite(n)) {
+        out.set(target, Math.max(0, Math.trunc(n)));
+      }
+    }
+    return out;
   }
 
   async hasScores(observerHex: string): Promise<boolean> {

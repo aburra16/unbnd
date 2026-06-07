@@ -98,6 +98,7 @@ export class BrainstormProvider implements TrustProvider {
   readonly #now: () => number;
   readonly #serviceKeys = new Map<string, Cached<{ key: string; relayHint?: string } | null>>();
   readonly #weights = new Map<string, Cached<Map<string, number>>>();
+  readonly #followersCache = new Map<string, Cached<Map<string, number>>>();
 
   constructor(
     opts: { apiUrl: string; relays: readonly string[] },
@@ -184,12 +185,52 @@ export class BrainstormProvider implements TrustProvider {
     return out;
   }
 
-  // Story 74 / ADR 0072 — STUB (Test Design): real body lands in Implementation.
-  async followers(
-    _observerHex: string,
-    _targetHexes: readonly string[],
-  ): Promise<Map<string, number>> {
-    return new Map();
+  // Story 74 / ADR 0072 — follower counts from the SAME trusted-assertion events
+  // the weights read fetches (the `followers` tag), via the same service key.
+  // Best-effort/honest-empty: no service key, a read failure, or an event without
+  // the tag yields no datum for that target; never throws.
+  async followers(observerHex: string, targetHexes: readonly string[]): Promise<Map<string, number>> {
+    if (targetHexes.length === 0) return new Map();
+    const cached = this.#followersCache.get(observerHex);
+    const fresh = cached && this.#now() - cached.at < WEIGHT_TTL_MS ? cached.value : null;
+
+    const svc = await this.#serviceKey(observerHex);
+    if (!svc) return new Map();
+
+    const relays = svc.relayHint && !this.#relays.includes(svc.relayHint)
+      ? [...this.#relays, svc.relayHint]
+      : this.#relays;
+
+    const out = new Map<string, number>();
+    const targets = [...targetHexes];
+    await Promise.all(
+      relays.map(async (relay) => {
+        let events: SignedNostrEvent[];
+        try {
+          events = await this.#query(relay, {
+            kinds: [KIND_TRUSTED_ASSERTION],
+            authors: [svc.key],
+            "#d": targets,
+          });
+        } catch {
+          return;
+        }
+        for (const e of events) {
+          const d = tag(e, "d");
+          const followersStr = tag(e, "followers");
+          if (!d || followersStr === undefined) continue;
+          const n = Number(followersStr);
+          if (!Number.isFinite(n)) continue;
+          const count = Math.max(0, Math.trunc(n));
+          const prev = out.get(d);
+          if (prev === undefined || count > prev) out.set(d, count); // union: keep the largest
+        }
+      }),
+    );
+
+    if (fresh) for (const [k, v] of fresh) if (!out.has(k)) out.set(k, v);
+    this.#followersCache.set(observerHex, { value: out, at: this.#now() });
+    return out;
   }
 
   async hasScores(observerHex: string): Promise<boolean> {

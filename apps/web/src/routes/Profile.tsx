@@ -45,6 +45,11 @@ function statCells(
   // a true 0 renders 0. The target's own kind-3 `p`-tag count — never capped.
   if (stats.followingCount !== undefined)
     cells.push({ label: "Following", value: stats.followingCount, capped: false });
+  // Followers count (Story 74 / ADR 0072): a cell only when there are followers
+  // (> 0). 0 / absent renders the honest "No followers yet." line instead — never
+  // a fabricated 0 cell. Never capped (a bounded trust-anchored count).
+  if (stats.followersCount)
+    cells.push({ label: "Followers", value: stats.followersCount, capped: false });
   return cells;
 }
 
@@ -143,6 +148,11 @@ export function Profile() {
       </header>
 
       {cells.length > 0 && <ProfileStats stats={cells} />}
+      {/* Honest empty state (Story 74): a loaded profile with no followers (0 or
+          no trust datum) says so plainly rather than showing a fabricated 0. */}
+      {stats && !stats.followersCount && (
+        <p className="profile-followers-empty">No followers yet.</p>
+      )}
 
       {claimedBooks.length > 0 && (
         <section className="me-activity">
