@@ -31,7 +31,7 @@ Two test levels. The bulk is the **pure card model** (`buildBookCard` / `renderU
 - Test runner: Vitest. Unit at `apps/api/test/unfurl/`, integration at `apps/api/test/routes/`.
 - The card model is pure (no relay/DB); the route uses express + supertest + `vi.fn` DI fakes (`readBook`, `readRawRatings`, `readRawTags`) — no intra-module `vi.mock`, mirroring `homepage-shelves.test.ts`.
 - Reuses existing types: `PublicBook` (`apps/api/src/books/effective.ts`), `RawBookTags`/`RawTagConsensus` (`apps/api/src/tags/aggregate.ts`). The Implementer wires the real readers to `parseBook` + `rawFromParsed` + `aggregateBookTags` (raw, no observer) in `apps/api/src/app.ts`.
-- No new dependency. `config.publicBaseUrl` is read in Implementation (the test passes it via the cast `baseConfig`).
+- No new dependency and **no new config field**: the absolute origin reuses the existing `config.publicOrigin` (`PUBLIC_ORIGIN`, already wired in `docker-compose.prod.yml`). The test passes it via the cast `baseConfig`.
 
 ## How to run
 

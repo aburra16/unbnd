@@ -15,7 +15,7 @@ import { buildUnfurlRouter, type UnfurlDeps } from "../../src/routes/unfurl";
 const BASE = "https://unbnd.test";
 
 function baseConfig(overrides: Partial<Config> = {}): Config {
-  return { librarianPubkey: "1".repeat(64), publicBaseUrl: BASE, ...overrides } as unknown as Config;
+  return { librarianPubkey: "1".repeat(64), publicOrigin: BASE, ...overrides } as unknown as Config;
 }
 
 function book(overrides: Partial<PublicBook> = {}): PublicBook {
