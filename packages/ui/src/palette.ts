@@ -42,5 +42,21 @@ export const GENRE_PALETTE = [
 // GENRE_PALETTE.length (which would re-color every book cover + avatar). Hex
 // lives here (the sanctioned palette home).
 //
-// STUB (Test Design phase): real 16-entry map lands in Implementation.
-export const GENRE_COLORS: Record<string, string> = {};
+export const GENRE_COLORS: Record<string, string> = {
+  "literary-fiction": "#085041",
+  "science-fiction": "#133F7A",
+  mystery: "#8B5A1B",
+  romance: "#993556",
+  fantasy: "#4340A0",
+  thriller: "#7A2E14",
+  biography: "#27500A",
+  history: "#5C4326",
+  horror: "#4A1020",
+  poetry: "#3A2E6B",
+  "young-adult": "#186A6B",
+  "graphic-novels": "#6B2D6B",
+  philosophy: "#2B3A55",
+  science: "#0E5A53",
+  "self-help": "#7A5A12",
+  memoir: "#5A2A4A",
+};

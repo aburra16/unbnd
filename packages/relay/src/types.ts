@@ -15,6 +15,10 @@ export type RelayFilter = {
   "#a"?: string[];
   "#d"?: string[];
   "#z"?: string[];
+  // Time-window cursors (NIP-01), forwarded verbatim in the REQ. Used by the
+  // genre recast to page the catalog past the relay cap (Story 75 / ADR 0073).
+  since?: number;
+  until?: number;
   limit?: number;
 };
 
