@@ -30,25 +30,39 @@ const RULES: ReadonlyArray<{ genre: string; patterns: readonly string[] }> = [
 
 const SCI_FI_MARKERS = ["science fiction", "sci-fi"] as const;
 
+// Match a keyword at a WORD BOUNDARY (a leading `\b`, suffixes allowed) rather
+// than a raw substring, so a pattern only matches whole-word: "science" matches
+// "Science"/"Social science"/"Sciences" but NOT "conscience"; "fiction" matches
+// "Fiction" but NOT "Nonfiction". This kills the mid-word false-positive class.
+const boundary = (pattern: string): RegExp =>
+  new RegExp("\\b" + pattern.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "i");
+
+const RULE_RES: ReadonlyArray<{ genre: string; res: readonly RegExp[] }> = RULES.map((r) => ({
+  genre: r.genre,
+  res: r.patterns.map(boundary),
+}));
+const SCI_FI_RES = SCI_FI_MARKERS.map(boundary);
+const FICTION_RE = boundary("fiction");
+
 /**
  * Map a book's preserved OL subject strings to genre slugs. Deterministic,
- * multi-genre, precision-favoring. Returns [] when nothing matches (the book is
- * simply unsorted — no fabricated genre). `literary-fiction` is a FALLBACK: it is
- * assigned only when a fiction marker is present and no other genre matched.
+ * multi-genre, precision-favoring (word-boundary matched). Returns [] when
+ * nothing matches (the book is simply unsorted — no fabricated genre).
+ * `literary-fiction` is a FALLBACK: assigned only when a fiction marker is
+ * present and no other genre matched.
  */
 export function subjectsToGenres(subjects: readonly string[]): string[] {
   const matched = new Set<string>();
   let fictionMarker = false;
   for (const raw of subjects) {
-    const s = raw.toLowerCase();
-    if (s.includes("fiction")) fictionMarker = true;
+    if (FICTION_RE.test(raw)) fictionMarker = true;
     // A science-fiction subject is ONLY science-fiction (not science/literary).
-    if (SCI_FI_MARKERS.some((m) => s.includes(m))) {
+    if (SCI_FI_RES.some((re) => re.test(raw))) {
       matched.add("science-fiction");
       continue;
     }
-    for (const { genre, patterns } of RULES) {
-      if (patterns.some((p) => s.includes(p))) matched.add(genre);
+    for (const { genre, res } of RULE_RES) {
+      if (res.some((re) => re.test(raw))) matched.add(genre);
     }
   }
   // Fiction fallback: a fiction book with no more-specific genre is literary.

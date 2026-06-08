@@ -52,6 +52,17 @@ describe("subjectsToGenres — derivation from preserved OL subjects", () => {
     expect(g).not.toContain("literary-fiction");
   });
 
+  it("word-boundary matches (no mid-word false positives)", () => {
+    // "conscience" must NOT match "science"; "nonfiction" must NOT trip the
+    // fiction fallback (Review #75 finding 1).
+    expect(subjectsToGenres(["Conscience"])).not.toContain("science");
+    expect(subjectsToGenres(["Nonfiction"])).not.toContain("literary-fiction");
+    expect(subjectsToGenres(["Nonfiction"])).toEqual([]);
+    // …but whole-word and plural forms still match.
+    expect(subjectsToGenres(["Social science"])).toContain("science");
+    expect(subjectsToGenres(["Sciences"])).toContain("science");
+  });
+
   it("supports multi-genre and returns [] when nothing matches", () => {
     const g = subjectsToGenres(["Fantasy fiction", "Romance"]);
     expect(g).toEqual(expect.arrayContaining(["fantasy", "romance"]));
