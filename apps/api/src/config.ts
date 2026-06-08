@@ -107,6 +107,20 @@ export type Config = {
    */
   readonly foryouMinRatings?: number;
   /**
+   * Automatic threshold promotion (Story 77 / ADR 0075). A submission auto-promotes
+   * when at least this many distinct above-`curatorThreshold` curators have rated it
+   * AND its trust-weighted average is ≥ `autoPromoteMinAvg`. Env
+   * `AUTO_PROMOTE_CURATOR_COUNT`, integer ≥ 0, default 3. **0 disables** auto-promotion
+   * (manual promote still works). Always set by `loadConfig`; optional here for fixtures.
+   */
+  readonly autoPromoteCuratorCount?: number;
+  /**
+   * The auto-promotion quality floor (Story 77 / ADR 0075): the trust-weighted average
+   * a submission must clear to auto-promote, so a book trusted curators panned never
+   * promotes. Env `AUTO_PROMOTE_MIN_AVG`, [1,5], default 4.0 (mirrors `FORYOU_MIN_AVG`).
+   */
+  readonly autoPromoteMinAvg?: number;
+  /**
    * The For-You row length (Story 36 / ADR 0037 §7). Caps the shelf at this many
    * books. Env `FORYOU_BOOKS`, validated as an integer ≥ 1, default 12 (one Shelf
    * row). Always set by `loadConfig`; optional here.
@@ -301,6 +315,28 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
   ) {
     throw new Error(
       `config: FORYOU_MIN_RATINGS must be a positive integer ≥ 1; got ${JSON.stringify(foryouMinRatingsRaw)}`,
+    );
+  }
+
+  // Automatic threshold promotion (ADR 0075). Integer ≥ 0; default 3. 0 disables.
+  const autoPromoteCountRaw = withDefault(env, "AUTO_PROMOTE_CURATOR_COUNT", "3");
+  const autoPromoteCuratorCount = Number(autoPromoteCountRaw);
+  if (
+    !Number.isFinite(autoPromoteCuratorCount) ||
+    autoPromoteCuratorCount < 0 ||
+    !Number.isInteger(autoPromoteCuratorCount)
+  ) {
+    throw new Error(
+      `config: AUTO_PROMOTE_CURATOR_COUNT must be an integer ≥ 0; got ${JSON.stringify(autoPromoteCountRaw)}`,
+    );
+  }
+
+  // Auto-promotion quality floor (ADR 0075). Finite, in [1,5]; default 4.0.
+  const autoPromoteMinAvgRaw = withDefault(env, "AUTO_PROMOTE_MIN_AVG", "4.0");
+  const autoPromoteMinAvg = Number(autoPromoteMinAvgRaw);
+  if (!Number.isFinite(autoPromoteMinAvg) || autoPromoteMinAvg < 1 || autoPromoteMinAvg > 5) {
+    throw new Error(
+      `config: AUTO_PROMOTE_MIN_AVG must be a number in [1,5]; got ${JSON.stringify(autoPromoteMinAvgRaw)}`,
     );
   }
 
@@ -556,6 +592,8 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
     searchTrustBlend,
     foryouMinAvg,
     foryouMinRatings,
+    autoPromoteCuratorCount,
+    autoPromoteMinAvg,
     foryouBooks,
     foryouCandidateRaters,
     tasteMatchMinOverlap,

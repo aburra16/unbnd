@@ -17,6 +17,9 @@ export type MaintenanceSweeps = {
   sessions: () => Promise<number>;
   /** Expired-challenge DB sweep. */
   challenges: () => Promise<number>;
+  /** Auto-promotion evaluation pass (Story 77 / ADR 0075): enqueues threshold-
+   * crossing submissions. Returns the count enqueued this tick. */
+  autoPromote: () => Promise<number>;
 };
 
 export type MaintenanceSweeperOptions = {
@@ -73,8 +76,9 @@ export function startMaintenanceSweeper(
     const keys = await runSweep("keys", sweeps.keys, log);
     const sessions = await runSweep("sessions", sweeps.sessions, log);
     const challenges = await runSweep("challenges", sweeps.challenges, log);
+    const autoPromoted = await runSweep("autoPromote", sweeps.autoPromote, log);
     log(
-      `[maintenance] swept ${keys} keys, ${sessions} sessions, ${challenges} challenges`,
+      `[maintenance] swept ${keys} keys, ${sessions} sessions, ${challenges} challenges, ${autoPromoted} auto-promotions`,
     );
   }
 
