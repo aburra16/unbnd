@@ -35,3 +35,12 @@ export const GENRE_PALETTE = [
   { genre: "biography", bg: "#27500A", ink: "#D1ECB6", coverTo: "#3B6D11" },
   { genre: null, bg: "#0E3F4D", ink: "#B6DDE5", coverTo: "#185D70" },
 ] as const satisfies readonly GenreRow[];
+
+// Story 75 / ADR 0073 — the genre BROWSE-CARD palette, keyed by genre slug.
+// DECOUPLED from GENRE_PALETTE on purpose: `genreColor()` reads this first so the
+// 16 genres get distinct, intentional backgrounds WITHOUT changing
+// GENRE_PALETTE.length (which would re-color every book cover + avatar). Hex
+// lives here (the sanctioned palette home).
+//
+// STUB (Test Design phase): real 16-entry map lands in Implementation.
+export const GENRE_COLORS: Record<string, string> = {};

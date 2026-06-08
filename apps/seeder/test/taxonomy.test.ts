@@ -2,14 +2,23 @@ import { describe, expect, it } from "vitest";
 import { STARTER_TAXONOMY } from "../src/taxonomy";
 
 describe("STARTER_TAXONOMY", () => {
-  it("defines the 8 UI genres", () => {
-    const genres = STARTER_TAXONOMY.filter((t) => t.type === "genre").map((t) => t.slug).sort();
-    expect(genres).toEqual(
-      [
-        "biography", "fantasy", "history", "literary-fiction",
-        "mystery", "romance", "science-fiction", "thriller",
-      ].sort(),
-    );
+  it("defines the expanded 16 UI genres (Story 75 / ADR 0073)", () => {
+    const genres = STARTER_TAXONOMY.filter((t) => t.type === "genre").map((t) => t.slug);
+    expect(genres.length).toBeGreaterThanOrEqual(14);
+    // The original 8 are preserved…
+    for (const slug of [
+      "biography", "fantasy", "history", "literary-fiction",
+      "mystery", "romance", "science-fiction", "thriller",
+    ]) {
+      expect(genres).toContain(slug);
+    }
+    // …plus the 8 additions (16 total).
+    for (const slug of [
+      "horror", "poetry", "young-adult", "graphic-novels",
+      "philosophy", "science", "self-help", "memoir",
+    ]) {
+      expect(genres).toContain(slug);
+    }
   });
 
   it("flags AI-related signals as accusatory and editorial signals as normal", () => {

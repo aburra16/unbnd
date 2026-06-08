@@ -7,7 +7,7 @@
 // colors, both single sources of color truth bound to the CSS Tier-1 raws by
 // the palette-sync guard. Primitives, the icon registry, and the motion layer
 // arrive in later epic stories, each behind a CI guard.
-export { GENRE_PALETTE } from "./palette";
+export { GENRE_PALETTE, GENRE_COLORS } from "./palette";
 export type { GenreRow } from "./palette";
 export { SEMANTIC_COLORS } from "./colors";
 export { breakpoints } from "./breakpoints";
