@@ -23,6 +23,7 @@ import { EDITION_MIN, type OLSearchDoc } from "./gate";
 import { dedupBooks, type CollectedBook } from "./dedup";
 import { buildConceptHeaderTemplate } from "./headers";
 import { STARTER_TAXONOMY } from "./taxonomy";
+import { subjectsToGenres } from "./genres";
 import { loadCheckpoint } from "./checkpoint";
 import { loadDescCache } from "./desc-cache";
 import { fingerprint } from "./fingerprint";
@@ -228,7 +229,13 @@ async function main() {
       pubkey: librarian,
       dTag: slug,
     };
-    for (const genre of genres) {
+    // Story 75 / ADR 0073: union the OL fetch-bucket genre(s) with the genres
+    // derived from the record's preserved subjects, so seeded books match what
+    // the no-fetch recast produces.
+    const allGenres = Array.from(
+      new Set<string>([...genres, ...subjectsToGenres(record?.subjects ?? [])]),
+    );
+    for (const genre of allGenres) {
       const key = `assert:${slug}:${genre}`;
       if (checkpoint.has(key)) continue;
       const assertion: BookTagAssertion = {

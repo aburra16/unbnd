@@ -35,3 +35,28 @@ export const GENRE_PALETTE = [
   { genre: "biography", bg: "#27500A", ink: "#D1ECB6", coverTo: "#3B6D11" },
   { genre: null, bg: "#0E3F4D", ink: "#B6DDE5", coverTo: "#185D70" },
 ] as const satisfies readonly GenreRow[];
+
+// Story 75 / ADR 0073 — the genre BROWSE-CARD palette, keyed by genre slug.
+// DECOUPLED from GENRE_PALETTE on purpose: `genreColor()` reads this first so the
+// 16 genres get distinct, intentional backgrounds WITHOUT changing
+// GENRE_PALETTE.length (which would re-color every book cover + avatar). Hex
+// lives here (the sanctioned palette home).
+//
+export const GENRE_COLORS: Record<string, string> = {
+  "literary-fiction": "#085041",
+  "science-fiction": "#133F7A",
+  mystery: "#8B5A1B",
+  romance: "#993556",
+  fantasy: "#4340A0",
+  thriller: "#7A2E14",
+  biography: "#27500A",
+  history: "#5C4326",
+  horror: "#4A1020",
+  poetry: "#3A2E6B",
+  "young-adult": "#186A6B",
+  "graphic-novels": "#6B2D6B",
+  philosophy: "#2B3A55",
+  science: "#0E5A53",
+  "self-help": "#7A5A12",
+  memoir: "#5A2A4A",
+};

@@ -20,6 +20,15 @@ export const STARTER_TAXONOMY: readonly TaxonomyEntry[] = [
   { slug: "thriller", type: "genre", name: "Thriller", sensitivity: "normal" },
   { slug: "biography", type: "genre", name: "Biography", sensitivity: "normal" },
   { slug: "history", type: "genre", name: "History", sensitivity: "normal" },
+  // Story 75 / ADR 0073 — the expansion to 16 genres.
+  { slug: "horror", type: "genre", name: "Horror", sensitivity: "normal" },
+  { slug: "poetry", type: "genre", name: "Poetry", sensitivity: "normal" },
+  { slug: "young-adult", type: "genre", name: "Young adult", sensitivity: "normal" },
+  { slug: "graphic-novels", type: "genre", name: "Graphic novels", sensitivity: "normal" },
+  { slug: "philosophy", type: "genre", name: "Philosophy", sensitivity: "normal" },
+  { slug: "science", type: "genre", name: "Science", sensitivity: "normal" },
+  { slug: "self-help", type: "genre", name: "Self-help", sensitivity: "normal" },
+  { slug: "memoir", type: "genre", name: "Memoir", sensitivity: "normal" },
 
   { slug: "short-novel", type: "style", name: "Short novel", sensitivity: "normal" },
   { slug: "experimental", type: "style", name: "Experimental", sensitivity: "normal" },

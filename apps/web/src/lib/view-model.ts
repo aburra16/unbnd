@@ -2,7 +2,7 @@
 // render components need (ADR 0010). No fabricated data: covers fall back to a
 // deterministic gradient when Open Library has none; reviewers are shown by
 // short npub (no trust tier until GrapeRank).
-import { GENRE_PALETTE } from "@unbnd/ui";
+import { GENRE_PALETTE, GENRE_COLORS } from "@unbnd/ui";
 import type { Book } from "../components/BookCard";
 import type { PublicBook, PublicRating, BylineTasteMatch } from "./api";
 
@@ -91,9 +91,11 @@ export function toCardBook(book: PublicBook): Book {
   };
 }
 
-/** A stable accent colour for a genre chip/card, picked from the palette. */
+/** A stable accent colour for a genre chip/card (Story 75 / ADR 0073). Reads the
+ * dedicated, distinct GENRE_COLORS map first (decoupled from the cover-gradient
+ * hash, so covers are untouched); falls back to the hash for any unknown slug. */
 export function genreColor(seed: string): string {
-  return COVERS[hash(seed) % COVERS.length]!.from;
+  return GENRE_COLORS[seed] ?? COVERS[hash(seed) % COVERS.length]!.from;
 }
 
 /** npub1abcd…wxyz — enough to recognise, short enough to fit a byline. */
