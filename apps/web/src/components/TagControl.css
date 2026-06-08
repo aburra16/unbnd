@@ -115,3 +115,32 @@
   font-size: var(--u-font-size-12);
   color: var(--u-muted);
 }
+
+/* Story 78 / ADR 0076 — curator-only gated accusatory rows + the Reveal action. */
+.tagc-gated {
+  display: flex;
+  flex-direction: column;
+  gap: var(--u-space-8);
+  margin-top: var(--u-space-12);
+}
+
+.tagc-gated-row {
+  display: flex;
+  align-items: center;
+  gap: var(--u-space-8);
+  flex-wrap: wrap;
+}
+
+.tagc-gated-chip {
+  font-size: var(--u-font-size-13);
+  font-weight: var(--u-font-weight-semibold);
+  color: var(--signal-negative);
+  border: 1px dashed var(--signal-negative);
+  border-radius: var(--u-radius);
+  padding: var(--u-space-2) var(--u-space-8);
+}
+
+.tagc-gated-note {
+  font-size: var(--u-font-size-12);
+  color: var(--u-muted);
+}

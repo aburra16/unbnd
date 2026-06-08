@@ -143,7 +143,6 @@ export function aggregateBookTagsWeighted(
   // today's behavior (gated tags invisible) — the PUBLIC gate is unchanged.
   includeGatedAccusatory = false,
 ): BookTags & { weighted: boolean } {
-  void includeGatedAccusatory; // STUB (Test Design): real handling in Implementation.
   const tax = new Map(taxonomy.map((t) => [t.slug, t]));
   // Dedup by (author, tagSlug) keeping the latest created_at.
   const latest = new Map<
@@ -195,7 +194,12 @@ export function aggregateBookTagsWeighted(
     // Accusatory tags stay hidden UNLESS a live reveal exists for this slug
     // (filter-at-read; the canonical assertions are never mutated — AC-3/AC-4).
     const isAccusatory = el.sensitivity === "accusatory";
-    if (isAccusatory && !revealedTagSlugs.has(slug)) continue;
+    const isRevealed = revealedTagSlugs.has(slug);
+    // Accusatory tags stay hidden from the PUBLIC unless revealed. Story 78: when
+    // includeGatedAccusatory (curator-only), an UNREVEALED accusatory tag is
+    // surfaced instead, marked `gated` (the curator's cue), never `revealed`.
+    const isGated = isAccusatory && !isRevealed;
+    if (isGated && !includeGatedAccusatory) continue;
     const trusted = c.trustedApplies + c.trustedDisputes > 0;
     if (trusted) anyTrusted = true;
     const consensus: TagConsensus = {
@@ -205,8 +209,9 @@ export function aggregateBookTagsWeighted(
       applies: c.applies,
       disputes: c.disputes,
       trusted,
-      // Only a revealed accusatory tag carries the marker (AC-4/AC-5).
-      ...(isAccusatory ? { revealed: true } : {}),
+      // A revealed accusatory tag carries `revealed` (AC-4/AC-5); an unrevealed
+      // one in the curator-only view carries `gated` (Story 78). Never both.
+      ...(isAccusatory ? (isRevealed ? { revealed: true } : { gated: true }) : {}),
     };
     if (el.type === "genre") result.genres.push(consensus);
     else if (el.type === "style") result.styles.push(consensus);

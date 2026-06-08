@@ -17,7 +17,7 @@ vi.mock("../../src/lib/api", () => ({
   ApiError: class ApiError extends Error {},
   api: {
     tags: {
-      list: vi.fn(),
+      list: vi.fn(async () => ({ tags: [] })),
       template: vi.fn(),
       submit: vi.fn(),
       submitCustodial: vi.fn(),

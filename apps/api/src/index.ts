@@ -1,6 +1,6 @@
 import express from "express";
 import { loadConfig } from "./config";
-import { createDb, db, readPromotionStatuses, readShelfCache, runMigrations } from "./db";
+import { createDb, db, enqueueReveal, readPromotionStatuses, readShelfCache, runMigrations } from "./db";
 import { promotions } from "./db/schema";
 import { retryWithBackoff, isRetryableConnError } from "./util/retry";
 import { errorSanitizer } from "./middleware/errors";
@@ -615,7 +615,7 @@ async function main() {
     }
   };
 
-  app.use("/", buildTagsRouter({ ...userEventDeps, reindexBook }));
+  app.use("/", buildTagsRouter({ ...userEventDeps, reindexBook, enqueueReveal }));
   app.use("/", buildShelvesRouter(userEventDeps));
   app.use(
     "/",

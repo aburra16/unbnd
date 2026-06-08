@@ -3,7 +3,7 @@ import { eq, inArray } from "drizzle-orm";
 import { drizzle, type PostgresJsDatabase } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
 import * as schema from "./schema";
-import { homepageShelves, promotions } from "./schema";
+import { homepageShelves, promotions, reveals } from "./schema";
 import { migrations } from "./migrations";
 import type { CachedShelfSet } from "../routes/homepage-shelves";
 
@@ -63,6 +63,40 @@ export async function readPromotionStatuses(
     result.set(row.slug, row.status as PromotionStatus);
   }
   return result;
+}
+
+/**
+ * Story 78 / ADR 0076 — enqueue an in-product accusatory reveal/withdraw. Mirrors
+ * the worker's upsert (`ON CONFLICT (book_slug, tag_slug)`): always re-queues so
+ * the off-path worker re-mints the new state (that is how revealed↔withdrawn
+ * toggles). `requestedBy` records the curator (the audit actor). The api only
+ * enqueues; the librarian signing key never lives here.
+ */
+export async function enqueueReveal(
+  bookSlug: string,
+  tagSlug: string,
+  state: "revealed" | "withdrawn",
+  requestedBy: string,
+): Promise<{ status: "queued" | "updated" }> {
+  const [row] = await db
+    .insert(reveals)
+    .values({ bookSlug, tagSlug, state, requestedBy, status: "pending" })
+    .onConflictDoUpdate({
+      target: [reveals.bookSlug, reveals.tagSlug],
+      set: {
+        state,
+        requestedBy,
+        status: "pending",
+        mintedId: null,
+        error: null,
+        updatedAt: new Date(),
+      },
+    })
+    .returning({ createdAt: reveals.createdAt, updatedAt: reveals.updatedAt });
+  // On a fresh insert both timestamps default to the same NOW(); a conflict
+  // update bumps updatedAt only → they differ.
+  const inserted = row ? row.createdAt.getTime() === row.updatedAt.getTime() : true;
+  return { status: inserted ? "queued" : "updated" };
 }
 
 /** Run all embedded migrations in order. Idempotent (IF NOT EXISTS guards). */
