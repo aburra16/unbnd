@@ -60,10 +60,11 @@ import {
   createCustodialUser,
   createOrLoadSovereignUser,
   findUserByEmail,
+  markKeyExported,
   toPublicUser,
   updateDisplayName,
 } from "./auth/users";
-import { decryptWithPassword } from "./auth/crypto";
+import { decryptWithPassword, exportNsec } from "./auth/crypto";
 import {
   issueSession,
   resolveSession,
@@ -321,6 +322,25 @@ async function main() {
       me: async (cookie) => {
         const resolved = await resolveSession(cookie);
         return resolved ? toPublicUser(resolved.user) : null;
+      },
+      // Story 76 / ADR 0074: reveal the custodial nsec, gated on the session +
+      // the user's password (the password-bound layer; never the backup key).
+      // Never logs the password or the nsec.
+      exportKey: async (cookie, password) => {
+        const resolved = await resolveSession(cookie);
+        if (!resolved) return { ok: false as const, reason: "no_session" as const };
+        const row = resolved.user;
+        if (!row.encryptedNsecPassword) {
+          return { ok: false as const, reason: "not_custodial" as const };
+        }
+        let nsec: string;
+        try {
+          nsec = exportNsec(row.encryptedNsecPassword, password);
+        } catch {
+          return { ok: false as const, reason: "wrong_password" as const };
+        }
+        await db.transaction((tx) => markKeyExported(tx, row.id));
+        return { ok: true as const, nsec };
       },
       nostrChallenge: async (pubkey) => {
         const challenge = await db.transaction((tx) =>

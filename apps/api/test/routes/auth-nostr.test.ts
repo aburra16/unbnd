@@ -26,6 +26,7 @@ const sovereign: PublicUser = {
   email: null,
   displayName: "npub1n0ewa…rk23",
   npub: "npub1n0ewa4w877phxhqxu5v02mhmj6aanc7mm93w9attfjc5etcstkzql9rk23",
+  keyExportedAt: null,
 };
 
 const baseDeps: AuthDeps = {

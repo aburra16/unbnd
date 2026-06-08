@@ -1,5 +1,5 @@
 // User queries per ADR 0003.
-import { eq } from "drizzle-orm";
+import { and, eq, isNull } from "drizzle-orm";
 import { npubEncode } from "nostr-tools/nip19";
 import { db, type DbOrTx } from "../db";
 import { users, type UserRow } from "../db/schema";
@@ -91,6 +91,9 @@ export type PublicUser = {
   readonly email: string | null;
   readonly displayName: string;
   readonly npub: string;
+  /** Story 76 / ADR 0074: ISO timestamp the custodial user took ownership of
+   * their key (revealed their nsec); null until then. The tier stays custodial. */
+  readonly keyExportedAt: string | null;
 };
 
 export function toPublicUser(row: UserRow): PublicUser {
@@ -99,7 +102,17 @@ export function toPublicUser(row: UserRow): PublicUser {
     email: row.email,
     displayName: row.displayName,
     npub: npubEncode(row.pubkeyHex),
+    keyExportedAt: row.keyExportedAt?.toISOString() ?? null,
   };
+}
+
+/** Stamp `key_exported_at` once (first export). Idempotent: a second call leaves
+ * the original timestamp untouched (the WHERE only matches a null column). */
+export async function markKeyExported(tx: DbOrTx, id: string): Promise<void> {
+  await tx
+    .update(users)
+    .set({ keyExportedAt: new Date() })
+    .where(and(eq(users.id, id), isNull(users.keyExportedAt)));
 }
 
 /**

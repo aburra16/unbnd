@@ -324,6 +324,14 @@ export const api = {
     logout() {
       return authFetch<void>("/auth/logout", { method: "POST" });
     },
+    // Story 76 / ADR 0074: reveal the custodial nsec once, re-auth gated by the
+    // user's password. The nsec is in the response body only — never persisted.
+    exportKey(password: string) {
+      return authFetch<{ nsec: string }>("/auth/export-key", {
+        method: "POST",
+        body: JSON.stringify({ password }),
+      });
+    },
     me() {
       return authFetch<{ user: PublicUser }>("/auth/me");
     },

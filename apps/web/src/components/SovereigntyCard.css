@@ -1,0 +1,71 @@
+/* Story 76 / ADR 0074 — the sovereignty "take ownership" card. Calm gravity:
+ * the sovereign signal token as a left accent, muted body, tokens only. */
+.sov-card {
+  margin-top: var(--u-space-16);
+  padding: var(--u-space-16);
+  border: 1px solid var(--u-border);
+  border-left: 3px solid var(--signal-sovereign);
+  border-radius: var(--u-radius-6);
+  display: flex;
+  flex-direction: column;
+  gap: var(--u-space-12);
+}
+
+.sov-title {
+  margin: 0;
+  font-size: var(--u-font-size-16);
+  font-weight: var(--u-font-weight-semibold);
+}
+
+.sov-body {
+  margin: 0;
+  font-size: var(--u-font-size-14);
+  line-height: var(--u-leading-150);
+  color: var(--u-muted);
+  max-width: 60ch;
+}
+
+.sov-actions {
+  display: flex;
+  gap: var(--u-space-8);
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.sov-reauth,
+.sov-reveal {
+  display: flex;
+  flex-direction: column;
+  gap: var(--u-space-12);
+}
+
+.sov-key-row {
+  display: flex;
+  gap: var(--u-space-8);
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.sov-key {
+  font-family: var(--font-mono);
+  font-size: var(--u-font-size-13);
+  color: var(--signal-sovereign);
+  word-break: break-all;
+  padding: var(--u-space-8);
+  border: 1px solid var(--u-border);
+  border-radius: var(--u-radius-4);
+}
+
+.sov-ack {
+  display: flex;
+  gap: var(--u-space-8);
+  align-items: center;
+  font-size: var(--u-font-size-14);
+  color: var(--u-muted);
+}
+
+.sov-error {
+  margin: 0;
+  font-size: var(--u-font-size-13);
+  color: var(--signal-negative);
+}

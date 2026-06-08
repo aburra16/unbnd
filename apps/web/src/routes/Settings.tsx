@@ -12,6 +12,7 @@ import { api, ApiError, type SignedEvent } from "../lib/api";
 import { Nav } from "../components/Nav";
 import { Footer } from "../components/Footer";
 import { CopyButton } from "../components/CopyButton";
+import { SovereigntyCard } from "../components/SovereigntyCard";
 import { Button, Container, Field, Label } from "@unbnd/ui";
 import { shortNpub } from "../lib/view-model";
 import { useSession } from "../hooks/useSession";
@@ -300,6 +301,8 @@ export function Settings() {
             <CopyButton value={user.npub} />
           </div>
         </Field>
+        {/* Sovereignty upgrade (Story 76 / ADR 0074): take ownership of your key. */}
+        <SovereigntyCard user={user} />
       </section>
       <Footer />
     </Container>

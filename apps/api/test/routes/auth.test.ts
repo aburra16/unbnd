@@ -26,6 +26,7 @@ const sampleUser: PublicUser = {
   email: "reader@example.com",
   displayName: "Mira Calloway",
   npub: "npub1n0ewa4w877phxhqxu5v02mhmj6aanc7mm93w9attfjc5etcstkzql9rk23",
+  keyExportedAt: null,
 };
 
 function makeApp(overrides: Partial<AuthDeps> = {}) {

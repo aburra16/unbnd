@@ -15,9 +15,13 @@ const REVERT_MS = 1500;
 export function CopyButton({
   value,
   label = "Copy",
+  // Accessible name. Defaults to the original npub caller's label for back-compat
+  // (Story 29); pass an explicit one for other copy targets (e.g. the nsec).
+  ariaLabel = "Copy your npub",
 }: {
   value: string;
   label?: string;
+  ariaLabel?: string;
 }) {
   const [state, setState] = useState<"idle" | "copied" | "failed">("idle");
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -56,7 +60,7 @@ export function CopyButton({
         size="sm"
         className="copy-btn"
         type="button"
-        aria-label="Copy your npub"
+        aria-label={ariaLabel}
         onClick={() => {
           void onCopy();
         }}

@@ -35,6 +35,9 @@ export const users = pgTable("users", {
   // Nullable: sovereign users hold their own key; the server stores none.
   encryptedNsecPassword: text("encrypted_nsec_password"),
   encryptedNsecBackup: bytea("encrypted_nsec_backup"),
+  // Story 76 / ADR 0074: when a custodial user took ownership (revealed their
+  // nsec); null until then. The tier stays custodial.
+  keyExportedAt: timestamp("key_exported_at", { withTimezone: true }),
   createdAt: timestamp("created_at", { withTimezone: true })
     .notNull()
     .defaultNow(),
