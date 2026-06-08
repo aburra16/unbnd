@@ -54,4 +54,4 @@ For the Architect (Phase 2):
 ## Linked artifacts
 - ADR: `engineering-team/decisions/0073-genre-expansion.md` (Accepted)
 - Test plan: `engineering-team/stories/75-genre-expansion.test-plan.md`
-- Review: (filled in after Review phase)
+- Review: `engineering-team/reviews/75-genre-expansion.md` (PASS)
