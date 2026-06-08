@@ -52,6 +52,6 @@ For the Architect (Phase 2):
 4. **Staging.** Whether to ship taxonomy + recast first, then the browse-grid/palette polish (the notes allow staging).
 
 ## Linked artifacts
-- ADR: (filled in after Architecture phase)
+- ADR: `engineering-team/decisions/0073-genre-expansion.md` (Accepted)
 - Test plan: (filled in after Test Design phase)
 - Review: (filled in after Review phase)
