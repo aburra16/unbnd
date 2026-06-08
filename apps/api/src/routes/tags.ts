@@ -62,6 +62,16 @@ export type TagsDeps = {
    * @unbnd/search `reindexBook` helper decides HOW.
    */
   readonly reindexBook?: (bookSlug: string) => void;
+  /**
+   * Story 78 / ADR 0076: enqueue an in-product accusatory reveal/withdraw. The
+   * api only enqueues; the off-path worker mints the librarian-signed event.
+   */
+  readonly enqueueReveal?: (
+    bookSlug: string,
+    tagSlug: string,
+    state: "revealed" | "withdrawn",
+    requestedBy: string,
+  ) => Promise<{ status: "queued" | "updated" }>;
 };
 
 function cookieOf(req: Request): string | undefined {
@@ -426,6 +436,13 @@ export function buildTagsRouter(deps: TagsDeps): Router {
     } catch (err) {
       next(err);
     }
+  });
+
+  // Story 78 / ADR 0076 — in-product accusatory reveal (curator-gated enqueue).
+  // STUB (Test Design phase): not implemented yet → red until the handler gates
+  // (session/accusatory/curator) and calls deps.enqueueReveal.
+  router.post("/api/books/:slug/tags/:tagSlug/reveal", async (_req, res) => {
+    res.status(501).json({ error: { code: "not_implemented", message: "stub" } });
   });
 
   return router;

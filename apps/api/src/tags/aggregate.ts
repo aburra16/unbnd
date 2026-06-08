@@ -39,6 +39,12 @@ export type TagConsensus = {
    * Absent on every normal/genre/style tag and on the default (no-reveal) path.
    */
   readonly revealed?: boolean;
+  /**
+   * Story 78 / ADR 0076: true ONLY on an UNREVEALED accusatory tag surfaced in
+   * the curator-only gated view (`includeGatedAccusatory`). It is the curator's
+   * cue to decide whether to reveal; the public never sees it. Absent otherwise.
+   */
+  readonly gated?: boolean;
 };
 
 export type BookTags = {
@@ -132,7 +138,12 @@ export function aggregateBookTagsWeighted(
   // Default empty = today's behavior (every accusatory tag hidden), so every
   // existing caller and the raw `aggregateBookTags` path are unchanged.
   revealedTagSlugs: ReadonlySet<string> = new Set(),
+  // Story 78 / ADR 0076: when true (curator-only), surface UNREVEALED accusatory
+  // tags marked `gated: true` so a curator can decide to reveal. Default false =
+  // today's behavior (gated tags invisible) — the PUBLIC gate is unchanged.
+  includeGatedAccusatory = false,
 ): BookTags & { weighted: boolean } {
+  void includeGatedAccusatory; // STUB (Test Design): real handling in Implementation.
   const tax = new Map(taxonomy.map((t) => [t.slug, t]));
   // Dedup by (author, tagSlug) keeping the latest created_at.
   const latest = new Map<
