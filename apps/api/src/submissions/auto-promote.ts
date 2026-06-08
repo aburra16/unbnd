@@ -2,7 +2,7 @@
 // lists submissions, skips any already in the promotions table, and enqueues the
 // ones whose trust signal has crossed the threshold (enough distinct above-gate
 // curators AND a positive trust-weighted average). It REUSES the manual promote
-// path — `enqueuePromotion` into the same table; the off-path promoter worker
+// path: `enqueuePromotion` into the same table; the off-path promoter worker
 // publishes. No new catalog surface, no trust math beyond `computeSubmissionSignals`.
 //
 import { asHexPubkey, buildBookSubmissionsHeaderAddress, formatAddress, type SignedNostrEvent } from "@unbnd/schemas";

@@ -45,4 +45,4 @@ For the Architect (Phase 2):
 ## Linked artifacts
 - ADR: `engineering-team/decisions/0075-automatic-threshold-promotion.md` (Accepted)
 - Test plan: `engineering-team/stories/77-automatic-threshold-promotion.test-plan.md`
-- Review: (filled in after Review phase)
+- Review: `engineering-team/reviews/77-automatic-threshold-promotion.md` (PASS)
