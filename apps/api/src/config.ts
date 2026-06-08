@@ -107,6 +107,20 @@ export type Config = {
    */
   readonly foryouMinRatings?: number;
   /**
+   * Automatic threshold promotion (Story 77 / ADR 0075). A submission auto-promotes
+   * when at least this many distinct above-`curatorThreshold` curators have rated it
+   * AND its trust-weighted average is ≥ `autoPromoteMinAvg`. Env
+   * `AUTO_PROMOTE_CURATOR_COUNT`, integer ≥ 0, default 3. **0 disables** auto-promotion
+   * (manual promote still works). Always set by `loadConfig`; optional here for fixtures.
+   */
+  readonly autoPromoteCuratorCount?: number;
+  /**
+   * The auto-promotion quality floor (Story 77 / ADR 0075): the trust-weighted average
+   * a submission must clear to auto-promote, so a book trusted curators panned never
+   * promotes. Env `AUTO_PROMOTE_MIN_AVG`, [1,5], default 4.0 (mirrors `FORYOU_MIN_AVG`).
+   */
+  readonly autoPromoteMinAvg?: number;
+  /**
    * The For-You row length (Story 36 / ADR 0037 §7). Caps the shelf at this many
    * books. Env `FORYOU_BOOKS`, validated as an integer ≥ 1, default 12 (one Shelf
    * row). Always set by `loadConfig`; optional here.
