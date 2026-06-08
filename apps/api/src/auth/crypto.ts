@@ -7,7 +7,7 @@ import {
   generateSecretKey,
   getPublicKey,
 } from "applesauce-core/helpers/keys";
-import { npubEncode } from "nostr-tools/nip19";
+import { npubEncode, nsecEncode } from "nostr-tools/nip19";
 import { xchacha20poly1305 } from "@noble/ciphers/chacha.js";
 import { randomBytes } from "node:crypto";
 
@@ -43,6 +43,21 @@ export function decryptWithPassword(
   password: string,
 ): Uint8Array {
   return decryptSecretKey(ncryptsec, password);
+}
+
+/**
+ * Story 76 / ADR 0074 — reveal a custodial key as a bech32 `nsec` for export.
+ * Decrypts the password-bound material with the USER'S password (never the
+ * deployment backup key), so a wrong password throws and reveals nothing. The
+ * plaintext secret is wiped after encoding.
+ */
+export function exportNsec(ncryptsec: string, password: string): string {
+  const secret = decryptWithPassword(ncryptsec, password); // throws on wrong password
+  try {
+    return nsecEncode(secret);
+  } finally {
+    secret.fill(0);
+  }
 }
 
 function backupKeyBytes(backupKeyHex: string): Uint8Array {

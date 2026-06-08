@@ -149,4 +149,14 @@ export const migrations: readonly Migration[] = [
         ON homepage_shelves(observer_hex, kind, position);
     `,
   },
+  {
+    // Story 76 / ADR 0074 — sovereignty upgrade. When a custodial user takes
+    // ownership of their key (reveals their nsec), stamp the moment. The tier
+    // stays custodial (the account keeps working); this is the "ownership taken"
+    // signal the Settings card reads. Additive + idempotent.
+    name: "0006_key_exported_at",
+    sql: `
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS key_exported_at TIMESTAMPTZ;
+    `,
+  },
 ];

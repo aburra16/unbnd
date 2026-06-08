@@ -32,6 +32,15 @@ export type AuthDeps = {
   readonly nostrVerify?: (
     event: unknown,
   ) => Promise<{ user: PublicUser; token: string; expiresAt: Date } | null>;
+  /** Story 76 / ADR 0074: reveal the custodial nsec, re-auth gated by the user's
+   * password. Never logs/persists the plaintext; fails closed on a wrong password. */
+  readonly exportKey?: (
+    cookie: string | undefined,
+    password: string,
+  ) => Promise<
+    | { ok: true; nsec: string }
+    | { ok: false; reason: "no_session" | "wrong_password" | "not_custodial" }
+  >;
 };
 
 function readSessionCookie(req: Request): string | undefined {
@@ -136,6 +145,39 @@ export function buildAuthRouter(deps: AuthDeps): Router {
         return;
       }
       res.status(200).json({ user });
+    } catch (err) {
+      next(err);
+    }
+  });
+
+  // Story 76 / ADR 0074 — reveal the custodial nsec (re-auth gated). Maps the
+  // deps result to status codes; never logs the password or the nsec.
+  router.post("/auth/export-key", async (req, res, next) => {
+    try {
+      if (!deps.exportKey) {
+        return void res
+          .status(501)
+          .json({ error: { code: "not_implemented", message: "Key export is unavailable." } });
+      }
+      const password = typeof req.body?.password === "string" ? req.body.password : "";
+      if (!password) {
+        return void res
+          .status(400)
+          .json({ error: { code: "bad_request", message: "Password is required." } });
+      }
+      const result = await deps.exportKey(readSessionCookie(req), password);
+      if (result.ok) {
+        return void res.status(200).json({ nsec: result.nsec });
+      }
+      const status =
+        result.reason === "no_session" ? 401 : result.reason === "not_custodial" ? 400 : 403;
+      const message =
+        result.reason === "no_session"
+          ? "Not signed in."
+          : result.reason === "not_custodial"
+            ? "Your account holds its own key."
+            : "Password is incorrect.";
+      res.status(status).json({ error: { code: result.reason, message } });
     } catch (err) {
       next(err);
     }
