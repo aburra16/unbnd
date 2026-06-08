@@ -33,11 +33,13 @@ function makeSweeps(over?: {
   keys?: () => number;
   sessions?: () => Promise<number>;
   challenges?: () => Promise<number>;
+  autoPromote?: () => Promise<number>;
 }) {
   return {
     keys: vi.fn(over?.keys ?? (() => 0)),
     sessions: vi.fn(over?.sessions ?? (async () => 0)),
     challenges: vi.fn(over?.challenges ?? (async () => 0)),
+    autoPromote: vi.fn(over?.autoPromote ?? (async () => 0)),
   };
 }
 

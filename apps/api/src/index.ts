@@ -88,6 +88,7 @@ import {
   sweepExpiredChallenges,
 } from "./auth/challenges";
 import { startMaintenanceSweeper } from "./maintenance";
+import { evaluateAutoPromotions } from "./submissions/auto-promote";
 import { verifySignedChallenge } from "./auth/nostr";
 
 async function main() {
@@ -597,32 +598,30 @@ async function main() {
       new Date().getUTCFullYear(),
     );
   };
+  // Enqueue a promotion (ADR 0031 §1). Idempotent on slug: the UNIQUE(slug)
+  // constraint reports a re-enqueue as `already` (no duplicate job). Shared by the
+  // manual promote route and the auto-promote maintenance sweep (ADR 0075). The
+  // off-path `apps/promoter` worker fulfills the row; the librarian secret is
+  // NEVER on this process (ADR 0031 §2).
+  const enqueuePromotion = async (slug: string, requestedBy: string) => {
+    try {
+      await db.insert(promotions).values({ slug, requestedBy });
+      return { status: "queued" as const };
+    } catch (err) {
+      if (err && typeof err === "object" && "code" in err && (err as { code?: string }).code === "23505") {
+        return { status: "already" as const };
+      }
+      throw err;
+    }
+  };
+
   app.use("/", buildTagsRouter({ ...userEventDeps, reindexBook }));
   app.use("/", buildShelvesRouter(userEventDeps));
   app.use(
     "/",
     buildSubmissionsRouter({
       ...userEventDeps,
-      // Enqueue a promotion (ADR 0031 §1). Idempotent on slug: the UNIQUE(slug)
-      // constraint reports a re-enqueue as `already` (no duplicate job). The
-      // off-path `apps/promoter` worker fulfills the row (mint + librarian-sign +
-      // publish); the librarian secret is NEVER on this process (ADR 0031 §2).
-      enqueuePromotion: async (slug, requestedBy) => {
-        try {
-          await db.insert(promotions).values({ slug, requestedBy });
-          return { status: "queued" as const };
-        } catch (err) {
-          if (
-            err &&
-            typeof err === "object" &&
-            "code" in err &&
-            (err as { code?: string }).code === "23505"
-          ) {
-            return { status: "already" as const };
-          }
-          throw err;
-        }
-      },
+      enqueuePromotion,
       // Batched promotion-state read for the enriched list (ADR 0031 §3b). ONE
       // `WHERE slug = ANY(...)` query over the page's slugs → Map<slug, status>.
       readPromotionStatuses,
@@ -647,6 +646,17 @@ async function main() {
       keys: () => sweepExpiredSessionKeys(Date.now(), ephemeralKeyTtlMs),
       sessions: () => sweepExpiredSessions(),
       challenges: () => sweepExpiredChallenges(),
+      // Story 77 / ADR 0075: auto-promote threshold-crossing submissions.
+      autoPromote: async () => {
+        const { enqueued } = await evaluateAutoPromotions({
+          config,
+          query: userEventDeps.query,
+          trust,
+          readPromotionStatuses,
+          enqueuePromotion,
+        });
+        return enqueued.length;
+      },
     },
     // eslint-disable-next-line no-console
     log: console.log,

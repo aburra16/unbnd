@@ -318,6 +318,28 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
     );
   }
 
+  // Automatic threshold promotion (ADR 0075). Integer ≥ 0; default 3. 0 disables.
+  const autoPromoteCountRaw = withDefault(env, "AUTO_PROMOTE_CURATOR_COUNT", "3");
+  const autoPromoteCuratorCount = Number(autoPromoteCountRaw);
+  if (
+    !Number.isFinite(autoPromoteCuratorCount) ||
+    autoPromoteCuratorCount < 0 ||
+    !Number.isInteger(autoPromoteCuratorCount)
+  ) {
+    throw new Error(
+      `config: AUTO_PROMOTE_CURATOR_COUNT must be an integer ≥ 0; got ${JSON.stringify(autoPromoteCountRaw)}`,
+    );
+  }
+
+  // Auto-promotion quality floor (ADR 0075). Finite, in [1,5]; default 4.0.
+  const autoPromoteMinAvgRaw = withDefault(env, "AUTO_PROMOTE_MIN_AVG", "4.0");
+  const autoPromoteMinAvg = Number(autoPromoteMinAvgRaw);
+  if (!Number.isFinite(autoPromoteMinAvg) || autoPromoteMinAvg < 1 || autoPromoteMinAvg > 5) {
+    throw new Error(
+      `config: AUTO_PROMOTE_MIN_AVG must be a number in [1,5]; got ${JSON.stringify(autoPromoteMinAvgRaw)}`,
+    );
+  }
+
   // For-You row length (ADR 0037 §7). Integer ≥ 1; default 12.
   const foryouBooksRaw = withDefault(env, "FORYOU_BOOKS", "12");
   const foryouBooks = Number(foryouBooksRaw);
@@ -570,6 +592,8 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
     searchTrustBlend,
     foryouMinAvg,
     foryouMinRatings,
+    autoPromoteCuratorCount,
+    autoPromoteMinAvg,
     foryouBooks,
     foryouCandidateRaters,
     tasteMatchMinOverlap,
