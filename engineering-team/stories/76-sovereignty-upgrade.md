@@ -44,6 +44,6 @@ For the Architect (Phase 2):
 4. **Block placement note (PRD §11 open q4):** nsec-export sits in Block 2 by persona logic; this closes Block 2.
 
 ## Linked artifacts
-- ADR: (filled in after Architecture phase)
+- ADR: `engineering-team/decisions/0074-sovereignty-upgrade.md` (Accepted)
 - Test plan: (filled in after Test Design phase)
 - Review: (filled in after Review phase)
