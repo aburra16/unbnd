@@ -7,6 +7,9 @@ export type PublicUser = {
   email: string | null;
   displayName: string;
   npub: string;
+  // Story 76 / ADR 0074: when a custodial user has taken ownership (revealed
+  // their nsec), the ISO timestamp of that export; null/absent otherwise.
+  keyExportedAt?: string | null;
 };
 
 export type SignedEvent = {

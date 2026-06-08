@@ -152,3 +152,39 @@ describe("GET /auth/me", () => {
     expect(res.body.error.code).toBe("no_session");
   });
 });
+
+describe("POST /auth/export-key (Story 76 / ADR 0074)", () => {
+  it("reveals the nsec once for a correct password", async () => {
+    const exportKey = vi.fn(async () => ({ ok: true as const, nsec: "nsec1exported" }));
+    const res = await request(makeApp({ exportKey }))
+      .post("/auth/export-key")
+      .send({ password: "correct horse battery" });
+    expect(res.status).toBe(200);
+    expect(res.body.nsec).toBe("nsec1exported");
+  });
+
+  it("returns 403 and no nsec on a wrong password", async () => {
+    const exportKey = vi.fn(async () => ({ ok: false as const, reason: "wrong_password" as const }));
+    const res = await request(makeApp({ exportKey }))
+      .post("/auth/export-key")
+      .send({ password: "bad" });
+    expect(res.status).toBe(403);
+    expect(res.body.nsec).toBeUndefined();
+  });
+
+  it("returns 401 when not signed in", async () => {
+    const exportKey = vi.fn(async () => ({ ok: false as const, reason: "no_session" as const }));
+    const res = await request(makeApp({ exportKey }))
+      .post("/auth/export-key")
+      .send({ password: "pw" });
+    expect(res.status).toBe(401);
+  });
+
+  it("returns 400 for a non-custodial (sovereign) user", async () => {
+    const exportKey = vi.fn(async () => ({ ok: false as const, reason: "not_custodial" as const }));
+    const res = await request(makeApp({ exportKey }))
+      .post("/auth/export-key")
+      .send({ password: "pw" });
+    expect(res.status).toBe(400);
+  });
+});

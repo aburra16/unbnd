@@ -1,9 +1,11 @@
 import { describe, expect, it } from "vitest";
+import { decode } from "nostr-tools/nip19";
 import {
   decryptWithBackupKey,
   decryptWithPassword,
   encryptWithBackupKey,
   encryptWithPassword,
+  exportNsec,
   generateCustodialKeypair,
 } from "../../src/auth/crypto";
 
@@ -67,5 +69,26 @@ describe("XChaCha20-Poly1305 backup-key encryption", () => {
     const { secret } = generateCustodialKeypair();
     const blob = encryptWithBackupKey(secret, BACKUP_KEY_HEX);
     expect(() => decryptWithBackupKey(blob, "c".repeat(64))).toThrow();
+  });
+});
+
+describe("exportNsec (Story 76 / ADR 0074)", () => {
+  it("reveals the encrypted custodial key as the matching nsec (password-gated)", () => {
+    const { secret } = generateCustodialKeypair();
+    const ncryptsec = encryptWithPassword(secret, "correct horse battery");
+    const nsec = exportNsec(ncryptsec, "correct horse battery");
+    expect(nsec).toMatch(/^nsec1[0-9a-z]+$/);
+    // It decodes back to the exact same secret bytes (reproducible by any client).
+    const decoded = decode(nsec);
+    expect(decoded.type).toBe("nsec");
+    expect(Buffer.from(decoded.data as Uint8Array).toString("hex")).toBe(
+      Buffer.from(secret).toString("hex"),
+    );
+  });
+
+  it("throws on the wrong password and reveals nothing", () => {
+    const { secret } = generateCustodialKeypair();
+    const ncryptsec = encryptWithPassword(secret, "right password");
+    expect(() => exportNsec(ncryptsec, "wrong password")).toThrow();
   });
 });

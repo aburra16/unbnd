@@ -32,6 +32,15 @@ export type AuthDeps = {
   readonly nostrVerify?: (
     event: unknown,
   ) => Promise<{ user: PublicUser; token: string; expiresAt: Date } | null>;
+  /** Story 76 / ADR 0074: reveal the custodial nsec, re-auth gated by the user's
+   * password. Never logs/persists the plaintext; fails closed on a wrong password. */
+  readonly exportKey?: (
+    cookie: string | undefined,
+    password: string,
+  ) => Promise<
+    | { ok: true; nsec: string }
+    | { ok: false; reason: "no_session" | "wrong_password" | "not_custodial" }
+  >;
 };
 
 function readSessionCookie(req: Request): string | undefined {
@@ -139,6 +148,13 @@ export function buildAuthRouter(deps: AuthDeps): Router {
     } catch (err) {
       next(err);
     }
+  });
+
+  // Story 76 / ADR 0074 — reveal the custodial nsec (re-auth gated).
+  // STUB (Test Design phase): not implemented yet → red until the handler maps
+  // deps.exportKey results to status codes.
+  router.post("/auth/export-key", async (_req, res) => {
+    res.status(501).json({ error: { code: "not_implemented", message: "stub" } });
   });
 
   const HEX64 = /^[0-9a-f]{64}$/;

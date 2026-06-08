@@ -45,6 +45,18 @@ export function decryptWithPassword(
   return decryptSecretKey(ncryptsec, password);
 }
 
+/**
+ * Story 76 / ADR 0074 — reveal a custodial key as a bech32 `nsec` for export.
+ * Decrypts the password-bound material with the USER'S password (never the
+ * deployment backup key), so a wrong password throws and reveals nothing. The
+ * plaintext secret is wiped after encoding.
+ *
+ * STUB (Test Design phase): real body lands in Implementation.
+ */
+export function exportNsec(_ncryptsec: string, _password: string): string {
+  return "";
+}
+
 function backupKeyBytes(backupKeyHex: string): Uint8Array {
   const key = Buffer.from(backupKeyHex, "hex");
   if (key.length !== 32) {
