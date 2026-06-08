@@ -47,6 +47,6 @@ For the Architect (Phase 2):
 3. **The async UX.** The worker mints asynchronously, so the tag surfaces only after the reveal event publishes. The Architect/Design decide the affordance (where in `TagControl` / the book tag area), its `canAssertAccusatory`-gated visibility, and the pending/just-requested state (calm gravity, no jargon).
 
 ## Linked artifacts
-- ADR: (filled in after Architecture phase)
+- ADR: `engineering-team/decisions/0076-in-product-accusatory-reveal.md` (Accepted)
 - Test plan: (filled in after Test Design phase)
 - Review: (filled in after Review phase)
