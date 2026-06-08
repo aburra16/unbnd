@@ -46,4 +46,4 @@ For the Architect (Phase 2):
 ## Linked artifacts
 - ADR: `engineering-team/decisions/0074-sovereignty-upgrade.md` (Accepted)
 - Test plan: `engineering-team/stories/76-sovereignty-upgrade.test-plan.md`
-- Review: (filled in after Review phase)
+- Review: `engineering-team/reviews/76-sovereignty-upgrade.md` (PASS)

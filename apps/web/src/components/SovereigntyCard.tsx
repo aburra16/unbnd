@@ -1,8 +1,8 @@
-// Story 76 / ADR 0074 — the "take ownership of your key" card in Settings →
-// Nostr identity. A deliberate, calm flow: explain → one explicit confirmation →
-// password re-auth → reveal the nsec ONCE (copy + a required acknowledgement
-// before dismiss). Never forced, always dismissible. The revealed nsec lives in
-// component state only — never localStorage/sessionStorage — and is cleared on
+// Story 76 / ADR 0074: the "take ownership of your key" card in Settings, Nostr
+// identity. A deliberate, calm flow: explain, one explicit confirmation, password
+// re-auth, then reveal the nsec ONCE (copy + a required acknowledgement before
+// dismiss). Never forced, always dismissible. The revealed nsec lives in
+// component state only (never localStorage/sessionStorage) and is cleared on
 // dismiss. No hand-rolled crypto: the server reveals via the audited path.
 import { useState } from "react";
 import { Button, Field, Label } from "@unbnd/ui";
@@ -22,7 +22,7 @@ export function SovereigntyCard({ user }: { user: PublicUser }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // A sovereign user already holds their own key — never offer the export.
+  // A sovereign user already holds their own key, so never offer the export.
   if (user.email === null) {
     return (
       <section className="sov-card" aria-label="Key ownership">
