@@ -43,6 +43,6 @@ For the Architect (Phase 2):
 3. **Scan scope + cost.** How the evaluation reads the submission set within the relay-cap discipline (paged), and skips submissions already in the `promotions` table (any status) so it neither re-evaluates nor double-enqueues.
 
 ## Linked artifacts
-- ADR: (filled in after Architecture phase)
+- ADR: `engineering-team/decisions/0075-automatic-threshold-promotion.md` (Accepted)
 - Test plan: (filled in after Test Design phase)
 - Review: (filled in after Review phase)
