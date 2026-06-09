@@ -39,6 +39,21 @@ export function TagControl({ bookSlug, tags, onChanged }: Props) {
     "idle",
   );
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  // Story 78: the slug currently being revealed/withdrawn (a calm pending state).
+  const [revealingSlug, setRevealingSlug] = useState<string | null>(null);
+
+  async function reveal(tagSlug: string, state: "revealed" | "withdrawn") {
+    setRevealingSlug(tagSlug);
+    try {
+      await api.tags.reveal(bookSlug, tagSlug, state);
+      onChanged?.();
+    } catch {
+      // The worker mints asynchronously; a failure here is surfaced calmly and
+      // the tag's state is unchanged.
+    } finally {
+      setRevealingSlug(null);
+    }
+  }
 
   useEffect(() => {
     let cancelled = false;
@@ -75,6 +90,8 @@ export function TagControl({ bookSlug, tags, onChanged }: Props) {
   // by community consensus (ADR 0034 §5). Render it apart from the chips above,
   // attributed to the review, with no curator count.
   const revealedSignals = tags.signals.filter((s) => s.revealed === true);
+  // Story 78 / ADR 0076: curator-only gated accusatory tags (the cue to reveal).
+  const gatedSignals = tags.signals.filter((s) => s.gated === true);
   const isSovereign =
     session.status === "signed-in" && session.user.email === null;
   // Section label (ADR 0025): trusted consensus when at least one surfaced tag
@@ -149,6 +166,45 @@ export function TagControl({ bookSlug, tags, onChanged }: Props) {
               <span className="tagc-reviewed-note">
                 Surfaced by a librarian review.
               </span>
+              {canAssertAccusatory && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  type="button"
+                  disabled={revealingSlug === s.slug}
+                  onClick={() => {
+                    void reveal(s.slug, "withdrawn");
+                  }}
+                >
+                  Withdraw
+                </Button>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Story 78 / ADR 0076. Curator-only: gated accusatory tags with the
+          substantiation, and the deliberate Reveal action. */}
+      {gatedSignals.length > 0 && (
+        <div className="tagc-gated" aria-label="Gated accusatory tags">
+          {gatedSignals.map((s) => (
+            <div key={`gated:${s.slug}`} className="tagc-gated-row">
+              <span className="tagc-gated-chip">{s.name}</span>
+              <span className="tagc-gated-note">
+                {s.applies} flagged. Hidden from readers until you reveal it.
+              </span>
+              <Button
+                variant="secondary"
+                size="sm"
+                type="button"
+                disabled={revealingSlug === s.slug}
+                onClick={() => {
+                  void reveal(s.slug, "revealed");
+                }}
+              >
+                Reveal
+              </Button>
             </div>
           ))}
         </div>

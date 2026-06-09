@@ -144,6 +144,10 @@ export type TagConsensus = {
   // reveal. The web renders it attributed to a review action, never as
   // community consensus, with no curator count. Absent on every other tag.
   revealed?: boolean;
+  // Story 78 / ADR 0076: true ONLY on an UNREVEALED accusatory tag surfaced in
+  // the curator-only gated view — the curator's cue to reveal it. Never sent to
+  // a non-curator. Absent on every other tag.
+  gated?: boolean;
 };
 
 export type BookTags = {
@@ -697,6 +701,13 @@ export const api = {
     genreBooks(slug: string) {
       return authFetch<{ books: string[] }>(
         `/api/genres/${encodeURIComponent(slug)}/books`,
+      );
+    },
+    // Story 78 / ADR 0076: a curator reveals/withdraws a gated accusatory tag.
+    reveal(slug: string, tagSlug: string, state: "revealed" | "withdrawn") {
+      return authFetch<{ status: "queued" | "updated" }>(
+        `/api/books/${encodeURIComponent(slug)}/tags/${encodeURIComponent(tagSlug)}/reveal`,
+        { method: "POST", body: JSON.stringify({ state }) },
       );
     },
     template(input: {

@@ -62,6 +62,16 @@ export type TagsDeps = {
    * @unbnd/search `reindexBook` helper decides HOW.
    */
   readonly reindexBook?: (bookSlug: string) => void;
+  /**
+   * Story 78 / ADR 0076: enqueue an in-product accusatory reveal/withdraw. The
+   * api only enqueues; the off-path worker mints the librarian-signed event.
+   */
+  readonly enqueueReveal?: (
+    bookSlug: string,
+    tagSlug: string,
+    state: "revealed" | "withdrawn",
+    requestedBy: string,
+  ) => Promise<{ status: "queued" | "updated" }>;
 };
 
 function cookieOf(req: Request): string | undefined {
@@ -273,6 +283,9 @@ export function buildTagsRouter(deps: TagsDeps): Router {
         taxonomy,
         weights,
         revealedTagSlugs,
+        // Story 78 / ADR 0076: curators (and only curators) see gated accusatory
+        // tags so they can decide to reveal. The public gate is unchanged.
+        canAssertAccusatory,
       );
       res.status(200).json({
         genres,
@@ -423,6 +436,44 @@ export function buildTagsRouter(deps: TagsDeps): Router {
       // SAME canonical payload field the read keys off (bookTagAssertion.bookSlug).
       fireReindex(deps, payloadBookSlug(event as SignedNostrEvent));
       res.status(200).json({ ok: true });
+    } catch (err) {
+      next(err);
+    }
+  });
+
+  // Story 78 / ADR 0076 — in-product accusatory reveal (curator-gated enqueue).
+  // The api only enqueues; the off-path worker mints the librarian-signed event.
+  router.post("/api/books/:slug/tags/:tagSlug/reveal", async (req, res, next) => {
+    try {
+      if (!deps.enqueueReveal) {
+        return void res
+          .status(501)
+          .json({ error: { code: "not_implemented", message: "Reveal is unavailable." } });
+      }
+      const user = await deps.sessionUser(cookieOf(req));
+      if (!user) {
+        return void res.status(401).json({ error: { code: "no_session", message: "Not signed in." } });
+      }
+      const { slug, tagSlug } = req.params;
+      // Only accusatory tags are gated/revealable.
+      if (!(await isAccusatorySlug(tagSlug))) {
+        return void res
+          .status(400)
+          .json({ error: { code: "not_accusatory", message: "That tag is not gated." } });
+      }
+      // The same curator gate as the accusatory write picker.
+      if ((await houseWeightOf(user.pubkeyHex)) < (deps.config.curatorThreshold ?? 0.5)) {
+        return void res.status(403).json({ error: { code: "below_gate", message: "Not a curator." } });
+      }
+      const stateRaw = (req.body?.state as string | undefined) ?? "revealed";
+      if (stateRaw !== "revealed" && stateRaw !== "withdrawn") {
+        return void res
+          .status(400)
+          .json({ error: { code: "bad_request", message: "state must be revealed or withdrawn." } });
+      }
+      // requestedBy = the curator (the audit actor).
+      const result = await deps.enqueueReveal(slug, tagSlug, stateRaw, user.pubkeyHex);
+      res.status(200).json(result);
     } catch (err) {
       next(err);
     }

@@ -153,3 +153,41 @@ describe("aggregateBookTagsWeighted — canonical assertions never mutated (AC-6
     expect(JSON.stringify(assertions)).toBe(snapshot);
   });
 });
+
+// Story 78 / ADR 0076 — the curator-only gated view (5th param). Cast-alias so
+// the RED set fails the ASSERTION, not tsc, until the param is honored.
+const aggregateWithGated = aggregateBookTagsWeightedBase as (
+  assertions: Parameters<typeof aggregateBookTagsWeightedBase>[0],
+  taxonomy: Parameters<typeof aggregateBookTagsWeightedBase>[1],
+  weights: Parameters<typeof aggregateBookTagsWeightedBase>[2],
+  revealedTagSlugs?: ReadonlySet<string>,
+  includeGatedAccusatory?: boolean,
+) => ReturnType<typeof aggregateBookTagsWeightedBase>;
+
+describe("aggregateBookTagsWeighted — curator-only gated view (Story 78 / ADR 0076)", () => {
+  const gatedAssertions = [
+    assertion({ bookSlug: "b1", tagSlug: "ai-generated", tagType: "signal", polarity: 1, asserter: CURATOR }),
+    assertion({ bookSlug: "b1", tagSlug: "ai-generated", tagType: "signal", polarity: 1, asserter: "b".repeat(64) }),
+  ];
+
+  it("includeGatedAccusatory=true surfaces an UNREVEALED accusatory tag marked gated, not revealed", () => {
+    const out = aggregateWithGated(gatedAssertions, TAXONOMY, new Map(), new Set(), true);
+    const sig = out.signals.find((s) => s.slug === "ai-generated");
+    expect(sig).toBeDefined();
+    expect((sig as { gated?: boolean }).gated).toBe(true);
+    expect((sig as { revealed?: boolean }).revealed).toBeUndefined(); // not a public reveal
+    expect(sig!.applies).toBe(2); // real substantiation shown to the curator
+  });
+
+  it("a revealed accusatory tag stays 'revealed' (not 'gated') even with the flag on", () => {
+    const out = aggregateWithGated(gatedAssertions, TAXONOMY, new Map(), new Set(["ai-generated"]), true);
+    const sig = out.signals.find((s) => s.slug === "ai-generated")!;
+    expect((sig as { revealed?: boolean }).revealed).toBe(true);
+    expect((sig as { gated?: boolean }).gated).toBeUndefined();
+  });
+
+  it("the default (flag off) keeps the public gate: an unrevealed accusatory tag is hidden", () => {
+    const out = aggregateWithGated(gatedAssertions, TAXONOMY, new Map(), new Set(), false);
+    expect(out.signals.find((s) => s.slug === "ai-generated")).toBeUndefined();
+  });
+});
