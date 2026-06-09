@@ -116,7 +116,7 @@
   color: var(--u-muted);
 }
 
-/* Story 78 / ADR 0076 — curator-only gated accusatory rows + the Reveal action. */
+/* Story 78 / ADR 0076. Curator-only gated accusatory rows + the Reveal action. */
 .tagc-gated {
   display: flex;
   flex-direction: column;

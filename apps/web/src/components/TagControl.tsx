@@ -184,7 +184,7 @@ export function TagControl({ bookSlug, tags, onChanged }: Props) {
         </div>
       )}
 
-      {/* Story 78 / ADR 0076 — curator-only: gated accusatory tags with the
+      {/* Story 78 / ADR 0076. Curator-only: gated accusatory tags with the
           substantiation, and the deliberate Reveal action. */}
       {gatedSignals.length > 0 && (
         <div className="tagc-gated" aria-label="Gated accusatory tags">
