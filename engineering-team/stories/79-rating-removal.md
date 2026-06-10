@@ -61,6 +61,6 @@ For the Architect (Phase 2 — the ADR):
 4. **The affordance.** Where in `RatingControl` the "Remove rating" action sits (it renders the prefilled editor when `hasRated`), its deliberate-action treatment (distinct from the stars / "Update rating", not fat-fingerable), the confirm/just-removed calm state, and the optimistic-write + reconcile through the existing `applyWrite` seam. Tokens only, calm-gravity copy, no slop.
 
 ## Linked artifacts
-- ADR: _pending (Architect) → `engineering-team/decisions/0077-rating-removal.md`_
+- ADR: `engineering-team/decisions/0077-rating-removal.md` (Accepted)
 - Test plan: _pending (Tester)_
 - Review: _pending (Reviewer)_
