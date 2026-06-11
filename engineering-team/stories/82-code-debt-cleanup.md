@@ -36,4 +36,4 @@ The deferred `DemoteControl` status read; the replaceable-write skeleton general
 
 ## Linked artifacts
 - Test plan: `engineering-team/stories/82-code-debt-cleanup.test-plan.md`
-- Review: _pending (Reviewer)_
+- Review: `engineering-team/reviews/82-code-debt-cleanup.md` (PASS)
