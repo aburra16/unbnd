@@ -40,6 +40,12 @@ export type TagConsensus = {
    */
   readonly revealed?: boolean;
   /**
+   * Story 81 / ADR 0079: true ONLY on a non-accusatory tag the trusted graph
+   * does NOT net-apply (trustedDisputes >= trustedApplies with >=1 trusted
+   * asserter). Never set on the raw/no-trust view. Additive; omitted unless true.
+   */
+  readonly contested?: boolean;
+  /**
    * Story 78 / ADR 0076: true ONLY on an UNREVEALED accusatory tag surfaced in
    * the curator-only gated view (`includeGatedAccusatory`). It is the curator's
    * cue to decide whether to reveal; the public never sees it. Absent otherwise.
@@ -202,6 +208,11 @@ export function aggregateBookTagsWeighted(
     if (isGated && !includeGatedAccusatory) continue;
     const trusted = c.trustedApplies + c.trustedDisputes > 0;
     if (trusted) anyTrusted = true;
+    // Story 81 / ADR 0079: contested = the trusted graph does NOT net-apply a
+    // non-accusatory tag (tie included; a tied tag is not settled). Untrusted
+    // weight is 0, so the raw view can never trigger it.
+    const contested =
+      !isAccusatory && trusted && c.trustedDisputes >= c.trustedApplies;
     const consensus: TagConsensus = {
       slug,
       name: el.name,
@@ -209,6 +220,7 @@ export function aggregateBookTagsWeighted(
       applies: c.applies,
       disputes: c.disputes,
       trusted,
+      ...(contested ? { contested: true } : {}),
       // A revealed accusatory tag carries `revealed` (AC-4/AC-5); an unrevealed
       // one in the curator-only view carries `gated` (Story 78). Never both.
       ...(isAccusatory ? (isRevealed ? { revealed: true } : { gated: true }) : {}),

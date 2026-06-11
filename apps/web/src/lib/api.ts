@@ -156,6 +156,10 @@ export type TagConsensus = {
   // reveal. The web renders it attributed to a review action, never as
   // community consensus, with no curator count. Absent on every other tag.
   revealed?: boolean;
+  // Story 81 / ADR 0079: true ONLY on a non-accusatory tag the trusted graph
+  // does not net-apply (muted + struck "contested" treatment). Never set on
+  // the raw view. Absent on every other tag.
+  contested?: boolean;
   // Story 78 / ADR 0076: true ONLY on an UNREVEALED accusatory tag surfaced in
   // the curator-only gated view — the curator's cue to reveal it. Never sent to
   // a non-curator. Absent on every other tag.

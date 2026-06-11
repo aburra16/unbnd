@@ -40,6 +40,12 @@ interface GenrePillProps extends PillBase {
    * settled than the trusted chips around it. No badge, no icon.
    */
   community?: boolean;
+  /**
+   * Story 81 / ADR 0079: the trusted graph net-disputes this tag. Muted +
+   * struck + dashed "contested" treatment; takes precedence over `community`;
+   * the applies count is suppressed (a struck chip with an endorsement count would contradict itself).
+   */
+  contested?: boolean;
 }
 
 interface SelectPillProps extends PillBase {
@@ -100,20 +106,30 @@ export function Pill(props: PillProps) {
   }
 
   // variant="genre" (default): the non-interactive filled <span> chip.
-  const { label, color, count, community, className } = props;
-  const style = color
+  const { label, color, count, community, contested, className } = props;
+  // Contested takes precedence over community (it carries strictly more
+  // information); the per-genre color fill is dropped on a struck chip.
+  const style = !contested && color
     ? {
         background: `${color}14`,
         color,
       }
     : undefined;
-  let cls = community ? "pill pill-genre pill-community" : "pill pill-genre";
+  let cls = contested
+    ? "pill pill-genre pill-contested"
+    : community
+      ? "pill pill-genre pill-community"
+      : "pill pill-genre";
   if (className) cls = `${cls} ${className}`;
   return (
     <span className={cls} style={style}>
       {label}
-      {typeof count === "number" && count > 0 && (
-        <span className="pill-conf">{count}</span>
+      {contested ? (
+        <span className="pill-contested-label">contested</span>
+      ) : (
+        typeof count === "number" && count > 0 && (
+          <span className="pill-conf">{count}</span>
+        )
       )}
     </span>
   );

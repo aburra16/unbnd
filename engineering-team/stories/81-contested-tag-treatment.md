@@ -1,6 +1,6 @@
 # Story 81: Contested-tag treatment
 
-**Status:** Planning
+**Status:** Approved
 **Created:** 2026-06-09
 **Type:** Feature (read/presentation layer)
 
@@ -41,5 +41,5 @@ For the Architect:
 ## Linked artifacts
 - Product: `product-team/stories-queue.md` (Block 3), wireframes + design guide.
 - ADR: `engineering-team/decisions/0079-contested-tag-treatment.md` (Accepted)
-- Test plan: _pending (Tester)_
-- Review: _pending (Reviewer)_
+- Test plan: `engineering-team/stories/81-contested-tag-treatment.test-plan.md`
+- Review: `engineering-team/reviews/81-contested-tag-treatment.md` (PASS)

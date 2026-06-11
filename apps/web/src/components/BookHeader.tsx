@@ -74,6 +74,7 @@ export function BookHeader({
                 label={t.name}
                 count={t.applies}
                 community={weighted === true && !t.trusted}
+                contested={t.contested === true}
               />
             ))}
           </div>
