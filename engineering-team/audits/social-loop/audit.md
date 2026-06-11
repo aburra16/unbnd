@@ -6,7 +6,7 @@
 **Provenance:** PRD-backed (`product-team/prd/social-loop.md`, immutable)
 **Confidence:** **high** — every story ran the gated five-phase cycle with per-phase commits; all 18 reviews PASS; the manifest was opened at intake, not reconstructed.
 
-> As-built record. **Deployment caveat up front: everything below is merged to local `main` but NOT pushed/deployed** — staging still runs the Phase-2 tail. Nothing in this book is user-visible until the push + the ops steps in book.md run.
+> As-built record. **Deployment caveat up front (verified against origin + live staging probes 2026-06-11): staging runs through #70** (origin/main tip = `f913219`; `/api/me/curator` live, the #72 unfurl card and #79 remove endpoint absent). **Block 1 + the hype-gap indicator (6 of 18 stories) are deployed; #71–#82 (the remaining 12, all of Block 3 included) are merged to local `main` only — 87 commits unpushed.** Those capabilities are not user-visible until the push + the ops steps in book.md run.
 
 ## 1. What shipped
 All 18 stories (#65–#82), three blocks, in queue order:
@@ -81,7 +81,7 @@ Derived from the book diff (`4e5d473..main`):
 | 2 | Phase-2 addendum framed the two un-do flows (#28b/#30b) as **kind-5 deletions** | **Replace-at-the-same-address** tombstones (retraction / delisting); kind-5 rejected in both ADRs | intentional-change | Kind 39999 is parameterized-replaceable; replace is relay-enforced, read-robust, and symmetric with restore; kind-5's relay semantics were the stub's load-bearing unknown (ADR 0077/0078) | Same user capability; stronger guarantees (re-rate/re-promote = restore) | Domain-model note for product (§6): the removal idiom is replace, never delete |
 | 3 | Queue line "the trusted graph net-disputes" (strict `>`) | Contested includes the **tie** (`>=`) | interpretation | A tied tag is not net-applied; rendering it settled overstates consensus (ADR 0079; pinned by a dedicated test) | Slightly more tags read "contested" | Product may ratify or flip (one line + one test) |
 | 4 | §5.7 automatic promotion | Shipped **dormant**: count+floor thresholds, off until `AUTO_PROMOTE_CURATOR_COUNT` > 0 | constraint-discovered | Thresholds need calibration against the real founding-curator graph before automation acts (ADR 0075) | No auto-promotion until ops enables it | Calibrate + enable on staging |
-| 5 | §10 success metrics (curator recruitment, founder seeding, vouch-grown graph, staging-verifiable behavior) | **Not yet measurable**: the book is merged but unpushed; staging runs the Phase-2 tail | constraint-discovered | Build completed ahead of the deploy/ops window | None of Phase 3 is user-visible yet | Push + run the ops sequence (book.md notes), then measure §10 |
+| 5 | §10 success metrics (curator recruitment, founder seeding, vouch-grown graph, staging-verifiable behavior) | **Partially measurable**: staging runs through #70, so the Block-1 metrics (taste-match honesty; a vouch-grown curator) are verifiable NOW; the Block-2 gate metric (link unfurls) and everything Block-3 await the push of the 12 undeployed stories | constraint-discovered | Block 2/3 build completed ahead of the deploy/ops window | #71–#82 capabilities not user-visible yet | Push + run the ops sequence (book.md notes), then measure the rest of §10 |
 | 6 | #82 "zero behavior change" cleanup | Two sanctioned label additions rode along ("Removal queued"; the corrected toggle copy) | intentional-change | Review-#80 carry-forward + the queue's own copy-fix AC (story 82) | Honest UI states | — |
 | 7 | §5 (Block 2) genre target "14+" | 16 genres shipped | intentional-change | Round taxonomy from the subject-yield analysis (ADR 0073) | Exceeds target | Drop any `<-- EMPTY` genre after the recast run |
 | 8 | — (process) | `promotions.requested_by` records the **latest** actor across promote→demote→re-promote | constraint-discovered | One row per slug is the state machine's source of truth; full actor history lives in the librarian-signed relay events (Review #80) | Audit trail is event-sourced, not row-sourced | — |
@@ -94,7 +94,7 @@ Derived from the book diff (`4e5d473..main`):
 - **Debt rolled up:** Phase-2's four logged debt items are **cleared** (#82). Remaining: the replaceable-write skeleton generalization (Phase-2, still deferred); 2 curatorStatus reads per profile (#68 note); the deferred unfurl cache (#72).
 
 ## 6. Carry-forward register
-- [ ] **Deploy + ops sequence** (the gate on everything user-visible): push `main` (~25 commits) → CI deploys staging → set `PUBLIC_ORIGIN` → run `seed:recast` (check yield; drop empty genres) → calibrate + set `AUTO_PROMOTE_CURATOR_COUNT` → confirm promoter cron → **operator: age-encrypt `LIBRARIAN_NSEC`** (pending) → verify §10 metrics.
+- [ ] **Deploy + ops sequence** (the gate on #71–#82 visibility): push `main` (87 commits, #71–#82 + close) → CI deploys staging → set `PUBLIC_ORIGIN` → run `seed:recast` (check yield; drop empty genres) → calibrate + set `AUTO_PROMOTE_CURATOR_COUNT` → confirm promoter cron → **operator: age-encrypt `LIBRARIAN_NSEC`** (pending) → verify §10 metrics.
 - [ ] Promoter retry policy: `failed` + `demote_failed` rows need a retry/reap path (Reviews #77/#82).
 - [ ] DemoteControl demote-status read (kills the one-tick re-offer window) + the `demote_failed` list label.
 - [ ] #71b hidden-gems min-trusted alignment fast-follow.

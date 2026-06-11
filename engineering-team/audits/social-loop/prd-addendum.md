@@ -6,7 +6,7 @@
 **Authored by:** engineering (Reviewer at book scope)
 
 ## 1. Summary
-Phase 3 set out to make the curator loop *complete, honest, and reversible*: taste-legible curation (Taste Match, hype gap, Hidden Gems), a graph that grows itself (vouching, auto-promotion), curation that travels (unfurls, value-before-account), real sovereignty (nsec export), and every social action undoable (un-rate, demote, reveal/withdraw, contested). **All 18 stories shipped through the gated cycle with PASS reviews; the PRD's in-scope §8.1 is fully realized, with zero scope cut.** The two headline divergences are mechanical, not product-shaped: the un-do flows use replace-at-the-same-address tombstones rather than the kind-5 deletions the Phase-2 addendum anticipated (stronger guarantees, same capability), and automatic promotion ships dormant behind a calibration knob. The headline *operational* fact: **the book is merged but not yet deployed** — none of Phase 3 is on staging, so §10's success metrics are not yet measurable.
+Phase 3 set out to make the curator loop *complete, honest, and reversible*: taste-legible curation (Taste Match, hype gap, Hidden Gems), a graph that grows itself (vouching, auto-promotion), curation that travels (unfurls, value-before-account), real sovereignty (nsec export), and every social action undoable (un-rate, demote, reveal/withdraw, contested). **All 18 stories shipped through the gated cycle with PASS reviews; the PRD's in-scope §8.1 is fully realized, with zero scope cut.** The two headline divergences are mechanical, not product-shaped: the un-do flows use replace-at-the-same-address tombstones rather than the kind-5 deletions the Phase-2 addendum anticipated (stronger guarantees, same capability), and automatic promotion ships dormant behind a calibration knob. The headline *operational* fact (verified against origin + staging probes): **staging runs through #70** — Block 1 and the hype-gap indicator are live and the Block-1 §10 metrics are measurable now, but the remaining 12 stories (#71–#82: unfurls, sovereignty, all of Block 3) sit on local `main` only, 87 commits unpushed.
 
 ## 2. Deviations from the PRD
 
@@ -36,7 +36,7 @@ Nothing from the PRD's in-scope list was cut. Small engineering follow-ups (not 
 
 ## 4. Recommended scope for the next phase
 *Input, not decision:*
-1. **A short ops/launch slice before Phase 4 features:** push + deploy, `seed:recast`, `PUBLIC_ORIGIN`, auto-promote calibration, the librarian-key encryption, then measure §10. The whole book is invisible until this happens; it is days, not weeks.
+1. **A short ops/launch slice before Phase 4 features:** push + deploy the 12 undeployed stories, `seed:recast`, `PUBLIC_ORIGIN`, auto-promote calibration, the librarian-key encryption, then measure the rest of §10. Two-thirds of the book is invisible until this happens; it is days, not weeks.
 2. **A small "loop hygiene" story** bundling the promoter/demote retry-and-label items (audit §6, three related findings — one story's worth).
 3. **Set the §11 knobs from the founding cohort** (taste-match overlap; vouch N/W; emergent-gate retirement or keep) once 10+ curators are active — these are env vars, not builds.
 4. Then **Phase 4 discovery** on distribution/payments, fresh (the Phase-2 addendum already argued it needs its own discovery, not an increment).
