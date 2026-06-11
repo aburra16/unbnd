@@ -331,7 +331,7 @@ export function buildSubmissionsRouter(deps: SubmissionsDeps): Router {
     }
   });
 
-  // Story 80 / ADR 0078 §4 — the demote endpoint: the promote gate, mirrored
+  // Story 80 / ADR 0078 §4, the demote endpoint: the promote gate, mirrored
   // (server-enforced, fail-closed), then the gated state-machine enqueue. The
   // librarian key never touches this process; the off-path worker mints the
   // delisting and removes the doc from the live search index.

@@ -190,7 +190,7 @@ export async function readShelfCache(observerHex: string): Promise<CachedShelfSe
 /**
  * Enqueue a promotion (ADR 0031; relocated from index.ts for Story 80 so the
  * demoted -> pending re-promote branch lives beside the state machine).
- * Idempotent on slug: a unique-violation re-enqueue is `already` — UNLESS the
+ * Idempotent on slug: a unique-violation re-enqueue is `already`, UNLESS the
  * existing row is `demoted`, in which case a deliberate manual re-promote
  * resets it to `pending` (ADR 0078 §2). The #77 auto-promote sweep skips any
  * slug with any status, so only this human path ever revives a demoted slug.
@@ -209,7 +209,7 @@ export async function enqueuePromotion(
       "code" in err &&
       (err as { code?: string }).code === "23505"
     ) {
-      // The slug has a row. A demoted row — and only a demoted row — is
+      // The slug has a row. A demoted row (and only a demoted row) is
       // revived by a deliberate re-promote.
       const reset = await db
         .update(promotions)
@@ -229,7 +229,7 @@ export async function enqueuePromotion(
 }
 
 /**
- * Enqueue a demotion (Story 80 / ADR 0078 §2): a gated UPDATE — only a `done`
+ * Enqueue a demotion (Story 80 / ADR 0078 §2): a gated UPDATE. Only a `done`
  * promotion (or a retriable `demote_failed`) can move to `demote_pending`,
  * recording the requesting curator. No row (never promoted / seeded) →
  * `not_promoted`; a row in any other state (in flight, already demoted or

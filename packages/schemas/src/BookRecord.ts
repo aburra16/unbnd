@@ -270,7 +270,7 @@ export function buildBookDelisting(
 /**
  * The shared delisting predicate (ADR 0078 §1): every catalog read seam
  * (`parseBook`, `buildBookDocument`) uses this, tag-level, before any payload
- * parse — a delisted record is dropped intentionally, never by parse luck.
+ * parse, so a delisted record is dropped intentionally, never by parse luck.
  */
 export function isDelistedRecord(event: {
   readonly kind: number;

@@ -72,7 +72,7 @@ export function buildBookDocument(
   currentYear: number,
 ): SearchDocument | null {
   if (isDelistedRecord(bookEvent)) {
-    // Story 80 / ADR 0078: a delisted record is never indexed — intentional
+    // Story 80 / ADR 0078: a delisted record is never indexed: intentional
     // (the predicate), not parse luck.
     return null;
   }

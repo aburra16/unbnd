@@ -64,7 +64,7 @@ export function parseBook(
   event: SignedNostrEvent,
   currentYear: number = new Date().getUTCFullYear(),
 ): PublicBook | null {
-  // Story 80 / ADR 0078: a DELISTED record never resolves to a book — the
+  // Story 80 / ADR 0078: a DELISTED record never resolves to a book: the
   // intentional predicate (checked before any parse), so detail 404s and
   // browse/hydration drop it on every surface.
   if (isDelistedRecord(event)) return null;

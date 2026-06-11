@@ -125,7 +125,7 @@ export type PublicBook = {
   isbn13?: string;
   purchaseUrl?: string;
   format: string;
-  // Story 80 / ADR 0078: provenance — "community" gates the curator-only
+  // Story 80 / ADR 0078: provenance. "community" gates the curator-only
   // remove-from-catalog action; seeded records never offer it.
   source?: string;
 };
