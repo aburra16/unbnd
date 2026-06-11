@@ -8,8 +8,15 @@ import type { PublishResult } from "../nostr/publish";
 import type { NostrFilter } from "../nostr/query";
 import type { NostrEventTemplate, SignedNostrEvent } from "@unbnd/schemas";
 import { npubEncode, decode } from "nostr-tools/nip19";
-import { buildRatingTemplate, RatingError } from "../ratings/template";
-import { validateSignedRating } from "../ratings/validate";
+import {
+  buildRatingTemplate,
+  buildRetractionTemplate,
+  RatingError,
+} from "../ratings/template";
+import {
+  validateSignedRating,
+  validateSignedRetraction,
+} from "../ratings/validate";
 import {
   summarizeRatings,
   dedupeRatings,
@@ -262,19 +269,157 @@ export function buildRatingsRouter(deps: RatingsDeps): Router {
     }
   });
 
-  // Story 79 / ADR 0077 — STUBS (red): the removal endpoints land in
-  // implementation. Template mirrors /api/ratings/template; remove mirrors
-  // POST /api/ratings (tier-branched, idempotent short-circuit).
-  router.post("/api/ratings/remove/template", (_req, res) => {
-    res.status(501).json({
-      error: { code: "not_implemented", message: "Rating removal is not implemented yet." },
-    });
+  // Story 79 / ADR 0077: build the unsigned RETRACTION template for a
+  // sovereign client to sign (mirrors /api/ratings/template).
+  router.post("/api/ratings/remove/template", async (req, res, next) => {
+    try {
+      const user = await deps.sessionUser(readSessionCookie(req));
+      if (!user) {
+        res
+          .status(401)
+          .json({ error: { code: "no_session", message: "Not signed in." } });
+        return;
+      }
+      const { bookSlug } = req.body ?? {};
+      const template = buildRetractionTemplate(
+        deps.config,
+        { raterPubkey: user.pubkeyHex, bookSlug },
+        Math.floor(Date.now() / 1000),
+      );
+      res.status(200).json({ template });
+    } catch (err) {
+      if (err instanceof RatingError) {
+        const status = err.code === "feature_unavailable" ? 503 : 400;
+        res.status(status).json({ error: { code: err.code, message: err.message } });
+        return;
+      }
+      next(err);
+    }
   });
 
-  router.post("/api/ratings/remove", (_req, res) => {
-    res.status(501).json({
-      error: { code: "not_implemented", message: "Rating removal is not implemented yet." },
-    });
+  // Story 79 / ADR 0077: remove (retract) the caller's OWN rating. Mirrors
+  // POST /api/ratings per tier: sovereign posts a self-signed retraction
+  // event; custodial posts { bookSlug } and the server signs with the
+  // session's ephemeral-wrapped key (the same ADR 0006 branch as rate).
+  // Idempotent: no current rating means 200 { removed: false } and NO publish
+  // (a double remove never spams tombstones — relay-cap discipline).
+  router.post("/api/ratings/remove", async (req, res, next) => {
+    try {
+      const cookie = readSessionCookie(req);
+      const user = await deps.sessionUser(cookie);
+      if (!user) {
+        res
+          .status(401)
+          .json({ error: { code: "no_session", message: "Not signed in." } });
+        return;
+      }
+
+      // Resolve the target book; the sovereign body is validated up front so
+      // a forged or malformed retraction is refused before any relay read.
+      let bookSlug: string;
+      let retractionEvent: SignedNostrEvent | null = null;
+      if (user.tier === "custodial") {
+        const slug = (req.body ?? {}).bookSlug;
+        if (typeof slug !== "string" || slug === "") {
+          res.status(400).json({
+            error: { code: "invalid_book", message: "A book slug is required." },
+          });
+          return;
+        }
+        bookSlug = slug;
+      } else {
+        const { event } = req.body ?? {};
+        const result = validateSignedRetraction(event, user.pubkeyHex);
+        if (!result.ok) {
+          const status = result.code === "pubkey_mismatch" ? 403 : 400;
+          res.status(status).json({
+            error: {
+              code: result.code,
+              message:
+                result.code === "pubkey_mismatch"
+                  ? "A rating can only be removed by its own key."
+                  : "The retraction event could not be validated.",
+            },
+          });
+          return;
+        }
+        bookSlug = result.bookSlug;
+        retractionEvent = event as SignedNostrEvent;
+      }
+
+      // Idempotent short-circuit (AC-4): no current rating, nothing to remove.
+      const addr = bookAddress(deps.config, bookSlug);
+      const events = addr
+        ? await deps.query({ kinds: [BOOK_RATING_KIND], "#a": [addr] })
+        : [];
+      const deduped = dedupeRatings(events);
+      const current = await resolveYourRating(deps, cookie, addr, deduped);
+      if (!current) {
+        res.status(200).json({
+          removed: false,
+          summary: rawFromParsed(deduped),
+          yourRating: null,
+        });
+        return;
+      }
+
+      // Custodial: server-sign the retraction with the session key.
+      if (!retractionEvent) {
+        const template = buildRetractionTemplate(
+          deps.config,
+          { raterPubkey: user.pubkeyHex, bookSlug },
+          Math.floor(Date.now() / 1000),
+        );
+        if (!deps.custodialSign) {
+          res.status(501).json({
+            error: { code: "not_supported", message: "Custodial signing is unavailable." },
+          });
+          return;
+        }
+        const sessionIdHex = cookie ? tokenToId(cookie).toString("hex") : "";
+        const signed = await deps.custodialSign(sessionIdHex, template);
+        if (!signed) {
+          // The session's signing key is gone (process restart / evicted).
+          res.status(401).json({
+            error: {
+              code: "reauth_required",
+              message: "Please sign in again to remove your rating.",
+            },
+          });
+          return;
+        }
+        retractionEvent = signed;
+      }
+
+      const published = await deps.publish(retractionEvent);
+      if (!published.ok) {
+        res.status(502).json({
+          error: {
+            code: "publish_failed",
+            message: "Could not publish the removal to the relay.",
+          },
+        });
+        return;
+      }
+
+      // The retraction replaced the rating at the relay (same d-tag);
+      // re-read for the honest post-removal summary.
+      const after = addr
+        ? await deps.query({ kinds: [BOOK_RATING_KIND], "#a": [addr] })
+        : [];
+      res.status(200).json({
+        removed: true,
+        summary: summarizeRatings(after),
+        yourRating: null,
+      });
+    } catch (err) {
+      if (err instanceof RatingError) {
+        const status = err.code === "feature_unavailable" ? 503 : 400;
+        res.status(status).json({ error: { code: err.code, message: err.message } });
+        return;
+      }
+      next(err);
+    }
   });
 
   // Public read-back for a book. Always returns the raw summary; when trust is

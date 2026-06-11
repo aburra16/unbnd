@@ -137,14 +137,23 @@ export type BookRatingRetractionEvent = UnsignedDListEvent<
   BookRatingRetractionPayload["bookRating"]
 >;
 
-// STUB (red): real construction in implementation (Story 79).
 export function buildBookRatingRetraction(
   retraction: BookRatingRetraction,
 ): BookRatingRetractionEvent {
   const dTag = buildBookRatingDTag(retraction.bookSlug, retraction.raterPubkey);
+  const bookAtag = formatAddress(retraction.bookAddress);
   return {
     kind: BOOK_RATING_KIND,
-    tags: [["d", dTag]],
+    // The rating's routing tags (z, t, a, p) so the same #a read returns the
+    // retraction; the marker instead of a score.
+    tags: [
+      ["d", dTag],
+      ["z", formatAddress(retraction.parentHeader)],
+      ["t", retraction.bookSlug],
+      ["a", bookAtag],
+      ["p", retraction.raterPubkey],
+      ["retracted", "true"],
+    ],
     content: "",
     payload: {
       word: {
@@ -155,7 +164,7 @@ export function buildBookRatingRetraction(
       },
       bookRating: {
         bookSlug: retraction.bookSlug,
-        bookAtag: formatAddress(retraction.bookAddress),
+        bookAtag,
         retracted: true,
       },
     },
@@ -166,14 +175,17 @@ export function buildBookRatingRetraction(
 /**
  * The single shared retraction predicate every read fold uses (ADR 0077 §2):
  * recognizes a rating retraction by its marker tag, BEFORE any payload parse,
- * so `fromBookRatingEvent`'s score-required invariant stays intact.
- * STUB (red): always false until implementation.
+ * so `fromBookRatingEvent`'s score-required invariant stays intact. Works on
+ * any tag-bearing view of the event (unsigned, template, or signed wire).
  */
-export function isRatingRetraction(_event: {
+export function isRatingRetraction(event: {
   readonly kind: number;
   readonly tags: ReadonlyArray<readonly string[]>;
 }): boolean {
-  return false;
+  if (event.kind !== BOOK_RATING_KIND) return false;
+  const dTag = event.tags.find((t) => t[0] === "d")?.[1];
+  if (typeof dTag !== "string" || !dTag.startsWith("rating--")) return false;
+  return event.tags.some((t) => t[0] === "retracted" && t[1] === "true");
 }
 
 export function fromBookRatingEvent(event: BookRatingEvent): BookRating {

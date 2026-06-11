@@ -101,6 +101,15 @@ export type RatingsSummary = {
   yourRating?: PublicRating | null;
 };
 
+// Story 79 / ADR 0077: the removal response. `removed: false` means there was
+// no current rating to remove (idempotent no-op); the summary is the honest
+// post-removal aggregate either way.
+export type RemoveRatingResult = {
+  removed: boolean;
+  summary: RatingsSummary;
+  yourRating: PublicRating | null;
+};
+
 // Catalog read shapes (ADR 0010). Mirror apps/api PublicBook + tag consensus.
 export type PublicBook = {
   slug: string;
@@ -391,6 +400,28 @@ export const api = {
       return authFetch<RatingsSummary>(
         `/api/books/${encodeURIComponent(bookSlug)}/ratings${q}`,
       );
+    },
+    // Story 79 / ADR 0077: remove (retract) the caller's own rating. Signed
+    // per tier exactly like a rating: sovereign fetches the retraction
+    // template, signs with NIP-07, and submits the event; custodial posts the
+    // book slug and the server signs with the session key.
+    removeTemplate(bookSlug: string) {
+      return authFetch<{ template: NostrEventTemplate }>(
+        "/api/ratings/remove/template",
+        { method: "POST", body: JSON.stringify({ bookSlug }) },
+      );
+    },
+    removeSubmit(event: SignedEvent) {
+      return authFetch<RemoveRatingResult>("/api/ratings/remove", {
+        method: "POST",
+        body: JSON.stringify({ event }),
+      });
+    },
+    removeCustodial(bookSlug: string) {
+      return authFetch<RemoveRatingResult>("/api/ratings/remove", {
+        method: "POST",
+        body: JSON.stringify({ bookSlug }),
+      });
     },
     // Per-rater taste match for the book's raters (Story 66 / ADR 0065), keyed by
     // npub. `signedIn:false` when signed out. Read-time, never cached.

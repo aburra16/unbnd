@@ -8,6 +8,7 @@ import { npubEncode } from "nostr-tools/nip19";
 import {
   fromBookRatingEvent,
   fromWireEvent,
+  isRatingRetraction,
   type SignedNostrEvent,
 } from "@unbnd/schemas";
 import {
@@ -38,6 +39,16 @@ function toPublic(r: ParsedRating): PublicRating {
 }
 
 /**
+ * A retraction's book slug, read tag-level (the `t` routing tag) so the
+ * score-required `fromBookRatingEvent` parse is never asked to parse one
+ * (Story 79 / ADR 0077). Null when the tag is absent (malformed → skip).
+ */
+function retractionSlug(event: SignedNostrEvent): string | null {
+  const t = event.tags.find((tag) => tag[0] === "t");
+  return typeof t?.[1] === "string" && t[1] !== "" ? t[1] : null;
+}
+
+/**
  * Own-ratings counts for the signed-in user's profile (ADR 0019 Decision 2,
  * AC-5/AC-6). All events are the SAME author here, so latest-wins must key by
  * BOOK (not pubkey, which `dedupeRatings` uses — that would collapse the user's
@@ -51,34 +62,45 @@ export function countOwnRatings(events: SignedNostrEvent[]): {
 } {
   const latest = new Map<
     string,
-    { createdAt: number; reviewText?: string }
+    { createdAt: number; reviewText?: string; retracted: boolean }
   >();
   for (const event of events) {
     let bookSlug: string;
     let reviewText: string | undefined;
-    try {
-      const rating = fromBookRatingEvent(
-        fromWireEvent({
-          kind: event.kind,
-          content: event.content,
-          tags: event.tags,
-        }) as never,
-      );
-      bookSlug = rating.bookSlug;
-      reviewText = rating.reviewText;
-    } catch {
-      continue; // skip anything that is not a well-formed rating
+    let retracted = false;
+    if (isRatingRetraction(event)) {
+      const slug = retractionSlug(event);
+      if (!slug) continue;
+      bookSlug = slug;
+      retracted = true;
+    } else {
+      try {
+        const rating = fromBookRatingEvent(
+          fromWireEvent({
+            kind: event.kind,
+            content: event.content,
+            tags: event.tags,
+          }) as never,
+        );
+        bookSlug = rating.bookSlug;
+        reviewText = rating.reviewText;
+      } catch {
+        continue; // skip anything that is not a well-formed rating
+      }
     }
     const prior = latest.get(bookSlug);
     if (!prior || event.created_at > prior.createdAt) {
-      latest.set(bookSlug, { createdAt: event.created_at, reviewText });
+      latest.set(bookSlug, { createdAt: event.created_at, reviewText, retracted });
     }
   }
+  let booksRated = 0;
   let reviews = 0;
   for (const v of latest.values()) {
+    if (v.retracted) continue; // a retracted head = no current rating (ADR 0077)
+    booksRated++;
     if ((v.reviewText ?? "").trim() !== "") reviews++;
   }
-  return { booksRated: latest.size, reviews };
+  return { booksRated, reviews };
 }
 
 /**
@@ -91,20 +113,37 @@ export function countOwnRatings(events: SignedNostrEvent[]): {
  * `ownRatedSlugs(events).size === countOwnRatings(events).booksRated`.
  */
 export function ownRatedSlugs(events: SignedNostrEvent[]): Set<string> {
-  const slugs = new Set<string>();
+  const latest = new Map<string, { createdAt: number; retracted: boolean }>();
   for (const event of events) {
-    try {
-      const rating = fromBookRatingEvent(
-        fromWireEvent({
-          kind: event.kind,
-          content: event.content,
-          tags: event.tags,
-        }) as never,
-      );
-      slugs.add(rating.bookSlug);
-    } catch {
-      continue; // skip anything that is not a well-formed rating
+    let bookSlug: string;
+    let retracted = false;
+    if (isRatingRetraction(event)) {
+      const slug = retractionSlug(event);
+      if (!slug) continue;
+      bookSlug = slug;
+      retracted = true;
+    } else {
+      try {
+        const rating = fromBookRatingEvent(
+          fromWireEvent({
+            kind: event.kind,
+            content: event.content,
+            tags: event.tags,
+          }) as never,
+        );
+        bookSlug = rating.bookSlug;
+      } catch {
+        continue; // skip anything that is not a well-formed rating
+      }
     }
+    const prior = latest.get(bookSlug);
+    if (!prior || event.created_at > prior.createdAt) {
+      latest.set(bookSlug, { createdAt: event.created_at, retracted });
+    }
+  }
+  const slugs = new Set<string>();
+  for (const [slug, v] of latest) {
+    if (!v.retracted) slugs.add(slug); // a retracted book is recommendable again
   }
   return slugs;
 }
@@ -118,22 +157,29 @@ export function ownRatedSlugs(events: SignedNostrEvent[]): Set<string> {
  * latest score.
  */
 export function scoreBySlug(events: SignedNostrEvent[]): Map<string, number> {
-  const latest = new Map<string, { createdAt: number; score: number }>();
+  const latest = new Map<string, { createdAt: number; score: number | null }>();
   for (const event of events) {
     let bookSlug: string;
-    let score: number;
-    try {
-      const rating = fromBookRatingEvent(
-        fromWireEvent({
-          kind: event.kind,
-          content: event.content,
-          tags: event.tags,
-        }) as never,
-      );
-      bookSlug = rating.bookSlug;
-      score = rating.score;
-    } catch {
-      continue; // skip anything that is not a well-formed rating
+    let score: number | null;
+    if (isRatingRetraction(event)) {
+      const slug = retractionSlug(event);
+      if (!slug) continue;
+      bookSlug = slug;
+      score = null; // a retracted head = no current rating (ADR 0077)
+    } else {
+      try {
+        const rating = fromBookRatingEvent(
+          fromWireEvent({
+            kind: event.kind,
+            content: event.content,
+            tags: event.tags,
+          }) as never,
+        );
+        bookSlug = rating.bookSlug;
+        score = rating.score;
+      } catch {
+        continue; // skip anything that is not a well-formed rating
+      }
     }
     const prior = latest.get(bookSlug);
     if (!prior || event.created_at > prior.createdAt) {
@@ -141,7 +187,9 @@ export function scoreBySlug(events: SignedNostrEvent[]): Map<string, number> {
     }
   }
   const out = new Map<string, number>();
-  for (const [slug, v] of latest) out.set(slug, v.score);
+  for (const [slug, v] of latest) {
+    if (v.score !== null) out.set(slug, v.score);
+  }
   return out;
 }
 
@@ -149,29 +197,39 @@ export function scoreBySlug(events: SignedNostrEvent[]): Map<string, number> {
  * Group a multi-author set of rating events into a per-author score map (Story
  * 66 / ADR 0065): `authorHex -> (bookSlug -> latest score)`. Generalizes
  * `scoreBySlug` across authors so the book-detail taste-match can compute the
- * viewer vs each rater from a single batched read. STUB (red): real grouping in
- * implementation.
+ * viewer vs each rater from a single batched read. Retraction-aware (Story 79 /
+ * ADR 0077): a retracted head per (author, book) drops that entry.
  */
 export function scoresByAuthor(
   events: SignedNostrEvent[],
 ): Map<string, Map<string, number>> {
-  // authorHex -> (bookSlug -> { createdAt, score }) — latest-wins per (author, book).
-  const byAuthor = new Map<string, Map<string, { createdAt: number; score: number }>>();
+  // authorHex -> (bookSlug -> { createdAt, score|null }) — latest-wins per (author, book).
+  const byAuthor = new Map<
+    string,
+    Map<string, { createdAt: number; score: number | null }>
+  >();
   for (const event of events) {
     let bookSlug: string;
-    let score: number;
-    try {
-      const rating = fromBookRatingEvent(
-        fromWireEvent({
-          kind: event.kind,
-          content: event.content,
-          tags: event.tags,
-        }) as never,
-      );
-      bookSlug = rating.bookSlug;
-      score = rating.score;
-    } catch {
-      continue; // skip anything that is not a well-formed rating
+    let score: number | null;
+    if (isRatingRetraction(event)) {
+      const slug = retractionSlug(event);
+      if (!slug) continue;
+      bookSlug = slug;
+      score = null;
+    } else {
+      try {
+        const rating = fromBookRatingEvent(
+          fromWireEvent({
+            kind: event.kind,
+            content: event.content,
+            tags: event.tags,
+          }) as never,
+        );
+        bookSlug = rating.bookSlug;
+        score = rating.score;
+      } catch {
+        continue; // skip anything that is not a well-formed rating
+      }
     }
     let books = byAuthor.get(event.pubkey);
     if (!books) {
@@ -186,7 +244,9 @@ export function scoresByAuthor(
   const out = new Map<string, Map<string, number>>();
   for (const [author, books] of byAuthor) {
     const m = new Map<string, number>();
-    for (const [slug, v] of books) m.set(slug, v.score);
+    for (const [slug, v] of books) {
+      if (v.score !== null) m.set(slug, v.score);
+    }
     out.set(author, m);
   }
   return out;

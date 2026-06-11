@@ -88,7 +88,7 @@ afterEach(() => {
 
 // Controlled render: BookDetail-style props are the injectable seam.
 function renderControl(
-  props: { yourRating?: PublicRating | null; applyWrite?: (s: RatingsSummary, r: PublicRating) => void } = {},
+  props: { yourRating?: PublicRating | null; applyWrite?: (s: RatingsSummary, r: PublicRating | null) => void } = {},
 ) {
   const applyWrite = props.applyWrite ?? vi.fn();
   const utils = render(

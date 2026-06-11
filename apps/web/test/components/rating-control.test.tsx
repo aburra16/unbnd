@@ -92,7 +92,7 @@ afterEach(() => {
 function renderControl(
   props: {
     yourRating?: PublicRating | null;
-    applyWrite?: (s: RatingsSummary, r: PublicRating) => void;
+    applyWrite?: (s: RatingsSummary, r: PublicRating | null) => void;
   } = {},
 ) {
   const applyWrite = props.applyWrite ?? vi.fn();

@@ -21,7 +21,8 @@ export type UseBookRatings = {
   yours: RatingsSummary | null;
   yourRating: PublicRating | null;
   status: "loading" | "ready" | "error";
-  applyWrite: (summary: RatingsSummary, ownRating: PublicRating) => void;
+  // Story 79: `ownRating` may be null after a removal (the own slice clears).
+  applyWrite: (summary: RatingsSummary, ownRating: PublicRating | null) => void;
   reload: () => Promise<void>;
   // Story 66 / ADR 0065: per-rater taste match (signed-in only) + the byline sort.
   tasteMatches: Record<string, BylineTasteMatch> | null;
@@ -138,7 +139,7 @@ export function useBookRatings(slug: string): UseBookRatings {
   // write. The POST returns the refreshed aggregate; the own rating is the value
   // we just published under our own d-tag. No extra fetch on the happy path.
   const applyWrite = useCallback(
-    (summary: RatingsSummary, ownRating: PublicRating) => {
+    (summary: RatingsSummary, ownRating: PublicRating | null) => {
       setHouse(summary);
       setYourRating(ownRating);
     },
