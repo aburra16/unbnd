@@ -1,6 +1,6 @@
 # Story 28b: Un-rate — remove your rating (kind-5 deletion / tombstone)
 
-**Status:** Draft
+**Status:** Superseded by Story 79 (`engineering-team/stories/done/79-rating-removal.md`)
 **Created:** 2026-06-01
 **Type:** Feature
 **Depends on:** Story 28 (`engineering-team/stories/done/28-your-rating-surface-edit.md`) — the "Your rating" surface + in-place edit + the `useBookRatings` owner + `applyWrite` reconcile.

@@ -1,6 +1,6 @@
 # Story 30b: Promotion demotion — remove a promoted book from the catalog
 
-**Status:** Draft
+**Status:** Superseded by Story 80 (`engineering-team/stories/80-promotion-demotion.md`)
 **Created:** 2026-06-01
 **Type:** Feature
 **Depends on:** Story 30 (`engineering-team/stories/done/30-trust-gated-promotion.md`) — the curator gate, the `promotions` queue, the `apps/promoter` worker, and the canonical librarian-signed catalog record.
