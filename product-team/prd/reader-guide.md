@@ -33,7 +33,7 @@ The scope document's inventory is the contract: sections 1–8, roughly 35 entri
 - Each entry records its source stories as an authoring note, never rendered.
 
 ### 5.3 The language law
-Every reader-facing sentence in the guide is governed by `guides/reader-guide-style-guide.md`: drafted, then **taxonomy-edited in a separate pass with a recorded diff**, then reviewed with the reviewer independently running the mechanical checks. The protocol-vocabulary wall (taxonomy §E) holds everywhere except the one marked entry. From ratification, the taxonomy governs all new user-facing prose product-wide; interface microcopy keeps the social-loop UI-copy patterns.
+Every reader-facing sentence in the guide is governed by `guides/reader-guide-style-guide.md`: drafted, then **taxonomy-edited in a separate pass with a recorded diff**, then reviewed with the reviewer independently running the mechanical checks. The protocol-vocabulary wall (taxonomy §E) holds everywhere except the one marked entry. From ratification, the taxonomy governs all new user-facing prose product-wide; interface microcopy keeps the social-loop UI-copy patterns. The taxonomy is extensible under its own binding rules (style guide §"Extending the taxonomy"): append-only ids, the data-driven mechanical list as the machine seam, and extensions that flow through with the next content update rather than forcing sweeps.
 
 ### 5.4 The staying-current rule
 A definition-of-done addition to the engineering process: any story that adds or changes a user-facing surface updates the matching guide entry (or adds one) within the same story, through the same draft-then-edit process. The guide's inventory table is the auditable record.

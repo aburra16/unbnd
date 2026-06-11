@@ -117,6 +117,17 @@ Words the interface itself shows get plain-word treatment where they appear: "ke
 
 The mechanical list, for searches and (engineering's call) a CI text check over guide content: `—`, `!`, the C1 lexicon, the C2 openers, the C3 closers, the F3 adverbs, "simply", "just" (in step lines), "whether you're", "seems"/"feels"/"appears" (F2 hints, flagged for the judgment read), the E-wall words.
 
+## Extending the taxonomy (binding)
+
+New tics will keep emerging as the models that produce them change. The taxonomy is built to absorb them without rework, on the same principles as the rest of the house: one source of truth, additive evolution, stable identifiers, no debt.
+
+1. **One source.** This document is the only place a tic is defined. Nothing downstream restates a rule; everything cites an id.
+2. **Stable, append-only ids.** A new tic takes the next number in its family (C8, F5); a genuinely new category takes the next family letter (G). Ids are never renumbered or reused, so every recorded edit diff and review note stays legible forever.
+3. **A complete addition.** Every new tic ships with all four parts in the same change: the tell, why it reads as machine text, the fix, and its [M] or [J] marking. An [M] addition updates the mechanical list in that same change.
+4. **The mechanical list is the machine seam.** The CI check is data-driven off the mechanical list, so extending the taxonomy is an edit to this document and its list, never a change to check code. Engineering keeps that seam honest (the check reads the list, or a sibling data file generated from it; their call, but the requirement stands: a taxonomy extension must not require touching check logic).
+5. **Extensions flow through with the next update.** A new rule binds all new text immediately, and binds existing text the next time the staying-current rule touches it: any entry edited for any reason is edited against the current taxonomy, so the standard ratchets through the guide as the product evolves. A full retroactive sweep is never implied by an extension; it is commissioned deliberately, as its own story, when the accumulated delta justifies one.
+6. **Provenance.** Each extension is its own labeled commit naming the tic id and what prompted it, the same way ADRs record decisions. The taxonomy's history should read as a changelog of the genre's evolution.
+
 ## What this supersedes
 
 For prose (the guide, and all new user-facing passages of more than a sentence): this document. For interface microcopy (buttons, labels, empty states, errors, confirmations): the social-loop style guide's "UI copy patterns" section stays in force, and its forbidden-phrases list is absorbed into C1/C7/E above. Where the two disagree about prose, this document wins.
