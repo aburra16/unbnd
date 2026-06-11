@@ -138,3 +138,35 @@ export async function runPromotionCycle(deps: PromoterDeps): Promise<void> {
     }
   }
 }
+
+/**
+ * Story 80 / ADR 0078: the DEMOTION cycle deps. Mirrors PromoterDeps; the
+ * worker claims demote_pending jobs, builds the librarian-signed delisting
+ * (buildBookDelisting), publishes local + dcosl, removes the doc from the
+ * live search index, and marks the row demoted.
+ */
+export type DemoterDeps = {
+  readonly librarianPubkey: HexPubkey;
+  /** Claim demote_pending jobs (status -> demoting, FOR UPDATE SKIP LOCKED). */
+  readonly claimDemotePending: () => Promise<PromotionJob[]>;
+  /** Librarian-sign a template (the same injected signer as promote). */
+  readonly sign: (template: NostrEventTemplate) => SignedNostrEvent;
+  readonly publishLocal: (event: SignedNostrEvent) => Promise<PublishResult>;
+  readonly publishDcosl: (event: SignedNostrEvent) => Promise<PublishResult>;
+  /** Mark a job demoted with the delisting event id (stored in canonical_id). */
+  readonly markDemoted: (job: PromotionJob, delistId: string) => Promise<void>;
+  readonly markDemoteFailed: (job: PromotionJob, reason: string) => Promise<void>;
+  /**
+   * Remove docs from the live search index (ADR 0078 sec.3). Optional and
+   * best-effort like reindexBook: a failure is logged + swallowed and never
+   * fails the job (the batch rebuild is the backstop).
+   */
+  readonly searchDelete?: (slugs: readonly string[]) => Promise<void> | void;
+};
+
+// STUB (red): the real demotion cycle lands in implementation (Story 80).
+export async function runDemotionCycle(
+  _deps: DemoterDeps,
+): Promise<{ demoted: string[] }> {
+  return { demoted: [] };
+}

@@ -67,6 +67,17 @@ export type SubmissionsDeps = {
   readonly readPromotionStatuses?: (
     slugs: string[],
   ) => Promise<Map<string, PromotionStatus>>;
+  /**
+   * Enqueue a demotion (Story 80 / ADR 0078 §2): a gated UPDATE that moves a
+   * `done` (or retriable `demote_failed`) promotions row to `demote_pending`,
+   * recording the requesting curator. `not_promoted` = no demotable row (never
+   * promoted / seeded / in flight); `already` = already demoted or queued
+   * (idempotent no-op). Absent in fixtures that don't exercise demote.
+   */
+  readonly enqueueDemotion?: (
+    slug: string,
+    requestedBy: string,
+  ) => Promise<{ status: "queued" | "already" | "not_promoted" }>;
 };
 
 function cookieOf(req: Request): string | undefined {
@@ -318,6 +329,14 @@ export function buildSubmissionsRouter(deps: SubmissionsDeps): Router {
     } catch (err) {
       next(err);
     }
+  });
+
+  // Story 80 / ADR 0078 — STUB (red): the demote endpoint lands in
+  // implementation, mirroring the promote gate above.
+  router.post("/api/submissions/:slug/demote", (_req, res) => {
+    res.status(501).json({
+      error: { code: "not_implemented", message: "Demotion is not implemented yet." },
+    });
   });
 
   // Story 30 / ADR 0031 §3 — per-submission trust signals (read). Computed from

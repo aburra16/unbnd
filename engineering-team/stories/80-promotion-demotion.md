@@ -60,5 +60,5 @@ For the Architect (Phase 2 — the ADR):
 - Phase-2 stub (superseded by this story): `engineering-team/stories/done/30b-promotion-demotion.md`
 - Parent: `engineering-team/stories/done/30-trust-gated-promotion.md` + ADR 0031; #77 / ADR 0075 (auto-promote); #78 / ADR 0076 (the enqueue-and-worker-mints pattern); #79 / ADR 0077 (the removal idiom).
 - ADR: `engineering-team/decisions/0078-promotion-demotion.md` (Accepted)
-- Test plan: _pending (Tester)_
+- Test plan: `engineering-team/stories/80-promotion-demotion.test-plan.md`
 - Review: _pending (Reviewer)_

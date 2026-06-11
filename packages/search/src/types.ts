@@ -80,6 +80,12 @@ export interface SearchProvider {
   configureIndex(): Promise<void>;
   /** Upsert documents by id. Idempotent. */
   index(docs: readonly SearchDocument[]): Promise<void>;
+  /**
+   * Delete specific documents by id (Story 80 / ADR 0078 §3: the demote cycle
+   * removes a delisted book from the live index without waiting for the batch
+   * rebuild). Idempotent: deleting an absent id is a no-op.
+   */
+  delete(ids: readonly string[]): Promise<void>;
   /** Drop all documents (for a clean re-index). */
   deleteAll(): Promise<void>;
   /** Full-text query → provider-neutral results. */

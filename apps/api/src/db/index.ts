@@ -8,7 +8,15 @@ import { migrations } from "./migrations";
 import type { CachedShelfSet } from "../routes/homepage-shelves";
 
 /** The promotion job lifecycle states (ADR 0031 §1). */
-export type PromotionStatus = "pending" | "promoting" | "done" | "failed";
+export type PromotionStatus =
+  | "pending"
+  | "promoting"
+  | "done"
+  | "failed"
+  | "demote_pending"
+  | "demoting"
+  | "demoted"
+  | "demote_failed";
 
 export type DbClient = PostgresJsDatabase<typeof schema>;
 
@@ -177,4 +185,29 @@ export async function readShelfCache(observerHex: string): Promise<CachedShelfSe
       books: byGenre.get(slug) ?? [],
     })),
   };
+}
+
+/**
+ * Enqueue a promotion (ADR 0031, relocated from index.ts for Story 80 so the
+ * demoted -> pending re-promote branch lives beside the state machine).
+ * STUB (red): the real INSERT ... unique-violation / demoted-reset logic lands
+ * in implementation; index.ts keeps its local closure until then.
+ */
+export async function enqueuePromotion(
+  _slug: string,
+  _requestedBy: string,
+): Promise<{ status: "queued" | "already" }> {
+  return { status: "already" };
+}
+
+/**
+ * Enqueue a demotion (Story 80 / ADR 0078 §2): the gated UPDATE
+ * (`WHERE slug = $1 AND status IN ('done','demote_failed')` ->
+ * `demote_pending`). STUB (red): real SQL in implementation.
+ */
+export async function enqueueDemotion(
+  _slug: string,
+  _requestedBy: string,
+): Promise<{ status: "queued" | "already" | "not_promoted" }> {
+  return { status: "not_promoted" };
 }

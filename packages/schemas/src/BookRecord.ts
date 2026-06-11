@@ -209,6 +209,72 @@ export function toBookRecordEvent(record: BookRecord): BookRecordEvent {
   };
 }
 
+/**
+ * A catalog DELISTING (Story 80 / ADR 0078): a minimal librarian-signed event
+ * published at the record's own address `39999:<librarian>:<slug>` carrying a
+ * `["delisted","true"]` marker and no record fields. Kind 39999 is
+ * parameterized-replaceable, so it REPLACES the canonical record at the relay
+ * (the ADR 0077 removal idiom); a later re-promote replaces it back.
+ */
+export type BookDelisting = {
+  readonly slug: string;
+  readonly parentHeader: DListAddress<39998>;
+};
+
+export type BookDelistingPayload = {
+  readonly word: {
+    readonly slug: string;
+    readonly name: string;
+    readonly title: string;
+    readonly wordTypes: readonly ["word", "bookSubmission", ...string[]];
+  };
+  readonly bookSubmission: {
+    readonly slug: string;
+    readonly delisted: true;
+  };
+};
+
+export type BookDelistingEvent = UnsignedDListEvent<
+  39999,
+  "bookSubmission",
+  BookDelistingPayload["bookSubmission"]
+>;
+
+// STUB (red): real construction in implementation (Story 80).
+export function buildBookDelisting(
+  delisting: BookDelisting,
+): BookDelistingEvent {
+  const dTag = buildBookRecordDTag(delisting.slug);
+  return {
+    kind: BOOK_RECORD_KIND,
+    tags: [["d", dTag]],
+    content: "",
+    payload: {
+      word: {
+        slug: delisting.slug,
+        name: delisting.slug,
+        title: delisting.slug,
+        wordTypes: ["word", "bookSubmission"],
+      },
+      bookSubmission: { slug: delisting.slug, delisted: true },
+    },
+    parentHeader: delisting.parentHeader,
+  };
+}
+
+/**
+ * The shared delisting predicate (ADR 0078 §1): every catalog read seam
+ * (`parseBook`, `buildBookDocument`) uses this, tag-level, before any payload
+ * parse — a delisted record is dropped intentionally, never by parse luck.
+ * STUB (red): always false until implementation.
+ */
+export function isDelistedRecord(_event: {
+  readonly kind: number;
+  readonly tags: ReadonlyArray<readonly string[]>;
+}): boolean {
+  return false;
+}
+
 export function fromBookRecordEvent(event: BookRecordEvent): BookRecord {
   const p = event.payload.bookSubmission;
   return {
