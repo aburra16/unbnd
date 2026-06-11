@@ -203,7 +203,7 @@ export function scoreBySlug(events: SignedNostrEvent[]): Map<string, number> {
 export function scoresByAuthor(
   events: SignedNostrEvent[],
 ): Map<string, Map<string, number>> {
-  // authorHex -> (bookSlug -> { createdAt, score|null }) — latest-wins per (author, book).
+  // authorHex -> (bookSlug -> { createdAt, score|null }), latest-wins per (author, book).
   const byAuthor = new Map<
     string,
     Map<string, { createdAt: number; score: number | null }>

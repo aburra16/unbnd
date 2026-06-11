@@ -63,4 +63,4 @@ For the Architect (Phase 2 — the ADR):
 ## Linked artifacts
 - ADR: `engineering-team/decisions/0077-rating-removal.md` (Accepted)
 - Test plan: `engineering-team/stories/79-rating-removal.test-plan.md`
-- Review: _pending (Reviewer)_
+- Review: `engineering-team/reviews/79-rating-removal.md` (PASS)

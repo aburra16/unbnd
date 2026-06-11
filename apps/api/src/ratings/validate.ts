@@ -103,7 +103,7 @@ function failRetraction(
 /**
  * Validate a client-signed rating RETRACTION before publishing (Story 79 /
  * ADR 0077): same structural + identity + signature discipline as
- * `validateSignedRating`, then tag-level retraction checks — the marker
+ * `validateSignedRating`, then tag-level retraction checks: the marker
  * present, NO score, and the d-tag is the CALLER'S OWN rating address
  * (`rating--<slug>--<rater8>` derived from the signing pubkey), so a caller
  * can only ever retract their own rating.

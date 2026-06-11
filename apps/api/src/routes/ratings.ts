@@ -302,7 +302,7 @@ export function buildRatingsRouter(deps: RatingsDeps): Router {
   // event; custodial posts { bookSlug } and the server signs with the
   // session's ephemeral-wrapped key (the same ADR 0006 branch as rate).
   // Idempotent: no current rating means 200 { removed: false } and NO publish
-  // (a double remove never spams tombstones — relay-cap discipline).
+  // (a double remove never spams tombstones; relay-cap discipline).
   router.post("/api/ratings/remove", async (req, res, next) => {
     try {
       const cookie = readSessionCookie(req);
