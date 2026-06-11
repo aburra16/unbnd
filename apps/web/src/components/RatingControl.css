@@ -78,3 +78,29 @@
   color: var(--signal-positive);
   font-size: var(--u-font-size-90rem);
 }
+
+/* Story 79: the remove-rating affordance. A quiet trigger set apart from the
+ * stars and the submit button (deliberate, not fat-fingerable), then a small
+ * inline confirm. Tokens only. */
+.rate-remove {
+  margin-top: var(--u-space-8);
+  padding-top: var(--u-space-8);
+  border-top: 1px solid var(--u-border);
+}
+
+.rate-remove-trigger {
+  align-self: flex-start;
+  color: var(--u-muted);
+  font-size: var(--u-font-size-90rem);
+}
+
+.rate-remove-note {
+  margin: 0 0 var(--u-space-8);
+  color: var(--u-muted);
+  font-size: var(--u-font-size-90rem);
+}
+
+.rate-remove-actions {
+  display: flex;
+  gap: var(--u-space-8);
+}

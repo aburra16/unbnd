@@ -1,6 +1,6 @@
 # Story 79: Remove a rating
 
-**Status:** Planning
+**Status:** Approved
 **Created:** 2026-06-09
 **Type:** Feature
 **Carries:** Phase 2 #28b (`unrate-removal`, deferred)
@@ -62,5 +62,5 @@ For the Architect (Phase 2 — the ADR):
 
 ## Linked artifacts
 - ADR: `engineering-team/decisions/0077-rating-removal.md` (Accepted)
-- Test plan: _pending (Tester)_
-- Review: _pending (Reviewer)_
+- Test plan: `engineering-team/stories/79-rating-removal.test-plan.md`
+- Review: `engineering-team/reviews/79-rating-removal.md` (PASS)

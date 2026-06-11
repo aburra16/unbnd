@@ -7,6 +7,7 @@ import { npubEncode } from "nostr-tools/nip19";
 import {
   fromBookRatingEvent,
   fromWireEvent,
+  isRatingRetraction,
   type SignedNostrEvent,
 } from "@unbnd/schemas";
 
@@ -48,35 +49,52 @@ function toPublic(r: ParsedRating): PublicRating {
   };
 }
 
-/** Parse + keep the latest event per rater, newest first. */
+/**
+ * Parse + keep the latest event per rater, newest first. Retraction-aware
+ * (Story 79 / ADR 0077): a retraction COMPETES in the same created_at race
+ * (it must win against the older rating to suppress it, never be skipped);
+ * a retracted head means the rater has no current rating.
+ */
 export function dedupeRatings(events: SignedNostrEvent[]): ParsedRating[] {
-  const latest = new Map<string, ParsedRating>();
+  const latest = new Map<
+    string,
+    { createdAt: number; rating: ParsedRating | null }
+  >();
   for (const event of events) {
-    let parsed: ParsedRating;
-    try {
-      const rating = fromBookRatingEvent(
-        fromWireEvent({
-          kind: event.kind,
-          content: event.content,
-          tags: event.tags,
-        }) as never,
-      );
-      parsed = {
-        pubkey: event.pubkey,
-        createdAt: event.created_at,
-        score: rating.score,
-        reviewText: rating.reviewText,
-        reviewDate: rating.reviewDate,
-      };
-    } catch {
-      continue; // skip anything that is not a well-formed rating
+    let entry: { createdAt: number; rating: ParsedRating | null };
+    if (isRatingRetraction(event)) {
+      entry = { createdAt: event.created_at, rating: null };
+    } else {
+      try {
+        const rating = fromBookRatingEvent(
+          fromWireEvent({
+            kind: event.kind,
+            content: event.content,
+            tags: event.tags,
+          }) as never,
+        );
+        entry = {
+          createdAt: event.created_at,
+          rating: {
+            pubkey: event.pubkey,
+            createdAt: event.created_at,
+            score: rating.score,
+            reviewText: rating.reviewText,
+            reviewDate: rating.reviewDate,
+          },
+        };
+      } catch {
+        continue; // skip anything that is not a well-formed rating
+      }
     }
-    const prior = latest.get(parsed.pubkey);
-    if (!prior || parsed.createdAt > prior.createdAt) {
-      latest.set(parsed.pubkey, parsed);
+    const prior = latest.get(event.pubkey);
+    if (!prior || entry.createdAt > prior.createdAt) {
+      latest.set(event.pubkey, entry);
     }
   }
-  return [...latest.values()].sort((a, b) => b.createdAt - a.createdAt);
+  return [...latest.values()]
+    .flatMap((e) => (e.rating ? [e.rating] : []))
+    .sort((a, b) => b.createdAt - a.createdAt);
 }
 
 /**

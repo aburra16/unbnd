@@ -54,7 +54,7 @@ export function RatingControl({
 }: {
   bookSlug: string;
   yourRating: PublicRating | null;
-  applyWrite: (summary: RatingsSummary, ownRating: PublicRating) => void;
+  applyWrite: (summary: RatingsSummary, ownRating: PublicRating | null) => void;
 }) {
   const session = useSession();
   const hasRated = yourRating !== null;
@@ -65,6 +65,11 @@ export function RatingControl({
     "idle",
   );
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  // Story 79 / ADR 0077: the removal flow's own small state machine, kept
+  // apart from the rate/edit submit state (a deliberate, confirm-gated action).
+  const [removeStep, setRemoveStep] = useState<"idle" | "confirm" | "removing">(
+    "idle",
+  );
 
   // Sovereign users (no email) sign in the browser; custodial users (email)
   // have the server sign with their session-wrapped key (ADR 0006).
@@ -136,6 +141,52 @@ export function RatingControl({
     }
   }
 
+  // Story 79: publish the retraction through the same per-tier path as a
+  // rating, then reconcile with the own slice CLEARED (the control returns to
+  // the un-rated state; re-rating later is the restore).
+  async function onRemoveConfirm() {
+    setRemoveStep("removing");
+    setErrorMsg(null);
+    try {
+      let result: {
+        removed: boolean;
+        summary: RatingsSummary;
+        yourRating: PublicRating | null;
+      };
+      if (isSovereign) {
+        const nostr = (window as unknown as { nostr?: Nip07 }).nostr;
+        if (!nostr) {
+          setErrorMsg("No Nostr extension found.");
+          setStatus("error");
+          setRemoveStep("idle");
+          return;
+        }
+        const { template } = await api.ratings.removeTemplate(bookSlug);
+        const signed = await nostr.signEvent(template);
+        result = await api.ratings.removeSubmit(signed);
+      } else {
+        result = await api.ratings.removeCustodial(bookSlug);
+      }
+      setScore(0);
+      setReview("");
+      setStatus("idle");
+      setRemoveStep("idle");
+      applyWrite(result.summary, null);
+    } catch (err) {
+      setRemoveStep("idle");
+      if (err instanceof ApiError && err.code === "reauth_required") {
+        setErrorMsg("Please sign in again to remove your rating.");
+      } else {
+        setErrorMsg(
+          err instanceof ApiError
+            ? err.message
+            : "Could not remove your rating. Try again.",
+        );
+      }
+      setStatus("error");
+    }
+  }
+
   return (
     <section className="rate" aria-label="Rate this book">
       {session.status === "signed-out" && <AccountPrompt action="rate" />}
@@ -194,6 +245,48 @@ export function RatingControl({
                 ? "Update rating"
                 : "Submit rating"}
           </Button>
+
+          {hasRated && removeStep === "idle" && (
+            <div className="rate-remove">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="rate-remove-trigger"
+                type="button"
+                disabled={status === "submitting"}
+                onClick={() => setRemoveStep("confirm")}
+              >
+                Remove rating
+              </Button>
+            </div>
+          )}
+          {hasRated && removeStep !== "idle" && (
+            <div className="rate-remove rate-remove-confirming">
+              <p className="rate-remove-note">
+                Remove your rating? You can rate again anytime.
+              </p>
+              <div className="rate-remove-actions">
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  type="button"
+                  disabled={removeStep === "removing"}
+                  onClick={() => setRemoveStep("idle")}
+                >
+                  Keep it
+                </Button>
+                <Button
+                  variant="danger"
+                  size="sm"
+                  type="button"
+                  disabled={removeStep === "removing"}
+                  onClick={onRemoveConfirm}
+                >
+                  {removeStep === "removing" ? "Removing…" : "Remove"}
+                </Button>
+              </div>
+            </div>
+          )}
         </div>
       )}
     </section>
