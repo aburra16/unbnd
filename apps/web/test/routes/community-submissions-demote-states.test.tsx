@@ -10,6 +10,10 @@ import { CommunitySubmissions } from "../../src/routes/CommunitySubmissions";
 import type { SubmittedBook } from "../../src/lib/api";
 
 const listMock = vi.fn();
+const useSessionMock = vi.fn();
+vi.mock("../../src/hooks/useSession", () => ({
+  useSession: () => useSessionMock(),
+}));
 vi.mock("../../src/lib/api", () => ({
   ApiError: class ApiError extends Error {},
   api: {
@@ -34,7 +38,10 @@ function row(slug: string, promotionStatus: string | null): SubmittedBook {
   };
 }
 
-beforeEach(() => listMock.mockReset());
+beforeEach(() => {
+  listMock.mockReset();
+  useSessionMock.mockReset().mockReturnValue({ status: "signed-out", refresh: vi.fn() });
+});
 afterEach(() => vi.clearAllMocks());
 
 async function renderList(rows: SubmittedBook[]) {

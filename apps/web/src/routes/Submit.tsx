@@ -464,7 +464,7 @@ export function Submit() {
           checked={isAuthor}
           onChange={setIsAuthor}
           label="I am the author of this book"
-          description="Marks this submission as a self-claim of authorship. It signals you wrote the book; it is not a vetted credential."
+          description="Records you as this book's author on the submission. To claim authorship where readers see it, use the claim action on the book page once it is listed."
         />
 
         <div className="sub-submit-area">

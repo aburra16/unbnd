@@ -22,10 +22,50 @@ export type PaginateOpts = {
   readonly now?: () => number;
 };
 
-// STUB (red): real loop in implementation (Story 82).
 export async function queryAllPages(
-  _fetchPage: (cursor: { until?: number; limit: number }) => Promise<SignedNostrEvent[]>,
-  _opts: PaginateOpts,
+  fetchPage: (cursor: { until?: number; limit: number }) => Promise<SignedNostrEvent[]>,
+  opts: PaginateOpts,
 ): Promise<PagedResult> {
-  return { events: [], capped: false };
+  const { pageSize, maxPages, totalBudgetMs } = opts;
+  const now = opts.now ?? (() => Date.now());
+
+  const start = now();
+  const byId = new Map<string, SignedNostrEvent>();
+  let until: number | undefined;
+  let capped = false;
+
+  for (let pages = 0; pages < maxPages; pages++) {
+    const page = await fetchPage({ until, limit: pageSize });
+
+    // Wall-clock budget: exhausted mid-walk THROWS rather than returning a
+    // truncated result as if exact (the ADR 0021 omit-on-throw contract).
+    if (now() - start > totalBudgetMs) {
+      throw new Error("queryAllPages: total budget exhausted");
+    }
+
+    let added = 0;
+    let oldest = Infinity;
+    for (const e of page) {
+      if (!byId.has(e.id)) {
+        byId.set(e.id, e);
+        added++;
+      }
+      if (e.created_at < oldest) oldest = e.created_at;
+    }
+
+    // Short page = exhausted; no new events = boundary plateau. Either way stop.
+    if (page.length < pageSize || added === 0) {
+      capped = false;
+      break;
+    }
+    // A still-full page at the LAST allowed iteration means the bound (not
+    // exhaustion) stopped the walk: the result is a floor, not exact.
+    if (pages === maxPages - 1) {
+      capped = true;
+      break;
+    }
+    until = oldest; // boundary-second overlap is handled by the id dedup
+  }
+
+  return { events: [...byId.values()], capped };
 }

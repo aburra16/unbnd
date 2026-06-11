@@ -12,6 +12,7 @@
     "test": "vitest run"
   },
   "dependencies": {
+    "@unbnd/relay": "workspace:*",
     "@unbnd/schemas": "workspace:*",
     "@unbnd/search": "workspace:*",
     "ws": "^8.18.0"

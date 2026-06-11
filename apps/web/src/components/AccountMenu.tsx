@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { api, type PublicUser } from "../lib/api";
 import { useProfileMeta, displayNameOf } from "../hooks/useProfileMeta";
+import { shortNpub } from "../lib/view-model";
 import { Avatar, Button, IconButton } from "@unbnd/ui";
 import "./AccountMenu.css";
 
@@ -12,10 +13,6 @@ type Props = {
   user: PublicUser;
   onSignedOut: () => void;
 };
-
-function shortNpub(npub: string): string {
-  return npub.length <= 16 ? npub : `${npub.slice(0, 10)}…${npub.slice(-4)}`;
-}
 
 export function AccountMenu({ user, onSignedOut }: Props) {
   const meta = useProfileMeta(user.npub);
