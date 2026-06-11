@@ -47,6 +47,9 @@ From `product-team/stories-queue.md`, 18 stories in 3 ordered blocks. Each is pr
 
 ## Carry-forward (follow-ups discovered in Block 3)
 - **Promoter `failed`-retry gap (pre-existing, surfaced in Review #77 finding 1):** `apps/promoter/src/queue.ts` `claimPending` only claims `status = 'pending'`, so a `failed` promotion is never retried (manual re-enqueue hits UNIQUE → `already`; auto-promote skips any-status). A transiently-failed promotion stays stuck until its row is cleared. Fix in a separate story: a promoter retry policy (reset stale `failed` → `pending` with an attempt cap) or an ops cleanup. Not introduced by #77.
+- **Suite flake watch (Review #79 finding 3):** `apps/api/test/routes/shelves-enriched.test.ts` failed once under full-suite load with a supertest transport error ("Parse Error: Expected HTTP/"), green on every isolated and re-run. If it recurs, fold a fix into #82.
+- **#82 candidates from Review #80 (transient demote-window UX):** (a) `PromoteCell` in `CommunitySubmissions` shows the Promote button for `demote_pending`/`demoting` rows (pressing it answers `already` while the UI optimistically says "Promotion queued") — map the `demote_*` states to a quiet "Removal queued" label; (b) the book page's `DemoteControl` re-offers "Remove from catalog" after a reload until the worker tick (no demote-status read; re-demoting answers `already` harmlessly). Both one-cron-tick windows, curator-only, no integrity impact.
+- **Note (Review #80):** the demote arc reuses `promotions.requested_by`, so the row records the LATEST actor (promoter, then demoter, then re-promoter); the full history lives in the librarian-signed events + `updated_at`.
 
 ## Provenance
 - **Mode:** PRD-backed (anchor = `product-team/prd/social-loop.md`).
