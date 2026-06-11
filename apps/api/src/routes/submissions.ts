@@ -331,12 +331,43 @@ export function buildSubmissionsRouter(deps: SubmissionsDeps): Router {
     }
   });
 
-  // Story 80 / ADR 0078 — STUB (red): the demote endpoint lands in
-  // implementation, mirroring the promote gate above.
-  router.post("/api/submissions/:slug/demote", (_req, res) => {
-    res.status(501).json({
-      error: { code: "not_implemented", message: "Demotion is not implemented yet." },
-    });
+  // Story 80 / ADR 0078 §4 — the demote endpoint: the promote gate, mirrored
+  // (server-enforced, fail-closed), then the gated state-machine enqueue. The
+  // librarian key never touches this process; the off-path worker mints the
+  // delisting and removes the doc from the live search index.
+  router.post("/api/submissions/:slug/demote", async (req, res, next) => {
+    try {
+      const user = await deps.sessionUser(cookieOf(req));
+      if (!user) {
+        return void res
+          .status(401)
+          .json({ error: { code: "no_session", message: "Not signed in." } });
+      }
+      const threshold = deps.config.curatorThreshold ?? 0.5;
+      const weight = await houseWeightOf(user.pubkeyHex);
+      if (weight < threshold) {
+        return void res
+          .status(403)
+          .json({ error: { code: "below_gate", message: "Not a curator." } });
+      }
+      if (!deps.enqueueDemotion) {
+        return void res
+          .status(501)
+          .json({ error: { code: "not_supported", message: "Demotion unavailable." } });
+      }
+      const result = await deps.enqueueDemotion(req.params.slug, user.pubkeyHex);
+      if (result.status === "not_promoted") {
+        return void res.status(400).json({
+          error: {
+            code: "not_promoted",
+            message: "Only a promoted community book can be removed from the catalog.",
+          },
+        });
+      }
+      res.status(200).json({ status: result.status });
+    } catch (err) {
+      next(err);
+    }
   });
 
   // Story 30 / ADR 0031 §3 — per-submission trust signals (read). Computed from

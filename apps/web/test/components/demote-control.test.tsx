@@ -26,11 +26,14 @@ afterEach(() => {
 });
 
 function renderControl(props: { source?: string; canCurate?: boolean } = {}) {
+  // "source" passed explicitly (even as undefined) is forwarded verbatim;
+  // omitted entirely -> the community default the happy paths use.
+  const source = "source" in props ? props.source : "community";
   return render(
     <MemoryRouter>
       <DemoteControl
         bookSlug="orbital--x"
-        source={props.source ?? "community"}
+        source={source}
         canCurate={props.canCurate ?? true}
       />
     </MemoryRouter>,

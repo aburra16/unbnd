@@ -240,14 +240,19 @@ export type BookDelistingEvent = UnsignedDListEvent<
   BookDelistingPayload["bookSubmission"]
 >;
 
-// STUB (red): real construction in implementation (Story 80).
 export function buildBookDelisting(
   delisting: BookDelisting,
 ): BookDelistingEvent {
   const dTag = buildBookRecordDTag(delisting.slug);
   return {
     kind: BOOK_RECORD_KIND,
-    tags: [["d", dTag]],
+    // The record's own address (d + the books z-tag) so the same #z/#d reads
+    // return it; the marker instead of any record fields.
+    tags: [
+      ["d", dTag],
+      ["z", formatAddress(delisting.parentHeader)],
+      ["delisted", "true"],
+    ],
     content: "",
     payload: {
       word: {
@@ -266,13 +271,13 @@ export function buildBookDelisting(
  * The shared delisting predicate (ADR 0078 §1): every catalog read seam
  * (`parseBook`, `buildBookDocument`) uses this, tag-level, before any payload
  * parse — a delisted record is dropped intentionally, never by parse luck.
- * STUB (red): always false until implementation.
  */
-export function isDelistedRecord(_event: {
+export function isDelistedRecord(event: {
   readonly kind: number;
   readonly tags: ReadonlyArray<readonly string[]>;
 }): boolean {
-  return false;
+  if (event.kind !== BOOK_RECORD_KIND) return false;
+  return event.tags.some((t) => t[0] === "delisted" && t[1] === "true");
 }
 
 export function fromBookRecordEvent(event: BookRecordEvent): BookRecord {

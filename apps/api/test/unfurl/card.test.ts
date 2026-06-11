@@ -22,6 +22,7 @@ function book(overrides: Partial<PublicBook> = {}): PublicBook {
     slug: "the-salt-houses",
     title: "The Salt Houses",
     authorName: "Hala Alyan",
+    source: "openlibrary",
     blurb: "A family across generations.",
     coverUrl: "https://covers.example/salt.jpg",
     publishYear: 2017,

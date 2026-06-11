@@ -103,9 +103,15 @@ export class MeiliProvider implements SearchProvider {
     }
   }
 
-  // STUB (red): real delete-batch in implementation (Story 80).
-  async delete(_ids: readonly string[]): Promise<void> {
-    return;
+  async delete(ids: readonly string[]): Promise<void> {
+    if (ids.length === 0) return;
+    const res = await this.#req(`/indexes/${INDEX}/documents/delete-batch`, {
+      method: "POST",
+      body: JSON.stringify(ids),
+    });
+    if (!res.ok) {
+      throw new Error(`meili: delete failed (status ${res.status})`);
+    }
   }
 
   async deleteAll(): Promise<void> {

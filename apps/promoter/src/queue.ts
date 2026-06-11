@@ -9,6 +9,10 @@ export type Queue = {
   claimPending: (limit?: number) => Promise<PromotionJob[]>;
   markDone: (job: PromotionJob, canonicalId: string) => Promise<void>;
   markFailed: (job: PromotionJob, reason: string) => Promise<void>;
+  // Story 80 / ADR 0078 §2: the demotion arc on the same promotions table.
+  claimDemotePending: (limit?: number) => Promise<PromotionJob[]>;
+  markDemoted: (job: PromotionJob, delistId: string) => Promise<void>;
+  markDemoteFailed: (job: PromotionJob, reason: string) => Promise<void>;
   close: () => Promise<void>;
 };
 
@@ -55,6 +59,41 @@ export function createQueue(databaseUrl: string): Queue {
       await sql`
         UPDATE promotions
         SET status = 'failed', error = ${reason}, updated_at = NOW()
+        WHERE id = ${job.id}
+      `;
+    },
+    async claimDemotePending(limit = 20): Promise<PromotionJob[]> {
+      const rows = (await sql`
+        UPDATE promotions
+        SET status = 'demoting', attempts = attempts + 1, updated_at = NOW()
+        WHERE id IN (
+          SELECT id FROM promotions
+          WHERE status = 'demote_pending'
+          ORDER BY created_at
+          LIMIT ${limit}
+          FOR UPDATE SKIP LOCKED
+        )
+        RETURNING id, slug, requested_by, status, attempts
+      `) as unknown as Row[];
+      return rows.map((r) => ({
+        id: r.id,
+        slug: r.slug,
+        requestedBy: r.requested_by,
+        status: r.status,
+        attempts: r.attempts,
+      }));
+    },
+    async markDemoted(job: PromotionJob, delistId: string): Promise<void> {
+      await sql`
+        UPDATE promotions
+        SET status = 'demoted', canonical_id = ${delistId}, error = NULL, updated_at = NOW()
+        WHERE id = ${job.id}
+      `;
+    },
+    async markDemoteFailed(job: PromotionJob, reason: string): Promise<void> {
+      await sql`
+        UPDATE promotions
+        SET status = 'demote_failed', error = ${reason}, updated_at = NOW()
         WHERE id = ${job.id}
       `;
     },

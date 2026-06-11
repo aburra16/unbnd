@@ -125,6 +125,9 @@ export type PublicBook = {
   isbn13?: string;
   purchaseUrl?: string;
   format: string;
+  // Story 80 / ADR 0078: provenance — "community" gates the curator-only
+  // remove-from-catalog action; seeded records never offer it.
+  source?: string;
 };
 
 // A book's author claimant (Story 31 / ADR 0032). npub only — the hex pubkey
@@ -546,6 +549,14 @@ export const api = {
     promote(slug: string) {
       return authFetch<{ status: "queued" | "already" }>(
         `/api/submissions/${encodeURIComponent(slug)}/promote`,
+        { method: "POST" },
+      );
+    },
+    // Story 80 / ADR 0078: a curator removes a promoted community book from
+    // the catalog. Server-gated like promote; the off-path worker fulfills.
+    demote(slug: string) {
+      return authFetch<{ status: "queued" | "already" }>(
+        `/api/submissions/${encodeURIComponent(slug)}/demote`,
         { method: "POST" },
       );
     },

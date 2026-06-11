@@ -1,0 +1,35 @@
+/* Story 80: the remove-from-catalog action. A quiet curator-only trigger,
+ * then a small inline confirm. Tokens only. */
+.demote {
+  margin-top: var(--u-space-8);
+  padding-top: var(--u-space-8);
+  border-top: 1px solid var(--u-border);
+}
+
+.demote-trigger {
+  color: var(--u-muted);
+  font-size: var(--u-font-size-90rem);
+}
+
+.demote-note {
+  margin: 0 0 var(--u-space-8);
+  color: var(--u-muted);
+  font-size: var(--u-font-size-90rem);
+}
+
+.demote-error {
+  margin: 0 0 var(--u-space-8);
+  color: var(--signal-negative);
+  font-size: var(--u-font-size-90rem);
+}
+
+.demote-actions {
+  display: flex;
+  gap: var(--u-space-8);
+}
+
+.demote-requested {
+  margin: 0;
+  color: var(--u-muted);
+  font-size: var(--u-font-size-90rem);
+}

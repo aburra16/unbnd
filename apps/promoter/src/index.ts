@@ -12,6 +12,7 @@
 // fully fixture-testable with no real LIBRARIAN_NSEC and no live relay.
 import {
   asHexPubkey,
+  buildBookDelisting,
   buildBookRecordsHeaderAddress,
   toBookRecordEvent,
   toWireTemplate,
@@ -164,9 +165,61 @@ export type DemoterDeps = {
   readonly searchDelete?: (slugs: readonly string[]) => Promise<void> | void;
 };
 
-// STUB (red): the real demotion cycle lands in implementation (Story 80).
+async function demoteOne(deps: DemoterDeps, job: PromotionJob): Promise<boolean> {
+  const booksHeader = buildBookRecordsHeaderAddress(deps.librarianPubkey);
+  const delisting = buildBookDelisting({ slug: job.slug, parentHeader: booksHeader });
+  const createdAt = Math.floor(Date.now() / 1000);
+  const template = toWireTemplate(delisting, createdAt);
+  const signed = deps.sign(template);
+
+  // The LOCAL publish is the demotion (catalog reads come off the local
+  // relay): it must succeed, or the book would stay listed while the row
+  // claimed otherwise. dcosl is propagation; a dcosl failure is logged, not
+  // fatal (the delisting re-propagates with the catalog sync).
+  const local = await deps.publishLocal(signed);
+  if (!local.ok) {
+    await deps.markDemoteFailed(job, local.reason ?? "local publish failed");
+    return false;
+  }
+  const dcosl = await deps.publishDcosl(signed);
+  if (!dcosl.ok) {
+    console.warn(`[demote] dcosl publish for ${job.slug} failed: ${dcosl.reason}`);
+  }
+
+  await deps.markDemoted(job, signed.id);
+
+  // Best-effort live-index removal (ADR 0078 sec.3), only AFTER the durable
+  // publish + markDemoted: a failure is logged + swallowed (the batch rebuild
+  // is the backstop), never un-demotes the job.
+  if (deps.searchDelete) {
+    try {
+      await deps.searchDelete([job.slug]);
+    } catch (err) {
+      console.warn(
+        `[demote] search delete for ${job.slug} failed: ${
+          err instanceof Error ? err.message : String(err)
+        }`,
+      );
+    }
+  }
+  return true;
+}
+
+/** One demotion run: claim, then process each job independently (Story 80). */
 export async function runDemotionCycle(
-  _deps: DemoterDeps,
+  deps: DemoterDeps,
 ): Promise<{ demoted: string[] }> {
-  return { demoted: [] };
+  const jobs = await deps.claimDemotePending();
+  const demoted: string[] = [];
+  for (const job of jobs) {
+    try {
+      if (await demoteOne(deps, job)) demoted.push(job.slug);
+    } catch (err) {
+      await deps.markDemoteFailed(
+        job,
+        err instanceof Error ? err.message : String(err),
+      );
+    }
+  }
+  return { demoted };
 }

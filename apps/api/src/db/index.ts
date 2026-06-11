@@ -1,5 +1,5 @@
 // Postgres client + Drizzle adapter per ADR 0003.
-import { eq, inArray } from "drizzle-orm";
+import { and, eq, inArray } from "drizzle-orm";
 import { drizzle, type PostgresJsDatabase } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
 import * as schema from "./schema";
@@ -188,26 +188,84 @@ export async function readShelfCache(observerHex: string): Promise<CachedShelfSe
 }
 
 /**
- * Enqueue a promotion (ADR 0031, relocated from index.ts for Story 80 so the
+ * Enqueue a promotion (ADR 0031; relocated from index.ts for Story 80 so the
  * demoted -> pending re-promote branch lives beside the state machine).
- * STUB (red): the real INSERT ... unique-violation / demoted-reset logic lands
- * in implementation; index.ts keeps its local closure until then.
+ * Idempotent on slug: a unique-violation re-enqueue is `already` — UNLESS the
+ * existing row is `demoted`, in which case a deliberate manual re-promote
+ * resets it to `pending` (ADR 0078 §2). The #77 auto-promote sweep skips any
+ * slug with any status, so only this human path ever revives a demoted slug.
  */
 export async function enqueuePromotion(
-  _slug: string,
-  _requestedBy: string,
+  slug: string,
+  requestedBy: string,
 ): Promise<{ status: "queued" | "already" }> {
-  return { status: "already" };
+  try {
+    await db.insert(promotions).values({ slug, requestedBy });
+    return { status: "queued" };
+  } catch (err) {
+    if (
+      err &&
+      typeof err === "object" &&
+      "code" in err &&
+      (err as { code?: string }).code === "23505"
+    ) {
+      // The slug has a row. A demoted row — and only a demoted row — is
+      // revived by a deliberate re-promote.
+      const reset = await db
+        .update(promotions)
+        .set({
+          status: "pending",
+          requestedBy,
+          canonicalId: null,
+          error: null,
+          updatedAt: new Date(),
+        })
+        .where(and(eq(promotions.slug, slug), eq(promotions.status, "demoted")))
+        .returning({ id: promotions.id });
+      return { status: reset.length > 0 ? "queued" : "already" };
+    }
+    throw err;
+  }
 }
 
 /**
- * Enqueue a demotion (Story 80 / ADR 0078 §2): the gated UPDATE
- * (`WHERE slug = $1 AND status IN ('done','demote_failed')` ->
- * `demote_pending`). STUB (red): real SQL in implementation.
+ * Enqueue a demotion (Story 80 / ADR 0078 §2): a gated UPDATE — only a `done`
+ * promotion (or a retriable `demote_failed`) can move to `demote_pending`,
+ * recording the requesting curator. No row (never promoted / seeded) →
+ * `not_promoted`; a row in any other state (in flight, already demoted or
+ * queued) → `already` (the idempotent no-op).
  */
 export async function enqueueDemotion(
-  _slug: string,
-  _requestedBy: string,
+  slug: string,
+  requestedBy: string,
 ): Promise<{ status: "queued" | "already" | "not_promoted" }> {
-  return { status: "not_promoted" };
+  const updated = await db
+    .update(promotions)
+    .set({
+      status: "demote_pending",
+      requestedBy,
+      error: null,
+      updatedAt: new Date(),
+    })
+    .where(
+      and(
+        eq(promotions.slug, slug),
+        inArray(promotions.status, ["done", "demote_failed"]),
+      ),
+    )
+    .returning({ id: promotions.id });
+  if (updated.length > 0) return { status: "queued" };
+
+  const existing = await db
+    .select({ status: promotions.status })
+    .from(promotions)
+    .where(eq(promotions.slug, slug));
+  if (existing.length === 0) return { status: "not_promoted" };
+  // pending/promoting (not yet a catalog record) is not demotable either, but
+  // an in-flight or already-demoted row is an "already" no-op, never an error
+  // for the demote_* states; a pre-done row maps to not_promoted (no record).
+  const st = existing[0]!.status;
+  return st === "pending" || st === "promoting" || st === "failed"
+    ? { status: "not_promoted" }
+    : { status: "already" };
 }
