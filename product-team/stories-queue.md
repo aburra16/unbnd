@@ -1,297 +1,182 @@
-# Stories Queue: Unbnd — Close the Social Loop
+# Stories Queue: Unbnd — The Reader's Guide
 
-**Slug:** `social-loop`
-**Date:** 2026-06-06
-**Source PRD:** `product-team/prd/social-loop.md` (+ `guides/social-loop-design-guide.md`, `guides/social-loop-style-guide.md`)
+**Slug:** `reader-guide`
+**Date:** 2026-06-11
+**Source PRD:** `product-team/prd/reader-guide.md` (+ `guides/reader-guide-design-guide.md`, `guides/reader-guide-wireframes.html`, `guides/reader-guide-style-guide.md` — the tic taxonomy, binding on every reader-facing sentence)
+**Supersedes:** the consumed social-loop queue (all 18 briefs promoted and shipped; see `engineering-team/audits/social-loop/`; the prior queue text lives in git history).
 
-> 18 stories across 3 ordered blocks, in dependency order. Blocks are a suggested grouping and sequence, not folders. Unbnd's engineering tree is flat. The engineering Product Owner promotes each brief into `engineering-team/stories/<n>-<slug>.md` via `/plan-feature` (next available number scanning `stories/` + `stories/done/`), referencing the PRD. The queue order is the pickup order.
+> 10 stories across 3 ordered blocks, in dependency order. Blocks are a suggested grouping and sequence, not folders; the engineering tree stays flat. The engineering Product Owner promotes each brief via `/plan-feature` (next available number scanning `stories/` + `stories/done/`), referencing the PRD and guides. The queue order is the pickup order.
 >
-> Open-question parameters from PRD §11 are flagged inline. nsec-export is placed in Block 2 (Q4 recommendation).
+> **The process rule that governs every content story (3–9):** each entry is drafted, then taxonomy-edited in a separate pass with a recorded diff (its own commit), then reviewed with the reviewer independently running the mechanical checks. An entry whose edit pass produced zero changes gets read with extra suspicion, not waved through.
 
 ---
 
-## Block 1 — The curator loop, honest on a thin graph
+## Block 1 — Foundation
 
-*The first demoable block. Proves the riskiest assumption: that a founding curator who arrives as a favor converts to genuine use once they feel taste match and can vouch.*
+*The taxonomy becomes enforceable, the surface exists, and the landing narrative ships behind live doors. Demoable at every step; nothing half-empty is ever discoverable.*
 
-## Story 1: Taste Match on curator profiles
-**PRD section(s):** §5.1, §7 · **Persona(s):** Founding Curator, Trusting Reader · **Block:** The curator loop
+## Story 1: The tic taxonomy lands with its mechanical check
+**PRD section(s):** §5.3, §7 · **Persona(s):** (platform; every reader downstream) · **Block:** Foundation
 
-**Description:** A signed-in viewer sees how closely their taste matches a person, on that person's profile.
-
-**Acceptance criteria:**
-- [ ] Visiting a profile while signed in shows a taste-match percentage and the number of books in common.
-- [ ] The percentage reflects how often the viewer and that person agreed on books they both rated, from the viewer's viewpoint.
-- [ ] Below the overlap threshold, the profile shows "Not enough overlap yet" rather than a percentage.
-- [ ] A signed-out visitor sees no taste-match element.
-- [ ] After the viewer rates more books they have in common, the value reflects the change.
-
-**Dependencies:** none (computes over existing ratings).
-
-**Notes for engineering:** The first demoable story. Taste match is a derived, observer-relative computation over existing ratings, not a new stored shape (see PRD §6). The overlap threshold is open question 1: ship a configurable small count (placeholder 5) and tune. Raw rating-agreement is acceptable for v1; the trust-weighted variant can follow. The product intent is "they read like I do."
-
-## Story 2: Taste Match on book detail, and taste-sorted raters
-**PRD section(s):** §5.2 · **Persona(s):** Trusting Reader · **Block:** The curator loop
-
-**Description:** On a book page, a viewer sees each rater's taste-match and can order raters and reviews by best taste match.
+**Description:** The tic taxonomy is ratified as the repo's binding language law, with a data-driven mechanical scan over guide content wired into CI.
 
 **Acceptance criteria:**
-- [ ] Each rater and reviewer byline shows that person's taste-match to the signed-in viewer.
-- [ ] A signed-in viewer can switch the order between "Most trusted" and "Best taste match."
-- [ ] The default order is most trusted.
-- [ ] Bylines below the overlap threshold show no match chip, not a zero.
-- [ ] A signed-out viewer sees neither byline matches nor the sort control.
-
-**Dependencies:** Story 1 (the taste-match computation).
-
-**Notes for engineering:** Reuse the Story 1 computation. Sorting is a display concern; the underlying ratings and trust order are unchanged.
-
-## Story 3: Curator status by trusted-user vouching
-**PRD section(s):** §5.1, §6, §7 · **Persona(s):** Founding Curator · **Block:** The curator loop
-
-**Description:** A person becomes a curator when enough trusted users vouch for them.
-
-**Acceptance criteria:**
-- [ ] A trusted user can record a vouch that another person is a curator.
-- [ ] A person becomes a curator when at least N trusted users above weight W have vouched, with self-vouches excluded.
-- [ ] A "Curator" badge appears on the profile of anyone who meets the gate.
-- [ ] Withdrawing or disputing a vouch lowers the count; dropping below the gate removes the badge.
-- [ ] A person on the operator seed-curator allowlist shows as a curator regardless of vouch count.
+- [ ] The taxonomy is established in the repository as the single source of truth for prose rules, superseding the prior ban lists for prose as its own header states.
+- [ ] A mechanical scan runs over the guide's content and reports every [M]-rule hit with its location and tic id.
+- [ ] The scan is data-driven: adding a word or pattern to the mechanical list makes the scan catch it with no change to scan logic (provable by a test that extends the list).
+- [ ] CI fails when published guide content has a hit; the protocol-wall exception for the one marked entry is expressible without weakening the wall elsewhere.
+- [ ] The scan runs clean on the (initially empty) content set, establishing the zero-hit baseline.
 
 **Dependencies:** none.
 
-**Notes for engineering:** Clone the existing author-verified pattern (a pubkey-targeted, apply/dispute, count-gated assertion) into a new `curator-roles` concept. Do not invent a parallel mechanism. N and W are open question 2 (placeholder N=10, W=0.2 on the 0–1 scale); make them configurable. Open question 3: keep the Phase 2 emergent house-weight gate (`canPromote`) as a cold-start fallback alongside vouching (OR them) unless told otherwise.
+**Notes for engineering:** The extension contract in the style guide ("Extending the taxonomy") is binding: append-only tic ids, and extensions must never require touching check logic. Where the machine-readable list lives (parsed from the style guide, or a sibling data file generated from it) is the Architect's call; drift between the document and the list is the failure mode to design against.
 
-## Story 4: Vouch control and the Curate surface
-**PRD section(s):** §5.1, §5.7 · **Persona(s):** Founding Curator · **Block:** The curator loop
+## Story 2: The guide surface
+**PRD section(s):** §5.1, §6, §7 · **Persona(s):** all three · **Block:** Foundation
 
-**Description:** Eligible viewers can vouch from a profile, and curators get a dedicated entry to their tools.
-
-**Acceptance criteria:**
-- [ ] An eligible trusted viewer sees a "Vouch as curator" action on a profile; an ineligible viewer sees no such control.
-- [ ] After vouching, the control shows "Vouched" and offers to withdraw.
-- [ ] A profile shows "N trusted people vouched" once at least one vouch exists.
-- [ ] A curator sees a "Curate" entry in the navigation; non-curators do not.
-- [ ] The Curate entry surfaces the existing submission and promotion tools.
-
-**Dependencies:** Story 3 (the role mechanism).
-
-**Notes for engineering:** Ineligible viewers get no control rather than a disabled tease. The Curate entry reuses existing curator tools; it is a navigation and gating change, not new tooling.
-
-## Story 5: CI and deploy action version bump (date-bound)
-**PRD section(s):** §8.1 · **Persona(s):** (platform) · **Block:** The curator loop
-
-**Description:** Update CI and deploy workflows off the deprecated action runtime.
+**Description:** The `/guide` landing and eight section routes exist with the document-register frame, stable anchors, and section navigation, reachable by URL but not yet linked from the product.
 
 **Acceptance criteria:**
-- [ ] CI and deploy workflows run on currently-supported action versions with no Node-20 deprecation warnings.
-- [ ] All existing gates (typecheck, test, build, deploy) pass on the bumped versions.
+- [ ] `/guide` and the eight section routes render in the product's design system in the document register: reading measure, no cards around body text, the existing type scale.
+- [ ] Entries render with the four-part anatomy (what it is; what it is based on; numbered how-to steps; related links) from versioned content that ships with the product and changes only through the gated story process.
+- [ ] Every entry has a stable anchor; deep links land on the entry; a bad anchor lands at the section top, never an error page.
+- [ ] Section pages have an entry list at the top, a quiet side rail on wide viewports that collapses on narrow ones, and next/previous section links.
+- [ ] No door links to the guide yet, and nothing links to a section without published entries.
 
-**Dependencies:** none.
+**Dependencies:** Story 1 (content lands only with the scan gating it).
 
-**Notes for engineering:** Date-bound: the Node-20 actions cutoff is 2026-06-16. Independent of every feature story; pick it up first in parallel. No product behavior change.
+**Notes for engineering:** Content pipeline is engineering's call within the PRD §7 constraints (versioned with the product; anchors stable; scannable). Anchors are forever once published; make the anchor slug an explicit authored field, never derived from a heading that might be reworded.
+
+## Story 3: The start-here narrative and the three doors
+**PRD section(s):** §5.1, §5.2 · **Persona(s):** Trusting Reader (Moment A), Founding Curator (Moment C) · **Block:** Foundation
+
+**Description:** The landing carries the full start-here narrative, and the guide goes live behind its three doors.
+
+**Acceptance criteria:**
+- [ ] The landing reads complete: the one honest paragraph on what Unbnd is, the first session in four short moves, why the numbers here are different, and the clearly marked skippable "If you curate" extension.
+- [ ] The landing ends in the table of contents; only sections with published entries are linked (the contents grow as Block 2 lands).
+- [ ] The narrative went through the full process: drafted, taxonomy-edited with a recorded diff, reviewed; the mechanical scan is clean; the one allowed we-voice passage appears on the landing only.
+- [ ] The three doors are live: a "Guide" footer link site-wide, a prominent cross-link near the top of About, one quiet line on the auth/welcome surfaces.
+- [ ] A reader sent `/guide` cold (the recruit's link) gets a complete, self-sufficient page.
+
+**Dependencies:** Story 2.
+
+**Notes for engineering:** This is the first story where the writing process runs end to end; treat it as the process's proving run. The four moves each link the matching reference entry once it exists; until then they stand alone without dead links.
 
 ---
 
-## Block 2 — Make curation travel and complete the loop
+## Block 2 — The reference
 
-*Extends reach and completeness once the loop is proven. Brings the Trusting Reader in, and gives the Sovereignty-Curious user their choice.*
+*The ~35 entries, in batches a single cycle can draft, edit, and review well. Sections publish as their batch lands; the contents fill in. The inventory in `scope/reader-guide.md` is the contract; the close reconciles against it with zero gaps.*
 
-## Story 6: Hype-gap indicator on book detail
-**PRD section(s):** §5.2, §7 · **Persona(s):** Trusting Reader, Founding Curator · **Block:** Make curation travel
+## Story 4: Reference: getting started + finding books
+**PRD section(s):** §5.2 (inventory sections 1–2) · **Persona(s):** Trusting Reader · **Block:** The reference
 
-**Description:** A book page shows where the viewer's trusted network diverges from the crowd.
-
-**Acceptance criteria:**
-- [ ] A hidden-gem signal shows when the viewer's trusted network rates the book above the crowd.
-- [ ] An overhyped signal shows when the crowd rates it above the trusted network.
-- [ ] Nothing shows when the two align.
-- [ ] The signal reflects the active House/Yours viewpoint.
-- [ ] The signal appears only when a handful of trusted raters exist; below that, nothing shows.
-- [ ] The signal pairs color with a text label so it is legible without color.
-
-**Dependencies:** none (derived over existing ratings and trust).
-
-**Notes for engineering:** Derived, observer-relative, honest silence below threshold. No new stored shape (PRD §6).
-
-## Story 7: Hidden Gems shelf on the homepage
-**PRD section(s):** §5.3 · **Persona(s):** Trusting Reader · **Block:** Make curation travel
-
-**Description:** The homepage surfaces books the viewer's trusted network loves that the crowd missed.
+**Description:** The entries for creating an account, reading without one, the first session, and every way of finding books (search, genres, shelves, Hidden Gems, For You, the book page tour).
 
 **Acceptance criteria:**
-- [ ] The homepage shows a Hidden Gems shelf of books with the highest positive hype-gap from the active viewpoint.
-- [ ] The shelf exists on both House and Yours and surfaces different books under each.
-- [ ] When empty, the shelf shows an on-ramp explaining what will appear and to follow curators to start.
-- [ ] The shelf refreshes on a schedule rather than per request.
+- [ ] Every section 1–2 inventory entry is published under its stable anchor, named by the on-screen words, in the four-part anatomy.
+- [ ] The sign-in-with-extension entry frames it only as "if you already have a portable account" with no protocol vocabulary.
+- [ ] Each entry: recorded taxonomy-edit diff; reviewer re-ran the mechanical checks; scan clean.
+- [ ] The landing contents and the four first-session moves now link these entries.
 
-**Dependencies:** Story 6 (the hype-gap computation).
+**Dependencies:** Story 3.
 
-**Notes for engineering:** The empty state is the cold-start on-ramp; treat it as first-class. Reuse the Phase 2 scheduled homepage-shelf caching approach.
+**Notes for engineering:** The book-page tour entry is the longest in these sections; it walks the page top to bottom and links sideways into the trust entries (which land in Story 5; sideways links may land with 5 to avoid dead anchors; the two stories agree the seam at promotion).
 
-## Story 8: Link unfurls and per-book metadata
-**PRD section(s):** §5.5 · **Persona(s):** Founding Curator · **Block:** Make curation travel
+## Story 5: Reference: ratings you can trust
+**PRD section(s):** §5.2 (inventory section 3) · **Persona(s):** all three · **Block:** The reference
 
-**Description:** A shared book link renders as a rich card on other platforms.
-
-**Acceptance criteria:**
-- [ ] Pasting a book link into a platform that unfurls links renders a card with cover, title, author, raw community rating, and top tags.
-- [ ] Each book URL exposes per-book metadata and an oEmbed endpoint for auto-discovery.
-- [ ] The card uses the raw community rating, not an observer-weighted number.
-
-**Dependencies:** none.
-
-**Notes for engineering:** This is an architecture addition, not a one-endpoint job. The web app is a static SPA today, so per-book head tags are not per-route. Scope a server-rendered per-book head (or bot-aware serving) for `/book/:slug`. The raw rating is viewer-independent by design (resolves PRD open question, §5.5).
-
-## Story 9: Value before account on shared links
-**PRD section(s):** §5.5 · **Persona(s):** Trusting Reader · **Block:** Make curation travel
-
-**Description:** A reader arriving with no account sees full value, and is asked to sign up only when they act.
+**Description:** The heart of the guide: the view switch, trusted versus community consensus, taste match, review sorting, the hype gap, followers and following.
 
 **Acceptance criteria:**
-- [ ] A signed-out visitor arriving on a book or profile page sees the full content and trust context.
-- [ ] An account prompt appears only at a write action (rate, save, follow, vouch), not on read.
-- [ ] The prompt explains what creating an account unlocks.
+- [ ] Every section 3 inventory entry is published per the anatomy, anchors stable, named by the on-screen words ("Unbnd house view," "Taste match," "Hidden gem").
+- [ ] Each explains what the number is based on in plain words, and what changes when the view switches, without any protocol vocabulary and without raw scores.
+- [ ] The "not enough overlap yet" and "no followers yet" honest states are each explained where their feature is.
+- [ ] Each entry: recorded edit diff, independent mechanical check, scan clean.
 
-**Dependencies:** none (pairs naturally with Story 8).
+**Dependencies:** Story 4 (the contents order; the sideways links from 4 resolve here).
 
-**Notes for engineering:** This resolves the reader account-wall problem. The gate moves to the write, the read is fully open.
+**Notes for engineering:** These entries carry the heaviest concept load, and the D1 one-comparison budget will be tempting to spend everywhere. The staff-picks-shelf comparison in the style guide is the canonical example for the house view; most of the rest should need none.
 
-## Story 10: Followers count via NIP-85
-**PRD section(s):** §5.1, §6 · **Persona(s):** Founding Curator · **Block:** Make curation travel
+## Story 6: Reference: rating, reviewing, and tagging
+**PRD section(s):** §5.2 (inventory section 4) · **Persona(s):** Trusting Reader, Founding Curator · **Block:** The reference
 
-**Description:** Profiles show an accurate followers count.
-
-**Acceptance criteria:**
-- [ ] A profile shows an accurate followers count.
-- [ ] The count is sourced from trusted follow assertions rather than an unbounded scan.
-- [ ] A profile with no followers shows "No followers yet."
-
-**Dependencies:** none.
-
-**Notes for engineering:** Source via NIP-85 `kind:30382` (the Phase 2 ADR 0023 deferral), not a kind-3 scan.
-
-## Story 11: Genre expansion to 14+
-**PRD section(s):** §5.6 · **Persona(s):** all readers · **Block:** Make curation travel
-
-**Description:** Browse offers 14 or more genres, with the catalog recast into them.
+**Description:** Rating, reviewing, updating and removing a rating, suggesting and disputing tags, the contested treatment, the reviewed content flags, and shelves.
 
 **Acceptance criteria:**
-- [ ] The browse grid offers 14 or more genres.
-- [ ] Each catalog book is assigned to the expanded genres derived from its preserved subjects, with no external re-fetch.
-- [ ] Existing books are recast into the new taxonomy.
-- [ ] Browsing a new genre returns its books.
+- [ ] Every section 4 inventory entry published per the anatomy; removal explains that rating again brings a rating back; the contested entry explains what a struck-through tag is telling the reader.
+- [ ] The reviewed-flags entry explains plainly what a flag like "AI generated" means, who reviewed it, and why it appears apart from normal tags, without naming internal machinery.
+- [ ] Each entry: recorded edit diff, independent mechanical check, scan clean.
 
-**Dependencies:** none.
+**Dependencies:** Story 5.
 
-**Notes for engineering:** Genre is a revisable assertion over each book's preserved Open Library subjects; the recast re-derives with no re-fetch. The taxonomy is a curated product decision, not data-derived clustering (per scope), and the founding-curator genre survey should inform it before the recast. May be staged (taxonomy + recast, then browse-grid UI).
+**Notes for engineering:** none beyond the standing process.
 
-## Story 12: Sovereignty upgrade (take ownership of your key)
-**PRD section(s):** §5.4, §7 · **Persona(s):** Sovereignty-Curious User · **Block:** Make curation travel
+## Story 7: Reference: sharing, your profile, and for authors
+**PRD section(s):** §5.2 (inventory sections 5–6) · **Persona(s):** Trusting Reader, Founding Curator (as author) · **Block:** The reference
 
-**Description:** A custodial user can take ownership of their key, as a deliberate choice.
+**Description:** What sharing a link shows elsewhere, what a public profile exposes, claiming a book you wrote, and what author verification unlocks.
 
 **Acceptance criteria:**
-- [ ] A custodial user can reach a "Take ownership" flow from Settings → Nostr identity.
-- [ ] The flow explains the choice in plain language and requires one explicit confirmation.
-- [ ] The key is revealed once, with a copy action and an acknowledgement required before dismissal.
-- [ ] After completion the account continues to work normally and the flow reflects that ownership was taken.
-- [ ] The flow is never forced and is always dismissible.
+- [ ] Every section 5–6 inventory entry published per the anatomy; the claim entry is honest that a claim is a statement, and verification is the separately earned state that unlocks the author-provided fields.
+- [ ] Each entry: recorded edit diff, independent mechanical check, scan clean.
 
-**Dependencies:** none.
+**Dependencies:** Story 6.
 
-**Notes for engineering:** Sensitive flow, calm gravity, no jargon (see the design and style guides). Uses the existing `--signal-sovereign` token. This is the custodial→sovereign transition described in PRD §7; the key leaves server custody only by this explicit action and the export is irreversible. Open question 4 placed it here; the PO may pull it to Block 1.
+**Notes for engineering:** The submit form's no-"verified" invariant (Story 31 lineage) extends here in spirit: the claim entry must not promise verification.
+
+## Story 8: Reference: for curators
+**PRD section(s):** §5.2 (inventory section 7) · **Persona(s):** Founding Curator · **Block:** The reference
+
+**Description:** What a curator is, the three paths to becoming one, vouching, submitting books, promotion including automatic, removal from the catalog, content flags including the pending view and reveal/withdraw, and the Curate page.
+
+**Acceptance criteria:**
+- [ ] Every section 7 inventory entry published per the anatomy; the dignity test holds (a respected colleague, never a beta tester).
+- [ ] The promotion entry covers both the curator action and the automatic path in plain words; the removal entry explains the queued state a curator sees.
+- [ ] The flags entries separate the reader's view (what a revealed flag means) from the curator's powers (apply, see pending, reveal, withdraw).
+- [ ] Each entry: recorded edit diff, independent mechanical check, scan clean.
+
+**Dependencies:** Story 7.
+
+**Notes for engineering:** none beyond the standing process.
+
+## Story 9: Reference: your account is yours + the staying-current rule
+**PRD section(s):** §5.2 (inventory section 8), §5.4 · **Persona(s):** Sovereignty-Curious User · **Block:** The reference
+
+**Description:** The sovereignty deep entry and the one marked wider-network note, plus the staying-current rule landing in the engineering process; the inventory closes with zero gaps.
+
+**Acceptance criteria:**
+- [ ] The sovereignty entry is the complete calm explanation behind the Settings card: what you have now, what changes, what stays the same, what you become responsible for. "Key" is introduced as "the key to your account" with what it does before any property of it is discussed.
+- [ ] The wider-network note is one clearly marked entry; the protocol wall holds everywhere else (provable by the scan).
+- [ ] The staying-current rule is added to the engineering definition of done: a story changing a user-facing surface updates its guide entry in the same story, through the same draft-then-edit process.
+- [ ] The inventory table shows every scope entry published with a recorded edit diff; zero gaps.
+
+**Dependencies:** Story 8.
+
+**Notes for engineering:** The definition-of-done change touches the engineering process docs; promote it with care so it binds future stories the way the review checklist does.
 
 ---
 
-## Block 3 — Automate and finish
+## Block 3 — Meeting confusion where it happens
 
-*Automates the Phase 2 manual mechanisms and closes UX gaps.*
+## Story 10: Contextual entry points
+**PRD section(s):** §5.5 · **Persona(s):** all three (Moment B) · **Block:** Meeting confusion
 
-## Story 13: Automatic threshold promotion
-**PRD section(s):** §5.7 · **Persona(s):** Founding Curator · **Block:** Automate and finish
-
-**Description:** Submissions that cross the trust threshold promote into the catalog automatically.
+**Description:** The highest-confusion surfaces link one click into their matching guide entry.
 
 **Acceptance criteria:**
-- [ ] A submission that crosses the trust threshold is promoted into the catalog without a manual action.
-- [ ] Promoted books appear in browse, search, and shelves alongside seeded entries.
-- [ ] The threshold is configurable.
+- [ ] Each listed surface routes to its entry's anchor in one click: the House/Yours switch, taste-match chips, the hype-gap line, vouch counts, contested tags, reviewed-flag rows, the "Removal queued" state.
+- [ ] Each uses the quietest existing affordance for its surface; never a modal, never a tooltip essay.
+- [ ] The affordances render sensibly signed out where the surface itself does.
+- [ ] No surface gained visual weight: the design system's existing treatments only.
 
-**Dependencies:** builds on the existing manual promotion and promoter worker.
+**Dependencies:** Stories 4–9 (the anchors must exist).
 
-**Notes for engineering:** Automates the Phase 2 manual-with-signals promotion. Keep the manual promote available as the fallback.
-
-## Story 14: In-product accusatory reveal
-**PRD section(s):** §5.2, §5.7 · **Persona(s):** Founding Curator · **Block:** Automate and finish
-
-**Description:** A curator can reveal a gated accusatory tag from within the product.
-
-**Acceptance criteria:**
-- [ ] A curator can reveal a gated accusatory tag from within the product, not only via an operator command.
-- [ ] A revealed accusatory tag becomes visible at read time per the existing auditable gate.
-- [ ] The reveal action is restricted to users above the curator threshold.
-
-**Dependencies:** none (extends the existing reveal mechanism).
-
-**Notes for engineering:** The existing reveal is an operator-only worker subcommand; this adds the trust-gated in-product affordance. Keep the audit trail.
-
-## Story 15: Remove a rating
-**PRD section(s):** §5.2 · **Persona(s):** Trusting Reader · **Block:** Automate and finish
-
-**Description:** A user can remove their own rating.
-
-**Acceptance criteria:**
-- [ ] A user can remove their own rating from a book.
-- [ ] After removal the book no longer shows that user's rating and the aggregates update.
-
-**Dependencies:** none.
-
-**Notes for engineering:** This is the deferred Phase 2 story #28b (a deletion flow).
-
-## Story 16: Demote a promoted book
-**PRD section(s):** §5.7 · **Persona(s):** Founding Curator · **Block:** Automate and finish
-
-**Description:** A curator can undo a promotion.
-
-**Acceptance criteria:**
-- [ ] A curator can demote a previously promoted book.
-- [ ] After demotion the book no longer appears in the promoted catalog surfaces.
-
-**Dependencies:** Story 13 or the existing promotion path.
-
-**Notes for engineering:** This is the deferred Phase 2 story #30b (a deletion/withdraw flow).
-
-## Story 17: Contested-tag treatment
-**PRD section(s):** §5.2 · **Persona(s):** Trusting Reader, Founding Curator · **Block:** Automate and finish
-
-**Description:** A tag the trusted graph net-disputes reads differently from one it net-applies.
-
-**Acceptance criteria:**
-- [ ] A tag the trusted graph net-disputes renders visibly distinct (muted and struck "contested") from a normally-applied tag.
-- [ ] The treatment is computed from the existing trusted apply and dispute counts.
-
-**Dependencies:** none.
-
-**Notes for engineering:** Completes the apply/dispute symmetry. Reuses the Story-25 `trustedApplies` / `trustedDisputes` already computed per tag. No new color.
-
-## Story 18: Code-debt cleanup
-**PRD section(s):** §8.1 · **Persona(s):** (platform) · **Block:** Automate and finish
-
-**Description:** Clear the small Phase 2 debt items with no behavior change.
-
-**Acceptance criteria:**
-- [ ] Dead subjects-API seeder code is removed.
-- [ ] Duplicated relay pagination is extracted into one shared place.
-- [ ] The duplicated short-npub helper is deduped.
-- [ ] The stale "I am the author" submit-toggle copy is corrected.
-
-**Dependencies:** none.
-
-**Notes for engineering:** Pure cleanup; verify zero behavior change. Separately, an operator ops task (not a code story): `age`-encrypt the librarian key on the droplet. Relay that to the operator; it cannot be done from the repo.
+**Notes for engineering:** Affordance choice is per-surface at the Architect/design level; the design guide's rule is the constraint. Anchors are already stable, so this story is wiring, not content.
 
 ---
 
 ## Handoff
 
-On approval, the engineering Product Owner reads this queue and promotes each brief into a flat `engineering-team/stories/<n>-<slug>.md` via `/plan-feature` (next number scanning `stories/` + `stories/done/`), referencing `product-team/prd/social-loop.md` and the guides. Optionally open `engineering-team/audits/social-loop/book.md` at intake, anchored to the PRD sections this queue realizes, so the book-close return edge can reconcile against it later. Build in queue order; Story 1 is the demoable proof of the loop, Story 5 is date-bound and parallelizable.
+On approval, the engineering Product Owner reads this queue and promotes each brief into a flat `engineering-team/stories/<n>-<slug>.md` via `/plan-feature` (next number scanning `stories/` + `stories/done/`; the next available number is **#83**), referencing `product-team/prd/reader-guide.md` and the guides. Open `engineering-team/audits/reader-guide/book.md` at intake, anchored to PRD §5, so the book-close return edge can reconcile the inventory's zero-gaps metric. Build in queue order; Story 3 is the first user-visible payoff (the recruit link works), and Stories 4–9 are sequential by content dependency, not by code risk.
