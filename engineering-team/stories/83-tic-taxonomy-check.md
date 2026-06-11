@@ -37,4 +37,4 @@ For the Architect:
 ## Linked artifacts
 - ADR: `engineering-team/decisions/0080-tic-taxonomy-check.md` (Accepted)
 - Test plan: `engineering-team/stories/83-tic-taxonomy-check.test-plan.md`
-- Review: _pending (Reviewer)_
+- Review: `engineering-team/reviews/83-tic-taxonomy-check.md` (PASS)
