@@ -18,6 +18,7 @@ on:
           - shelves # homepage trust-shelf recompute
           - recast # genre recast over the existing catalog (Story 75; idempotent)
           - set-public-origin # ensure PUBLIC_ORIGIN in .env + restart the api
+          - install-cron # install the documented worker crontab (idempotent)
           - show-status # read-only: crontab, deployed tag, recent worker logs
 
 jobs:
@@ -59,6 +60,20 @@ jobs:
                 # genre assertions, checkpoints on the seeder volume).
                 docker compose -f docker-compose.prod.yml --profile seed pull seeder
                 docker compose -f docker-compose.prod.yml --profile seed run --rm seeder node recast.js
+                ;;
+              install-cron)
+                # The documented schedule (docs/DEPLOY.md): relay down-sync +
+                # promoter every 5 min, shelves hourly. Idempotent replace of
+                # the deploy user's crontab; logs land in a deploy-writable dir.
+                mkdir -p /opt/unbnd/ops-logs
+                crontab - <<'CRON'
+*/5 * * * * docker exec unbnd-tapestry strfry sync wss://dcosl.brainstorm.world/ --dir down --filter '{"kinds":[39998,39999]}' >> /opt/unbnd/ops-logs/sync.log 2>&1
+*/5 * * * * cd /opt/unbnd && docker compose -f docker-compose.prod.yml --profile promote run --rm promoter >> /opt/unbnd/ops-logs/promote.log 2>&1
+0 * * * * cd /opt/unbnd && docker compose -f docker-compose.prod.yml --profile shelves run --rm shelves >> /opt/unbnd/ops-logs/shelves.log 2>&1
+20 4 * * * cd /opt/unbnd && docker compose -f docker-compose.prod.yml --profile index run --rm indexer >> /opt/unbnd/ops-logs/index.log 2>&1
+CRON
+                echo "crontab installed:"
+                crontab -l
                 ;;
               set-public-origin)
                 if grep -q '^PUBLIC_ORIGIN=' .env; then

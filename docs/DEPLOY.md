@@ -155,7 +155,7 @@ never runs with the normal stack.
    ```
    Add a crontab entry on the droplet to keep it current, e.g. every 5 min:
    ```
-   */5 * * * * docker exec unbnd-tapestry strfry sync wss://dcosl.brainstorm.world/ --dir down --filter '{"kinds":[39998,39999]}' >> /var/log/unbnd-sync.log 2>&1
+   */5 * * * * docker exec unbnd-tapestry strfry sync wss://dcosl.brainstorm.world/ --dir down --filter '{"kinds":[39998,39999]}' >> /opt/unbnd/ops-logs/sync.log 2>&1
    ```
 
 ## Promotion worker (Story 30 / ADR 0031)
@@ -166,7 +166,7 @@ The documented droplet tasks are dispatchable from GitHub Actions —
 `.github/workflows/staging-ops.yml` (Actions tab → "Staging ops" → Run
 workflow, or `gh workflow run "Staging ops" -f task=<task>`). Fixed menu:
 `promote` / `index` / `shelves` / `recast` / `set-public-origin` /
-`show-status` (read-only diagnostics). Each runs the same compose commands
+`install-cron` (installs the documented worker crontab below, idempotently; logs to `/opt/unbnd/ops-logs/`) / `show-status` (read-only diagnostics). Each runs the same compose commands
 documented below over the CI deploy key, pinned to the deployed
 `UNBND_IMAGE_TAG`.
 
@@ -199,7 +199,7 @@ starts with the normal stack.
    periodically with a crontab entry on the droplet (mirroring the up-sync cron),
    e.g. every 5 minutes:
    ```
-   */5 * * * * cd /opt/unbnd && docker compose -f docker-compose.prod.yml --profile promote run --rm promoter >> /var/log/unbnd-promote.log 2>&1
+   */5 * * * * cd /opt/unbnd && docker compose -f docker-compose.prod.yml --profile promote run --rm promoter >> /opt/unbnd/ops-logs/promote.log 2>&1
    ```
    It is idempotent: each promoted book is republished under the same address
    `39999:<librarian>:<slug>`, and a re-enqueue of the same slug collides on the
@@ -250,7 +250,7 @@ profile jobs it never starts with the normal stack.
    deploy persists `UNBND_IMAGE_TAG` in `/opt/unbnd/.env` (ADR 0060), which
    `docker compose` auto-reads, so a bare `run` already targets the deployed SHA:
    ```
-   0 * * * * cd /opt/unbnd && docker compose -f docker-compose.prod.yml --profile shelves run --rm shelves >> /var/log/unbnd-shelves.log 2>&1
+   0 * * * * cd /opt/unbnd && docker compose -f docker-compose.prod.yml --profile shelves run --rm shelves >> /opt/unbnd/ops-logs/shelves.log 2>&1
    ```
    The replace is atomic per refresh; a failed run leaves the previous good cache
    intact. On the thin interim graph every trust shelf is empty (honest empty) —
