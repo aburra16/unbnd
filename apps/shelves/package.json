@@ -12,6 +12,7 @@
     "test": "vitest run"
   },
   "dependencies": {
+    "@unbnd/relay": "workspace:*",
     "@unbnd/schemas": "workspace:*",
     "@unbnd/trust": "workspace:*",
     "nostr-tools": "2.10.4",

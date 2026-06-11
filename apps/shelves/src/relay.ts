@@ -4,6 +4,7 @@
 // ratings + taxonomy + genre membership off the LOCAL relay — the same source
 // the API read paths use. Read-only; the worker holds no signing key.
 import { WebSocket } from "ws";
+import { queryAllPages as paginateAllPages } from "@unbnd/relay";
 import type { SignedNostrEvent } from "@unbnd/schemas";
 
 export type NostrFilter = {
@@ -56,30 +57,18 @@ export function queryRelay(
 }
 
 /**
- * Read ALL matching events, paging past the relay's per-REQ cap (strfry
- * `maxFilterLimit`, default 500). Walks backwards by `created_at` using an
- * `until` cursor, dedups by id, stops on a short page or a no-new-events
- * plateau. `fetchPage` is injected for testability.
+ * Read ALL matching events past the relay cap. The loop is the ONE shared
+ * pager in @unbnd/relay (Story 82); this caller keeps its exact unbounded
+ * walk (no page bound, no wall-clock budget).
  */
 export async function queryAllPages(
   fetchPage: (cursor: { until?: number; limit: number }) => Promise<SignedNostrEvent[]>,
   pageSize = 500,
 ): Promise<SignedNostrEvent[]> {
-  const byId = new Map<string, SignedNostrEvent>();
-  let until: number | undefined;
-  for (;;) {
-    const page = await fetchPage({ until, limit: pageSize });
-    let added = 0;
-    let oldest = Infinity;
-    for (const e of page) {
-      if (!byId.has(e.id)) {
-        byId.set(e.id, e);
-        added++;
-      }
-      if (e.created_at < oldest) oldest = e.created_at;
-    }
-    if (page.length < pageSize || added === 0) break;
-    until = oldest;
-  }
-  return [...byId.values()];
+  const { events } = await paginateAllPages(fetchPage, {
+    pageSize,
+    maxPages: Infinity,
+    totalBudgetMs: Infinity,
+  });
+  return events;
 }

@@ -71,4 +71,17 @@ describe("Submit — 'I am the author' toggle copy is honest (AC-7)", () => {
     openForm();
     expect(screen.getByLabelText(/i am the author of this book/i)).toBeInTheDocument();
   });
+
+  // Story 82: the description states what the toggle actually does (author
+  // provenance on the record, not a claim event) and routes claiming to the
+  // book page. The Story-31 verified-ban above still holds.
+  it("describes the provenance behavior and routes claiming to the book page (Story 82)", () => {
+    openForm();
+    expect(
+      screen.getByText(/records you as this book's author on the submission/i),
+    ).toBeInTheDocument();
+    expect(screen.getByText(/claim action on the book page/i)).toBeInTheDocument();
+    expect(screen.queryByText(/self-claim/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/vetted credential/i)).not.toBeInTheDocument();
+  });
 });

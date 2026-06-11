@@ -53,6 +53,14 @@ function PromoteCell({
   if (submission.promotionStatus === "pending" || submission.promotionStatus === "promoting") {
     return <span className="cs-item-state">Promotion queued</span>;
   }
+  // Story 82 (Review #80 carry-forward): an in-flight removal is not
+  // re-promotable yet; a `demoted` row falls through to the Promote button.
+  if (
+    submission.promotionStatus === "demote_pending" ||
+    submission.promotionStatus === "demoting"
+  ) {
+    return <span className="cs-item-state">Removal queued</span>;
+  }
   if (!submission.canPromote) return null;
 
   return (

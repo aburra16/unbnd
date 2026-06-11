@@ -1,6 +1,7 @@
 // Generic strfry read: open a WS, send ["REQ", subId, filter], collect
 // ["EVENT", subId, ev] frames until ["EOSE", subId] (or timeout). ADR 0005.
 import { WebSocket } from "ws";
+import { queryAllPages as paginateAllPages } from "@unbnd/relay";
 import type { Config } from "../config";
 import type { SignedNostrEvent } from "@unbnd/schemas";
 
@@ -143,9 +144,9 @@ export function queryEvents(
 }
 
 // --- Paginating author-scoped read (ADR 0021) ---------------------------------
-// Mirrors apps/indexer/src/relay.ts queryAllPages (until-cursor on created_at,
-// page size = the relay cap, dedup by id across the boundary second, stop on a
-// short page or a no-new-events plateau) — but bounded at MAX_PAGES and returning
+// The shared @unbnd/relay pager (until-cursor on created_at, page size = the
+// relay cap, dedup by id across the boundary second, stop on a short page or a
+// no-new-events plateau), bounded at MAX_PAGES and returning
 // a PagedResult so callers can surface an honest "N+". `queryEvents`/
 // `queryRelayUrl` above are left untouched so the under-cap path is byte-identical.
 
@@ -161,60 +162,22 @@ export type PagedResult = {
 
 /**
  * Read ALL of an author's matching events, paging past the relay's per-REQ cap.
- * Mirrors apps/indexer/src/relay.ts queryAllPages: until-cursor on created_at,
- * page size = the cap, dedup by id across the boundary second, stop on a short
- * page or a no-new-events plateau. Bounded at maxPages; `capped` is true ONLY
- * when the bound (not exhaustion) stopped the walk on a still-full page, so a
- * short final page at the bound is exact (capped:false). The overall wall-clock
- * budget THROWS when exhausted (never returns a partial as if exact). `fetchPage`
- * and `now` are injected so tests never touch a real relay.
+ * The loop itself is the ONE shared pager in @unbnd/relay (Story 82); this
+ * wrapper applies the ADR 0021 defaults (page size = the cap, the MAX_PAGES
+ * bound with an honest `capped`, the wall-clock budget that THROWS) so every
+ * existing caller's behavior is byte-identical. `fetchPage` and `now` are
+ * injected so tests never touch a real relay.
  */
 export async function queryAllPages(
   fetchPage: (cursor: { until?: number; limit: number }) => Promise<SignedNostrEvent[]>,
   opts?: { pageSize?: number; maxPages?: number; totalBudgetMs?: number; now?: () => number },
 ): Promise<PagedResult> {
-  const pageSize = opts?.pageSize ?? RELAY_PAGE_SIZE;
-  const maxPages = opts?.maxPages ?? MAX_PAGES;
-  const totalBudgetMs = opts?.totalBudgetMs ?? TOTAL_BUDGET_MS;
-  const now = opts?.now ?? (() => Date.now());
-
-  const start = now();
-  const byId = new Map<string, SignedNostrEvent>();
-  let until: number | undefined;
-  let capped = false;
-
-  for (let pages = 0; pages < maxPages; pages++) {
-    const page = await fetchPage({ until, limit: pageSize });
-
-    // Total wall-clock budget: if exhausted mid-walk, throw rather than return a
-    // truncated result as if exact (Story 19/20 omit-on-throw at the route).
-    if (now() - start > totalBudgetMs) {
-      throw new Error("queryAllPages: total budget exhausted");
-    }
-
-    let added = 0;
-    let oldest = Infinity;
-    for (const e of page) {
-      if (!byId.has(e.id)) {
-        byId.set(e.id, e);
-        added++;
-      }
-      if (e.created_at < oldest) oldest = e.created_at;
-    }
-
-    // Short page → exhausted; no new events → boundary plateau. Either way, stop
-    // exactly (not capped).
-    if (page.length < pageSize || added === 0) break;
-
-    // Reached the bound with a still-full, all-or-partly-new last page → capped.
-    if (pages === maxPages - 1) {
-      capped = true;
-      break;
-    }
-    until = oldest; // overlap at the boundary second is handled by id dedup
-  }
-
-  return { events: [...byId.values()], capped };
+  return paginateAllPages(fetchPage, {
+    pageSize: opts?.pageSize ?? RELAY_PAGE_SIZE,
+    maxPages: opts?.maxPages ?? MAX_PAGES,
+    totalBudgetMs: opts?.totalBudgetMs ?? TOTAL_BUDGET_MS,
+    now: opts?.now,
+  });
 }
 
 /**

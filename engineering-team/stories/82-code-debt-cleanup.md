@@ -1,6 +1,6 @@
 # Story 82: Code-debt cleanup
 
-**Status:** Planning
+**Status:** Approved
 **Created:** 2026-06-09
 **Type:** Cleanup (zero behavior change, except the two flagged label additions)
 
@@ -35,5 +35,5 @@ The deferred `DemoteControl` status read; the replaceable-write skeleton general
 - **§5:** `PromoteCell` gains one branch: `demote_pending`/`demoting` → `<span class="cs-item-state">Removal queued</span>`.
 
 ## Linked artifacts
-- Test plan: _pending (Tester)_
-- Review: _pending (Reviewer)_
+- Test plan: `engineering-team/stories/82-code-debt-cleanup.test-plan.md`
+- Review: `engineering-team/reviews/82-code-debt-cleanup.md` (PASS)
