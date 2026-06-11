@@ -40,6 +40,12 @@ interface GenrePillProps extends PillBase {
    * settled than the trusted chips around it. No badge, no icon.
    */
   community?: boolean;
+  /**
+   * Story 81 / ADR 0079: the trusted graph net-disputes this tag. Muted +
+   * struck + dashed "contested" treatment; takes precedence over `community`;
+   * the applies count is suppressed. STUB (red): ignored until implementation.
+   */
+  contested?: boolean;
 }
 
 interface SelectPillProps extends PillBase {
@@ -100,7 +106,8 @@ export function Pill(props: PillProps) {
   }
 
   // variant="genre" (default): the non-interactive filled <span> chip.
-  const { label, color, count, community, className } = props;
+  const { label, color, count, community, contested, className } = props;
+  void contested; // STUB (red): treatment lands in implementation (Story 81).
   const style = color
     ? {
         background: `${color}14`,

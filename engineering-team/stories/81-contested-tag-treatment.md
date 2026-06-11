@@ -41,5 +41,5 @@ For the Architect:
 ## Linked artifacts
 - Product: `product-team/stories-queue.md` (Block 3), wireframes + design guide.
 - ADR: `engineering-team/decisions/0079-contested-tag-treatment.md` (Accepted)
-- Test plan: _pending (Tester)_
+- Test plan: `engineering-team/stories/81-contested-tag-treatment.test-plan.md`
 - Review: _pending (Reviewer)_

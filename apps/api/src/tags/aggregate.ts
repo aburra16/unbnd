@@ -40,6 +40,12 @@ export type TagConsensus = {
    */
   readonly revealed?: boolean;
   /**
+   * Story 81 / ADR 0079: true ONLY on a non-accusatory tag the trusted graph
+   * does NOT net-apply (trustedDisputes >= trustedApplies with >=1 trusted
+   * asserter). Never set on the raw/no-trust view. Additive; omitted unless true.
+   */
+  readonly contested?: boolean;
+  /**
    * Story 78 / ADR 0076: true ONLY on an UNREVEALED accusatory tag surfaced in
    * the curator-only gated view (`includeGatedAccusatory`). It is the curator's
    * cue to decide whether to reveal; the public never sees it. Absent otherwise.
