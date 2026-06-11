@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Reader's Guide — wireframes</title>
+<style>
+  :root { --paper:#FAF6F0; --ink:#1A1A2E; --ink-muted:#6b6b7a; --amber:#C4763C; --line:#e4ddd2; }
+  body { background:#efe9df; font:14px/1.5 -apple-system, "Segoe UI", sans-serif; color:var(--ink); margin:0; padding:32px; }
+  h2.section { font-size:13px; text-transform:uppercase; letter-spacing:.08em; color:var(--ink-muted); margin:40px 0 12px; }
+  .frame { background:var(--paper); border:1px solid var(--line); border-radius:10px; max-width:880px; margin:0 auto 8px; padding:28px 36px; }
+  .nav { display:flex; justify-content:space-between; color:var(--ink-muted); font-size:12px; border-bottom:1px solid var(--line); padding-bottom:10px; margin-bottom:24px; }
+  .measure { max-width:62ch; }
+  h1 { font-size:26px; margin:0 0 6px; } h3 { font-size:17px; margin:28px 0 6px; }
+  p { margin:6px 0; } .muted { color:var(--ink-muted); }
+  a { color:var(--amber); text-decoration:none; }
+  .toc { border-top:1px solid var(--line); margin-top:28px; padding-top:18px; }
+  .toc b { display:block; margin-top:12px; }
+  .toc span { color:var(--ink-muted); font-size:13px; }
+  .cols { display:flex; gap:36px; }
+  .rail { width:180px; flex:none; font-size:13px; }
+  .rail div { padding:3px 0; color:var(--ink-muted); }
+  .rail .on { color:var(--ink); font-weight:600; border-left:2px solid var(--amber); padding-left:8px; margin-left:-10px; }
+  ol li { margin:4px 0; }
+  .anchor { color:var(--ink-muted); font-size:12px; }
+  .foot { display:flex; justify-content:space-between; border-top:1px solid var(--line); margin-top:28px; padding-top:12px; font-size:13px; }
+  .note { max-width:880px; margin:0 auto; font-size:12px; color:#5a5a66; padding:0 4px 8px; }
+</style>
+</head>
+<body>
+
+<h2 class="section" style="margin-top:0">/guide — the landing (Moments A + C)</h2>
+<div class="frame">
+  <div class="nav"><span>unbnd</span><span>Browse · Submit a book · Sign in</span></div>
+  <div class="measure">
+    <h1>The Reader's Guide</h1>
+    <p class="muted">Everything here, explained plainly. Read the short version below, or jump to any feature in the contents.</p>
+    <h3>What Unbnd is</h3>
+    <p>One honest paragraph. People you trust, instead of a crowd average. We-voice allowed here once.</p>
+    <h3>Your first session</h3>
+    <p>Four short moves: rate a few books, save one to a shelf, follow someone, switch the view. Each move links its entry.</p>
+    <h3>Why the numbers here are different</h3>
+    <p>The house view, in three sentences, linking deeper.</p>
+    <h3>If you curate <span class="anchor">(clearly marked, skippable)</span></h3>
+    <p>The Moment C extension: what your ratings carry, vouching, where the curator tools live.</p>
+  </div>
+  <div class="toc measure">
+    <b>Contents</b>
+    <b>1 Getting started</b><span>Creating an account · Reading without an account · Your first session</span>
+    <b>3 Ratings you can trust</b><span>Unbnd house view · Taste match · Hidden gem · Followers</span>
+    <b>… (8 sections; entry names are the on-screen words)</b>
+  </div>
+</div>
+<p class="note">Doors into this page: footer "Guide" (site-wide), About cross-link, auth/welcome line, and the recruit's direct link.</p>
+
+<h2 class="section">/guide/ratings-you-can-trust — a section page (Moment B)</h2>
+<div class="frame">
+  <div class="nav"><span>unbnd</span><span>Guide · Ratings you can trust</span></div>
+  <div class="cols">
+    <div class="rail">
+      <div>Unbnd house view</div>
+      <div class="on">Taste match</div>
+      <div>Trusted vs community</div>
+      <div>Hidden gem · Overhyped</div>
+      <div>Sorting reviews</div>
+      <div>Followers and following</div>
+    </div>
+    <div class="measure">
+      <h3 id="taste-match">Taste match <span class="anchor">#taste-match — stable forever</span></h3>
+      <p><b>What it is.</b> A paragraph in plain words.</p>
+      <p><b>What it is based on.</b> Books you have both rated, and how closely the scores agree.</p>
+      <p><b>How to use it.</b></p>
+      <ol>
+        <li>Open someone's profile.</li>
+        <li>Look under their name for the match figure.</li>
+        <li>Below five books in common it reads "Not enough overlap yet."</li>
+      </ol>
+      <p class="anchor">Related: Unbnd house view · Sorting reviews</p>
+    </div>
+  </div>
+  <div class="foot"><a>← Finding books</a><a>Rating, reviewing, and tagging →</a></div>
+</div>
+<p class="note">Entry anatomy: on-screen name as heading; what it is / what it is based on / numbered steps / related links. No screenshots, no cards, document register. Side rail collapses to a top list on narrow viewports.</p>
+
+</body>
+</html>
