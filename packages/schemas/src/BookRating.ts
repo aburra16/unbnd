@@ -103,6 +103,79 @@ export function toBookRatingEvent(rating: BookRating): BookRatingEvent {
   };
 }
 
+/**
+ * A rating RETRACTION (Story 79 / ADR 0077): a self-signed kind-39999 event
+ * published under the SAME `rating--<slug>--<rater8>` d-tag as the rating it
+ * removes. Kind 39999 is parameterized-replaceable, so the retraction REPLACES
+ * the rating at the relay; re-rating later replaces the retraction (restore).
+ * It carries a `["retracted","true"]` marker and NO score.
+ */
+export type BookRatingRetraction = {
+  readonly bookSlug: string;
+  readonly bookAddress: DListAddress<39999>;
+  readonly raterPubkey: HexPubkey;
+  readonly parentHeader: DListAddress<39998>;
+};
+
+export type BookRatingRetractionPayload = {
+  readonly word: {
+    readonly slug: string;
+    readonly name: string;
+    readonly title: string;
+    readonly wordTypes: readonly ["word", "bookRating", ...string[]];
+  };
+  readonly bookRating: {
+    readonly bookSlug: string;
+    readonly bookAtag: string;
+    readonly retracted: true;
+  };
+};
+
+export type BookRatingRetractionEvent = UnsignedDListEvent<
+  39999,
+  "bookRating",
+  BookRatingRetractionPayload["bookRating"]
+>;
+
+// STUB (red): real construction in implementation (Story 79).
+export function buildBookRatingRetraction(
+  retraction: BookRatingRetraction,
+): BookRatingRetractionEvent {
+  const dTag = buildBookRatingDTag(retraction.bookSlug, retraction.raterPubkey);
+  return {
+    kind: BOOK_RATING_KIND,
+    tags: [["d", dTag]],
+    content: "",
+    payload: {
+      word: {
+        slug: dTag,
+        name: `rating: ${retraction.bookSlug}`,
+        title: `Rating: ${retraction.bookSlug}`,
+        wordTypes: ["word", "bookRating"],
+      },
+      bookRating: {
+        bookSlug: retraction.bookSlug,
+        bookAtag: formatAddress(retraction.bookAddress),
+        retracted: true,
+      },
+    },
+    parentHeader: retraction.parentHeader,
+  };
+}
+
+/**
+ * The single shared retraction predicate every read fold uses (ADR 0077 §2):
+ * recognizes a rating retraction by its marker tag, BEFORE any payload parse,
+ * so `fromBookRatingEvent`'s score-required invariant stays intact.
+ * STUB (red): always false until implementation.
+ */
+export function isRatingRetraction(_event: {
+  readonly kind: number;
+  readonly tags: ReadonlyArray<readonly string[]>;
+}): boolean {
+  return false;
+}
+
 export function fromBookRatingEvent(event: BookRatingEvent): BookRating {
   const p = event.payload.bookRating;
   const raterTag = event.tags.find((t) => t[0] === "p");

@@ -262,6 +262,21 @@ export function buildRatingsRouter(deps: RatingsDeps): Router {
     }
   });
 
+  // Story 79 / ADR 0077 — STUBS (red): the removal endpoints land in
+  // implementation. Template mirrors /api/ratings/template; remove mirrors
+  // POST /api/ratings (tier-branched, idempotent short-circuit).
+  router.post("/api/ratings/remove/template", (_req, res) => {
+    res.status(501).json({
+      error: { code: "not_implemented", message: "Rating removal is not implemented yet." },
+    });
+  });
+
+  router.post("/api/ratings/remove", (_req, res) => {
+    res.status(501).json({
+      error: { code: "not_implemented", message: "Rating removal is not implemented yet." },
+    });
+  });
+
   // Public read-back for a book. Always returns the raw summary; when trust is
   // configured, also a trust-weighted view for the observer (ADR 0014).
   // `?observer=<npub|hex>` picks the vantage; default = the house observer.
