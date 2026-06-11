@@ -35,5 +35,5 @@ The deferred `DemoteControl` status read; the replaceable-write skeleton general
 - **§5:** `PromoteCell` gains one branch: `demote_pending`/`demoting` → `<span class="cs-item-state">Removal queued</span>`.
 
 ## Linked artifacts
-- Test plan: _pending (Tester)_
+- Test plan: `engineering-team/stories/82-code-debt-cleanup.test-plan.md`
 - Review: _pending (Reviewer)_
