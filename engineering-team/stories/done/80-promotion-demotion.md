@@ -1,6 +1,6 @@
 # Story 80: Demote a promoted book
 
-**Status:** Approved
+**Status:** Done
 **Created:** 2026-06-09
 **Type:** Feature
 **Carries:** Phase 2 #30b (`promotion-demotion`, deferred; stub superseded → `done/30b-promotion-demotion.md`)
