@@ -128,6 +128,41 @@ New tics will keep emerging as the models that produce them change. The taxonomy
 5. **Extensions flow through with the next update.** A new rule binds all new text immediately, and binds existing text the next time the staying-current rule touches it: any entry edited for any reason is edited against the current taxonomy, so the standard ratchets through the guide as the product evolves. A full retroactive sweep is never implied by an extension; it is commissioned deliberately, as its own story, when the accumulated delta justifies one.
 6. **Provenance.** Each extension is its own labeled commit naming the tic id and what prompted it, the same way ADRs record decisions. The taxonomy's history should read as a changelog of the genre's evolution.
 
+## Appendix M: the mechanical list (machine-readable)
+
+The scanner parses this fenced block directly, so the document and the machine list are the same artifact and the extension contract's "no drift" requirement holds by construction. An [M] extension edits the prose rule and this block in one commit. Severities: `error` fails the check; `flag` is reported for the judgment read and never fails it. `scope: "steps"` applies only to numbered step lines. Context-dependent words from [M] rules (banned only in their metaphorical or protocol sense) are encoded as `flag`, because a text search cannot judge sense; the edit pass does.
+
+```json taxonomy-mechanical-list
+{
+  "version": 1,
+  "contentGlobs": ["apps/web/src/guide/content/**/*.md"],
+  "exemptibleRules": ["E"],
+  "exemptMarker": "taxonomy-exempt:",
+  "rules": [
+    { "id": "A1", "name": "em dash", "kind": "substring", "patterns": ["\u2014"], "severity": "error" },
+    { "id": "A2", "name": "exclamation mark", "kind": "substring", "patterns": ["!"], "severity": "error" },
+    { "id": "A3", "name": "emoji", "kind": "regex", "patterns": ["\\p{Extended_Pictographic}"], "severity": "error" },
+    { "id": "B6", "name": "whether-you're", "kind": "substring", "patterns": ["whether you're", "whether you are"], "caseInsensitive": true, "severity": "error" },
+    { "id": "C1", "name": "hype lexicon", "kind": "word", "words": ["seamless", "seamlessly", "effortless", "effortlessly", "powerful", "robust", "intuitive", "delightful", "supercharge", "unlock", "elevate", "streamline", "leverage", "empower", "game-changing", "revolutionary", "vibrant", "ecosystem"], "severity": "error" },
+    { "id": "C1", "name": "hype lexicon (sense-dependent)", "kind": "word", "words": ["dive", "journey", "landscape", "navigate", "explore", "discover", "curated"], "severity": "flag" },
+    { "id": "C2", "name": "throat-clearing opener", "kind": "sentence-initial", "patterns": ["Essentially", "Basically", "Fundamentally", "At its core", "In essence", "Simply put", "It's worth noting", "Keep in mind", "Note that", "Importantly", "Interestingly"], "severity": "error" },
+    { "id": "C3", "name": "summary closer", "kind": "sentence-initial", "patterns": ["In short", "In summary", "Ultimately", "At the end of the day"], "severity": "error" },
+    { "id": "C4", "name": "simply", "kind": "word", "words": ["simply"], "severity": "error" },
+    { "id": "C4", "name": "just (in steps)", "kind": "word", "words": ["just"], "scope": "steps", "severity": "error" },
+    { "id": "C7", "name": "false warmth", "kind": "substring", "patterns": ["We're excited", "We're thrilled", "Welcome aboard", "Happy reading"], "caseInsensitive": true, "severity": "error" },
+    { "id": "F2", "name": "filtering verbs (judgment hints)", "kind": "word", "words": ["seems", "feels", "appears"], "severity": "flag" },
+    { "id": "F2", "name": "filtering phrases (judgment hints)", "kind": "substring", "patterns": ["looks like", "tends to"], "caseInsensitive": true, "severity": "flag" },
+    { "id": "F3", "name": "adverb crutches", "kind": "word", "words": ["really", "very", "actually", "easily", "quickly", "instantly", "incredibly", "surprisingly", "notably", "remarkably"], "severity": "error" },
+    { "id": "F3", "name": "automatically (literal use allowed)", "kind": "word", "words": ["automatically"], "severity": "flag" },
+    { "id": "E", "name": "protocol wall", "kind": "word", "words": ["nostr", "relay", "relays", "npub", "nsec", "NIP", "decentralized", "protocol"], "severity": "error" },
+    { "id": "E", "name": "protocol wall (phrases)", "kind": "substring", "patterns": ["web of trust", "key signing"], "caseInsensitive": true, "severity": "error" },
+    { "id": "E", "name": "protocol wall (sense-dependent)", "kind": "word", "words": ["event", "client", "kind"], "severity": "flag" }
+  ]
+}
+```
+
+The exemption mechanism: the one marked entry carries an HTML comment near its top, `<!-- taxonomy-exempt: E -->`. Only the rules named in `exemptibleRules` may be exempted; a file claiming exemption from any other rule is itself an error. The exemption silences `E` for that file and nothing else.
+
 ## What this supersedes
 
 For prose (the guide, and all new user-facing passages of more than a sentence): this document. For interface microcopy (buttons, labels, empty states, errors, confirmations): the social-loop style guide's "UI copy patterns" section stays in force, and its forbidden-phrases list is absorbed into C1/C7/E above. Where the two disagree about prose, this document wins.
