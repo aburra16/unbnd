@@ -105,7 +105,7 @@ services:
       - LIBRARIAN_NSEC=${LIBRARIAN_NSEC}
       # Genre recast (Story 75): reads the catalog off the LOCAL relay and
       # checkpoints on the seeder volume so a re-run resumes, not repeats.
-      - STRFRY_URL=${STRFRY_URL:-ws://strfry:7777}
+      - STRFRY_URL=${STRFRY_URL:-ws://tapestry/relay}
       - RECAST_CHECKPOINT=/data/recast-checkpoint
       # Catalog expansion (ADR 0054): the search API pages to a POST-GATE keep
       # target per genre (~1,250 x 8 ~ 10K), bounded by MAX_PAGES so a low
