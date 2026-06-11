@@ -1,9 +1,9 @@
 # Book of Work: Phase 3 — Close the Social Loop
 
 **Slug:** social-loop
-**Status:** Open
+**Status:** Closed
 **Opened:** 2026-06-06
-**Closed:** —
+**Closed:** 2026-06-11
 
 ## Intent anchor
 
@@ -58,8 +58,8 @@ From `product-team/stories-queue.md`, 18 stories in 3 ordered blocks. Each is pr
 
 ## Provenance
 - **Mode:** PRD-backed (anchor = `product-team/prd/social-loop.md`).
-- **Confidence at close:** to be set at book-close.
+- **Confidence at close:** **high** — manifest opened at intake; all 18 stories through the gated cycle, every review PASS; gates green at close (typecheck 0; 1,921 passed | 13 skipped; web build PASS); deviation log fully sourced.
 
-## Close artifacts *(filled by `/close-book`)*
-- Build audit: `engineering-team/audits/social-loop/audit.md`
-- Product feedback: `engineering-team/audits/social-loop/prd-addendum.md`
+## Close artifacts
+- Build audit: `engineering-team/audits/social-loop/audit.md` (written 2026-06-11)
+- Product feedback: `engineering-team/audits/social-loop/prd-addendum.md` (written 2026-06-11)
