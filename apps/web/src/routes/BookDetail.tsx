@@ -8,6 +8,7 @@ import { BookHeader } from "../components/BookHeader";
 import { RatingsPanel } from "../components/RatingsPanel";
 import { RatingControl } from "../components/RatingControl";
 import { TagControl } from "../components/TagControl";
+import { DemoteControl } from "../components/DemoteControl";
 import { ShelfControl } from "../components/ShelfControl";
 import { ClaimControl } from "../components/ClaimControl";
 import { AuthorEdit } from "../components/AuthorEdit";
@@ -196,6 +197,13 @@ export function BookDetail() {
       )}
       {slug && <TagControl bookSlug={slug} tags={tags} onChanged={reloadTags} />}
       {slug && <ShelfControl bookSlug={slug} />}
+      {slug && (
+        <DemoteControl
+          bookSlug={slug}
+          source={book.source}
+          canCurate={tags.canAssertAccusatory === true}
+        />
+      )}
       {book.purchaseUrl && (
         <WhereToRead
           links={[

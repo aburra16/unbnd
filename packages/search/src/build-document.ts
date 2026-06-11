@@ -12,6 +12,7 @@ import {
   fromBookTagEvent,
   fromBookTagAssertionEvent,
   fromWireEvent,
+  isDelistedRecord,
   isJunkRecord,
   type SignedNostrEvent,
 } from "@unbnd/schemas";
@@ -70,6 +71,11 @@ export function buildBookDocument(
   assertionEventsForBook: readonly SignedNostrEvent[],
   currentYear: number,
 ): SearchDocument | null {
+  if (isDelistedRecord(bookEvent)) {
+    // Story 80 / ADR 0078: a delisted record is never indexed: intentional
+    // (the predicate), not parse luck.
+    return null;
+  }
   const rec = parse(bookEvent, fromBookRecordEvent);
   if (!rec) return null;
   if (isJunkRecord(rec, currentYear)) {

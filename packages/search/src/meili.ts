@@ -103,6 +103,17 @@ export class MeiliProvider implements SearchProvider {
     }
   }
 
+  async delete(ids: readonly string[]): Promise<void> {
+    if (ids.length === 0) return;
+    const res = await this.#req(`/indexes/${INDEX}/documents/delete-batch`, {
+      method: "POST",
+      body: JSON.stringify(ids),
+    });
+    if (!res.ok) {
+      throw new Error(`meili: delete failed (status ${res.status})`);
+    }
+  }
+
   async deleteAll(): Promise<void> {
     const res = await this.#req(`/indexes/${INDEX}/documents`, { method: "DELETE" });
     if (!res.ok && res.status !== 404) {

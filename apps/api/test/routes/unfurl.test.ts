@@ -23,6 +23,7 @@ function book(overrides: Partial<PublicBook> = {}): PublicBook {
     slug: "orbital",
     title: "Orbital",
     authorName: "Samantha Harvey",
+    source: "openlibrary",
     blurb: "A day aboard the ISS.",
     coverUrl: "https://covers.example/orbital.jpg",
     publishYear: 2023,

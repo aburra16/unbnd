@@ -67,6 +67,17 @@ export type SubmissionsDeps = {
   readonly readPromotionStatuses?: (
     slugs: string[],
   ) => Promise<Map<string, PromotionStatus>>;
+  /**
+   * Enqueue a demotion (Story 80 / ADR 0078 §2): a gated UPDATE that moves a
+   * `done` (or retriable `demote_failed`) promotions row to `demote_pending`,
+   * recording the requesting curator. `not_promoted` = no demotable row (never
+   * promoted / seeded / in flight); `already` = already demoted or queued
+   * (idempotent no-op). Absent in fixtures that don't exercise demote.
+   */
+  readonly enqueueDemotion?: (
+    slug: string,
+    requestedBy: string,
+  ) => Promise<{ status: "queued" | "already" | "not_promoted" }>;
 };
 
 function cookieOf(req: Request): string | undefined {
@@ -314,6 +325,45 @@ export function buildSubmissionsRouter(deps: SubmissionsDeps): Router {
           .json({ error: { code: "not_supported", message: "Promotion unavailable." } });
       }
       const result = await deps.enqueuePromotion(req.params.slug, user.pubkeyHex);
+      res.status(200).json({ status: result.status });
+    } catch (err) {
+      next(err);
+    }
+  });
+
+  // Story 80 / ADR 0078 §4, the demote endpoint: the promote gate, mirrored
+  // (server-enforced, fail-closed), then the gated state-machine enqueue. The
+  // librarian key never touches this process; the off-path worker mints the
+  // delisting and removes the doc from the live search index.
+  router.post("/api/submissions/:slug/demote", async (req, res, next) => {
+    try {
+      const user = await deps.sessionUser(cookieOf(req));
+      if (!user) {
+        return void res
+          .status(401)
+          .json({ error: { code: "no_session", message: "Not signed in." } });
+      }
+      const threshold = deps.config.curatorThreshold ?? 0.5;
+      const weight = await houseWeightOf(user.pubkeyHex);
+      if (weight < threshold) {
+        return void res
+          .status(403)
+          .json({ error: { code: "below_gate", message: "Not a curator." } });
+      }
+      if (!deps.enqueueDemotion) {
+        return void res
+          .status(501)
+          .json({ error: { code: "not_supported", message: "Demotion unavailable." } });
+      }
+      const result = await deps.enqueueDemotion(req.params.slug, user.pubkeyHex);
+      if (result.status === "not_promoted") {
+        return void res.status(400).json({
+          error: {
+            code: "not_promoted",
+            message: "Only a promoted community book can be removed from the catalog.",
+          },
+        });
+      }
       res.status(200).json({ status: result.status });
     } catch (err) {
       next(err);

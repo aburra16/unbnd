@@ -41,6 +41,9 @@ function recordingProvider(): { provider: SearchProvider; calls: string[] } {
     index: vi.fn(async (_docs: readonly SearchDocument[]) => {
       calls.push("index");
     }),
+    delete: vi.fn(async (_ids: readonly string[]) => {
+      calls.push("delete");
+    }),
     search: vi.fn(async () => ({ hits: [], total: 0, offset: 0, limit: 0 })),
   } satisfies SearchProvider;
   return { provider, calls };

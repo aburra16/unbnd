@@ -19,7 +19,7 @@ import {
   type NostrEventTemplate,
   type SignedNostrEvent,
 } from "@unbnd/schemas";
-import { runPromotionCycle, type PromoterDeps } from "./index";
+import { runDemotionCycle, runPromotionCycle, type DemoterDeps, type PromoterDeps } from "./index";
 import { createQueue } from "./queue";
 import { connectRelay } from "@unbnd/relay";
 import { resolveProvider, reindexBook, type ProviderName } from "@unbnd/search";
@@ -152,8 +152,22 @@ async function promote(): Promise<void> {
     now: () => Math.floor(Date.now() / 1000),
   };
 
+  // Story 80 / ADR 0078: the demotion cycle rides the same cron run, sharing
+  // the queue, relays, signer, and provider.
+  const demoteDeps: DemoterDeps = {
+    librarianPubkey,
+    claimDemotePending: () => queue.claimDemotePending(),
+    sign: deps.sign,
+    publishLocal: deps.publishLocal,
+    publishDcosl: deps.publishDcosl,
+    markDemoted: (job, delistId) => queue.markDemoted(job, delistId),
+    markDemoteFailed: (job, reason) => queue.markDemoteFailed(job, reason),
+    searchDelete: (slugs) => searchProvider.delete(slugs),
+  };
+
   try {
     await runPromotionCycle(deps);
+    await runDemotionCycle(demoteDeps);
   } finally {
     local.close();
     dcosl.close();

@@ -1,7 +1,6 @@
 import express from "express";
 import { loadConfig } from "./config";
-import { createDb, db, enqueueReveal, readPromotionStatuses, readShelfCache, runMigrations } from "./db";
-import { promotions } from "./db/schema";
+import { createDb, db, enqueueDemotion, enqueuePromotion, enqueueReveal, readPromotionStatuses, readShelfCache, runMigrations } from "./db";
 import { retryWithBackoff, isRetryableConnError } from "./util/retry";
 import { errorSanitizer } from "./middleware/errors";
 import { probeNeo4j } from "./probes/neo4j";
@@ -598,22 +597,9 @@ async function main() {
       new Date().getUTCFullYear(),
     );
   };
-  // Enqueue a promotion (ADR 0031 §1). Idempotent on slug: the UNIQUE(slug)
-  // constraint reports a re-enqueue as `already` (no duplicate job). Shared by the
-  // manual promote route and the auto-promote maintenance sweep (ADR 0075). The
-  // off-path `apps/promoter` worker fulfills the row; the librarian secret is
-  // NEVER on this process (ADR 0031 §2).
-  const enqueuePromotion = async (slug: string, requestedBy: string) => {
-    try {
-      await db.insert(promotions).values({ slug, requestedBy });
-      return { status: "queued" as const };
-    } catch (err) {
-      if (err && typeof err === "object" && "code" in err && (err as { code?: string }).code === "23505") {
-        return { status: "already" as const };
-      }
-      throw err;
-    }
-  };
+  // Promotion + demotion enqueues live beside the state machine in src/db
+  // (Story 80 / ADR 0078 §2). The off-path apps/promoter worker fulfills the
+  // rows; the librarian secret is NEVER on this process (ADR 0031 §2).
 
   app.use("/", buildTagsRouter({ ...userEventDeps, reindexBook, enqueueReveal }));
   app.use("/", buildShelvesRouter(userEventDeps));
@@ -622,6 +608,7 @@ async function main() {
     buildSubmissionsRouter({
       ...userEventDeps,
       enqueuePromotion,
+      enqueueDemotion,
       // Batched promotion-state read for the enriched list (ADR 0031 §3b). ONE
       // `WHERE slug = ANY(...)` query over the page's slugs → Map<slug, status>.
       readPromotionStatuses,

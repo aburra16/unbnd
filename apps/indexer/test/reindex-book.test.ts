@@ -106,6 +106,7 @@ function fakeProvider(over: Partial<SearchProvider> = {}): SearchProvider {
     health: vi.fn(async () => ({ ok: true as const, provider: "meili" as const })),
     configureIndex: vi.fn(async () => {}),
     index: vi.fn(async (_docs: readonly SearchDocument[]) => {}),
+    delete: vi.fn(async (_ids: readonly string[]) => {}),
     deleteAll: vi.fn(async () => {}),
     search: vi.fn(async () => ({ hits: [], total: 0, offset: 0, limit: 0 })),
     ...over,

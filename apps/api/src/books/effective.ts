@@ -10,6 +10,7 @@ import {
   fromBookAuthorOverlayEvent,
   fromBookRecordEvent,
   fromWireEvent,
+  isDelistedRecord,
   isJunkRecord,
   type BookAuthorOverlay,
   type BookRecord,
@@ -35,6 +36,9 @@ export type PublicBook = Pick<
   | "isbn13"
   | "purchaseUrl"
   | "format"
+  // Story 80 / ADR 0078: provenance, so the web can gate the curator-only
+  // remove-from-catalog action to community-promoted books.
+  | "source"
 >;
 
 function toPublicBook(record: BookRecord): PublicBook {
@@ -52,6 +56,7 @@ function toPublicBook(record: BookRecord): PublicBook {
     isbn13: record.isbn13,
     purchaseUrl: record.purchaseUrl,
     format: record.format,
+    source: record.source,
   };
 }
 
@@ -59,6 +64,10 @@ export function parseBook(
   event: SignedNostrEvent,
   currentYear: number = new Date().getUTCFullYear(),
 ): PublicBook | null {
+  // Story 80 / ADR 0078: a DELISTED record never resolves to a book: the
+  // intentional predicate (checked before any parse), so detail 404s and
+  // browse/hydration drop it on every surface.
+  if (isDelistedRecord(event)) return null;
   try {
     const unsigned = fromWireEvent({ kind: event.kind, content: event.content, tags: event.tags });
     const record = fromBookRecordEvent(unsigned as never);
