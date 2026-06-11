@@ -7,7 +7,7 @@
 
 ## Why this exists
 
-The guide's reader is deciding whether to trust a product whose whole pitch is human taste. Text that sounds machine-made contradicts that pitch in the medium itself. Machine-sounding text is recognizable by specific, nameable habits. This document names them, so an editor can find them mechanically instead of arguing about vibes.
+The guide's reader is deciding whether to trust a product whose whole pitch is human taste. Text that sounds machine-made contradicts that pitch in the medium itself. Machine-sounding text is recognizable by specific, nameable habits. This document names them, so an editor can find them mechanically instead of arguing about vibes. The families run from punctuation (A) through sentence shapes (B), words (C), discourse (D), the protocol wall (E), and density and texture (F): the fiction-bred habits of reflexive adjectives, filtered perception, and adverb upholstery that bleed into any prose a model touches.
 
 ## Voice
 
@@ -84,6 +84,21 @@ Each tic: what it looks like, why it reads as machine text, and the fix. **[M]**
 Outside the one clearly marked entry in "Your account is yours" (the for-nostr-readers note), these words never appear in the guide: nostr, relay, event, protocol, decentralized, key signing, kind, npub, nsec, NIP, client (in the protocol sense), web of trust (as a term; the idea is described in plain words).
 Words the interface itself shows get plain-word treatment where they appear: "key" is allowed in the sovereignty entry because the product says it, and it is introduced as "the key to your account" with what it does before any property of it is discussed.
 
+### F. Density and texture tells (the fiction habits that bleed into prose)
+
+**F1. Reflexive adjectives. [J]** Machine prose rarely lets a noun stand alone: "the vibrant community," "a simple toggle," "your personal shelf," "a quick walkthrough."
+*Why:* the adjective arrives by reflex, not by information, and the cumulative effect is upholstery.
+*Fix:* bare nouns by default. An adjective survives editing only when it adds a fact the sentence needs ("a 1-to-5 rating" earns its place; "a handy rating" does not). The edit-pass habit: strike every adjective, then restore the ones whose absence loses information.
+
+**F2. Filtering verbs. [J, searchable hints]** Seems, feels, appears, looks like, tends to: a perception filter placed between the reader and the fact. "The house view can feel confusing at first." "This may seem like a lot."
+*Why:* the filter hedges and editorializes at once, and it narrates the reader's inner state to them.
+*Fix:* state the fact and let the reader have their own reaction. "The house view counts only people the network trusts."
+
+**F3. Adverb crutches. [M]** The intensifier and ease family beyond C4: really, very, actually, easily, quickly, instantly, incredibly, surprisingly, notably, remarkably, automatically (when the process is not literally automatic).
+*Fix:* cut, or replace with the concrete fact the adverb was gesturing at. "The shelf updates within the hour," never "the shelf updates quickly."
+
+**F4. The simile reflex. [J]** Decorative "like a..." comparisons. The D1 allowance (one comparison per entry, and only when it genuinely teaches) is the entire budget; similes count against it, and the default is none. A walkthrough never needs one.
+
 ## Positive guidance (what good looks like)
 
 1. Short declarative sentences, varied naturally. If three sentences in a row share a shape, reshape one.
@@ -100,7 +115,7 @@ Words the interface itself shows get plain-word treatment where they appear: "ke
 2. **Taxonomy edit.** A separate pass, against this document section by section, producing a **recorded diff** (its own commit, labeled as the edit pass). The mechanical rules **[M]** are checked by text search; the judgment rules **[J]** are applied by reading. An entry with zero edits in this pass is a flag, not a compliment: the reviewer reads it with extra suspicion.
 3. **Review.** The story reviewer verifies the edit-pass diff exists, runs the [M] searches independently, spot-reads against the [J] rules, and applies the read-aloud test to at least the entry's opening and its steps.
 
-The mechanical list, for searches and (engineering's call) a CI text check over guide content: `—`, `!`, the C1 lexicon, the C2 openers, the C3 closers, "simply", "just" (in step lines), "whether you're", the E-wall words.
+The mechanical list, for searches and (engineering's call) a CI text check over guide content: `—`, `!`, the C1 lexicon, the C2 openers, the C3 closers, the F3 adverbs, "simply", "just" (in step lines), "whether you're", "seems"/"feels"/"appears" (F2 hints, flagged for the judgment read), the E-wall words.
 
 ## What this supersedes
 
