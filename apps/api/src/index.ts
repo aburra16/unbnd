@@ -1,6 +1,6 @@
 import express from "express";
 import { loadConfig } from "./config";
-import { createDb, db, enqueueDemotion, enqueuePromotion, enqueueReveal, readPromotionStatuses, readShelfCache, runMigrations } from "./db";
+import { createDb, db, enqueueDemotion, enqueuePromotion, enqueueReveal, isUniqueViolation, readPromotionStatuses, readShelfCache, runMigrations } from "./db";
 import { retryWithBackoff, isRetryableConnError } from "./util/retry";
 import { errorSanitizer } from "./middleware/errors";
 import { probeNeo4j } from "./probes/neo4j";
@@ -206,13 +206,9 @@ async function main() {
           const session = await issueSession(tx, row.id);
           return { row, session };
         }).catch((err: unknown) => {
-          // Map the Postgres unique-violation on email to the typed error.
-          if (
-            err &&
-            typeof err === "object" &&
-            "code" in err &&
-            (err as { code?: string }).code === "23505"
-          ) {
+          // Map the Postgres unique-violation on email to the typed error
+          // (cause-aware: drizzle may wrap the PostgresError).
+          if (isUniqueViolation(err)) {
             throw Object.assign(new Error("email in use"), {
               code: "email_in_use",
             });

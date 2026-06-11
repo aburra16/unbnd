@@ -159,4 +159,17 @@ export const migrations: readonly Migration[] = [
       ALTER TABLE users ADD COLUMN IF NOT EXISTS key_exported_at TIMESTAMPTZ;
     `,
   },
+  {
+    // Story 80 / ADR 0078 §2: the demotion arc extends the promotions status
+    // machine, so the 0003 CHECK must admit the four demote states. Caught by
+    // the real-Postgres integration suite: without this, every demote write
+    // violates the constraint and demotion is broken on any real database.
+    name: "0007_promotions_demote_statuses",
+    sql: `
+      ALTER TABLE promotions DROP CONSTRAINT IF EXISTS promotions_status_check;
+      ALTER TABLE promotions ADD CONSTRAINT promotions_status_check
+        CHECK (status IN ('pending','promoting','done','failed',
+                          'demote_pending','demoting','demoted','demote_failed'));
+    `,
+  },
 ];

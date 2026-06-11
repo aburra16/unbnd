@@ -195,6 +195,25 @@ export async function readShelfCache(observerHex: string): Promise<CachedShelfSe
  * resets it to `pending` (ADR 0078 §2). The #77 auto-promote sweep skips any
  * slug with any status, so only this human path ever revives a demoted slug.
  */
+/**
+ * True iff the error is a Postgres unique violation (23505), whether thrown
+ * raw (postgres-js / inside a transaction) or wrapped by drizzle's
+ * DrizzleQueryError ("Failed query: ..." with the PostgresError on `cause`).
+ * The wrapper variant was caught by the real-Postgres integration suite: a
+ * top-level `code` check misses it and the caller throws instead of taking
+ * its conflict branch.
+ */
+export function isUniqueViolation(err: unknown): boolean {
+  if (!err || typeof err !== "object") return false;
+  if ((err as { code?: string }).code === "23505") return true;
+  const cause = (err as { cause?: unknown }).cause;
+  return (
+    !!cause &&
+    typeof cause === "object" &&
+    (cause as { code?: string }).code === "23505"
+  );
+}
+
 export async function enqueuePromotion(
   slug: string,
   requestedBy: string,
@@ -203,12 +222,7 @@ export async function enqueuePromotion(
     await db.insert(promotions).values({ slug, requestedBy });
     return { status: "queued" };
   } catch (err) {
-    if (
-      err &&
-      typeof err === "object" &&
-      "code" in err &&
-      (err as { code?: string }).code === "23505"
-    ) {
+    if (isUniqueViolation(err)) {
       // The slug has a row. A demoted row (and only a demoted row) is
       // revived by a deliberate re-promote.
       const reset = await db
