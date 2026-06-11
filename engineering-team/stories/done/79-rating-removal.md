@@ -1,6 +1,6 @@
 # Story 79: Remove a rating
 
-**Status:** Approved
+**Status:** Done
 **Created:** 2026-06-09
 **Type:** Feature
 **Carries:** Phase 2 #28b (`unrate-removal`, deferred)
