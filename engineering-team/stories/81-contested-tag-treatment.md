@@ -1,6 +1,6 @@
 # Story 81: Contested-tag treatment
 
-**Status:** Planning
+**Status:** Approved
 **Created:** 2026-06-09
 **Type:** Feature (read/presentation layer)
 

@@ -152,6 +152,7 @@ export function TagControl({ bookSlug, tags, onChanged }: Props) {
                 label={t.name}
                 count={t.applies}
                 community={sectionWeighted && !t.trusted}
+                contested={t.contested === true}
               />
             ))}
           </div>

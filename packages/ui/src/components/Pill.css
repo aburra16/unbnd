@@ -118,3 +118,19 @@
   border-color: var(--u-border-hover);
   color: var(--u-amber-hover);
 }
+
+/* Story 81 / ADR 0079 — the contested treatment (a treatment, not a color):
+ * transparent fill, muted ink, struck label, dashed border. The inner label
+ * un-strikes itself. */
+.pill-contested {
+  background: transparent;
+  color: var(--u-muted);
+  text-decoration: line-through;
+  border: 1px dashed var(--u-border);
+}
+
+.pill-contested-label {
+  text-decoration: none;
+  font-size: var(--u-font-size-10);
+  opacity: 0.7;
+}
