@@ -1,0 +1,82 @@
+# One-off staging operations, dispatched from the Actions tab or `gh workflow
+# run`. A FIXED menu of the documented droplet tasks (docs/DEPLOY.md) — never
+# arbitrary commands — over the same SSH deploy key staging.yml uses. Each
+# profile worker resolves UNBND_IMAGE_TAG from /opt/unbnd/.env (persisted by
+# the deploy), so a run always uses the deployed SHA.
+name: Staging ops
+
+on:
+  workflow_dispatch:
+    inputs:
+      task:
+        description: "Which documented staging task to run"
+        required: true
+        type: choice
+        options:
+          - promote # one promoter cycle (promotions + demotions + reveals)
+          - index # batch search-index rebuild
+          - shelves # homepage trust-shelf recompute
+          - recast # genre recast over the existing catalog (Story 75; idempotent)
+          - set-public-origin # ensure PUBLIC_ORIGIN in .env + restart the api
+          - show-status # read-only: crontab, deployed tag, recent worker logs
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check deploy target is configured
+        env:
+          DROPLET_HOST: ${{ secrets.DROPLET_HOST }}
+        run: |
+          if [ -z "$DROPLET_HOST" ]; then
+            echo "::error::DROPLET_HOST not set."
+            exit 1
+          fi
+
+      - name: Run the task over SSH
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.DROPLET_HOST }}
+          username: ${{ secrets.DROPLET_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          command_timeout: 60m
+          script: |
+            set -euo pipefail
+            cd /opt/unbnd
+            case "${{ inputs.task }}" in
+              promote)
+                docker compose -f docker-compose.prod.yml --profile promote run --rm promoter
+                ;;
+              index)
+                docker compose -f docker-compose.prod.yml --profile index run --rm indexer
+                ;;
+              shelves)
+                docker compose -f docker-compose.prod.yml --profile shelves run --rm shelves
+                ;;
+              recast)
+                # Pull the deployed seeder image, then run the recast entrypoint
+                # (bundled beside the seed; reads the LOCAL relay, librarian-signs
+                # genre assertions, checkpoints on the seeder volume).
+                docker compose -f docker-compose.prod.yml --profile seed pull seeder
+                docker compose -f docker-compose.prod.yml --profile seed run --rm seeder node recast.js
+                ;;
+              set-public-origin)
+                if grep -q '^PUBLIC_ORIGIN=' .env; then
+                  sed -i 's|^PUBLIC_ORIGIN=.*|PUBLIC_ORIGIN=https://staging.unbnd.ink|' .env
+                else
+                  printf '\nPUBLIC_ORIGIN=https://staging.unbnd.ink\n' >> .env
+                fi
+                docker compose -f docker-compose.prod.yml up -d api
+                echo "PUBLIC_ORIGIN ensured; api recreated."
+                ;;
+              show-status)
+                echo "--- deployed tag ---"
+                grep '^UNBND_IMAGE_TAG=' .env || echo "(none)"
+                echo "--- env keys present (names only) ---"
+                cut -d= -f1 .env | sort
+                echo "--- crontab ---"
+                crontab -l || echo "(no crontab)"
+                echo "--- containers ---"
+                docker compose -f docker-compose.prod.yml ps
+                ;;
+            esac

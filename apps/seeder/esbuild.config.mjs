@@ -3,12 +3,14 @@
 import { build } from "esbuild";
 
 await build({
-  entryPoints: ["src/index.ts"],
+  // Two one-off entrypoints ride the same image: the catalog seed (index) and
+  // the genre recast (Story 75 / ADR 0073; `run seeder node recast.js`).
+  entryPoints: ["src/index.ts", "src/recast.ts"],
   bundle: true,
   platform: "node",
   target: "node22",
   format: "esm",
-  outfile: "dist/index.js",
+  outdir: "dist",
   banner: {
     js: [
       "import { createRequire as __cr } from 'module';",

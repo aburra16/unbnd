@@ -160,6 +160,33 @@ never runs with the normal stack.
 
 ## Promotion worker (Story 30 / ADR 0031)
 
+## One-off staging ops without a shell (`Staging ops` workflow)
+
+The documented droplet tasks are dispatchable from GitHub Actions —
+`.github/workflows/staging-ops.yml` (Actions tab → "Staging ops" → Run
+workflow, or `gh workflow run "Staging ops" -f task=<task>`). Fixed menu:
+`promote` / `index` / `shelves` / `recast` / `set-public-origin` /
+`show-status` (read-only diagnostics). Each runs the same compose commands
+documented below over the CI deploy key, pinned to the deployed
+`UNBND_IMAGE_TAG`.
+
+### Genre recast (Story 75, one-time like a migration; idempotent)
+
+The seeder image bundles a second entrypoint `recast.js` (no Open Library
+fetch): it pages the existing catalog off the LOCAL relay, derives genres
+from each record's preserved subjects, and publishes the missing
+librarian-signed genre assertions. Checkpointed on the seeder volume, so a
+re-run resumes. Run it once after deploying the 16-genre taxonomy:
+
+```sh
+gh workflow run "Staging ops" -f task=recast
+```
+
+Check the run log's per-genre yield report: `booksSeen` should be near the
+known catalog size (paging didn't stall), and any genre printed `<-- EMPTY`
+should be dropped from `STARTER_TAXONOMY` before launch. Follow with a batch
+index rebuild (`-f task=index`) so search picks the new genres up.
+
 The promoter mints librarian-signed catalog records from curator-approved
 submissions. It holds `LIBRARIAN_NSEC` (the same secret the seeder uses) and runs
 off the internet-facing path — the API never holds the secret; it only enqueues
