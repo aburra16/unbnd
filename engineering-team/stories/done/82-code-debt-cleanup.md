@@ -1,6 +1,6 @@
 # Story 82: Code-debt cleanup
 
-**Status:** Approved
+**Status:** Done
 **Created:** 2026-06-09
 **Type:** Cleanup (zero behavior change, except the two flagged label additions)
 
