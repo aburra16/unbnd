@@ -26,6 +26,12 @@ interface ContainerOwnProps<T extends ElementType> {
    * page-with-extra-layout-class case the Link/Field precedent anticipates.
    */
   className?: string;
+  /**
+   * The frame geometry (ADR 0086). "page" (default) is the 720px reading
+   * column; "chrome" is the wide centered row inside a full-bleed bar.
+   * STUB (red): not yet honored.
+   */
+  frame?: "page" | "chrome";
   children: ReactNode;
 }
 
@@ -38,9 +44,11 @@ export type ContainerProps<T extends ElementType = "div"> =
 export function Container<T extends ElementType = "div">({
   as,
   className,
+  frame,
   children,
   ...rest
 }: ContainerProps<T>) {
+  void frame;
   const Tag = (as ?? "div") as ElementType;
   const merged = className ? `page ${className}` : "page";
   return (
