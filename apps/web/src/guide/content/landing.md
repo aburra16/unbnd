@@ -3,7 +3,7 @@ slot: landing
 sourceStories: 85
 ---
 
-We built Unbnd because a book recommendation is only as good as the person it came from. Here, the numbers on a book come from people, and you can always see which people. You rate and shelve books the way you always have. The difference is what the site does with everyone's ratings: instead of averaging the whole crowd, it can show you what the readers you trust think.
+We built Unbnd because a book recommendation is only as good as the person it came from. Here, the numbers on a book come from people, and you can always see which people. You rate and shelve books the way you always have. The difference is what the site does with everyone's ratings: instead of averaging the whole crowd, it also shows you what trusted readers think.
 
 ## Your first session
 
@@ -14,7 +14,7 @@ We built Unbnd because a book recommendation is only as good as the person it ca
 
 ## Why the numbers here are different
 
-Most book sites show you one average, computed from everyone. Unbnd shows you two views of every book, and a switch between them. The community view counts every rating. The Unbnd house view counts the readers this site's network has come to trust, the way a good bookshop's staff picks shelf counts the staff. When you have followed enough readers, you get a third view: yours. Same books, same honest counts, a different set of judges.
+Most book sites show you one average, computed from everyone. Unbnd shows you two views of every book, and a switch between them. The community view counts every rating. The Unbnd house view counts the readers this site's network has come to trust, the way a good bookshop's staff picks shelf counts the staff. When you have followed enough readers, you get a third view: yours. The books and the counts stay the same; the judges change.
 
 ## If you curate
 
