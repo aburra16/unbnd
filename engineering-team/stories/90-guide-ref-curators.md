@@ -1,6 +1,6 @@
 # Story 90: Reference: for curators
 
-**Status:** Planning
+**Status:** Approved
 **Created:** 2026-06-12
 **Type:** Content (inventory section 7; the recruit extension's reference depth)
 **Source brief:** `product-team/stories-queue.md` Story 8 · **PRD:** §5.2 · **Law:** the tic taxonomy · **Architecture:** none new.
@@ -12,4 +12,4 @@ Seven entries: what a curator is and the three paths to becoming one, vouching, 
 From the brief: every section 7 entry per the anatomy; the dignity test holds; the promotion entry covers both the curator action and the automatic path in plain words; the removal entry explains the queued state a curator sees; the flags entries separate the reader's view from the curator's powers; recorded edit diff, independent checks, scan clean.
 
 ## Linked artifacts
-ADR: none new · Test plan: the standing integrity guard · Review: _pending_
+ADR: none new · Test plan: the standing integrity guard · Review: `engineering-team/reviews/90-guide-ref-curators.md` (PASS)
