@@ -49,7 +49,15 @@ function parseRelated(value: string | undefined): string[] {
 
 export function loadGuide(raw: Record<string, string>): GuideContent {
   const bySection = new Map<string, GuideEntry[]>();
+  let landing: string | undefined;
   for (const [path, text] of Object.entries(raw)) {
+    // The root-level landing.md is the landing slot (Story 85 / ADR 0082):
+    // narrative, not an entry; the entry frontmatter rules do not apply.
+    if (/content\/landing\.md$/.test(path)) {
+      const fm = /^---\n[\s\S]*?\n---\n?/.exec(text);
+      landing = (fm ? text.slice(fm[0].length) : text).trim();
+      continue;
+    }
     const seg = /content\/([^/]+)\//.exec(path)?.[1];
     if (!seg || !GUIDE_SECTIONS.some((s) => s.slug === seg)) {
       throw new Error(`guide: ${path} is not under a known section directory`);
@@ -76,5 +84,5 @@ export function loadGuide(raw: Record<string, string>): GuideContent {
     entries.sort((a, b) => a.order - b.order);
     published.push({ ...meta, entries });
   }
-  return { published };
+  return landing === undefined ? { published } : { published, landing };
 }

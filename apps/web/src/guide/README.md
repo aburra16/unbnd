@@ -13,8 +13,12 @@ never derived:
     ---
 
 The body supports exactly the entry anatomy's constructs: paragraphs
-separated by blank lines, numbered step lines, `[text](/path)` links, and
-`**bold**` for the anatomy labels. Anything else renders as literal text.
+separated by blank lines, numbered step lines, `[text](/path)` links,
+`**bold**` for the anatomy labels, and (Story 85) a lone `## heading` line
+for the landing narrative's parts. Anything else renders as literal text.
+
+`landing.md` at this directory's root is the landing narrative slot: scanned
+like everything else, but not an entry (no anchor or name frontmatter).
 
 Every file under `content/` is scanned against the tic taxonomy's Appendix M
 (`pnpm --filter @unbnd/guide-lint lint:guide`). This README sits outside the

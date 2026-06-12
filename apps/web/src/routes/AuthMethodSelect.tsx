@@ -17,7 +17,8 @@ export function AuthMethodSelect() {
       footer={
         <>
           Already have an account?{" "}
-          <Link to="/auth">Use the same method you signed up with.</Link>
+          <Link to="/auth">Use the same method you signed up with.</Link>{" "}
+          Want the tour first? <Link to="/guide">Read the guide.</Link>
         </>
       }
     >

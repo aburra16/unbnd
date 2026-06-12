@@ -4,6 +4,8 @@
 import { Link } from "react-router-dom";
 import { Container } from "@unbnd/ui";
 import { useGuide } from "../guide/GuideContext";
+import { formatBody } from "../guide/format";
+import { GuideBlocks } from "../guide/GuideBlocks";
 import "./Guide.css";
 
 export function GuideLanding() {
@@ -12,6 +14,9 @@ export function GuideLanding() {
     <Container>
       <div className="guide-measure">
         <h1 className="guide-title">The Reader's Guide</h1>
+        {guide.landing !== undefined && (
+          <GuideBlocks blocks={formatBody(guide.landing)} />
+        )}
         {guide.published.length > 0 && (
           <nav className="guide-toc" aria-label="Guide contents">
             {guide.published.map((s) => (

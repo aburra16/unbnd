@@ -14,6 +14,7 @@ export type Block =
   | { readonly kind: "steps"; readonly items: readonly (readonly InlinePart[])[] };
 
 const STEP = /^\s*\d+\.\s+(.*)$/;
+const HEADING = /^##\s+(.+)$/;
 const INLINE = /\*\*([^*]+)\*\*|\[([^\]]+)\]\(([^)]+)\)/g;
 
 function parseInline(text: string): InlinePart[] {
@@ -35,6 +36,12 @@ export function formatBody(md: string): Block[] {
   for (const chunk of md.split(/\n\s*\n/)) {
     const lines = chunk.split("\n").filter((l) => l.trim() !== "");
     if (lines.length === 0) continue;
+    // A lone ## line is a heading (real document structure, Story 85);
+    // deeper hashes are not the construct and fall through to literal text.
+    if (lines.length === 1 && HEADING.test(lines[0]!)) {
+      blocks.push({ kind: "heading", text: HEADING.exec(lines[0]!)![1]! });
+      continue;
+    }
     if (lines.every((l) => STEP.test(l))) {
       blocks.push({
         kind: "steps",

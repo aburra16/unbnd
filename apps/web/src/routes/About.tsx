@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import { Container } from "@unbnd/ui";
 import { Nav } from "../components/Nav";
 import { Footer } from "../components/Footer";
@@ -13,6 +14,10 @@ export function About() {
         <h1 className="about-title">About Unbnd</h1>
         <p className="about-lede">
           Unbnd helps you find books through the readers you trust.
+        </p>
+        <p>
+          New here? <Link to="/guide">The guide</Link> walks through
+          everything, in plain words.
         </p>
         <p>
           Every rating and every genre or style tag is a signed event on the

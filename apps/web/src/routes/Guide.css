@@ -87,3 +87,7 @@
   margin-top: var(--u-space-24);
   padding-top: var(--u-space-12);
 }
+
+.guide-heading {
+  margin: var(--u-space-24) 0 var(--u-space-8);
+}
