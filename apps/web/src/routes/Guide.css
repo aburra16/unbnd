@@ -64,7 +64,7 @@
 .guide-tree summary {
   cursor: pointer;
   color: var(--u-ink);
-  font-weight: 600;
+  font-weight: var(--u-font-weight-semibold);
   padding: var(--u-space-4) 0;
   list-style-position: inside;
 }
