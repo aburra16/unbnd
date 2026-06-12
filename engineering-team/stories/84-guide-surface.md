@@ -33,4 +33,4 @@ For the Architect:
 ## Linked artifacts
 - ADR: `engineering-team/decisions/0081-guide-surface.md` (Accepted)
 - Test plan: `engineering-team/stories/84-guide-surface.test-plan.md`
-- Review: _pending_
+- Review: `engineering-team/reviews/84-guide-surface.md` (PASS)
