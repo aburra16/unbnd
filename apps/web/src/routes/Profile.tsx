@@ -132,7 +132,7 @@ export function Profile() {
               {npub}
             </p>
           )}
-          {npub && <TasteMatchChip target={npub} />}
+          {npub && <TasteMatchChip target={npub} withGuideLink />}
           {meta?.about && <p className="me-about">{meta.about}</p>}
           {meta?.substack && (
             <a
