@@ -1,6 +1,6 @@
 # Story 89: Reference: sharing, your profile, and for authors
 
-**Status:** Approved
+**Status:** Done
 **Created:** 2026-06-12
 **Type:** Content (inventory sections 5–6)
 **Source brief:** `product-team/stories-queue.md` Story 7 · **PRD:** §5.2 · **Law:** the tic taxonomy · **Architecture:** none new.
