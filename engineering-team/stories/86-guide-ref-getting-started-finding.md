@@ -1,6 +1,6 @@
 # Story 86: Reference: getting started + finding books
 
-**Status:** Planning
+**Status:** Approved
 **Created:** 2026-06-12
 **Type:** Content (the first reference batch; inventory sections 1–2)
 **Source brief:** `product-team/stories-queue.md` Story 4 · **PRD:** §5.2 · **Law:** the tic taxonomy (CI-scanned) · **Architecture:** none new; governed by ADR 0081/0082 (the content pipeline + the heading construct).
@@ -26,4 +26,4 @@ Sections 3–8 (#87–#91); the sideways trust links (#87); contextual links (#9
 ## Linked artifacts
 - ADR: none new (ADR 0081/0082 govern); the content-integrity test is recorded here.
 - Test plan: folded into this story (the integrity test + the process evidence).
-- Review: _pending_
+- Review: `engineering-team/reviews/86-guide-ref-getting-started-finding.md` (PASS)
