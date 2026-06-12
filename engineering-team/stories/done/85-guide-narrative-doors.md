@@ -1,6 +1,6 @@
 # Story 85: The start-here narrative and the three doors
 
-**Status:** Approved
+**Status:** Done
 **Created:** 2026-06-11
 **Type:** Feature (web + content; the writing process's proving run)
 **Source brief:** `product-team/stories-queue.md` Story 3 · **PRD:** §5.1/§5.2 · **Law:** the tic taxonomy (binding; the scan is live in CI)

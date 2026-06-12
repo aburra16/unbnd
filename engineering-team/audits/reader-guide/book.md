@@ -9,10 +9,10 @@
 **PRD-backed.** Anchor: `product-team/prd/reader-guide.md` (§5, all). Companion guides: `guides/reader-guide-design-guide.md` (+ wireframes), `guides/reader-guide-style-guide.md` (the tic taxonomy, binding; Appendix M is the machine seam). Queue: `product-team/stories-queue.md` (reader-guide, 10 briefs, 3 blocks). Completion is computed: every story below Done, and the scope inventory reconciles with zero gaps.
 
 ## Stories in this book
-**Block 1 — Foundation**
+**Block 1 — Foundation: COMPLETE (2026-06-11)**
 - #83 `tic-taxonomy-check` — the taxonomy + mechanical check ✅ MERGED (ADR 0080, review PASS)
 - #84 `guide-surface` — routes, anchors, the document frame (unlinked) ✅ MERGED (ADR 0081, review PASS)
-- #85 `guide-narrative-doors` — the start-here narrative + the three doors
+- #85 `guide-narrative-doors` — the start-here narrative + the three doors ✅ MERGED (ADR 0082, review PASS; the two-pass writing process proved out: draft + recorded edit-pass commits)
 
 **Block 2 — The reference**
 - #86 `guide-ref-getting-started-finding` — sections 1–2
