@@ -8,16 +8,16 @@ import { Pill } from "@unbnd/ui";
 import { useSession } from "../hooks/useSession";
 import { api, type TasteMatchResult } from "../lib/api";
 import "./TasteMatchChip.css";
+import { GuideLink } from "./GuideLink";
 
 export function TasteMatchChip({
   target,
   withGuideLink,
 }: {
   target: string;
-  /** Story 92 / ADR 0083: the profile placement's guide door. STUB (red). */
+  /** ADR 0083: only the profile placement carries the guide door. */
   withGuideLink?: boolean;
 }) {
-  void withGuideLink;
   const session = useSession();
   const signedIn = session.status === "signed-in";
   const isSelf = session.status === "signed-in" && session.user.npub === target;
@@ -48,10 +48,15 @@ export function TasteMatchChip({
 
   const books = result.commonBooks === 1 ? "book" : "books";
   return (
-    <Pill
-      variant="genre"
-      className="taste-match-chip"
-      label={`${result.percentage}% match · ${result.commonBooks} ${books} in common`}
-    />
+    <span className="taste-match-wrap">
+      <Pill
+        variant="genre"
+        className="taste-match-chip"
+        label={`${result.percentage}% match · ${result.commonBooks} ${books} in common`}
+      />
+      {withGuideLink && (
+        <GuideLink to="/guide/ratings-you-can-trust#taste-match" label="Taste match" />
+      )}
+    </span>
   );
 }

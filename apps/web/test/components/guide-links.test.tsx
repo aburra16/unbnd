@@ -1,7 +1,7 @@
 // FAILING TESTS — Story 92 / ADR 0083 (the contextual entry points).
 // One quiet mark, seven placements; each routes one click to its anchor.
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { act, fireEvent, render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { GuideLink } from "../../src/components/GuideLink";
 import { PoVBar } from "../../src/components/PoVBar";
@@ -18,7 +18,7 @@ vi.mock("../../src/hooks/useSession", () => ({ useSession: () => sessionMock() }
 vi.mock("../../src/lib/api", () => ({
   ApiError: class ApiError extends Error {},
   api: {
-    profile: { tasteMatch: vi.fn(async () => ({ signedIn: true, match: { percentage: 87, commonBooks: 24 } })) },
+    profile: { tasteMatch: vi.fn(async () => ({ signedIn: true, self: false, thresholdMet: true, percentage: 87, commonBooks: 24 })) },
     tags: { list: vi.fn(async () => ({ tags: [] })), template: vi.fn(), submit: vi.fn(), submitCustodial: vi.fn(), reveal: vi.fn() },
     submissions: { demote: vi.fn(async () => ({ status: "queued" })) },
   },
@@ -78,7 +78,7 @@ describe("the placements", () => {
     expect(findGuideLink(without.container)).toBeNull();
   });
 
-  it("TagControl carries the contested door when a chip is contested, and the reviewed door on the signals area", () => {
+  it("TagControl carries the contested door when a chip is contested, and the reviewed door on the signals area", async () => {
     const tags: BookTags = {
       genres: [{ slug: "g", name: "G", type: "genre", applies: 1, disputes: 2, trusted: true, contested: true }],
       styles: [],
@@ -87,17 +87,19 @@ describe("the placements", () => {
     const { container } = render(
       <MemoryRouter><TagControl bookSlug="b" tags={tags} /></MemoryRouter>,
     );
+    await act(async () => {});
     const links = Array.from(container.querySelectorAll("a.guide-what")).map((a) => a.getAttribute("href"));
     expect(links).toContain("/guide/rating-reviewing-tagging#contested");
     expect(links).toContain("/guide/rating-reviewing-tagging#reviewed-signals");
   });
 
-  it("TagControl shows NO contested door when nothing is contested", () => {
+  it("TagControl shows NO contested door when nothing is contested", async () => {
     const tags: BookTags = {
       genres: [{ slug: "g", name: "G", type: "genre", applies: 3, disputes: 0, trusted: true }],
       styles: [], signals: [],
     };
     const { container } = render(<MemoryRouter><TagControl bookSlug="b" tags={tags} /></MemoryRouter>);
+    await act(async () => {});
     const links = Array.from(container.querySelectorAll("a.guide-what")).map((a) => a.getAttribute("href"));
     expect(links).not.toContain("/guide/rating-reviewing-tagging#contested");
   });
@@ -106,8 +108,8 @@ describe("the placements", () => {
     const { container, getByRole, findByText } = render(
       <MemoryRouter><DemoteControl bookSlug="b" source="community" canCurate /></MemoryRouter>,
     );
-    getByRole("button", { name: /remove from catalog/i }).click();
-    (await findByText(/^Remove$/)).click();
+    fireEvent.click(getByRole("button", { name: /remove from catalog/i }));
+    fireEvent.click(await findByText(/^Remove$/));
     await findByText(/removal requested/i);
     at(findGuideLink(container), "/guide/for-curators#removing-a-book-from-the-catalog");
   });

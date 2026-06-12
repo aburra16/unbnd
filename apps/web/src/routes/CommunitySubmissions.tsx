@@ -12,6 +12,7 @@ import { useSession } from "../hooks/useSession";
 import { Button, Container } from "@unbnd/ui";
 import { api, type SubmittedBook } from "../lib/api";
 import "./CommunitySubmissions.css";
+import { GuideLink } from "../components/GuideLink";
 
 type State =
   | { status: "loading" }
@@ -59,7 +60,15 @@ function PromoteCell({
     submission.promotionStatus === "demote_pending" ||
     submission.promotionStatus === "demoting"
   ) {
-    return <span className="cs-item-state">Removal queued</span>;
+    return (
+      <span className="cs-item-state">
+        Removal queued
+        <GuideLink
+          to="/guide/for-curators#removing-a-book-from-the-catalog"
+          label="Removal"
+        />
+      </span>
+    );
   }
   if (!submission.canPromote) return null;
 

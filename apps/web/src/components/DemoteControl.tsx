@@ -8,6 +8,7 @@ import { useState } from "react";
 import { api } from "../lib/api";
 import { Button } from "@unbnd/ui";
 import "./DemoteControl.css";
+import { GuideLink } from "./GuideLink";
 
 export function DemoteControl({
   bookSlug,
@@ -86,6 +87,10 @@ export function DemoteControl({
       {step === "requested" && (
         <p className="demote-requested" role="status">
           Removal requested. The catalog updates shortly.
+          <GuideLink
+            to="/guide/for-curators#removing-a-book-from-the-catalog"
+            label="Removal"
+          />
         </p>
       )}
     </section>

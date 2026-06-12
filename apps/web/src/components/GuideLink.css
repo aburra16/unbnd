@@ -1,0 +1,21 @@
+/* Story 92: the quiet circled question mark. Tokens only; muted at rest,
+ * the standard link amber on hover. */
+.guide-what {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  margin-left: var(--u-space-4);
+  border: 1px solid var(--u-border);
+  border-radius: var(--u-radius-circle);
+  color: var(--u-muted);
+  font-size: var(--u-font-size-10);
+  text-decoration: none;
+  flex: none;
+}
+
+.guide-what:hover {
+  color: var(--u-amber);
+  border-color: var(--u-amber);
+}

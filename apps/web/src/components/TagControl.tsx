@@ -15,6 +15,7 @@ import {
 import { useSession } from "../hooks/useSession";
 import { Button, GenrePill } from "@unbnd/ui";
 import "./TagControl.css";
+import { GuideLink } from "./GuideLink";
 
 type Nip07 = {
   signEvent: (template: {
@@ -155,12 +156,22 @@ export function TagControl({ bookSlug, tags, onChanged }: Props) {
                 contested={t.contested === true}
               />
             ))}
+            {chips.some((t) => t.contested === true) && (
+              <GuideLink
+                to="/guide/rating-reviewing-tagging#contested"
+                label="Contested tags"
+              />
+            )}
           </div>
         </>
       )}
 
       {revealedSignals.length > 0 && (
         <div className="tagc-reviewed" aria-label="Reviewed signals">
+          <GuideLink
+            to="/guide/rating-reviewing-tagging#reviewed-signals"
+            label="Reviewed signals"
+          />
           {revealedSignals.map((s) => (
             <div key={`signal:${s.slug}`} className="tagc-reviewed-row">
               <span className="tagc-reviewed-chip">{s.name}</span>

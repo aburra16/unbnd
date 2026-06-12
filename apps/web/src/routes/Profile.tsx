@@ -25,6 +25,7 @@ import { toCardBook, shortNpub } from "../lib/view-model";
 import { useProfileMeta, displayNameOf } from "../hooks/useProfileMeta";
 import { NotFound } from "./NotFound";
 import "./ProfileMe.css";
+import { GuideLink } from "../components/GuideLink";
 
 // Build the stat cells from only the PRESENT fields (ADR 0019 AC-8, reused for
 // the target). An absent field contributes no cell; a present 0 renders 0.
@@ -122,6 +123,7 @@ export function Profile() {
           {vouchCount > 0 && (
             <p className="me-vouches">
               {vouchCount} trusted {vouchCount === 1 ? "person" : "people"} vouched
+          <GuideLink to="/guide/for-curators#vouching" label="Vouching" />
             </p>
           )}
           {meta?.nip05 && <p className="me-nip05">{meta.nip05}</p>}
