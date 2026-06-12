@@ -1,9 +1,9 @@
 # Book of Work: The Reader's Guide
 
 **Slug:** reader-guide
-**Status:** Open
+**Status:** Closed
 **Opened:** 2026-06-11
-**Closed:** —
+**Closed:** 2026-06-12
 
 ## Intent anchor
 **PRD-backed.** Anchor: `product-team/prd/reader-guide.md` (§5, all). Companion guides: `guides/reader-guide-design-guide.md` (+ wireframes), `guides/reader-guide-style-guide.md` (the tic taxonomy, binding; Appendix M is the machine seam). Queue: `product-team/stories-queue.md` (reader-guide, 10 briefs, 3 blocks). Completion is computed: every story below Done, and the scope inventory reconciles with zero gaps.
@@ -22,8 +22,14 @@
 - #90 `guide-ref-curators` — section 7 ✅ MERGED (review PASS; 7 entries)
 - #91 `guide-ref-sovereignty` — section 8 + the staying-current DoD rule + zero-gaps inventory ✅ MERGED (review PASS; Block 2 COMPLETE: 36/36 entries, the exemption proven E-only)
 
-**Block 3 — Meeting confusion**
-- #92 `guide-contextual-links` — the contextual entry points
+**Block 3 — Meeting confusion: COMPLETE (2026-06-12)**
+- #92 `guide-contextual-links` — the contextual entry points ✅ MERGED (ADR 0083, review PASS; GuideLink on 7 surfaces; the staying-current rule's first live application on the landing)
+
+**Operator refinement round (beyond the queue; staging review 2026-06-12)**
+- #93 `guide-site-chrome` — "How it works" top-nav door, footer rename, Nav/Footer on guide pages ✅ MERGED (ADR 0084, review PASS)
+- #94 `guide-rail-tree` — the docs-tree rail: one frozen GuideTree, disclosure + scroll-spy ✅ MERGED (ADR 0085, review PASS; guide-section.png = first guide visual baseline)
+- #95 `strip-authoring-comments` — the taxonomy-exempt marker had rendered as literal text; load-layer strip + a rendered-output CI sweep ✅ MERGED (review PASS)
+- #96 `chrome-content-split` — `--chrome-max` + Container `frame` + full-bleed bars + ONE PageShell across all 14 routes ✅ MERGED (ADR 0086, review PASS; supersedes ADR 0084 §4's shell threshold)
 
 ## The inventory reconciliation (Story 91; the zero-gaps record)
 Scope (`product-team/scope/reader-guide.md` §"Features extracted") against published entries. Every entry below carries a recorded taxonomy-edit diff in its batch's `edit(NN)` commit.
@@ -41,7 +47,7 @@ Scope (`product-team/scope/reader-guide.md` §"Features extracted") against publ
 | **Total** | | **36** | **0** |
 
 ## Deploy / ops notes
-- None yet. The guide ships with the web bundle; no new services, env, or workers.
+- The guide ships with the web bundle; no new services, env, or workers. All 14 stories live on staging at close (tip `9be22d0`, deploys verified in the live bundle).
 
 ## Carry-forward
 - Review #83: A4 (heading case) is edit-pass-enforced, not scanned; "NIP" as a case-insensitive word rule could match the noun "nip" (fix = an appendix edit, no code).
@@ -49,7 +55,7 @@ Scope (`product-team/scope/reader-guide.md` §"Features extracted") against publ
 
 ## Provenance
 - **Mode:** PRD-backed.
-- **Confidence at close:** to be set at book-close.
+- **Confidence at close:** HIGH — every story has a PASS review; the inventory reconciled 36/36 at #91; gates at close: typecheck 0, 1,987 passed | 13 skipped, build PASS; the diff walk found zero unprovenanced work.
 
 ## Close artifacts *(filled by `/close-book`)*
 - Build audit: `engineering-team/audits/reader-guide/audit.md`
