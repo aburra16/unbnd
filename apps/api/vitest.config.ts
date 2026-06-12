@@ -4,5 +4,13 @@ export default defineConfig({
   test: {
     environment: "node",
     include: ["test/**/*.test.ts"],
+    // Run test files in forked processes rather than worker threads. The
+    // route suites spin ephemeral supertest HTTP servers per file; under the
+    // threads pool at full-suite load on macOS this intermittently produced
+    // client-side "Parse Error: Expected HTTP/" transport failures (observed
+    // at the #79 and #84 post-merge gates, ~1 in 3 full runs, always green
+    // in isolation and on Linux CI). Process isolation removes the shared-
+    // runtime socket contention; measured clean across repeated full runs.
+    pool: "forks",
   },
 });
