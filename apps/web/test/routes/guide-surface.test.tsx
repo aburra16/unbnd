@@ -60,7 +60,10 @@ describe("GuideLanding — published sections only", () => {
   it("lists published sections with their entry names; unpublished sections are absent", () => {
     renderAt("/guide");
     expect(screen.getByRole("link", { name: /ratings you can trust/i })).toBeInTheDocument();
-    expect(screen.getByText("Taste match")).toBeInTheDocument();
+    // The name appears in the inline TOC and the docs tree (Story 94) — both
+    // are correct; the assertion is that it appears at all, and nowhere if
+    // unpublished.
+    expect(screen.getAllByText("Taste match").length).toBeGreaterThan(0);
     expect(screen.queryByText(/for curators/i)).not.toBeInTheDocument();
   });
 

@@ -11,6 +11,8 @@ import { GuideBlocks } from "../guide/GuideBlocks";
 import "./Guide.css";
 import { Nav } from "../components/Nav";
 import { Footer } from "../components/Footer";
+import { GuideTree } from "../guide/GuideTree";
+import { useActiveEntry } from "../guide/useActiveEntry";
 
 export function GuideSection() {
   const { section } = useParams();
@@ -18,6 +20,9 @@ export function GuideSection() {
   const guide = useGuide();
   const idx = guide.published.findIndex((s) => s.slug === section);
   const current = idx === -1 ? undefined : guide.published[idx];
+  const activeAnchor = useActiveEntry(
+    current ? current.entries.map((e) => e.anchor) : [],
+  );
 
   // Scroll to the anchored entry after render; a bad anchor stays at the top.
   useEffect(() => {
@@ -35,13 +40,11 @@ export function GuideSection() {
     <Container>
       <Nav />
       <div className="guide-section">
-        <nav className="guide-rail" aria-label="In this section">
-          {current.entries.map((e) => (
-            <Link key={e.anchor} to={`/guide/${current.slug}#${e.anchor}`}>
-              {e.name}
-            </Link>
-          ))}
-        </nav>
+        <GuideTree
+          sections={guide.published}
+          currentSlug={current.slug}
+          activeAnchor={activeAnchor}
+        />
         <div className="guide-measure">
           <p className="guide-crumb">
             <Link to="/guide">The Reader's Guide</Link>
