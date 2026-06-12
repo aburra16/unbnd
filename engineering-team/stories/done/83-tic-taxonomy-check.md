@@ -1,6 +1,6 @@
 # Story 83: The tic taxonomy lands with its mechanical check
 
-**Status:** Approved
+**Status:** Done
 **Created:** 2026-06-11
 **Type:** Feature (tooling + process; the reader-guide epic's foundation)
 **Source brief:** `product-team/stories-queue.md` Story 1 · **PRD:** `product-team/prd/reader-guide.md` §5.3/§7 · **Law:** `product-team/guides/reader-guide-style-guide.md` (the tic taxonomy)
