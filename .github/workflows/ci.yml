@@ -60,6 +60,12 @@ jobs:
       - name: Test
         run: pnpm -r test
 
+      # Story 83 / ADR 0080: the tic-taxonomy mechanical scan over guide
+      # content. Data-driven off the style guide's Appendix M; fails only on
+      # error-severity hits.
+      - name: Guide lint
+        run: pnpm --filter @unbnd/guide-lint lint:guide
+
       - name: Build web
         run: pnpm --filter @unbnd/web build
 

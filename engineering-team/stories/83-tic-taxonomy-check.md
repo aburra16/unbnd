@@ -1,6 +1,6 @@
 # Story 83: The tic taxonomy lands with its mechanical check
 
-**Status:** Planning
+**Status:** Approved
 **Created:** 2026-06-11
 **Type:** Feature (tooling + process; the reader-guide epic's foundation)
 **Source brief:** `product-team/stories-queue.md` Story 1 · **PRD:** `product-team/prd/reader-guide.md` §5.3/§7 · **Law:** `product-team/guides/reader-guide-style-guide.md` (the tic taxonomy)
@@ -36,5 +36,5 @@ For the Architect:
 
 ## Linked artifacts
 - ADR: `engineering-team/decisions/0080-tic-taxonomy-check.md` (Accepted)
-- Test plan: _pending (Tester)_
-- Review: _pending (Reviewer)_
+- Test plan: `engineering-team/stories/83-tic-taxonomy-check.test-plan.md`
+- Review: `engineering-team/reviews/83-tic-taxonomy-check.md` (PASS)
