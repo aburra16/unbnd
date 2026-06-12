@@ -1,6 +1,6 @@
 # Story 86: Reference: getting started + finding books
 
-**Status:** Approved
+**Status:** Done
 **Created:** 2026-06-12
 **Type:** Content (the first reference batch; inventory sections 1–2)
 **Source brief:** `product-team/stories-queue.md` Story 4 · **PRD:** §5.2 · **Law:** the tic taxonomy (CI-scanned) · **Architecture:** none new; governed by ADR 0081/0082 (the content pipeline + the heading construct).

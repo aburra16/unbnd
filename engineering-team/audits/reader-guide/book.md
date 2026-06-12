@@ -15,7 +15,7 @@
 - #85 `guide-narrative-doors` — the start-here narrative + the three doors ✅ MERGED (ADR 0082, review PASS; the two-pass writing process proved out: draft + recorded edit-pass commits)
 
 **Block 2 — The reference**
-- #86 `guide-ref-getting-started-finding` — sections 1–2
+- #86 `guide-ref-getting-started-finding` — sections 1–2 ✅ MERGED (review PASS; 10 entries; the staleness rule named for future batches)
 - #87 `guide-ref-trust` — section 3 (the heart)
 - #88 `guide-ref-rating-tagging` — section 4
 - #89 `guide-ref-sharing-authors` — sections 5–6
