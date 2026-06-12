@@ -65,9 +65,11 @@ describe("GuideLanding — published sections only", () => {
   });
 
   it("an empty guide renders the title and no section links", () => {
-    renderAt("/guide", loadGuide({}));
+    const { container } = renderAt("/guide", loadGuide({}));
     expect(screen.getByRole("heading", { name: /guide/i })).toBeInTheDocument();
-    expect(screen.queryAllByRole("link")).toHaveLength(0);
+    // Scoped to the contents: the page now carries the site chrome (Story 93),
+    // whose nav/footer links are not section links.
+    expect(container.querySelector(".guide-toc")).toBeNull();
   });
 });
 

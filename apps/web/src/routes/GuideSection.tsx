@@ -9,6 +9,8 @@ import { useGuide } from "../guide/GuideContext";
 import { formatBody } from "../guide/format";
 import { GuideBlocks } from "../guide/GuideBlocks";
 import "./Guide.css";
+import { Nav } from "../components/Nav";
+import { Footer } from "../components/Footer";
 
 export function GuideSection() {
   const { section } = useParams();
@@ -31,6 +33,7 @@ export function GuideSection() {
 
   return (
     <Container>
+      <Nav />
       <div className="guide-section">
         <nav className="guide-rail" aria-label="In this section">
           {current.entries.map((e) => (
@@ -73,6 +76,7 @@ export function GuideSection() {
           </div>
         </div>
       </div>
+      <Footer />
     </Container>
   );
 }

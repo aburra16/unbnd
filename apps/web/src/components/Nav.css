@@ -94,7 +94,8 @@
   .nav-right {
     gap: var(--u-space-14);
   }
-  .nav-link[href="/submit"] {
+  .nav-link[href="/submit"],
+  .nav-link[href="/guide"] {
     display: none;
   }
 }
