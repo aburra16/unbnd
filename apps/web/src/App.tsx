@@ -15,6 +15,8 @@ import { AuthEmailSignup } from "./routes/AuthEmailSignup";
 import { AuthNostrConnect } from "./routes/AuthNostrConnect";
 import { AuthWelcome } from "./routes/AuthWelcome";
 import { NotFound } from "./routes/NotFound";
+import { GuideLanding } from "./routes/GuideLanding";
+import { GuideSection } from "./routes/GuideSection";
 
 export function App() {
   return (
@@ -25,6 +27,8 @@ export function App() {
         <Route path="/genre/:slug" element={<GenreBrowse />} />
         <Route path="/browse" element={<Browse />} />
         <Route path="/about" element={<About />} />
+        <Route path="/guide" element={<GuideLanding />} />
+        <Route path="/guide/:section" element={<GuideSection />} />
         <Route path="/search" element={<Search />} />
         <Route path="/submissions" element={<CommunitySubmissions />} />
         <Route path="/submit" element={<Submit />} />

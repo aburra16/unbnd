@@ -1,6 +1,6 @@
 # Story 84: The guide surface
 
-**Status:** Planning
+**Status:** Approved
 **Created:** 2026-06-11
 **Type:** Feature (web)
 **Source brief:** `product-team/stories-queue.md` Story 2 · **PRD:** `product-team/prd/reader-guide.md` §5.1/§6/§7 · **Design:** `guides/reader-guide-design-guide.md` (+ wireframes)
@@ -32,5 +32,5 @@ For the Architect:
 
 ## Linked artifacts
 - ADR: `engineering-team/decisions/0081-guide-surface.md` (Accepted)
-- Test plan: _pending_
-- Review: _pending_
+- Test plan: `engineering-team/stories/84-guide-surface.test-plan.md`
+- Review: `engineering-team/reviews/84-guide-surface.md` (PASS)
