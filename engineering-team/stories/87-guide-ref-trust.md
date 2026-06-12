@@ -1,6 +1,6 @@
 # Story 87: Reference: ratings you can trust
 
-**Status:** Planning
+**Status:** Approved
 **Created:** 2026-06-12
 **Type:** Content (the heart of the guide; inventory section 3)
 **Source brief:** `product-team/stories-queue.md` Story 5 · **PRD:** §5.2 · **Law:** the tic taxonomy · **Architecture:** none new (ADR 0081/0082 govern).
@@ -20,4 +20,4 @@ From the brief:
 Sections 4–8 (#88–#91); contextual links (#92).
 
 ## Linked artifacts
-- ADR: none new. · Test plan: the standing integrity guard + process evidence. · Review: _pending_
+- ADR: none new. · Test plan: the standing integrity guard + process evidence. · Review: `engineering-team/reviews/87-guide-ref-trust.md` (PASS)
