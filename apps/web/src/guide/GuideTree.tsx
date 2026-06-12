@@ -2,7 +2,7 @@
 import type { GuideSection } from "./load";
 
 export function GuideTree(_props: {
-  sections: GuideSection[];
+  sections: readonly GuideSection[];
   currentSlug?: string;
   activeAnchor?: string;
 }) {
