@@ -37,6 +37,17 @@ function parseFrontmatter(raw: string, path: string): { fm: Frontmatter; body: s
   return { fm, body: raw.slice(m[0].length) };
 }
 
+// Story 95: lines that are entirely an HTML comment are authoring metadata
+// (the taxonomy-exemption marker the lint scanner reads) and never render.
+// Inline comments inside a sentence still reach the formatter and render
+// visibly wrong — they are not a sanctioned authoring form.
+function stripAuthoringComments(body: string): string {
+  return body
+    .split("\n")
+    .filter((line) => !/^\s*<!--.*-->\s*$/.test(line))
+    .join("\n");
+}
+
 function parseRelated(value: string | undefined): string[] {
   if (!value) return [];
   return value
@@ -55,7 +66,7 @@ export function loadGuide(raw: Record<string, string>): GuideContent {
     // narrative, not an entry; the entry frontmatter rules do not apply.
     if (/content\/landing\.md$/.test(path)) {
       const fm = /^---\n[\s\S]*?\n---\n?/.exec(text);
-      landing = (fm ? text.slice(fm[0].length) : text).trim();
+      landing = stripAuthoringComments(fm ? text.slice(fm[0].length) : text).trim();
       continue;
     }
     const seg = /content\/([^/]+)\//.exec(path)?.[1];
@@ -70,7 +81,7 @@ export function loadGuide(raw: Record<string, string>): GuideContent {
       name: fm.name,
       order: Number(fm.order ?? 0),
       related: parseRelated(fm.related),
-      body: body.trim(),
+      body: stripAuthoringComments(body).trim(),
     };
     const list = bySection.get(seg) ?? [];
     list.push(entry);
