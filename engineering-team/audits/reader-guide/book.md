@@ -16,7 +16,7 @@
 
 **Block 2 — The reference**
 - #86 `guide-ref-getting-started-finding` — sections 1–2 ✅ MERGED (review PASS; 10 entries; the staleness rule named for future batches)
-- #87 `guide-ref-trust` — section 3 (the heart)
+- #87 `guide-ref-trust` — section 3 (the heart) ✅ MERGED (review PASS; 6 entries; all #86 seams closed)
 - #88 `guide-ref-rating-tagging` — section 4
 - #89 `guide-ref-sharing-authors` — sections 5–6
 - #90 `guide-ref-curators` — section 7

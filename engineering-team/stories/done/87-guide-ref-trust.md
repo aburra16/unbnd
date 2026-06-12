@@ -1,6 +1,6 @@
 # Story 87: Reference: ratings you can trust
 
-**Status:** Approved
+**Status:** Done
 **Created:** 2026-06-12
 **Type:** Content (the heart of the guide; inventory section 3)
 **Source brief:** `product-team/stories-queue.md` Story 5 · **PRD:** §5.2 · **Law:** the tic taxonomy · **Architecture:** none new (ADR 0081/0082 govern).
