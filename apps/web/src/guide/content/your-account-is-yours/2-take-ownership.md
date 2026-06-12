@@ -14,7 +14,7 @@ sourceStories: 76
 
 **What stays the same.** Everything. Your account keeps working exactly as before; you sign in the same way; nothing about your day here changes.
 
-**What you become responsible for.** The key is the account. Anyone holding it can act as you, and a lost copy cannot be reissued by anyone, including us. Keep it like the key it is.
+**What you become responsible for.** The key is the account: anyone holding it can act as you, and a key that leaks cannot be un-leaked. Keep it like the key it is.
 
 **How to use it.**
 
