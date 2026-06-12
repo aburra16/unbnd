@@ -14,6 +14,7 @@ export function Footer() {
       </div>
       <div className="footer-links">
         <Link to="/about">About</Link>
+        <Link to="/guide">Guide</Link>
         <Link to="/submit">Submit</Link>
         <Link to="/submissions">Submissions</Link>
         {session.status === "signed-in" ? (

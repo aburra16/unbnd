@@ -1,6 +1,6 @@
 # Story 85: The start-here narrative and the three doors
 
-**Status:** Planning
+**Status:** Approved
 **Created:** 2026-06-11
 **Type:** Feature (web + content; the writing process's proving run)
 **Source brief:** `product-team/stories-queue.md` Story 3 · **PRD:** §5.1/§5.2 · **Law:** the tic taxonomy (binding; the scan is live in CI)
@@ -26,5 +26,5 @@ For the Architect:
 
 ## Linked artifacts
 - ADR: `engineering-team/decisions/0082-guide-narrative-doors.md` (Accepted)
-- Test plan: _pending_
-- Review: _pending_
+- Test plan: `engineering-team/stories/85-guide-narrative-doors.test-plan.md`
+- Review: `engineering-team/reviews/85-guide-narrative-doors.md` (PASS)

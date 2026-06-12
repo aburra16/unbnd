@@ -27,10 +27,11 @@ describe("formatBody — exactly the anatomy's constructs", () => {
   });
 
   it("unknown constructs render as literal paragraph text, never swallowed", () => {
-    const blocks = formatBody("## A heading that should not be here");
+    // (## became a real construct in Story 85; bullets remain outside the contract.)
+    const blocks = formatBody("- a bullet list that is not in the contract");
     expect(blocks).toHaveLength(1);
     const p = blocks[0]!;
     if (p.kind !== "paragraph") throw new Error("expected paragraph");
-    expect(p.parts[0]).toMatchObject({ kind: "text", text: "## A heading that should not be here" });
+    expect(p.parts[0]).toMatchObject({ kind: "text", text: "- a bullet list that is not in the contract" });
   });
 });

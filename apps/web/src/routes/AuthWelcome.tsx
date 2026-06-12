@@ -50,6 +50,12 @@ export function AuthWelcome() {
         Once you follow ten curators, recommendations will switch from the
         Unbnd house view to your own.
       </p>
+      <p
+        className="auth-welcome-note"
+        style={{ color: "var(--u-muted)", textAlign: "center" }}
+      >
+        Want the tour first? <RouterLink to="/guide">Read the guide.</RouterLink>
+      </p>
     </AuthShell>
   );
 }

@@ -21,21 +21,31 @@ function Inline({ parts }: { parts: readonly InlinePart[] }) {
 export function GuideBlocks({ blocks }: { blocks: readonly Block[] }) {
   return (
     <>
-      {blocks.map((b, i) =>
-        b.kind === "steps" ? (
-          <ol key={i} className="guide-steps">
-            {b.items.map((item, j) => (
-              <li key={j}>
-                <Inline parts={item} />
-              </li>
-            ))}
-          </ol>
-        ) : (
+      {blocks.map((b, i) => {
+        if (b.kind === "steps") {
+          return (
+            <ol key={i} className="guide-steps">
+              {b.items.map((item, j) => (
+                <li key={j}>
+                  <Inline parts={item} />
+                </li>
+              ))}
+            </ol>
+          );
+        }
+        if (b.kind === "heading") {
+          return (
+            <h2 key={i} className="guide-heading">
+              {b.text}
+            </h2>
+          );
+        }
+        return (
           <p key={i}>
             <Inline parts={b.parts} />
           </p>
-        ),
-      )}
+        );
+      })}
     </>
   );
 }
