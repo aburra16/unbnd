@@ -19,7 +19,7 @@
 - #87 `guide-ref-trust` — section 3 (the heart) ✅ MERGED (review PASS; 6 entries; all #86 seams closed)
 - #88 `guide-ref-rating-tagging` — section 4 ✅ MERGED (review PASS; 6 entries; 'catalog steward' naming carried to #90)
 - #89 `guide-ref-sharing-authors` — sections 5–6 ✅ MERGED (review PASS; 4 entries)
-- #90 `guide-ref-curators` — section 7
+- #90 `guide-ref-curators` — section 7 ✅ MERGED (review PASS; 7 entries)
 - #91 `guide-ref-sovereignty` — section 8 + the staying-current DoD rule + zero-gaps inventory
 
 **Block 3 — Meeting confusion**

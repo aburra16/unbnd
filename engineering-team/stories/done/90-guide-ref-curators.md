@@ -1,6 +1,6 @@
 # Story 90: Reference: for curators
 
-**Status:** Approved
+**Status:** Done
 **Created:** 2026-06-12
 **Type:** Content (inventory section 7; the recruit extension's reference depth)
 **Source brief:** `product-team/stories-queue.md` Story 8 · **PRD:** §5.2 · **Law:** the tic taxonomy · **Architecture:** none new.
