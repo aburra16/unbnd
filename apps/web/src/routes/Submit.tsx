@@ -1,16 +1,15 @@
 import { useEffect, useRef, useState } from "react";
 import { Link as RouterLink } from "react-router-dom";
-import { Nav } from "../components/Nav";
-import { Footer } from "../components/Footer";
 import { DuplicateCheck } from "../components/DuplicateCheck";
 import { GenrePillSelector } from "../components/GenrePillSelector";
 import { ToggleSwitch } from "../components/ToggleSwitch";
 import { AccountPrompt } from "../components/AccountPrompt";
 import { useSession } from "../hooks/useSession";
 import { coverGradient } from "../lib/view-model";
-import { Button, Container, Field, Label, Link } from "@unbnd/ui";
+import { Button, Field, Label, Link } from "@unbnd/ui";
 import { api, ApiError, type SignedEvent, type SubmissionInput } from "../lib/api";
 import "./Submit.css";
+import { PageShell } from "../components/PageShell";
 
 // Story 64 / ADR 0063: the five autofillable fields lifted to controlled state so
 // an OL ISBN lookup can fill them. Each input keeps its `name=`, so `onSubmit`'s
@@ -238,8 +237,7 @@ export function Submit() {
   }
 
   return (
-    <Container>
-      <Nav />
+    <PageShell>
       <header className="sub-head">
         <h1 className="sub-title">Submit a book to Unbnd</h1>
         <p className="sub-sub">
@@ -490,8 +488,6 @@ export function Submit() {
         </div>
       </form>
       )}
-
-      <Footer />
-    </Container>
+    </PageShell>
   );
 }

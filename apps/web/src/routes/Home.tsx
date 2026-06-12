@@ -1,6 +1,4 @@
 import { useEffect, useState } from "react";
-import { Nav } from "../components/Nav";
-import { Footer } from "../components/Footer";
 import { Hero } from "../components/Hero";
 import { PoVBar } from "../components/PoVBar";
 import { Shelf } from "../components/Shelf";
@@ -10,8 +8,9 @@ import { CallToAction } from "../components/CallToAction";
 import { api, type ForYou, type HomepageShelves } from "../lib/api";
 import { genreColor, toCardBook } from "../lib/view-model";
 import { useTrustView } from "../hooks/useTrustView";
-import { Button, Container } from "@unbnd/ui";
+import { Button } from "@unbnd/ui";
 import type { Book } from "../components/BookCard";
+import { PageShell } from "../components/PageShell";
 
 // The trust shelves, mapped to render-ready rows (Story 35 / ADR 0036 §5). Each
 // is shown ONLY when its book list is non-empty — an empty trust shelf is
@@ -107,8 +106,7 @@ export function Home() {
   }, []);
 
   return (
-    <Container>
-      <Nav />
+    <PageShell>
       <Hero />
       <PoVBar />
       {state.status === "loading" && (
@@ -196,7 +194,6 @@ export function Home() {
         ctaLabel="Get started"
         ctaHref="/auth"
       />
-      <Footer />
-    </Container>
+    </PageShell>
   );
 }

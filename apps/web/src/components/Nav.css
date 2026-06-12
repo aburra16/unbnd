@@ -1,10 +1,16 @@
+/* ADR 0086 §3: the bar is full-bleed (the border runs edge to edge); the
+ * inner .nav-row (a Container chrome row) carries the layout. */
 .nav {
+  border-bottom: 1px solid var(--u-border);
+  margin-bottom: var(--u-space-20);
+}
+
+.nav-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: var(--u-space-18) 0;
-  border-bottom: 1px solid var(--u-border);
-  margin-bottom: var(--u-space-20);
+  padding-top: var(--u-space-18);
+  padding-bottom: var(--u-space-18);
 }
 
 .nav-avatar {

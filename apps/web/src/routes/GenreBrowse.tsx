@@ -1,13 +1,11 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import { Container } from "@unbnd/ui";
-import { Nav } from "../components/Nav";
-import { Footer } from "../components/Footer";
 import { Breadcrumb } from "../components/Breadcrumb";
 import { BookGrid } from "../components/BookGrid";
 import { api } from "../lib/api";
 import { toCardBook } from "../lib/view-model";
 import type { Book } from "../components/BookCard";
+import { PageShell } from "../components/PageShell";
 
 type State =
   | { status: "loading" }
@@ -51,8 +49,7 @@ export function GenreBrowse() {
   }, [slug]);
 
   return (
-    <Container>
-      <Nav />
+    <PageShell>
       <Breadcrumb
         trail={[
           { label: "Home", to: "/" },
@@ -82,7 +79,6 @@ export function GenreBrowse() {
           {state.books.length > 0 && <BookGrid books={state.books} />}
         </>
       )}
-      <Footer />
-    </Container>
+    </PageShell>
   );
 }

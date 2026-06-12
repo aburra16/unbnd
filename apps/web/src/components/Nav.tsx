@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { Icon } from "@unbnd/ui";
+import { Container, Icon } from "@unbnd/ui";
 import { useSession } from "../hooks/useSession";
 import { AccountMenu } from "./AccountMenu";
 import { SearchBox } from "./SearchBox";
@@ -11,6 +11,7 @@ export function Nav() {
 
   return (
     <nav className="nav">
+      <Container frame="chrome" className="nav-row">
       <Link className="nav-logo" to="/">
         <Icon name="logo" size={26} />
         <span className="nav-wordmark">unbnd</span>
@@ -37,6 +38,7 @@ export function Nav() {
           </Link>
         ) : null}
       </div>
+      </Container>
     </nav>
   );
 }

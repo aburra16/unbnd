@@ -1,13 +1,10 @@
 import { Link } from "react-router-dom";
-import { Container } from "@unbnd/ui";
-import { Nav } from "../components/Nav";
-import { Footer } from "../components/Footer";
 import "./NotFound.css";
+import { PageShell } from "../components/PageShell";
 
 export function NotFound() {
   return (
-    <Container>
-      <Nav />
+    <PageShell>
       <section
         className="not-found-section"
         style={{
@@ -33,7 +30,6 @@ export function NotFound() {
           Back to the homepage →
         </Link>
       </section>
-      <Footer />
-    </Container>
+    </PageShell>
   );
 }

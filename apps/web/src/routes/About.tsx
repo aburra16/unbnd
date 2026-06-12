@@ -1,14 +1,11 @@
 import { Link } from "react-router-dom";
-import { Container } from "@unbnd/ui";
-import { Nav } from "../components/Nav";
-import { Footer } from "../components/Footer";
 import { Breadcrumb } from "../components/Breadcrumb";
 import "./About.css";
+import { PageShell } from "../components/PageShell";
 
 export function About() {
   return (
-    <Container>
-      <Nav />
+    <PageShell>
       <Breadcrumb trail={[{ label: "Home", to: "/" }, { label: "About" }]} />
       <article className="about">
         <h1 className="about-title">About Unbnd</h1>
@@ -34,7 +31,6 @@ export function About() {
           way.
         </p>
       </article>
-      <Footer />
-    </Container>
+    </PageShell>
   );
 }

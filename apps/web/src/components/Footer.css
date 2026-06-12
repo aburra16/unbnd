@@ -1,10 +1,16 @@
+/* ADR 0086 §3: full-bleed bar; the inner .footer-row (a Container chrome
+ * row) carries the layout. */
 .footer {
+  margin-top: var(--u-space-24);
+  border-top: 1px solid var(--u-border);
+}
+
+.footer-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: var(--u-space-22) 0;
-  margin-top: var(--u-space-24);
-  border-top: 1px solid var(--u-border);
+  padding-top: var(--u-space-22);
+  padding-bottom: var(--u-space-22);
 }
 
 .footer-left {

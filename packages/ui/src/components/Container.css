@@ -11,3 +11,12 @@
   margin: 0 auto;
   padding: 0 var(--page-pad-x) var(--u-space-32);
 }
+
+/* The chrome row (ADR 0086 §2): the inner centered row of a full-bleed
+ * nav/footer bar. Content keeps .page; chrome centers wider. Same horizontal
+ * padding token so the two frames share gutters below their max-widths. */
+.chrome-row {
+  max-width: var(--chrome-max);
+  margin: 0 auto;
+  padding: 0 var(--page-pad-x);
+}

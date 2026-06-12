@@ -616,6 +616,10 @@
   /* Layout */
   --page-max: 720px;
   --page-pad-x: 24px;
+  /* The chrome frame (ADR 0086): nav/footer rows center at this width while
+   * content keeps --page-max. Page geometry, not skin — themes must not
+   * redefine it. */
+  --chrome-max: 1200px;
 }
 
 /* ======================================================================= *

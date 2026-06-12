@@ -1,8 +1,5 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import { Container } from "@unbnd/ui";
-import { Nav } from "../components/Nav";
-import { Footer } from "../components/Footer";
 import { Breadcrumb } from "../components/Breadcrumb";
 import { BookHeader } from "../components/BookHeader";
 import { RatingsPanel } from "../components/RatingsPanel";
@@ -17,6 +14,7 @@ import { useTrustView } from "../hooks/useTrustView";
 import { useBookRatings } from "../hooks/useBookRatings";
 import { useSession } from "../hooks/useSession";
 import { NotFound } from "./NotFound";
+import { PageShell } from "../components/PageShell";
 import {
   api,
   ApiError,
@@ -101,25 +99,21 @@ export function BookDetail() {
 
   if (state.status === "loading") {
     return (
-      <Container>
-        <Nav />
+      <PageShell>
         <p className="route-status" role="status">
           Loading…
         </p>
-        <Footer />
-      </Container>
+      </PageShell>
     );
   }
 
   if (state.status === "error") {
     return (
-      <Container>
-        <Nav />
+      <PageShell>
         <p className="route-status" role="alert">
           Could not load this book. Try again.
         </p>
-        <Footer />
-      </Container>
+      </PageShell>
     );
   }
 
@@ -149,8 +143,7 @@ export function BookDetail() {
     session.status === "signed-in" && session.user.email === null;
 
   return (
-    <Container>
-      <Nav />
+    <PageShell>
       <Breadcrumb
         trail={[
           { label: "Home", to: "/" },
@@ -215,7 +208,6 @@ export function BookDetail() {
           ]}
         />
       )}
-      <Footer />
-    </Container>
+    </PageShell>
   );
 }

@@ -28,8 +28,9 @@ interface ContainerOwnProps<T extends ElementType> {
   className?: string;
   /**
    * The frame geometry (ADR 0086). "page" (default) is the 720px reading
-   * column; "chrome" is the wide centered row inside a full-bleed bar.
-   * STUB (red): not yet honored.
+   * column; "chrome" is the wide centered row inside a full-bleed bar
+   * (ADR 0086 §2). The default path emits class="page" byte-identical to the
+   * ADR 0049 contract.
    */
   frame?: "page" | "chrome";
   children: ReactNode;
@@ -48,9 +49,9 @@ export function Container<T extends ElementType = "div">({
   children,
   ...rest
 }: ContainerProps<T>) {
-  void frame;
   const Tag = (as ?? "div") as ElementType;
-  const merged = className ? `page ${className}` : "page";
+  const base = frame === "chrome" ? "chrome-row" : "page";
+  const merged = className ? `${base} ${className}` : base;
   return (
     <Tag className={merged} {...rest}>
       {children}

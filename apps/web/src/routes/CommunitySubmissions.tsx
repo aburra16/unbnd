@@ -5,14 +5,13 @@
 // counts/identities + the trust-weighted average, or "no trusted signal yet".
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { Nav } from "../components/Nav";
-import { Footer } from "../components/Footer";
 import { Breadcrumb } from "../components/Breadcrumb";
 import { useSession } from "../hooks/useSession";
-import { Button, Container } from "@unbnd/ui";
+import { Button } from "@unbnd/ui";
 import { api, type SubmittedBook } from "../lib/api";
 import "./CommunitySubmissions.css";
 import { GuideLink } from "../components/GuideLink";
+import { PageShell } from "../components/PageShell";
 
 type State =
   | { status: "loading" }
@@ -124,8 +123,7 @@ export function CommunitySubmissions() {
   };
 
   return (
-    <Container>
-      <Nav />
+    <PageShell>
       <Breadcrumb trail={[{ label: "Home", to: "/" }, { label: "Community submissions" }]} />
       <header className="cs-head">
         <h1 className="cs-title">Community submissions</h1>
@@ -168,7 +166,6 @@ export function CommunitySubmissions() {
           </ul>
         )
       )}
-      <Footer />
-    </Container>
+    </PageShell>
   );
 }

@@ -1,13 +1,11 @@
 import { useEffect, useState } from "react";
-import { Container } from "@unbnd/ui";
-import { Nav } from "../components/Nav";
-import { Footer } from "../components/Footer";
 import { Breadcrumb } from "../components/Breadcrumb";
 import { GenreGrid, type Genre } from "../components/GenreGrid";
 import { Shelf } from "../components/Shelf";
 import { api } from "../lib/api";
 import { genreColor, toCardBook } from "../lib/view-model";
 import type { Book } from "../components/BookCard";
+import { PageShell } from "../components/PageShell";
 
 type State =
   | { status: "loading" }
@@ -41,8 +39,7 @@ export function Browse() {
   }, []);
 
   return (
-    <Container>
-      <Nav />
+    <PageShell>
       <Breadcrumb trail={[{ label: "Home", to: "/" }, { label: "Browse" }]} />
       {state.status === "loading" && (
         <p className="route-status" role="status">
@@ -64,7 +61,6 @@ export function Browse() {
           )}
         </>
       )}
-      <Footer />
-    </Container>
+    </PageShell>
   );
 }
