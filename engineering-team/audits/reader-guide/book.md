@@ -17,7 +17,7 @@
 **Block 2 — The reference**
 - #86 `guide-ref-getting-started-finding` — sections 1–2 ✅ MERGED (review PASS; 10 entries; the staleness rule named for future batches)
 - #87 `guide-ref-trust` — section 3 (the heart) ✅ MERGED (review PASS; 6 entries; all #86 seams closed)
-- #88 `guide-ref-rating-tagging` — section 4
+- #88 `guide-ref-rating-tagging` — section 4 ✅ MERGED (review PASS; 6 entries; 'catalog steward' naming carried to #90)
 - #89 `guide-ref-sharing-authors` — sections 5–6
 - #90 `guide-ref-curators` — section 7
 - #91 `guide-ref-sovereignty` — section 8 + the staying-current DoD rule + zero-gaps inventory

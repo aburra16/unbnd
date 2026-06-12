@@ -1,6 +1,6 @@
 # Story 88: Reference: rating, reviewing, and tagging
 
-**Status:** Approved
+**Status:** Done
 **Created:** 2026-06-12
 **Type:** Content (inventory section 4)
 **Source brief:** `product-team/stories-queue.md` Story 6 · **PRD:** §5.2 · **Law:** the tic taxonomy · **Architecture:** none new (ADR 0081/0082 govern).
