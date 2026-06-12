@@ -54,6 +54,43 @@
   }
 }
 
+/* The docs tree (Story 94): disclosure groups inside the rail. The rail can
+ * outgrow the viewport once several sections are open; it scrolls in place. */
+.guide-tree {
+  max-height: calc(100vh - var(--u-space-48));
+  overflow-y: auto;
+}
+
+.guide-tree summary {
+  cursor: pointer;
+  color: var(--u-ink);
+  font-weight: var(--u-font-weight-semibold);
+  padding: var(--u-space-4) 0;
+  list-style-position: inside;
+}
+
+.guide-tree summary.guide-tree-current {
+  color: var(--u-amber);
+}
+
+.guide-tree details a {
+  display: block;
+  color: var(--u-muted);
+  text-decoration: none;
+  padding: var(--u-space-2) 0 var(--u-space-2) var(--u-space-16);
+}
+
+.guide-tree details a:hover {
+  color: var(--u-ink);
+}
+
+/* The accessibility claim and the visual claim are the same claim. */
+.guide-tree details a[aria-current="location"] {
+  color: var(--u-amber);
+  border-left: 2px solid var(--u-amber);
+  padding-left: var(--u-space-14);
+}
+
 .guide-crumb {
   margin: 0 0 var(--u-space-4);
   font-size: var(--u-font-size-90rem);

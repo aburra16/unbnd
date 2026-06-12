@@ -9,13 +9,16 @@ import { GuideBlocks } from "../guide/GuideBlocks";
 import "./Guide.css";
 import { Nav } from "../components/Nav";
 import { Footer } from "../components/Footer";
+import { GuideTree } from "../guide/GuideTree";
 
 export function GuideLanding() {
   const guide = useGuide();
   return (
     <Container>
       <Nav />
-      <div className="guide-measure">
+      <div className="guide-section">
+        <GuideTree sections={guide.published} />
+        <div className="guide-measure">
         <h1 className="guide-title">The Reader's Guide</h1>
         {guide.landing !== undefined && (
           <GuideBlocks blocks={formatBody(guide.landing)} />
@@ -41,6 +44,7 @@ export function GuideLanding() {
             ))}
           </nav>
         )}
+      </div>
       </div>
       <Footer />
     </Container>

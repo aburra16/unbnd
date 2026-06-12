@@ -87,4 +87,17 @@ test.describe("visual regression", () => {
     ).toBeVisible();
     await expect(page).toHaveScreenshot("submit.png", { fullPage: true });
   });
+
+  test("guide section", async ({ page }) => {
+    // Story 94: the first capture of the guide surface — the docs tree, the
+    // 66ch measure, and the site chrome (Story 93) together. Guide content is
+    // bundled and static, deterministic by construction; the mock fan-out only
+    // feeds the chrome.
+    await mockApi(page, { auth: "signed-out" });
+    await page.goto("/guide/ratings-you-can-trust");
+    await expect(
+      page.locator(".guide-title", { hasText: "Ratings you can trust" }),
+    ).toBeVisible();
+    await expect(page).toHaveScreenshot("guide-section.png", { fullPage: true });
+  });
 });
