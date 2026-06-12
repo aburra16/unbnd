@@ -10,4 +10,4 @@ sourceStories: 19, 23, 65
 
 **What visitors see that you do not.** A signed-in visitor also sees their taste match to you, computed from their own ratings. Two visitors see two different numbers; neither is "your score."
 
-**What stays accurate.** A count appears only when it is real. A profile with no followers reads "No followers yet" rather than showing a zero it cannot stand behind, and a count that hit a reading limit shows as "and more" rather than pretending to be exact.
+**What stays accurate.** A count shows only when it is real. A profile with no followers reads "No followers yet" rather than showing a zero it cannot stand behind, and a count that hit a reading limit keeps a plus sign after the number rather than pretending to be exact.
