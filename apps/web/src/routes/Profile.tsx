@@ -12,9 +12,7 @@ import {
   type PublicBook,
   type Shelf,
 } from "../lib/api";
-import { Nav } from "../components/Nav";
-import { Footer } from "../components/Footer";
-import { Avatar, Container } from "@unbnd/ui";
+import { Avatar } from "@unbnd/ui";
 import { BookGrid } from "../components/BookGrid";
 import { ProfileStats } from "../components/ProfileStats";
 import { FollowButton } from "../components/FollowButton";
@@ -26,6 +24,7 @@ import { useProfileMeta, displayNameOf } from "../hooks/useProfileMeta";
 import { NotFound } from "./NotFound";
 import "./ProfileMe.css";
 import { GuideLink } from "../components/GuideLink";
+import { PageShell } from "../components/PageShell";
 
 // Build the stat cells from only the PRESENT fields (ADR 0019 AC-8, reused for
 // the target). An absent field contributes no cell; a present 0 renders 0.
@@ -113,8 +112,7 @@ export function Profile() {
   const cells = statCells(stats);
 
   return (
-    <Container>
-      <Nav />
+    <PageShell>
       <header className="me-head">
         <Avatar label={name} seed={npub ?? ""} picture={meta?.picture} size={72} />
         <div className="me-id">
@@ -181,7 +179,6 @@ export function Profile() {
           <p className="me-empty">No public shelves yet.</p>
         )}
       </section>
-      <Footer />
-    </Container>
+    </PageShell>
   );
 }

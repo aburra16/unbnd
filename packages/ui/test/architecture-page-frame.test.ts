@@ -88,9 +88,11 @@ function walk(dir: string): string[] {
 // `--page-max-foo` would not match `--page-max`): each alternative is followed
 // by an optional run of fallback whitespace and a closing paren. Global so every
 // occurrence on a line is counted.
-const PAGE_FRAME_TOKEN = /var\(\s*(--page-max|--page-pad-x)\s*\)/g;
+// --chrome-max joined the geometry at ADR 0086 (the chrome row) — same home,
+// same rule.
+const PAGE_FRAME_TOKEN = /var\(\s*(--page-max|--page-pad-x|--chrome-max)\s*\)/g;
 
-describe("page frame: no raw --page-max/--page-pad-x outside Container (ADR 0049 §4)", () => {
+describe("page frame: no raw --page-max/--page-pad-x/--chrome-max outside Container (ADR 0049 §4, ADR 0086 §5)", () => {
   const files = SCAN_ROOTS.flatMap(walk);
 
   it("page-frame tokens are referenced only by Container.css and the bespoke .rate frame", () => {

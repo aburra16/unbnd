@@ -2,20 +2,17 @@
 // it carries the title and the contents of published sections only; #85
 // replaces the spare opening with the start-here narrative.
 import { Link } from "react-router-dom";
-import { Container } from "@unbnd/ui";
 import { useGuide } from "../guide/GuideContext";
 import { formatBody } from "../guide/format";
 import { GuideBlocks } from "../guide/GuideBlocks";
 import "./Guide.css";
-import { Nav } from "../components/Nav";
-import { Footer } from "../components/Footer";
 import { GuideTree } from "../guide/GuideTree";
+import { PageShell } from "../components/PageShell";
 
 export function GuideLanding() {
   const guide = useGuide();
   return (
-    <Container>
-      <Nav />
+    <PageShell>
       <div className="guide-section">
         <GuideTree sections={guide.published} />
         <div className="guide-measure">
@@ -46,7 +43,6 @@ export function GuideLanding() {
         )}
       </div>
       </div>
-      <Footer />
-    </Container>
+    </PageShell>
   );
 }

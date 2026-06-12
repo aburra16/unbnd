@@ -76,9 +76,10 @@ Tier-1 values (or override them in a theme); Tier-2 aliases resolve through the
 new raws automatically; app CSS, which only reads Tier 2, never changes. One
 edit site, zero app churn.
 
-The layout page-frame tokens `--page-max: 720px;` and `--page-pad-x: 24px;` sit
-at the end of the `:root` block and are treated as page geometry, not skin (see
-§5 page-frame guard).
+The layout page-frame tokens `--page-max: 720px;`, `--page-pad-x: 24px;`, and
+`--chrome-max: 1200px;` (ADR 0086: the nav/footer chrome row) sit at the end of
+the `:root` block and are treated as page geometry, not skin (see §5 page-frame
+guard).
 
 ---
 
@@ -198,7 +199,7 @@ hook. State rides on real typed props, never on a re-skinning class.
 | `Avatar` | `src/components/Avatar.tsx` + `Avatar.css` | kind-0 picture / deterministic-initials identity circle | `label`, `seed`, `picture?`, `size?` (default `30`). Colors come from `GENRE_PALETTE` (JS-injected, see §7) |
 | `Label` | `src/components/Field.tsx` + `Field.css` | the one consistent label skin (`.u-label`) | `htmlFor?`; `className` additive layout-only; `children` |
 | `Field` | `src/components/Field.tsx` + `Field.css` | the shared form-column layout (`.u-field`) | `className` (the form's divergent wrapper class, additive layout-only); `children`. Layout-only, owns no skin |
-| `Container` | `src/components/Container.tsx` + `Container.css` | the shared page frame (emits `class="page"`) | `as?` (default `"div"`); `className` additive layout-only; `children` |
+| `Container` | `src/components/Container.tsx` + `Container.css` | the shared page frame | `as?` (default `"div"`); `frame?: "page" \| "chrome"` (default `"page"` emits `class="page"`; `"chrome"` emits the wide centered `chrome-row` for nav/footer bars — ADR 0086); `className` additive layout-only; `children` |
 | `Icon` | `src/components/Icon/Icon.tsx` + `icons.tsx` | every `<svg>` in the app | `name: "search" \| "logo" \| "check" \| "bolt" \| "star"`; per-icon extras via a discriminated union: `search`/`logo` take `size?`, `check`/`bolt` take none, `star` takes `filled?`. Passing a wrong-icon prop is a type error |
 
 `IconName` is derived from the `ICONS` map keys with `keyof`, so a typo or an
@@ -227,7 +228,7 @@ Tier-1 raw → Tier-2 semantic. App CSS reads Tier 2 only. Real names below.
 | Elevation | `--u-raw-elevation-{hairline,1a,1b,1c,2,3,4a,4b,4c,ring-NN,ring-parchment,inset-hairline}` | `--u-elevation-*` (1:1) | `--u-raw-elevation-2: 0 3px 12px var(--u-ink-tint-10)`; `--u-elevation-2` |
 | Z-index | `--u-raw-z-{base,dropdown,popover}` (1 / 40 / 50) | `--u-z-{base,dropdown,popover}` | `--u-z-dropdown` |
 | Motion | `--u-raw-duration-<n>ms` (120/140/150/160/180/200), `--u-raw-ease-default: ease` | `--u-duration-<n>ms`, `--u-ease-default` | `--u-duration-150ms`, `--u-ease-default` |
-| Page frame | `--page-max: 720px`, `--page-pad-x: 24px` | (used directly, lives in `Container`) | see §5 page-frame guard |
+| Page frame | `--page-max: 720px`, `--page-pad-x: 24px`, `--chrome-max: 1200px` | (used directly, lives in `Container`) | see §5 page-frame guard. `--page-max` is the reading column; `--chrome-max` is the wide nav/footer row (ADR 0086) |
 | Breakpoints | not in CSS (custom props cannot be used in `@media`) | `breakpoints` TS const | `bp480`, `bp720`, `bp880` in `src/breakpoints.ts` |
 
 Two motion notes for accuracy:
@@ -262,7 +263,7 @@ architecture guards.)
 | `architecture-svg-literals.test.ts` | No raw `<svg>` in `apps/web/src` (use `Icon`). Comment-aware; catches dynamic forms. No deferred set — app code is at zero |
 | `architecture-breakpoints.test.ts` | Every `@media` pixel is a member of `breakpoints`, and every member is used; a hardcoded pixel in `matchMedia` / `innerWidth` comparisons is an offender |
 | `architecture-palette-sync.test.ts` | The TS palette (`GENRE_PALETTE`, `SEMANTIC_COLORS`) and the CSS Tier-1 raws stay byte-equal, so JS-injected colors and CSS tokens cannot drift |
-| `architecture-page-frame.test.ts` | `var(--page-max)` / `var(--page-pad-x)` appear only in `Container.css` and the one bespoke `RatingControl.css` `.rate` frame. Any other use is a hand-rolled page frame |
+| `architecture-page-frame.test.ts` | `var(--page-max)` / `var(--page-pad-x)` / `var(--chrome-max)` appear only in `Container.css` and the one bespoke `RatingControl.css` `.rate` frame. Any other use is a hand-rolled page frame |
 | `architecture-theme-completeness.test.ts` | Every declared `[data-theme]` redefines every `--u-raw-color-*` `:root` defines (completeness), and at least one theme proves the raw-tier swap while leaving the Tier-2 alias `--u-amber` untouched (indirection) |
 
 ### The allowlist mechanism
@@ -366,7 +367,10 @@ CSS directly (or primitivizing them first).
 - **The bespoke nav / footer / byline link family** — out of `Link`'s scope
   (ADR 0047). Lives in `apps/web/src/components/Nav.css` / `Nav.tsx`,
   `Footer.css` / `Footer.tsx`, and the byline `<a>`s rendered from
-  `RatedByRow.tsx` / `ReviewsList.tsx` / `lib/view-model.ts`.
+  `RatedByRow.tsx` / `ReviewsList.tsx` / `lib/view-model.ts`. Since ADR 0086 the
+  nav/footer are full-bleed bars whose inner row is `Container frame="chrome"`;
+  routes compose them through `PageShell` (`apps/web/src/components/PageShell.tsx`),
+  never directly.
 - **The signal pills** (`book-signal` / `cs-item-signal` / `tagc-reviewed`) —
   tone-keyed quality-signal tags with a different radius/tint model, not
   subsumed by `Pill` (ADR 0047). Lives in `BookCard.css` / `BookCard.tsx`,

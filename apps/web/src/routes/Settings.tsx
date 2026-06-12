@@ -9,11 +9,9 @@
 import { useState } from "react";
 import { Navigate } from "react-router-dom";
 import { api, ApiError, type SignedEvent } from "../lib/api";
-import { Nav } from "../components/Nav";
-import { Footer } from "../components/Footer";
 import { CopyButton } from "../components/CopyButton";
 import { SovereigntyCard } from "../components/SovereigntyCard";
-import { Button, Container, Field, Label } from "@unbnd/ui";
+import { Button, Field, Label } from "@unbnd/ui";
 import { shortNpub } from "../lib/view-model";
 import { useSession } from "../hooks/useSession";
 import {
@@ -22,6 +20,7 @@ import {
   displayNameOf,
 } from "../hooks/useProfileMeta";
 import "./Settings.css";
+import { PageShell } from "../components/PageShell";
 
 type Nip07 = {
   signEvent: (template: {
@@ -63,13 +62,11 @@ export function Settings() {
 
   if (session.status === "loading") {
     return (
-      <Container>
-        <Nav />
+      <PageShell>
         <p className="route-status" role="status">
           Loading…
         </p>
-        <Footer />
-      </Container>
+      </PageShell>
     );
   }
   if (session.status === "signed-out") {
@@ -148,8 +145,7 @@ export function Settings() {
   }
 
   return (
-    <Container>
-      <Nav />
+    <PageShell>
       <header className="set-head">
         <h1 className="set-title">Settings</h1>
         <p className="set-sub">
@@ -304,7 +300,6 @@ export function Settings() {
         {/* Sovereignty upgrade (Story 76 / ADR 0074): take ownership of your key. */}
         <SovereigntyCard user={user} />
       </section>
-      <Footer />
-    </Container>
+    </PageShell>
   );
 }

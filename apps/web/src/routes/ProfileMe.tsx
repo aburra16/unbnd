@@ -11,9 +11,7 @@ import {
   type Shelf,
   type SubmittedBook,
 } from "../lib/api";
-import { Nav } from "../components/Nav";
-import { Footer } from "../components/Footer";
-import { Avatar, Container } from "@unbnd/ui";
+import { Avatar } from "@unbnd/ui";
 import { BookGrid } from "../components/BookGrid";
 import { ProfileStats } from "../components/ProfileStats";
 import { CopyButton } from "../components/CopyButton";
@@ -21,6 +19,7 @@ import { toCardBook, shortNpub } from "../lib/view-model";
 import { useSession } from "../hooks/useSession";
 import { useProfileMeta, displayNameOf } from "../hooks/useProfileMeta";
 import "./ProfileMe.css";
+import { PageShell } from "../components/PageShell";
 
 // Build the stat cells from only the PRESENT fields (ADR 0019 AC-8). An absent
 // field contributes no cell (the stat is hidden); a present 0 renders 0. null
@@ -87,13 +86,11 @@ export function ProfileMe() {
 
   if (session.status === "loading") {
     return (
-      <Container>
-        <Nav />
+      <PageShell>
         <p className="route-status" role="status">
           Loading…
         </p>
-        <Footer />
-      </Container>
+      </PageShell>
     );
   }
   if (session.status === "signed-out") {
@@ -104,8 +101,7 @@ export function ProfileMe() {
   const name = displayNameOf(meta, user.displayName);
 
   return (
-    <Container>
-      <Nav />
+    <PageShell>
       <header className="me-head">
         <Avatar label={name} seed={user.npub} picture={meta?.picture} size={72} />
         <div className="me-id">
@@ -191,7 +187,6 @@ export function ProfileMe() {
           </p>
         )}
       </section>
-      <Footer />
-    </Container>
+    </PageShell>
   );
 }

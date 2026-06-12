@@ -4,15 +4,13 @@
 // landing is the recovery point; never an error page from inside the guide).
 import { useEffect } from "react";
 import { Link, Navigate, useLocation, useParams } from "react-router-dom";
-import { Container } from "@unbnd/ui";
 import { useGuide } from "../guide/GuideContext";
 import { formatBody } from "../guide/format";
 import { GuideBlocks } from "../guide/GuideBlocks";
 import "./Guide.css";
-import { Nav } from "../components/Nav";
-import { Footer } from "../components/Footer";
 import { GuideTree } from "../guide/GuideTree";
 import { useActiveEntry } from "../guide/useActiveEntry";
+import { PageShell } from "../components/PageShell";
 
 export function GuideSection() {
   const { section } = useParams();
@@ -37,8 +35,7 @@ export function GuideSection() {
   const next = idx < guide.published.length - 1 ? guide.published[idx + 1] : undefined;
 
   return (
-    <Container>
-      <Nav />
+    <PageShell>
       <div className="guide-section">
         <GuideTree
           sections={guide.published}
@@ -79,7 +76,6 @@ export function GuideSection() {
           </div>
         </div>
       </div>
-      <Footer />
-    </Container>
+    </PageShell>
   );
 }

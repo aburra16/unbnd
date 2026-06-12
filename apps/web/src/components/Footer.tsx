@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { Icon, SEMANTIC_COLORS } from "@unbnd/ui";
+import { Container, Icon, SEMANTIC_COLORS } from "@unbnd/ui";
 import { useSession } from "../hooks/useSession";
 import "./Footer.css";
 
@@ -7,6 +7,7 @@ export function Footer() {
   const session = useSession();
   return (
     <footer className="footer">
+      <Container frame="chrome" className="footer-row">
       <div className="footer-left">
         <Icon name="logo" size={16} fill={SEMANTIC_COLORS.muted} opacityScheme="soft" />
         <p className="footer-domain">unbnd.ink</p>
@@ -23,6 +24,7 @@ export function Footer() {
           <Link to="/auth">Sign in</Link>
         )}
       </div>
+      </Container>
     </footer>
   );
 }

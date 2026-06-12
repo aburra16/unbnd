@@ -1,14 +1,13 @@
 import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
-import { Nav } from "../components/Nav";
-import { Footer } from "../components/Footer";
 import { SearchBox } from "../components/SearchBox";
 import { BookGrid } from "../components/BookGrid";
-import { Button, Container } from "@unbnd/ui";
+import { Button } from "@unbnd/ui";
 import { api, type SearchHit } from "../lib/api";
 import { coverGradient } from "../lib/view-model";
 import type { Book } from "../components/BookCard";
 import "./Search.css";
+import { PageShell } from "../components/PageShell";
 
 const PAGE = 24;
 
@@ -70,8 +69,7 @@ export function Search() {
   }
 
   return (
-    <Container>
-      <Nav />
+    <PageShell>
       <div className="search-head">
         <SearchBox />
       </div>
@@ -109,7 +107,6 @@ export function Search() {
           )}
         </>
       )}
-      <Footer />
-    </Container>
+    </PageShell>
   );
 }
