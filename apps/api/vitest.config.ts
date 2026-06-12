@@ -12,5 +12,9 @@ export default defineConfig({
     // in isolation and on Linux CI). Process isolation removes the shared-
     // runtime socket contention; measured clean across repeated full runs.
     pool: "forks",
+    // Load headroom: a route test hit the 5s default under heavy parallel
+    // local load at the #90 gate (isolation-green; a different, milder class
+    // than the retired transport flake). Generous but finite.
+    testTimeout: 15000,
   },
 });
