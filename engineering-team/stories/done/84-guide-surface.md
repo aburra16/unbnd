@@ -1,6 +1,6 @@
 # Story 84: The guide surface
 
-**Status:** Approved
+**Status:** Done
 **Created:** 2026-06-11
 **Type:** Feature (web)
 **Source brief:** `product-team/stories-queue.md` Story 2 · **PRD:** `product-team/prd/reader-guide.md` §5.1/§6/§7 · **Design:** `guides/reader-guide-design-guide.md` (+ wireframes)

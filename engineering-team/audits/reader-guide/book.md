@@ -11,7 +11,7 @@
 ## Stories in this book
 **Block 1 — Foundation**
 - #83 `tic-taxonomy-check` — the taxonomy + mechanical check ✅ MERGED (ADR 0080, review PASS)
-- #84 `guide-surface` — routes, anchors, the document frame (unlinked)
+- #84 `guide-surface` — routes, anchors, the document frame (unlinked) ✅ MERGED (ADR 0081, review PASS)
 - #85 `guide-narrative-doors` — the start-here narrative + the three doors
 
 **Block 2 — The reference**
