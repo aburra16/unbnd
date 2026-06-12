@@ -6,6 +6,7 @@
 // perspective's raw + trusted averages.
 import { classifyHypeGap } from "../lib/view-model";
 import "./HypeGapIndicator.css";
+import { GuideLink } from "./GuideLink";
 
 export function HypeGapIndicator({
   rawAverage,
@@ -30,6 +31,7 @@ export function HypeGapIndicator({
         ●
       </span>
       {label}
+      <GuideLink to="/guide/ratings-you-can-trust#hidden-gem-and-overhyped" label="Hidden gem and Overhyped" />
     </p>
   );
 }

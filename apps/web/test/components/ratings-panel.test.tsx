@@ -18,6 +18,8 @@
 // view==='yours' and an npub is present"); here we assert the panel RENDERS the
 // `yours` slice it is handed (the behavior the old assertion ultimately guarded).
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+// GuideLink (Story 92) puts a router Link inside these components.
+import { MemoryRouter } from "react-router-dom";
 import { render, screen, fireEvent } from "@testing-library/react";
 import { RatingsPanel } from "../../src/components/RatingsPanel";
 import type { RatingsSummary } from "../../src/lib/api";
@@ -61,12 +63,14 @@ function renderPanel(
   } = {},
 ) {
   return render(
-    <RatingsPanel
-      slug="b1"
-      house={props.house ?? houseWeighted}
-      yours={props.yours ?? null}
-      status={props.status ?? "ready"}
-    />,
+    <MemoryRouter>
+      <RatingsPanel
+        slug="b1"
+        house={props.house ?? houseWeighted}
+        yours={props.yours ?? null}
+        status={props.status ?? "ready"}
+      />
+    </MemoryRouter>,
   );
 }
 

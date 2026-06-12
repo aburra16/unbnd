@@ -4,6 +4,7 @@
 import { useTrustView } from "../hooks/useTrustView";
 import { Button } from "@unbnd/ui";
 import "./PoVBar.css";
+import { GuideLink } from "./GuideLink";
 
 export function PoVBar() {
   const { status, view, setView, personalize, error } = useTrustView();
@@ -31,6 +32,7 @@ export function PoVBar() {
         <span className={yours ? "pov-dot pov-dot-positive" : "pov-dot"} aria-hidden="true" />
         <span className="pov-lead">Showing</span>
         <span className="pov-strong">{yours ? "your perspective" : "Unbnd house view"}</span>
+        <GuideLink to="/guide/ratings-you-can-trust#unbnd-house-view" label="The view switch" />
         {yours && <span className="pov-badge">personalized</span>}
         <div className="pov-right">
           <div className="pov-switcher" role="tablist" aria-label="Rating perspective">

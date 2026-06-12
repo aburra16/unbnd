@@ -4,6 +4,8 @@
 // nothing below the trusted-rater minimum or with no trusted average. Stubs
 // (classifyHypeGap throws; the indicator returns null) → positive cases fail red.
 import { describe, expect, it } from "vitest";
+// GuideLink (Story 92) puts a router Link inside these components.
+import { MemoryRouter } from "react-router-dom";
 import { render, screen } from "@testing-library/react";
 import {
   classifyHypeGap,
@@ -38,26 +40,22 @@ describe("classifyHypeGap", () => {
 
 describe("HypeGapIndicator", () => {
   it("renders a Hidden gem signal when the trusted network rates above the crowd", () => {
-    render(<HypeGapIndicator rawAverage={3.5} trustedAverage={4.6} trustedCount={3} />);
+    render(<MemoryRouter><HypeGapIndicator rawAverage={3.5} trustedAverage={4.6} trustedCount={3} /></MemoryRouter>);
     expect(screen.getByText(/hidden gem/i)).toBeInTheDocument();
   });
 
   it("renders an Overhyped signal when the crowd rates above the trusted network", () => {
-    render(<HypeGapIndicator rawAverage={4.6} trustedAverage={3.5} trustedCount={3} />);
+    render(<MemoryRouter><HypeGapIndicator rawAverage={4.6} trustedAverage={3.5} trustedCount={3} /></MemoryRouter>);
     expect(screen.getByText(/overhyped/i)).toBeInTheDocument();
   });
 
   it("renders nothing on consensus", () => {
-    const { container } = render(
-      <HypeGapIndicator rawAverage={4.0} trustedAverage={4.1} trustedCount={3} />,
-    );
+    const { container } = render(<MemoryRouter><HypeGapIndicator rawAverage={4.0} trustedAverage={4.1} trustedCount={3} /></MemoryRouter>);
     expect(container).toBeEmptyDOMElement();
   });
 
   it("renders nothing below the trusted-rater minimum", () => {
-    const { container } = render(
-      <HypeGapIndicator rawAverage={3.0} trustedAverage={5.0} trustedCount={1} />,
-    );
+    const { container } = render(<MemoryRouter><HypeGapIndicator rawAverage={3.0} trustedAverage={5.0} trustedCount={1} /></MemoryRouter>);
     expect(container).toBeEmptyDOMElement();
   });
 });
