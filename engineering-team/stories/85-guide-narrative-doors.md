@@ -26,5 +26,5 @@ For the Architect:
 
 ## Linked artifacts
 - ADR: `engineering-team/decisions/0082-guide-narrative-doors.md` (Accepted)
-- Test plan: _pending_
+- Test plan: `engineering-team/stories/85-guide-narrative-doors.test-plan.md`
 - Review: _pending_

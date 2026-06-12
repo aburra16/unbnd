@@ -10,6 +10,7 @@ export type InlinePart =
 
 export type Block =
   | { readonly kind: "paragraph"; readonly parts: readonly InlinePart[] }
+  | { readonly kind: "heading"; readonly text: string }
   | { readonly kind: "steps"; readonly items: readonly (readonly InlinePart[])[] };
 
 const STEP = /^\s*\d+\.\s+(.*)$/;

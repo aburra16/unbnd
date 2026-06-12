@@ -19,6 +19,8 @@ export type GuideSection = GuideSectionMeta & {
 export type GuideContent = {
   /** Sections with at least one entry, in manifest order. */
   readonly published: readonly GuideSection[];
+  /** The landing narrative body (content/landing.md), when published (Story 85). */
+  readonly landing?: string;
 };
 
 type Frontmatter = Record<string, string>;
