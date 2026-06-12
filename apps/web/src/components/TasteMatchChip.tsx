@@ -9,7 +9,15 @@ import { useSession } from "../hooks/useSession";
 import { api, type TasteMatchResult } from "../lib/api";
 import "./TasteMatchChip.css";
 
-export function TasteMatchChip({ target }: { target: string }) {
+export function TasteMatchChip({
+  target,
+  withGuideLink,
+}: {
+  target: string;
+  /** Story 92 / ADR 0083: the profile placement's guide door. STUB (red). */
+  withGuideLink?: boolean;
+}) {
+  void withGuideLink;
   const session = useSession();
   const signedIn = session.status === "signed-in";
   const isSelf = session.status === "signed-in" && session.user.npub === target;
