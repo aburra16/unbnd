@@ -1,6 +1,6 @@
 # Story 91: Reference: your account is yours + the staying-current rule
 
-**Status:** Approved
+**Status:** Done
 **Created:** 2026-06-12
 **Type:** Content + process (inventory section 8; Block 2 closes here)
 **Source brief:** `product-team/stories-queue.md` Story 9 · **PRD:** §5.2/§5.4 · **Law:** the tic taxonomy · **Architecture:** none new.

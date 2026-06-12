@@ -20,7 +20,7 @@
 - #88 `guide-ref-rating-tagging` — section 4 ✅ MERGED (review PASS; 6 entries; 'catalog steward' naming carried to #90)
 - #89 `guide-ref-sharing-authors` — sections 5–6 ✅ MERGED (review PASS; 4 entries)
 - #90 `guide-ref-curators` — section 7 ✅ MERGED (review PASS; 7 entries)
-- #91 `guide-ref-sovereignty` — section 8 + the staying-current DoD rule + zero-gaps inventory
+- #91 `guide-ref-sovereignty` — section 8 + the staying-current DoD rule + zero-gaps inventory ✅ MERGED (review PASS; Block 2 COMPLETE: 36/36 entries, the exemption proven E-only)
 
 **Block 3 — Meeting confusion**
 - #92 `guide-contextual-links` — the contextual entry points
