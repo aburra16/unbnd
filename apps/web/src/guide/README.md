@@ -23,3 +23,8 @@ like everything else, but not an entry (no anchor or name frontmatter).
 Every file under `content/` is scanned against the tic taxonomy's Appendix M
 (`pnpm --filter @unbnd/guide-lint lint:guide`). This README sits outside the
 glob on purpose; keep working notes here, never in `content/`.
+
+Forward references to sections that have not published yet are plain text,
+never links, and never carry scaffolding clauses like "once that section is
+published": those go stale silently. The batch that publishes the target adds
+the links (its acceptance criteria say so).

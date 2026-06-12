@@ -10,7 +10,7 @@ We built Unbnd because a book recommendation is only as good as the person it ca
 1. [Make an account](/guide/getting-started#creating-an-account), or look around first. Reading needs no account at all.
 2. Rate a few books you know well, right on [the book page](/guide/finding-books#the-book-page). Your rating counts the moment you save it.
 3. Save a book to a shelf, from the Shelves area on [the book page](/guide/finding-books#the-book-page), and make shelves of your own.
-4. Follow a reader whose taste you respect. Following is how the site learns whose judgment matters to you.
+4. [Follow a reader](/guide/ratings-you-can-trust#followers-and-following) whose taste you respect. Following is how the site learns whose judgment matters to you.
 
 ## Why the numbers here are different
 
