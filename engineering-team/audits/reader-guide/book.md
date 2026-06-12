@@ -30,6 +30,7 @@
 
 ## Carry-forward
 - Review #83: A4 (heading case) is edit-pass-enforced, not scanned; "NIP" as a case-insensitive word rule could match the noun "nip" (fix = an appendix edit, no code).
+- **Supertest transport flake RECURRED (2026-06-11, #84 post-merge gate):** "Parse Error: Expected HTTP/" now seen twice under full-suite load, in different untouched files each time (shelves-enriched at #79; profile-stats-following-count at #84). Isolation always green; CI unaffected (Linux). The social-loop watch item's threshold is met: promote a small fix chore (likely the api vitest pool/concurrency config on macOS, or supertest agent reuse) rather than keep watching. Slot it before or beside #85.
 
 ## Provenance
 - **Mode:** PRD-backed.
