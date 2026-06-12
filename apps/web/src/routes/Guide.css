@@ -1,0 +1,89 @@
+/* Story 84: the guide's document register. The product slowed down: the
+ * existing tokens and type scale, a reading measure, no cards around body
+ * text. Tokens only. */
+.guide-measure {
+  max-width: 66ch;
+  margin: 0 auto;
+  padding: var(--u-space-24) 0;
+}
+
+.guide-title {
+  margin: 0 0 var(--u-space-12);
+}
+
+.guide-toc {
+  border-top: 1px solid var(--u-border);
+  margin-top: var(--u-space-24);
+  padding-top: var(--u-space-12);
+  display: flex;
+  flex-direction: column;
+  gap: var(--u-space-12);
+}
+
+.guide-toc-title {
+  font-weight: var(--u-font-weight-semibold);
+  display: block;
+}
+
+.guide-toc-entries {
+  color: var(--u-muted);
+  font-size: var(--u-font-size-90rem);
+}
+
+.guide-section {
+  display: flex;
+  gap: var(--u-space-24);
+  align-items: flex-start;
+}
+
+.guide-rail {
+  flex: none;
+  width: 200px;
+  position: sticky;
+  top: var(--u-space-24);
+  display: flex;
+  flex-direction: column;
+  gap: var(--u-space-4);
+  font-size: var(--u-font-size-90rem);
+  padding-top: var(--u-space-24);
+}
+
+@media (max-width: 880px) {
+  .guide-rail {
+    display: none;
+  }
+}
+
+.guide-crumb {
+  margin: 0 0 var(--u-space-4);
+  font-size: var(--u-font-size-90rem);
+}
+
+.guide-entry {
+  margin-top: var(--u-space-24);
+}
+
+.guide-entry-name {
+  margin: 0 0 var(--u-space-8);
+}
+
+.guide-steps {
+  padding-left: var(--u-space-24);
+}
+
+.guide-steps li {
+  margin: var(--u-space-4) 0;
+}
+
+.guide-related {
+  color: var(--u-muted);
+  font-size: var(--u-font-size-90rem);
+}
+
+.guide-walk {
+  display: flex;
+  justify-content: space-between;
+  border-top: 1px solid var(--u-border);
+  margin-top: var(--u-space-24);
+  padding-top: var(--u-space-12);
+}
