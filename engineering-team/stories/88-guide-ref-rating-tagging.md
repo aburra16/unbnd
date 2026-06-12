@@ -1,6 +1,6 @@
 # Story 88: Reference: rating, reviewing, and tagging
 
-**Status:** Planning
+**Status:** Approved
 **Created:** 2026-06-12
 **Type:** Content (inventory section 4)
 **Source brief:** `product-team/stories-queue.md` Story 6 · **PRD:** §5.2 · **Law:** the tic taxonomy · **Architecture:** none new (ADR 0081/0082 govern).
@@ -12,4 +12,4 @@ The write actions and their honest un-dos, six entries: rating and reviewing (in
 From the brief: every section 4 inventory entry published per the anatomy; removal explains that rating again brings a rating back; the contested entry explains what a struck-through tag is telling the reader; the reviewed-flags entry explains what a flag like "AI generated" means, who reviewed it, and why it appears apart from normal tags, without naming internal machinery; each entry has the recorded edit diff, the independent mechanical check, a clean scan.
 
 ## Linked artifacts
-ADR: none new · Test plan: the standing integrity guard · Review: _pending_
+ADR: none new · Test plan: the standing integrity guard · Review: `engineering-team/reviews/88-guide-ref-rating-tagging.md` (PASS)
