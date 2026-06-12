@@ -24,4 +24,4 @@ Your ratings carry weight. When the site's network trusts your judgment, your ra
 
 ## The question marks around the site
 
-Next to the features this guide covers, you will find a small circled question mark. It opens the part of this guide that explains the thing you are looking at, so an answer is always one click away.
+Some of the trickier numbers and labels around the site carry a small circled question mark. It opens the part of this guide that explains them.
