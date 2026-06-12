@@ -7,11 +7,14 @@ import { useGuide } from "../guide/GuideContext";
 import { formatBody } from "../guide/format";
 import { GuideBlocks } from "../guide/GuideBlocks";
 import "./Guide.css";
+import { Nav } from "../components/Nav";
+import { Footer } from "../components/Footer";
 
 export function GuideLanding() {
   const guide = useGuide();
   return (
     <Container>
+      <Nav />
       <div className="guide-measure">
         <h1 className="guide-title">The Reader's Guide</h1>
         {guide.landing !== undefined && (
@@ -39,6 +42,7 @@ export function GuideLanding() {
           </nav>
         )}
       </div>
+      <Footer />
     </Container>
   );
 }

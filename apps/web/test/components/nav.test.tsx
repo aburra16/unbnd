@@ -41,3 +41,27 @@ describe("Nav session-aware rendering", () => {
     expect(screen.getByText("MC")).toBeInTheDocument();
   });
 });
+
+describe("the How it works door (Story 93 / ADR 0084)", () => {
+  it("links to /guide signed out, after Browse", () => {
+    sessionMock.mockReturnValue({ status: "signed-out", refresh: vi.fn() } as never);
+    renderNav();
+    const link = screen.getByRole("link", { name: "How it works" });
+    expect(link).toHaveAttribute("href", "/guide");
+    const labels = screen
+      .getAllByRole("link")
+      .map((a) => a.textContent)
+      .filter((t) => t === "Browse" || t === "How it works");
+    expect(labels).toEqual(["Browse", "How it works"]);
+  });
+
+  it("stays visible signed in", () => {
+    sessionMock.mockReturnValue({
+      status: "signed-in",
+      user: { npub: "npub1me", displayName: "Maria Curator" },
+      refresh: vi.fn(),
+    } as never);
+    renderNav();
+    expect(screen.getByRole("link", { name: "How it works" })).toHaveAttribute("href", "/guide");
+  });
+});

@@ -61,13 +61,13 @@ describe("the landing narrative (ADR 0082 §1–2)", () => {
 });
 
 describe("the doors (ADR 0082 §3)", () => {
-  it("the footer carries a Guide link beside About, site-wide", () => {
+  it("the footer carries a How it works link beside About, site-wide (renamed, Story 93)", () => {
     render(
       <MemoryRouter>
         <Footer />
       </MemoryRouter>,
     );
-    expect(screen.getByRole("link", { name: "Guide" })).toHaveAttribute("href", "/guide");
+    expect(screen.getByRole("link", { name: "How it works" })).toHaveAttribute("href", "/guide");
     expect(screen.getByRole("link", { name: "About" })).toBeInTheDocument();
   });
 });

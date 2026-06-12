@@ -22,6 +22,9 @@ export function Nav() {
         <Link className="nav-link" to="/browse">
           Browse
         </Link>
+        <Link className="nav-link" to="/guide">
+          How it works
+        </Link>
         <Link className="nav-link" to="/submit">
           Submit a book
         </Link>
