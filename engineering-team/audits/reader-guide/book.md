@@ -25,6 +25,21 @@
 **Block 3 — Meeting confusion**
 - #92 `guide-contextual-links` — the contextual entry points
 
+## The inventory reconciliation (Story 91; the zero-gaps record)
+Scope (`product-team/scope/reader-guide.md` §"Features extracted") against published entries. Every entry below carries a recorded taxonomy-edit diff in its batch's `edit(NN)` commit.
+
+| Section | Scope items | Published entries | Gaps |
+|---|---|---|---|
+| 1 getting-started | what Unbnd is · accounts · reading without one · first session | 4 (#86) | 0 |
+| 2 finding-books | search · genres · shelves · Hidden Gems · For You · book page | 6 (#86) | 0 |
+| 3 ratings-you-can-trust | view switch · trusted/community · taste match · sorting · hype gap · followers | 6 (#87) | 0 |
+| 4 rating-reviewing-tagging | rate/review/update · remove · suggest/dispute · contested · reviewed flags · shelves | 6 (#88) | 0 |
+| 5 sharing-and-your-profile | sharing a link · public profile | 2 (#89) | 0 |
+| 6 for-authors | claiming · verified authors | 2 (#89) | 0 |
+| 7 for-curators | role+paths · vouching · submit · promotion (both paths) · removal · flags · Curate | 7 (#90) | 0 |
+| 8 your-account-is-yours | your words · take ownership · the marked network note | 3 (#91) | 0 |
+| **Total** | | **36** | **0** |
+
 ## Deploy / ops notes
 - None yet. The guide ships with the web bundle; no new services, env, or workers.
 

@@ -20,4 +20,4 @@ Most book sites show you one average, computed from everyone. Unbnd shows you tw
 
 This part is for readers who were asked to help seed the site, and anyone whose ratings have earned standing here. You can skip it and come back.
 
-Your ratings carry weight. When the site's network trusts your judgment, your ratings shape the house view that every visitor sees, your tags steer how books are classified, and you can bring missing books into the catalog. You can also vouch for other readers whose taste you trust, which is how the circle of curators grows. The reference sections below walk through each of these, one at a time.
+Your ratings carry weight. When the site's network trusts your judgment, your ratings shape the house view that every visitor sees, your tags steer how books are classified, and you can bring missing books into the catalog. You can also vouch for other readers whose taste you trust, which is how the circle of curators grows. The [For curators](/guide/for-curators) section walks through each of these, one at a time.

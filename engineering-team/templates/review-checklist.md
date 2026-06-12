@@ -27,6 +27,10 @@
 - [ ] Concept header references use stable kind:pubkey:slug addresses.
 - [ ] Word-wrapper JSON shape matches the ADR.
 
+## Guide currency (if the diff adds or changes a user-facing surface)
+
+- [ ] The matching Reader's Guide entry (apps/web/src/guide/content/) is updated or added IN THIS STORY, through the draft-then-taxonomy-edit process with its recorded diff (PRD reader-guide §5.4, the staying-current rule). A user-facing change with no guide delta needs a stated reason.
+
 ## UI integrity (if the diff touches apps/web)
 - [ ] Brand tokens (from handoff §"Brand Design Tokens") used for every color, radius, and spacing decision. No new hex literals outside `tokens.css` and per-component genre/signal styling.
 - [ ] No icon libraries introduced. SVGs are inline and hand-crafted.

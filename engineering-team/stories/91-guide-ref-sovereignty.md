@@ -1,6 +1,6 @@
 # Story 91: Reference: your account is yours + the staying-current rule
 
-**Status:** Planning
+**Status:** Approved
 **Created:** 2026-06-12
 **Type:** Content + process (inventory section 8; Block 2 closes here)
 **Source brief:** `product-team/stories-queue.md` Story 9 · **PRD:** §5.2/§5.4 · **Law:** the tic taxonomy · **Architecture:** none new.
@@ -12,4 +12,4 @@ Three entries: what self-ownership means in practice, the sovereignty deep entry
 From the brief: the sovereignty entry is the complete calm explanation (what you have now, what changes, what stays the same, what you become responsible for); the wider-network note is one clearly marked entry and the wall holds everywhere else, provable by the scan; the staying-current rule binds future stories via the review checklist; the inventory table shows every scope entry published with a recorded edit diff, zero gaps.
 
 ## Linked artifacts
-ADR: none new · Test plan: the standing integrity guard + the scan over the first real exemption · Review: _pending_
+ADR: none new · Test plan: the standing integrity guard + the scan over the first real exemption · Review: `engineering-team/reviews/91-guide-ref-sovereignty.md` (PASS)
