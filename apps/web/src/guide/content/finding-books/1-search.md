@@ -12,6 +12,6 @@ sourceStories: 13, 14, 56, 60
 
 **How to use it.**
 
-1. Type a title, an author, or a mood like "thriller" into the box.
+1. Type a title, an author, or a genre like "thriller" into the box.
 2. Press enter for the full results page, or pick from the suggestions as you type.
 3. Open any result to land on its book page.

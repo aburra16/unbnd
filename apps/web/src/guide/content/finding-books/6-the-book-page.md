@@ -19,4 +19,4 @@ sourceStories: 10, 28, 66, 70
 7. Shelves: save the book to one of yours.
 8. Where to read: a link out to buy or borrow, when one exists.
 
-Several of those areas have their own entries in "Ratings you can trust," published with the next part of this guide.
+Several of those areas have their own entries in "Ratings you can trust."
