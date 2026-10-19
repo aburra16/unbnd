@@ -17,6 +17,7 @@ on:
           - index # batch search-index rebuild
           - shelves # homepage trust-shelf recompute
           - recast # genre recast over the existing catalog (Story 75; idempotent)
+          - headers # publish the seeder-owned list headers only (Story 97; idempotent)
           - set-public-origin # ensure PUBLIC_ORIGIN in .env + restart the api
           - install-cron # install the documented worker crontab (idempotent)
           - show-status # read-only: crontab, deployed tag, recent worker logs
@@ -60,6 +61,13 @@ jobs:
                 # genre assertions, checkpoints on the seeder volume).
                 docker compose -f docker-compose.prod.yml --profile seed pull seeder
                 docker compose -f docker-compose.prod.yml --profile seed run --rm seeder node recast.js
+                ;;
+              headers)
+                # Pull the deployed seeder image, then publish only the headers it
+                # owns (librarian-signed, to dcosl; the down-sync cron brings them
+                # to the local relay). The same templates a full seed publishes.
+                docker compose -f docker-compose.prod.yml --profile seed pull seeder
+                docker compose -f docker-compose.prod.yml --profile seed run --rm seeder node headers.js
                 ;;
               install-cron)
                 # The documented schedule (docs/DEPLOY.md): relay down-sync +

@@ -21,7 +21,7 @@ import { fetchSubjectSearch, SEEDER_USER_AGENT } from "./search";
 import { deriveSlug, mapSearchDocToBookRecord } from "./openlibrary";
 import { EDITION_MIN, type OLSearchDoc } from "./gate";
 import { dedupBooks, type CollectedBook } from "./dedup";
-import { buildConceptHeaderTemplate } from "./headers";
+import { seededHeaderTemplates } from "./headers";
 import { STARTER_TAXONOMY } from "./taxonomy";
 import { subjectsToGenres } from "./genres";
 import { loadCheckpoint } from "./checkpoint";
@@ -119,14 +119,9 @@ async function main() {
     return r.ok;
   };
 
-  // 1. Concept headers: catalog + the two classification concepts.
-  for (const h of [
-    { slug: "books", name: "books", title: "Books" },
-    { slug: "book-tags", name: "book-tags", title: "Book tags" },
-    { slug: "book-tag-assertions", name: "book-tag-assertions", title: "Book tag assertions" },
-    { slug: "book-submissions", name: "book-submissions", title: "Book submissions" },
-  ]) {
-    await publish(buildConceptHeaderTemplate({ ...h, createdAt: now() }), `header:${h.slug}`);
+  // 1. Concept headers (ADR 0087: one source, shared with headers.js).
+  for (const h of seededHeaderTemplates(librarian, now())) {
+    await publish(h, `header:${h.tags.find((t) => t[0] === "d")![1]}`);
     await sleep(rateMs);
   }
 
