@@ -33,3 +33,23 @@ export function buildConceptHeaderTemplate(
     ],
   };
 }
+
+// STUBS (red): Story 97 / ADR 0087.
+export type LinkTemplate = {
+  readonly id: string;
+  readonly relay: string;
+  readonly placeholder: string;
+  readonly field: string;
+};
+
+export function buildBooksHeaderTemplate(_input: {
+  readonly librarian: string;
+  readonly createdAt: number;
+  readonly links: readonly LinkTemplate[];
+}): NostrEventTemplate {
+  throw new Error("not implemented");
+}
+
+export function seededHeaderTemplates(_librarian: string, _createdAt: number): NostrEventTemplate[] {
+  throw new Error("not implemented");
+}

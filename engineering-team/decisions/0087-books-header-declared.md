@@ -20,7 +20,7 @@ Item coverage, sampled from dcosl (3,000 items): title, author, cover, open-libr
    - `r` to Open Library's licensing page (the Internet Archive asserts no new rights; no named licence, so none is claimed).
    - `link`, in button order: Open Library work (`https://openlibrary.org/works/{id}` from `open-library-id`), then Goodreads by ISBN-13 (`https://www.goodreads.com/book/isbn/{isbn}` from `isbn`). Both as kind 9999 items on `39998:2efaa715…:url-templates`, signed by the operator. The existing Goodreads template (`8382b369…`) is signed with private key `1`, so anyone can publish a deletion for it; it is not pinned, and the finding goes to the Brainstorm team.
    - `["b", "39998:<librarian>:books", "pointer"]`; the `json` tag kept (the old concept-graph reading; nothing in Unbnd reads it, and dropping it gains nothing).
-3. **Template ids are code constants** (`BOOKS_LINK_TEMPLATES`), reviewed like any other change. The header is not published until they are filled.
+3. **Template ids are code constants** (`BOOKS_LINK_TEMPLATES`), reviewed like any other change. With none filled the header publishes without `link` tags (still strictly better than today's shape, since any seed run republishes it); the operating sequence is templates first, then a `headers` run, so the first declared publish carries them. The builder refuses an id that is not 64 hex or a field it does not declare.
 4. **Header-only publishing:** `src/publish-headers.ts`, a second esbuild entrypoint copied into the image as `headers.js`, plus a `headers` Staging ops task. It publishes to dcosl only (the down-sync cron brings it to the local relay), like the seed.
 
 ## Consequences
