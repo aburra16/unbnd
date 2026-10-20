@@ -1,0 +1,926 @@
+{
+ "header": {
+  "problems": [],
+  "templateIds": [
+   "e722c94c9ee31ed28b79687b17daa313c0d02a9936a1c07dc73fbab4288fbc10",
+   "a3037637a77a5b0338639f570b6cf24aa292a1bea322e18d2f4e69144df0cb57"
+  ]
+ },
+ "items": [
+  {
+   "problems": [
+    {
+     "code": "repeated",
+     "field": "subject",
+     "message": "\"subject\" is given 7 times; only the first shows.",
+     "blocking": false
+    },
+    {
+     "code": "undeclared",
+     "field": "json",
+     "message": "Books don't declare \"json\": it shows apart from the list's own fields.",
+     "blocking": false
+    },
+    {
+     "code": "template-unfilled",
+     "field": null,
+     "message": "The Goodreads book (ISBN-10) link builds nothing: \"isbn10\" is empty.",
+     "blocking": false
+    }
+   ],
+   "resolved": {
+    "title": "Indian architecture",
+    "titleField": "title",
+    "summary": "Percy Brown",
+    "summaryField": "author",
+    "image": "https://covers.openlibrary.org/b/id/10765813-L.jpg",
+    "imageField": "cover",
+    "link": null,
+    "linkField": null,
+    "media": null,
+    "mediaField": null,
+    "location": null,
+    "locationField": null,
+    "facts": [
+     {
+      "field": "year",
+      "label": "Published",
+      "value": "1940",
+      "href": null,
+      "address": null,
+      "extra": 0
+     },
+     {
+      "field": "pages",
+      "label": "Pages",
+      "value": "216",
+      "href": null,
+      "address": null,
+      "extra": 0
+     }
+    ],
+    "factFields": [
+     "year",
+     "pages"
+    ],
+    "listImage": "https://raw.githubusercontent.com/aburra16/unbnd/0b4535752a90883cc81881cace2cda9abb440e81/assets/logos/android-chrome-512x512.png",
+    "links": [
+     {
+      "templateId": "e722c94c9ee31ed28b79687b17daa313c0d02a9936a1c07dc73fbab4288fbc10",
+      "name": "Open Library work",
+      "template": "https://openlibrary.org/works/{id}",
+      "bindings": [
+       {
+        "placeholder": "id",
+        "field": "open-library-id",
+        "value": "OL63388W"
+       }
+      ],
+      "href": "https://openlibrary.org/works/OL63388W",
+      "problem": null
+     },
+     {
+      "templateId": "a3037637a77a5b0338639f570b6cf24aa292a1bea322e18d2f4e69144df0cb57",
+      "name": "Goodreads book (ISBN-10)",
+      "template": "https://www.goodreads.com/book/isbn/{isbn10}",
+      "bindings": [
+       {
+        "placeholder": "isbn10",
+        "field": "isbn10",
+        "value": null
+       }
+      ],
+      "href": null,
+      "problem": "missing"
+     }
+    ]
+   }
+  },
+  {
+   "problems": [
+    {
+     "code": "repeated",
+     "field": "subject",
+     "message": "\"subject\" is given 5 times; only the first shows.",
+     "blocking": false
+    },
+    {
+     "code": "undeclared",
+     "field": "json",
+     "message": "Books don't declare \"json\": it shows apart from the list's own fields.",
+     "blocking": false
+    },
+    {
+     "code": "template-unfilled",
+     "field": null,
+     "message": "The Goodreads book (ISBN-10) link builds nothing: \"isbn10\" is empty.",
+     "blocking": false
+    }
+   ],
+   "resolved": {
+    "title": "South Indian music",
+    "titleField": "title",
+    "summary": "P Sambamoorthy",
+    "summaryField": "author",
+    "image": "https://covers.openlibrary.org/b/id/6727920-L.jpg",
+    "imageField": "cover",
+    "link": null,
+    "linkField": null,
+    "media": null,
+    "mediaField": null,
+    "location": null,
+    "locationField": null,
+    "facts": [
+     {
+      "field": "year",
+      "label": "Published",
+      "value": "1954",
+      "href": null,
+      "address": null,
+      "extra": 0
+     },
+     {
+      "field": "pages",
+      "label": "Pages",
+      "value": "383",
+      "href": null,
+      "address": null,
+      "extra": 0
+     }
+    ],
+    "factFields": [
+     "year",
+     "pages"
+    ],
+    "listImage": "https://raw.githubusercontent.com/aburra16/unbnd/0b4535752a90883cc81881cace2cda9abb440e81/assets/logos/android-chrome-512x512.png",
+    "links": [
+     {
+      "templateId": "e722c94c9ee31ed28b79687b17daa313c0d02a9936a1c07dc73fbab4288fbc10",
+      "name": "Open Library work",
+      "template": "https://openlibrary.org/works/{id}",
+      "bindings": [
+       {
+        "placeholder": "id",
+        "field": "open-library-id",
+        "value": "OL358098W"
+       }
+      ],
+      "href": "https://openlibrary.org/works/OL358098W",
+      "problem": null
+     },
+     {
+      "templateId": "a3037637a77a5b0338639f570b6cf24aa292a1bea322e18d2f4e69144df0cb57",
+      "name": "Goodreads book (ISBN-10)",
+      "template": "https://www.goodreads.com/book/isbn/{isbn10}",
+      "bindings": [
+       {
+        "placeholder": "isbn10",
+        "field": "isbn10",
+        "value": null
+       }
+      ],
+      "href": null,
+      "problem": "missing"
+     }
+    ]
+   }
+  },
+  {
+   "problems": [
+    {
+     "code": "repeated",
+     "field": "subject",
+     "message": "\"subject\" is given 4 times; only the first shows.",
+     "blocking": false
+    },
+    {
+     "code": "undeclared",
+     "field": "json",
+     "message": "Books don't declare \"json\": it shows apart from the list's own fields.",
+     "blocking": false
+    },
+    {
+     "code": "template-unfilled",
+     "field": null,
+     "message": "The Goodreads book (ISBN-10) link builds nothing: \"isbn10\" is empty.",
+     "blocking": false
+    }
+   ],
+   "resolved": {
+    "title": "Three Best Loved Barbara Cartlands",
+    "titleField": "title",
+    "summary": "Barbara Cartland",
+    "summaryField": "author",
+    "image": "https://covers.openlibrary.org/b/id/6873822-L.jpg",
+    "imageField": "cover",
+    "link": null,
+    "linkField": null,
+    "media": null,
+    "mediaField": null,
+    "location": null,
+    "locationField": null,
+    "facts": [
+     {
+      "field": "year",
+      "label": "Published",
+      "value": "1975",
+      "href": null,
+      "address": null,
+      "extra": 0
+     },
+     {
+      "field": "pages",
+      "label": "Pages",
+      "value": "463",
+      "href": null,
+      "address": null,
+      "extra": 0
+     }
+    ],
+    "factFields": [
+     "year",
+     "pages"
+    ],
+    "listImage": "https://raw.githubusercontent.com/aburra16/unbnd/0b4535752a90883cc81881cace2cda9abb440e81/assets/logos/android-chrome-512x512.png",
+    "links": [
+     {
+      "templateId": "e722c94c9ee31ed28b79687b17daa313c0d02a9936a1c07dc73fbab4288fbc10",
+      "name": "Open Library work",
+      "template": "https://openlibrary.org/works/{id}",
+      "bindings": [
+       {
+        "placeholder": "id",
+        "field": "open-library-id",
+        "value": "OL16027027W"
+       }
+      ],
+      "href": "https://openlibrary.org/works/OL16027027W",
+      "problem": null
+     },
+     {
+      "templateId": "a3037637a77a5b0338639f570b6cf24aa292a1bea322e18d2f4e69144df0cb57",
+      "name": "Goodreads book (ISBN-10)",
+      "template": "https://www.goodreads.com/book/isbn/{isbn10}",
+      "bindings": [
+       {
+        "placeholder": "isbn10",
+        "field": "isbn10",
+        "value": null
+       }
+      ],
+      "href": null,
+      "problem": "missing"
+     }
+    ]
+   }
+  },
+  {
+   "problems": [
+    {
+     "code": "repeated",
+     "field": "subject",
+     "message": "\"subject\" is given 35 times; only the first shows.",
+     "blocking": false
+    },
+    {
+     "code": "undeclared",
+     "field": "json",
+     "message": "Books don't declare \"json\": it shows apart from the list's own fields.",
+     "blocking": false
+    }
+   ],
+   "resolved": {
+    "title": "Prentice Hall Literature--World Masterpieces",
+    "titleField": "title",
+    "summary": "Burton Beers",
+    "summaryField": "author",
+    "image": "https://covers.openlibrary.org/b/id/11204993-L.jpg",
+    "imageField": "cover",
+    "link": null,
+    "linkField": null,
+    "media": null,
+    "mediaField": null,
+    "location": null,
+    "locationField": null,
+    "facts": [
+     {
+      "field": "year",
+      "label": "Published",
+      "value": "1991",
+      "href": null,
+      "address": null,
+      "extra": 0
+     }
+    ],
+    "factFields": [
+     "year",
+     "pages"
+    ],
+    "listImage": "https://raw.githubusercontent.com/aburra16/unbnd/0b4535752a90883cc81881cace2cda9abb440e81/assets/logos/android-chrome-512x512.png",
+    "links": [
+     {
+      "templateId": "e722c94c9ee31ed28b79687b17daa313c0d02a9936a1c07dc73fbab4288fbc10",
+      "name": "Open Library work",
+      "template": "https://openlibrary.org/works/{id}",
+      "bindings": [
+       {
+        "placeholder": "id",
+        "field": "open-library-id",
+        "value": "OL18460630W"
+       }
+      ],
+      "href": "https://openlibrary.org/works/OL18460630W",
+      "problem": null
+     },
+     {
+      "templateId": "a3037637a77a5b0338639f570b6cf24aa292a1bea322e18d2f4e69144df0cb57",
+      "name": "Goodreads book (ISBN-10)",
+      "template": "https://www.goodreads.com/book/isbn/{isbn10}",
+      "bindings": [
+       {
+        "placeholder": "isbn10",
+        "field": "isbn10",
+        "value": "0136916929"
+       }
+      ],
+      "href": "https://www.goodreads.com/book/isbn/0136916929",
+      "problem": null
+     }
+    ]
+   }
+  },
+  {
+   "problems": [
+    {
+     "code": "repeated",
+     "field": "subject",
+     "message": "\"subject\" is given 2 times; only the first shows.",
+     "blocking": false
+    },
+    {
+     "code": "undeclared",
+     "field": "json",
+     "message": "Books don't declare \"json\": it shows apart from the list's own fields.",
+     "blocking": false
+    }
+   ],
+   "resolved": {
+    "title": "A history of ancient and early medieval India",
+    "titleField": "title",
+    "summary": "Upinder Singh",
+    "summaryField": "author",
+    "image": "https://covers.openlibrary.org/b/id/3367446-L.jpg",
+    "imageField": "cover",
+    "link": null,
+    "linkField": null,
+    "media": null,
+    "mediaField": null,
+    "location": null,
+    "locationField": null,
+    "facts": [
+     {
+      "field": "year",
+      "label": "Published",
+      "value": "2008",
+      "href": null,
+      "address": null,
+      "extra": 0
+     }
+    ],
+    "factFields": [
+     "year",
+     "pages"
+    ],
+    "listImage": "https://raw.githubusercontent.com/aburra16/unbnd/0b4535752a90883cc81881cace2cda9abb440e81/assets/logos/android-chrome-512x512.png",
+    "links": [
+     {
+      "templateId": "e722c94c9ee31ed28b79687b17daa313c0d02a9936a1c07dc73fbab4288fbc10",
+      "name": "Open Library work",
+      "template": "https://openlibrary.org/works/{id}",
+      "bindings": [
+       {
+        "placeholder": "id",
+        "field": "open-library-id",
+        "value": "OL1077895W"
+       }
+      ],
+      "href": "https://openlibrary.org/works/OL1077895W",
+      "problem": null
+     },
+     {
+      "templateId": "a3037637a77a5b0338639f570b6cf24aa292a1bea322e18d2f4e69144df0cb57",
+      "name": "Goodreads book (ISBN-10)",
+      "template": "https://www.goodreads.com/book/isbn/{isbn10}",
+      "bindings": [
+       {
+        "placeholder": "isbn10",
+        "field": "isbn10",
+        "value": "8131716775"
+       }
+      ],
+      "href": "https://www.goodreads.com/book/isbn/8131716775",
+      "problem": null
+     }
+    ]
+   }
+  },
+  {
+   "problems": [
+    {
+     "code": "repeated",
+     "field": "subject",
+     "message": "\"subject\" is given 19 times; only the first shows.",
+     "blocking": false
+    },
+    {
+     "code": "undeclared",
+     "field": "json",
+     "message": "Books don't declare \"json\": it shows apart from the list's own fields.",
+     "blocking": false
+    }
+   ],
+   "resolved": {
+    "title": "Literature--An Introduction to Fiction, Poetry, Drama and Writing--Eleventh Edition",
+    "titleField": "title",
+    "summary": "Kennedy, X. & Gioia, D.",
+    "summaryField": "author",
+    "image": "https://covers.openlibrary.org/b/id/14328336-L.jpg",
+    "imageField": "cover",
+    "link": null,
+    "linkField": null,
+    "media": null,
+    "mediaField": null,
+    "location": null,
+    "locationField": null,
+    "facts": [
+     {
+      "field": "year",
+      "label": "Published",
+      "value": "2006",
+      "href": null,
+      "address": null,
+      "extra": 0
+     },
+     {
+      "field": "pages",
+      "label": "Pages",
+      "value": "2137",
+      "href": null,
+      "address": null,
+      "extra": 0
+     }
+    ],
+    "factFields": [
+     "year",
+     "pages"
+    ],
+    "listImage": "https://raw.githubusercontent.com/aburra16/unbnd/0b4535752a90883cc81881cace2cda9abb440e81/assets/logos/android-chrome-512x512.png",
+    "links": [
+     {
+      "templateId": "e722c94c9ee31ed28b79687b17daa313c0d02a9936a1c07dc73fbab4288fbc10",
+      "name": "Open Library work",
+      "template": "https://openlibrary.org/works/{id}",
+      "bindings": [
+       {
+        "placeholder": "id",
+        "field": "open-library-id",
+        "value": "OL18007456W"
+       }
+      ],
+      "href": "https://openlibrary.org/works/OL18007456W",
+      "problem": null
+     },
+     {
+      "templateId": "a3037637a77a5b0338639f570b6cf24aa292a1bea322e18d2f4e69144df0cb57",
+      "name": "Goodreads book (ISBN-10)",
+      "template": "https://www.goodreads.com/book/isbn/{isbn10}",
+      "bindings": [
+       {
+        "placeholder": "isbn10",
+        "field": "isbn10",
+        "value": "1292120827"
+       }
+      ],
+      "href": "https://www.goodreads.com/book/isbn/1292120827",
+      "problem": null
+     }
+    ]
+   }
+  },
+  {
+   "problems": [
+    {
+     "code": "repeated",
+     "field": "subject",
+     "message": "\"subject\" is given 39 times; only the first shows.",
+     "blocking": false
+    },
+    {
+     "code": "undeclared",
+     "field": "json",
+     "message": "Books don't declare \"json\": it shows apart from the list's own fields.",
+     "blocking": false
+    }
+   ],
+   "resolved": {
+    "title": "Novels (Emma / Mansfield Park / Northanger Abbey / Persuasion / Pride and Prejudice / Sense and Sensibility)",
+    "titleField": "title",
+    "summary": "Jane Austen",
+    "summaryField": "author",
+    "image": "https://covers.openlibrary.org/b/id/9276728-L.jpg",
+    "imageField": "cover",
+    "link": null,
+    "linkField": null,
+    "media": null,
+    "mediaField": null,
+    "location": null,
+    "locationField": null,
+    "facts": [
+     {
+      "field": "year",
+      "label": "Published",
+      "value": "1818",
+      "href": null,
+      "address": null,
+      "extra": 0
+     },
+     {
+      "field": "pages",
+      "label": "Pages",
+      "value": "1076",
+      "href": null,
+      "address": null,
+      "extra": 0
+     }
+    ],
+    "factFields": [
+     "year",
+     "pages"
+    ],
+    "listImage": "https://raw.githubusercontent.com/aburra16/unbnd/0b4535752a90883cc81881cace2cda9abb440e81/assets/logos/android-chrome-512x512.png",
+    "links": [
+     {
+      "templateId": "e722c94c9ee31ed28b79687b17daa313c0d02a9936a1c07dc73fbab4288fbc10",
+      "name": "Open Library work",
+      "template": "https://openlibrary.org/works/{id}",
+      "bindings": [
+       {
+        "placeholder": "id",
+        "field": "open-library-id",
+        "value": "OL66512W"
+       }
+      ],
+      "href": "https://openlibrary.org/works/OL66512W",
+      "problem": null
+     },
+     {
+      "templateId": "a3037637a77a5b0338639f570b6cf24aa292a1bea322e18d2f4e69144df0cb57",
+      "name": "Goodreads book (ISBN-10)",
+      "template": "https://www.goodreads.com/book/isbn/{isbn10}",
+      "bindings": [
+       {
+        "placeholder": "isbn10",
+        "field": "isbn10",
+        "value": "1435101162"
+       }
+      ],
+      "href": "https://www.goodreads.com/book/isbn/1435101162",
+      "problem": null
+     }
+    ]
+   }
+  },
+  {
+   "problems": [
+    {
+     "code": "repeated",
+     "field": "subject",
+     "message": "\"subject\" is given 5 times; only the first shows.",
+     "blocking": false
+    },
+    {
+     "code": "undeclared",
+     "field": "json",
+     "message": "Books don't declare \"json\": it shows apart from the list's own fields.",
+     "blocking": false
+    }
+   ],
+   "resolved": {
+    "title": "The storm before the storm",
+    "titleField": "title",
+    "summary": "Duncan, Michael (Podcaster)",
+    "summaryField": "author",
+    "image": "https://covers.openlibrary.org/b/id/10092515-L.jpg",
+    "imageField": "cover",
+    "link": null,
+    "linkField": null,
+    "media": null,
+    "mediaField": null,
+    "location": null,
+    "locationField": null,
+    "facts": [
+     {
+      "field": "year",
+      "label": "Published",
+      "value": "2017",
+      "href": null,
+      "address": null,
+      "extra": 0
+     },
+     {
+      "field": "pages",
+      "label": "Pages",
+      "value": "327",
+      "href": null,
+      "address": null,
+      "extra": 0
+     }
+    ],
+    "factFields": [
+     "year",
+     "pages"
+    ],
+    "listImage": "https://raw.githubusercontent.com/aburra16/unbnd/0b4535752a90883cc81881cace2cda9abb440e81/assets/logos/android-chrome-512x512.png",
+    "links": [
+     {
+      "templateId": "e722c94c9ee31ed28b79687b17daa313c0d02a9936a1c07dc73fbab4288fbc10",
+      "name": "Open Library work",
+      "template": "https://openlibrary.org/works/{id}",
+      "bindings": [
+       {
+        "placeholder": "id",
+        "field": "open-library-id",
+        "value": "OL19722168W"
+       }
+      ],
+      "href": "https://openlibrary.org/works/OL19722168W",
+      "problem": null
+     },
+     {
+      "templateId": "a3037637a77a5b0338639f570b6cf24aa292a1bea322e18d2f4e69144df0cb57",
+      "name": "Goodreads book (ISBN-10)",
+      "template": "https://www.goodreads.com/book/isbn/{isbn10}",
+      "bindings": [
+       {
+        "placeholder": "isbn10",
+        "field": "isbn10",
+        "value": "1549167774"
+       }
+      ],
+      "href": "https://www.goodreads.com/book/isbn/1549167774",
+      "problem": null
+     }
+    ]
+   }
+  },
+  {
+   "problems": [
+    {
+     "code": "repeated",
+     "field": "subject",
+     "message": "\"subject\" is given 10 times; only the first shows.",
+     "blocking": false
+    },
+    {
+     "code": "undeclared",
+     "field": "json",
+     "message": "Books don't declare \"json\": it shows apart from the list's own fields.",
+     "blocking": false
+    }
+   ],
+   "resolved": {
+    "title": "Medieval Europe",
+    "titleField": "title",
+    "summary": "C. Warren (Charles Warren) Hollister",
+    "summaryField": "author",
+    "image": "https://covers.openlibrary.org/b/id/6924936-L.jpg",
+    "imageField": "cover",
+    "link": null,
+    "linkField": null,
+    "media": null,
+    "mediaField": null,
+    "location": null,
+    "locationField": null,
+    "facts": [
+     {
+      "field": "year",
+      "label": "Published",
+      "value": "1964",
+      "href": null,
+      "address": null,
+      "extra": 0
+     },
+     {
+      "field": "pages",
+      "label": "Pages",
+      "value": "396",
+      "href": null,
+      "address": null,
+      "extra": 0
+     }
+    ],
+    "factFields": [
+     "year",
+     "pages"
+    ],
+    "listImage": "https://raw.githubusercontent.com/aburra16/unbnd/0b4535752a90883cc81881cace2cda9abb440e81/assets/logos/android-chrome-512x512.png",
+    "links": [
+     {
+      "templateId": "e722c94c9ee31ed28b79687b17daa313c0d02a9936a1c07dc73fbab4288fbc10",
+      "name": "Open Library work",
+      "template": "https://openlibrary.org/works/{id}",
+      "bindings": [
+       {
+        "placeholder": "id",
+        "field": "open-library-id",
+        "value": "OL2031159W"
+       }
+      ],
+      "href": "https://openlibrary.org/works/OL2031159W",
+      "problem": null
+     },
+     {
+      "templateId": "a3037637a77a5b0338639f570b6cf24aa292a1bea322e18d2f4e69144df0cb57",
+      "name": "Goodreads book (ISBN-10)",
+      "template": "https://www.goodreads.com/book/isbn/{isbn10}",
+      "bindings": [
+       {
+        "placeholder": "isbn10",
+        "field": "isbn10",
+        "value": "047140697X"
+       }
+      ],
+      "href": "https://www.goodreads.com/book/isbn/047140697X",
+      "problem": null
+     }
+    ]
+   }
+  },
+  {
+   "problems": [
+    {
+     "code": "repeated",
+     "field": "subject",
+     "message": "\"subject\" is given 33 times; only the first shows.",
+     "blocking": false
+    },
+    {
+     "code": "undeclared",
+     "field": "json",
+     "message": "Books don't declare \"json\": it shows apart from the list's own fields.",
+     "blocking": false
+    }
+   ],
+   "resolved": {
+    "title": "How the Word Is Passed",
+    "titleField": "title",
+    "summary": "Clint Smith III",
+    "summaryField": "author",
+    "image": "https://covers.openlibrary.org/b/id/10510048-L.jpg",
+    "imageField": "cover",
+    "link": null,
+    "linkField": null,
+    "media": null,
+    "mediaField": null,
+    "location": null,
+    "locationField": null,
+    "facts": [
+     {
+      "field": "year",
+      "label": "Published",
+      "value": "2021",
+      "href": null,
+      "address": null,
+      "extra": 0
+     },
+     {
+      "field": "pages",
+      "label": "Pages",
+      "value": "344",
+      "href": null,
+      "address": null,
+      "extra": 0
+     }
+    ],
+    "factFields": [
+     "year",
+     "pages"
+    ],
+    "listImage": "https://raw.githubusercontent.com/aburra16/unbnd/0b4535752a90883cc81881cace2cda9abb440e81/assets/logos/android-chrome-512x512.png",
+    "links": [
+     {
+      "templateId": "e722c94c9ee31ed28b79687b17daa313c0d02a9936a1c07dc73fbab4288fbc10",
+      "name": "Open Library work",
+      "template": "https://openlibrary.org/works/{id}",
+      "bindings": [
+       {
+        "placeholder": "id",
+        "field": "open-library-id",
+        "value": "OL23095423W"
+       }
+      ],
+      "href": "https://openlibrary.org/works/OL23095423W",
+      "problem": null
+     },
+     {
+      "templateId": "a3037637a77a5b0338639f570b6cf24aa292a1bea322e18d2f4e69144df0cb57",
+      "name": "Goodreads book (ISBN-10)",
+      "template": "https://www.goodreads.com/book/isbn/{isbn10}",
+      "bindings": [
+       {
+        "placeholder": "isbn10",
+        "field": "isbn10",
+        "value": "0349701180"
+       }
+      ],
+      "href": "https://www.goodreads.com/book/isbn/0349701180",
+      "problem": null
+     }
+    ]
+   }
+  },
+  {
+   "problems": [
+    {
+     "code": "repeated",
+     "field": "subject",
+     "message": "\"subject\" is given 11 times; only the first shows.",
+     "blocking": false
+    },
+    {
+     "code": "undeclared",
+     "field": "json",
+     "message": "Books don't declare \"json\": it shows apart from the list's own fields.",
+     "blocking": false
+    }
+   ],
+   "resolved": {
+    "title": "The God Equation",
+    "titleField": "title",
+    "summary": "Michio Kaku",
+    "summaryField": "author",
+    "image": "https://covers.openlibrary.org/b/id/10832321-L.jpg",
+    "imageField": "cover",
+    "link": null,
+    "linkField": null,
+    "media": null,
+    "mediaField": null,
+    "location": null,
+    "locationField": null,
+    "facts": [
+     {
+      "field": "year",
+      "label": "Published",
+      "value": "2021",
+      "href": null,
+      "address": null,
+      "extra": 0
+     },
+     {
+      "field": "pages",
+      "label": "Pages",
+      "value": "240",
+      "href": null,
+      "address": null,
+      "extra": 0
+     }
+    ],
+    "factFields": [
+     "year",
+     "pages"
+    ],
+    "listImage": "https://raw.githubusercontent.com/aburra16/unbnd/0b4535752a90883cc81881cace2cda9abb440e81/assets/logos/android-chrome-512x512.png",
+    "links": [
+     {
+      "templateId": "e722c94c9ee31ed28b79687b17daa313c0d02a9936a1c07dc73fbab4288fbc10",
+      "name": "Open Library work",
+      "template": "https://openlibrary.org/works/{id}",
+      "bindings": [
+       {
+        "placeholder": "id",
+        "field": "open-library-id",
+        "value": "OL24314956W"
+       }
+      ],
+      "href": "https://openlibrary.org/works/OL24314956W",
+      "problem": null
+     },
+     {
+      "templateId": "a3037637a77a5b0338639f570b6cf24aa292a1bea322e18d2f4e69144df0cb57",
+      "name": "Goodreads book (ISBN-10)",
+      "template": "https://www.goodreads.com/book/isbn/{isbn10}",
+      "bindings": [
+       {
+        "placeholder": "isbn10",
+        "field": "isbn10",
+        "value": "014199519X"
+       }
+      ],
+      "href": "https://www.goodreads.com/book/isbn/014199519X",
+      "problem": null
+     }
+    ]
+   }
+  }
+ ]
+}

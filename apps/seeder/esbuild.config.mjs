@@ -3,9 +3,10 @@
 import { build } from "esbuild";
 
 await build({
-  // Two one-off entrypoints ride the same image: the catalog seed (index) and
-  // the genre recast (Story 75 / ADR 0073; `run seeder node recast.js`).
-  entryPoints: ["src/index.ts", "src/recast.ts"],
+  // One-off entrypoints ride the same image: the catalog seed (index), the
+  // genre recast (Story 75 / ADR 0073; `run seeder node recast.js`), and the
+  // header-only publish (Story 97 / ADR 0087; `run seeder node headers.js`).
+  entryPoints: ["src/index.ts", "src/recast.ts", "src/publish-headers.ts"],
   bundle: true,
   platform: "node",
   target: "node22",

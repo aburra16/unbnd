@@ -1,0 +1,1530 @@
+{
+ "header": [
+  [
+   "d",
+   "books"
+  ],
+  [
+   "names",
+   "Book",
+   "Books"
+  ],
+  [
+   "description",
+   "Books by title and author, from Open Library, kept by the Unbnd librarian. Readers rate, shelve and tag them on Unbnd."
+  ],
+  [
+   "required",
+   "title",
+   "Title"
+  ],
+  [
+   "recommended",
+   "author",
+   "Author, as Open Library writes it"
+  ],
+  [
+   "recommended",
+   "cover",
+   "Cover image"
+  ],
+  [
+   "recommended",
+   "isbn",
+   "ISBN-13"
+  ],
+  [
+   "optional",
+   "isbn10",
+   "ISBN-10"
+  ],
+  [
+   "optional",
+   "open-library-id",
+   "Open Library work id, e.g. OL19722168W"
+  ],
+  [
+   "optional",
+   "year",
+   "Year first published"
+  ],
+  [
+   "optional",
+   "pages",
+   "Page count"
+  ],
+  [
+   "optional",
+   "lang",
+   "Language, as an ISO 639-2 code"
+  ],
+  [
+   "optional",
+   "subject",
+   "A subject; repeats"
+  ],
+  [
+   "optional",
+   "format",
+   "Record format"
+  ],
+  [
+   "optional",
+   "source",
+   "Where this record came from"
+  ],
+  [
+   "field-type",
+   "cover",
+   "url"
+  ],
+  [
+   "display",
+   "title",
+   "title"
+  ],
+  [
+   "display",
+   "summary",
+   "author"
+  ],
+  [
+   "display",
+   "image",
+   "cover"
+  ],
+  [
+   "display",
+   "fact",
+   "year",
+   "Published"
+  ],
+  [
+   "display",
+   "fact",
+   "pages",
+   "Pages"
+  ],
+  [
+   "image",
+   "https://raw.githubusercontent.com/aburra16/unbnd/0b4535752a90883cc81881cace2cda9abb440e81/assets/logos/android-chrome-512x512.png"
+  ],
+  [
+   "r",
+   "https://github.com/aburra16/unbnd"
+  ],
+  [
+   "r",
+   "https://openlibrary.org/developers/licensing"
+  ],
+  [
+   "link",
+   "e722c94c9ee31ed28b79687b17daa313c0d02a9936a1c07dc73fbab4288fbc10",
+   "wss://dcosl.brainstorm.world",
+   "id",
+   "open-library-id"
+  ],
+  [
+   "link",
+   "a3037637a77a5b0338639f570b6cf24aa292a1bea322e18d2f4e69144df0cb57",
+   "wss://dcosl.brainstorm.world",
+   "isbn10",
+   "isbn10"
+  ],
+  [
+   "b",
+   "39998:6aca05b812da97601151776d13de04ae71afc9d86da1408f0e72cffef72ece4b:books",
+   "pointer"
+  ],
+  [
+   "json",
+   "{\"word\":{\"slug\":\"books\",\"name\":\"books\",\"title\":\"Books\",\"wordTypes\":[\"word\",\"conceptHeader\"]},\"conceptHeader\":{\"slug\":\"books\",\"name\":\"books\",\"title\":\"Books\"}}"
+  ]
+ ],
+ "items": [
+  [
+   [
+    "d",
+    "ol-ol63388w"
+   ],
+   [
+    "z",
+    "39998:6aca05b812da97601151776d13de04ae71afc9d86da1408f0e72cffef72ece4b:books"
+   ],
+   [
+    "t",
+    "ol-ol63388w"
+   ],
+   [
+    "title",
+    "Indian architecture"
+   ],
+   [
+    "author",
+    "Percy Brown"
+   ],
+   [
+    "open-library-id",
+    "OL63388W"
+   ],
+   [
+    "lang",
+    "eng"
+   ],
+   [
+    "year",
+    "1940"
+   ],
+   [
+    "pages",
+    "216"
+   ],
+   [
+    "cover",
+    "https://covers.openlibrary.org/b/id/10765813-L.jpg"
+   ],
+   [
+    "subject",
+    "Architecture"
+   ],
+   [
+    "subject",
+    "Arhcitecture"
+   ],
+   [
+    "subject",
+    "Buddhist Architecture"
+   ],
+   [
+    "subject",
+    "History"
+   ],
+   [
+    "subject",
+    "Indian architecture"
+   ],
+   [
+    "subject",
+    "Islamic Architecture"
+   ],
+   [
+    "subject",
+    "Hindu architecture"
+   ],
+   [
+    "format",
+    "reference"
+   ],
+   [
+    "source",
+    "openlibrary"
+   ],
+   [
+    "json",
+    "{\"word\":{\"slug\":\"ol-ol63388w\",\"name\":\"Indian architecture\",\"title\":\"Indian architecture\",\"wordTypes\":[\"word\",\"bookSubmission\"]},\"bookSubmission\":{\"slug\":\"ol-ol63388w\",\"title\":\"Indian architecture\",\"authorName\":\"Percy Brown\",\"authorPubkey\":null,\"openLibraryId\":\"OL63388W\",\"coverUrl\":\"https://covers.openlibrary.org/b/id/10765813-L.jpg\",\"pageCount\":216,\"publishYear\":1940,\"language\":\"eng\",\"subjects\":[\"Architecture\",\"Arhcitecture\",\"Buddhist Architecture\",\"History\",\"Indian architecture\",\"Islamic Architecture\",\"Hindu architecture\"],\"format\":\"reference\",\"fileUrl\":null,\"source\":\"openlibrary\",\"submittedBy\":null}}"
+   ]
+  ],
+  [
+   [
+    "d",
+    "ol-ol358098w"
+   ],
+   [
+    "z",
+    "39998:6aca05b812da97601151776d13de04ae71afc9d86da1408f0e72cffef72ece4b:books"
+   ],
+   [
+    "t",
+    "ol-ol358098w"
+   ],
+   [
+    "title",
+    "South Indian music"
+   ],
+   [
+    "author",
+    "P Sambamoorthy"
+   ],
+   [
+    "open-library-id",
+    "OL358098W"
+   ],
+   [
+    "lang",
+    "eng"
+   ],
+   [
+    "year",
+    "1954"
+   ],
+   [
+    "pages",
+    "383"
+   ],
+   [
+    "cover",
+    "https://covers.openlibrary.org/b/id/6727920-L.jpg"
+   ],
+   [
+    "subject",
+    "Carnatic music"
+   ],
+   [
+    "subject",
+    "History and criticism"
+   ],
+   [
+    "subject",
+    "Music, Karnatic"
+   ],
+   [
+    "subject",
+    "Music"
+   ],
+   [
+    "subject",
+    "Karnatic Music"
+   ],
+   [
+    "format",
+    "reference"
+   ],
+   [
+    "source",
+    "openlibrary"
+   ],
+   [
+    "json",
+    "{\"word\":{\"slug\":\"ol-ol358098w\",\"name\":\"South Indian music\",\"title\":\"South Indian music\",\"wordTypes\":[\"word\",\"bookSubmission\"]},\"bookSubmission\":{\"slug\":\"ol-ol358098w\",\"title\":\"South Indian music\",\"authorName\":\"P Sambamoorthy\",\"authorPubkey\":null,\"openLibraryId\":\"OL358098W\",\"coverUrl\":\"https://covers.openlibrary.org/b/id/6727920-L.jpg\",\"pageCount\":383,\"publishYear\":1954,\"language\":\"eng\",\"subjects\":[\"Carnatic music\",\"History and criticism\",\"Music, Karnatic\",\"Music\",\"Karnatic Music\"],\"blurb\":\"4th of the 6 volume treatise on Carnatic (South Indian) music. In this volume: Manodharma Sangitam (Pallavi, Svara Kalpana...), 22 srutis, Gamakas, Tala, musical forms, Kutcheri Dharmam, Comparative music, some Raga Lakshanas and Pallavis.\",\"format\":\"reference\",\"fileUrl\":null,\"source\":\"openlibrary\",\"submittedBy\":null}}"
+   ]
+  ],
+  [
+   [
+    "d",
+    "ol-ol16027027w"
+   ],
+   [
+    "z",
+    "39998:6aca05b812da97601151776d13de04ae71afc9d86da1408f0e72cffef72ece4b:books"
+   ],
+   [
+    "t",
+    "ol-ol16027027w"
+   ],
+   [
+    "title",
+    "Three Best Loved Barbara Cartlands"
+   ],
+   [
+    "author",
+    "Barbara Cartland"
+   ],
+   [
+    "open-library-id",
+    "OL16027027W"
+   ],
+   [
+    "lang",
+    "eng"
+   ],
+   [
+    "year",
+    "1975"
+   ],
+   [
+    "pages",
+    "463"
+   ],
+   [
+    "cover",
+    "https://covers.openlibrary.org/b/id/6873822-L.jpg"
+   ],
+   [
+    "subject",
+    "Fiction, Romance, Historical"
+   ],
+   [
+    "subject",
+    "Love stories, fiction"
+   ],
+   [
+    "subject",
+    "Anthology"
+   ],
+   [
+    "subject",
+    "Love stories"
+   ],
+   [
+    "format",
+    "reference"
+   ],
+   [
+    "source",
+    "openlibrary"
+   ],
+   [
+    "json",
+    "{\"word\":{\"slug\":\"ol-ol16027027w\",\"name\":\"Three Best Loved Barbara Cartlands\",\"title\":\"Three Best Loved Barbara Cartlands\",\"wordTypes\":[\"word\",\"bookSubmission\"]},\"bookSubmission\":{\"slug\":\"ol-ol16027027w\",\"title\":\"Three Best Loved Barbara Cartlands\",\"authorName\":\"Barbara Cartland\",\"authorPubkey\":null,\"openLibraryId\":\"OL16027027W\",\"coverUrl\":\"https://covers.openlibrary.org/b/id/6873822-L.jpg\",\"pageCount\":463,\"publishYear\":1975,\"language\":\"eng\",\"subjects\":[\"Fiction, Romance, Historical\",\"Love stories, fiction\",\"Anthology\",\"Love stories\"],\"blurb\":\"BEWITCHED: Saviya, a beautiful raven-haired, green-eyed gypsy girl, is nearly killed when she stumbles into the path of the Marquis of Ruckley's careening carriage. The accident turns out to be a stroke of luck for the Marquis, who has bet that he can pass off a common girl as a lady. What he hasn't wagered on is falling in love with his enchanting imposter!\\n\\nA SWORD TO THE HEART tells of lovely Natalia Graystoke, penniless though titled, who knows that Lord Ranulf Colwall is the one men she can love. But on her wedding night, she overhears her husband say that he can never love any woman - all he desires is an heir for his vast estate. Desperate and afraid, she flees her new home, still hoping she has kindled some spark of affection that will bring him to her side.\\n\\nTHE GLITTERING LIGHTS is the story of young, willful Cassandra Sherburn, whose father has arranged her marriage to the Duke of Alchester, a man she hasn't seen since childhood. Horrified by the thought that the dashing young duke is marrying her for her money, she becomes determined to win him on her own merits. Fired by a scheme to capture his heart, she sets off for London masquerading as an actress.\",\"format\":\"reference\",\"fileUrl\":null,\"source\":\"openlibrary\",\"submittedBy\":null}}"
+   ]
+  ],
+  [
+   [
+    "d",
+    "ol-ol18460630w"
+   ],
+   [
+    "z",
+    "39998:6aca05b812da97601151776d13de04ae71afc9d86da1408f0e72cffef72ece4b:books"
+   ],
+   [
+    "t",
+    "ol-ol18460630w"
+   ],
+   [
+    "title",
+    "Prentice Hall Literature--World Masterpieces"
+   ],
+   [
+    "author",
+    "Burton Beers"
+   ],
+   [
+    "isbn",
+    "9780137226382"
+   ],
+   [
+    "isbn10",
+    "0136916929"
+   ],
+   [
+    "open-library-id",
+    "OL18460630W"
+   ],
+   [
+    "lang",
+    "eng"
+   ],
+   [
+    "year",
+    "1991"
+   ],
+   [
+    "cover",
+    "https://covers.openlibrary.org/b/id/11204993-L.jpg"
+   ],
+   [
+    "subject",
+    "Readers (Secondary)"
+   ],
+   [
+    "subject",
+    "English literature"
+   ],
+   [
+    "subject",
+    "American literature"
+   ],
+   [
+    "subject",
+    "Study and teaching"
+   ],
+   [
+    "subject",
+    "British and irish drama"
+   ],
+   [
+    "subject",
+    "Castaways"
+   ],
+   [
+    "subject",
+    "Children's plays"
+   ],
+   [
+    "subject",
+    "Classics"
+   ],
+   [
+    "subject",
+    "Criticism and interpretation"
+   ],
+   [
+    "subject",
+    "Drama"
+   ],
+   [
+    "subject",
+    "English drama"
+   ],
+   [
+    "subject",
+    "English Young adult drama"
+   ],
+   [
+    "subject",
+    "Fathers and daughters"
+   ],
+   [
+    "subject",
+    "History and criticism"
+   ],
+   [
+    "subject",
+    "Islands"
+   ],
+   [
+    "subject",
+    "Juvenile drama"
+   ],
+   [
+    "subject",
+    "Literary Criticism"
+   ],
+   [
+    "subject",
+    "Magicians"
+   ],
+   [
+    "subject",
+    "Nobility"
+   ],
+   [
+    "subject",
+    "performing arts"
+   ],
+   [
+    "subject",
+    "play"
+   ],
+   [
+    "subject",
+    "Plays"
+   ],
+   [
+    "subject",
+    "Political refugees"
+   ],
+   [
+    "subject",
+    "Reading Level-Grade 11"
+   ],
+   [
+    "subject",
+    "Reading Level-Grade 12"
+   ],
+   [
+    "subject",
+    "Roman Empire"
+   ],
+   [
+    "subject",
+    "shipwrecks"
+   ],
+   [
+    "subject",
+    "Shipwreck survival"
+   ],
+   [
+    "subject",
+    "Shipwreck victims"
+   ],
+   [
+    "subject",
+    "Spirits"
+   ],
+   [
+    "subject",
+    "Stage history"
+   ],
+   [
+    "subject",
+    "Survival after airplane accidents, shipwrecks"
+   ],
+   [
+    "subject",
+    "tragicomedy"
+   ],
+   [
+    "subject",
+    "Literature"
+   ],
+   [
+    "subject",
+    "Study and teaching (Secondary)"
+   ],
+   [
+    "format",
+    "reference"
+   ],
+   [
+    "source",
+    "openlibrary"
+   ],
+   [
+    "json",
+    "{\"word\":{\"slug\":\"ol-ol18460630w\",\"name\":\"Prentice Hall Literature--World Masterpieces\",\"title\":\"Prentice Hall Literature--World Masterpieces\",\"wordTypes\":[\"word\",\"bookSubmission\"]},\"bookSubmission\":{\"slug\":\"ol-ol18460630w\",\"title\":\"Prentice Hall Literature--World Masterpieces\",\"authorName\":\"Burton Beers\",\"authorPubkey\":null,\"isbn13\":\"9780137226382\",\"isbn10\":\"0136916929\",\"openLibraryId\":\"OL18460630W\",\"coverUrl\":\"https://covers.openlibrary.org/b/id/11204993-L.jpg\",\"publishYear\":1991,\"language\":\"eng\",\"subjects\":[\"Readers (Secondary)\",\"English literature\",\"American literature\",\"Study and teaching\",\"British and irish drama\",\"Castaways\",\"Children's plays\",\"Classics\",\"Criticism and interpretation\",\"Drama\",\"English drama\",\"English Young adult drama\",\"Fathers and daughters\",\"History and criticism\",\"Islands\",\"Juvenile drama\",\"Literary Criticism\",\"Magicians\",\"Nobility\",\"performing arts\",\"play\",\"Plays\",\"Political refugees\",\"Reading Level-Grade 11\",\"Reading Level-Grade 12\",\"Roman Empire\",\"shipwrecks\",\"Shipwreck survival\",\"Shipwreck victims\",\"Spirits\",\"Stage history\",\"Survival after airplane accidents, shipwrecks\",\"tragicomedy\",\"Literature\",\"Study and teaching (Secondary)\"],\"blurb\":\"9-10th grade\",\"format\":\"reference\",\"fileUrl\":null,\"source\":\"openlibrary\",\"submittedBy\":null}}"
+   ]
+  ],
+  [
+   [
+    "d",
+    "ol-ol1077895w"
+   ],
+   [
+    "z",
+    "39998:6aca05b812da97601151776d13de04ae71afc9d86da1408f0e72cffef72ece4b:books"
+   ],
+   [
+    "t",
+    "ol-ol1077895w"
+   ],
+   [
+    "title",
+    "A history of ancient and early medieval India"
+   ],
+   [
+    "author",
+    "Upinder Singh"
+   ],
+   [
+    "isbn",
+    "9788131711200"
+   ],
+   [
+    "isbn10",
+    "8131716775"
+   ],
+   [
+    "open-library-id",
+    "OL1077895W"
+   ],
+   [
+    "lang",
+    "eng"
+   ],
+   [
+    "year",
+    "2008"
+   ],
+   [
+    "cover",
+    "https://covers.openlibrary.org/b/id/3367446-L.jpg"
+   ],
+   [
+    "subject",
+    "History"
+   ],
+   [
+    "subject",
+    "India, history"
+   ],
+   [
+    "format",
+    "reference"
+   ],
+   [
+    "source",
+    "openlibrary"
+   ],
+   [
+    "json",
+    "{\"word\":{\"slug\":\"ol-ol1077895w\",\"name\":\"A history of ancient and early medieval India\",\"title\":\"A history of ancient and early medieval India\",\"wordTypes\":[\"word\",\"bookSubmission\"]},\"bookSubmission\":{\"slug\":\"ol-ol1077895w\",\"title\":\"A history of ancient and early medieval India\",\"authorName\":\"Upinder Singh\",\"authorPubkey\":null,\"isbn13\":\"9788131711200\",\"isbn10\":\"8131716775\",\"openLibraryId\":\"OL1077895W\",\"coverUrl\":\"https://covers.openlibrary.org/b/id/3367446-L.jpg\",\"publishYear\":2008,\"language\":\"eng\",\"subjects\":[\"History\",\"India, history\"],\"blurb\":\"Developed as a comprehensive introductory work for scholars and students of ancient and early medieval Indian history, this book provides the most exhaustive overview of the subject. Dividing the vast historical expanse from the stone age to the 12th century into broad chronological units, it constructs profiles of various geographical regions of the subcontinent, weaving together and analysing an unparalleled range of literary and archaeological evidence. Dealing with prehistory and protohistory of the subcontinent in considerable detail, the narrative of the historical period breaks away from conventional text-based history writing. Providing a window into the world of primary sources, it incorporates a large volume of archaeological data, along with literary, epigraphic, and numismatic evidence. Revealing the ways in which our past is constructed, it explains fundamental concepts, and illuminates contemporary debates, discoveries, and research. Situating prevailing historical debates in their contexts, Ancient and Early Medieval India presents balanced assessments, encouraging readers to independently evaluate theories, evidence, and arguments. Beautifully illustrated with over four hundred photographs, maps, and figures, Ancient and Early Medieval India helps visualize and understand the extraordinarily rich and varied remains of the ancient past of Indian subcontinent. It offers a scholarly and nuanced—yet lucid—account of India’s early past, and will surely transform the discovery of this past into an exciting experience.\",\"format\":\"reference\",\"fileUrl\":null,\"source\":\"openlibrary\",\"submittedBy\":null}}"
+   ]
+  ],
+  [
+   [
+    "d",
+    "ol-ol18007456w"
+   ],
+   [
+    "z",
+    "39998:6aca05b812da97601151776d13de04ae71afc9d86da1408f0e72cffef72ece4b:books"
+   ],
+   [
+    "t",
+    "ol-ol18007456w"
+   ],
+   [
+    "title",
+    "Literature--An Introduction to Fiction, Poetry, Drama and Writing--Eleventh Edition"
+   ],
+   [
+    "author",
+    "Kennedy, X. & Gioia, D."
+   ],
+   [
+    "isbn",
+    "9780205751808"
+   ],
+   [
+    "isbn10",
+    "1292120827"
+   ],
+   [
+    "open-library-id",
+    "OL18007456W"
+   ],
+   [
+    "lang",
+    "eng"
+   ],
+   [
+    "year",
+    "2006"
+   ],
+   [
+    "pages",
+    "2137"
+   ],
+   [
+    "cover",
+    "https://covers.openlibrary.org/b/id/14328336-L.jpg"
+   ],
+   [
+    "subject",
+    "freedom"
+   ],
+   [
+    "subject",
+    "selfhood"
+   ],
+   [
+    "subject",
+    "self-fulfilment"
+   ],
+   [
+    "subject",
+    "meaning of love"
+   ],
+   [
+    "subject",
+    "short story"
+   ],
+   [
+    "subject",
+    "Fiction"
+   ],
+   [
+    "subject",
+    "History"
+   ],
+   [
+    "subject",
+    "Classic Literature"
+   ],
+   [
+    "subject",
+    "Short Stories"
+   ],
+   [
+    "subject",
+    "Juvenile audience"
+   ],
+   [
+    "subject",
+    "civil war"
+   ],
+   [
+    "subject",
+    "hanging"
+   ],
+   [
+    "subject",
+    "American Civil War"
+   ],
+   [
+    "subject",
+    "Confederate States of America"
+   ],
+   [
+    "subject",
+    "Union"
+   ],
+   [
+    "subject",
+    "Imagination"
+   ],
+   [
+    "subject",
+    "Literature"
+   ],
+   [
+    "subject",
+    "Collections"
+   ],
+   [
+    "subject",
+    "Literature, collections"
+   ],
+   [
+    "format",
+    "reference"
+   ],
+   [
+    "source",
+    "openlibrary"
+   ],
+   [
+    "json",
+    "{\"word\":{\"slug\":\"ol-ol18007456w\",\"name\":\"Literature--An Introduction to Fiction, Poetry, Drama and Writing--Eleventh Edition\",\"title\":\"Literature--An Introduction to Fiction, Poetry, Drama and Writing--Eleventh Edition\",\"wordTypes\":[\"word\",\"bookSubmission\"]},\"bookSubmission\":{\"slug\":\"ol-ol18007456w\",\"title\":\"Literature--An Introduction to Fiction, Poetry, Drama and Writing--Eleventh Edition\",\"authorName\":\"Kennedy, X. & Gioia, D.\",\"authorPubkey\":null,\"isbn13\":\"9780205751808\",\"isbn10\":\"1292120827\",\"openLibraryId\":\"OL18007456W\",\"coverUrl\":\"https://covers.openlibrary.org/b/id/14328336-L.jpg\",\"pageCount\":2137,\"publishYear\":2006,\"language\":\"eng\",\"subjects\":[\"freedom\",\"selfhood\",\"self-fulfilment\",\"meaning of love\",\"short story\",\"Fiction\",\"History\",\"Classic Literature\",\"Short Stories\",\"Juvenile audience\",\"civil war\",\"hanging\",\"American Civil War\",\"Confederate States of America\",\"Union\",\"Imagination\",\"Literature\",\"Collections\",\"Literature, collections\"],\"format\":\"reference\",\"fileUrl\":null,\"source\":\"openlibrary\",\"submittedBy\":null}}"
+   ]
+  ],
+  [
+   [
+    "d",
+    "ol-ol66512w"
+   ],
+   [
+    "z",
+    "39998:6aca05b812da97601151776d13de04ae71afc9d86da1408f0e72cffef72ece4b:books"
+   ],
+   [
+    "t",
+    "ol-ol66512w"
+   ],
+   [
+    "title",
+    "Novels (Emma / Mansfield Park / Northanger Abbey / Persuasion / Pride and Prejudice / Sense and Sensibility)"
+   ],
+   [
+    "author",
+    "Jane Austen"
+   ],
+   [
+    "isbn",
+    "9781905716760"
+   ],
+   [
+    "isbn10",
+    "1435101162"
+   ],
+   [
+    "open-library-id",
+    "OL66512W"
+   ],
+   [
+    "lang",
+    "eng"
+   ],
+   [
+    "year",
+    "1818"
+   ],
+   [
+    "pages",
+    "1076"
+   ],
+   [
+    "cover",
+    "https://covers.openlibrary.org/b/id/9276728-L.jpg"
+   ],
+   [
+    "subject",
+    "British and irish fiction (fictional works by one author)"
+   ],
+   [
+    "subject",
+    "Brothers and sisters"
+   ],
+   [
+    "subject",
+    "Children's fiction"
+   ],
+   [
+    "subject",
+    "Courtship"
+   ],
+   [
+    "subject",
+    "Drama"
+   ],
+   [
+    "subject",
+    "English fiction"
+   ],
+   [
+    "subject",
+    "English literature"
+   ],
+   [
+    "subject",
+    "Families"
+   ],
+   [
+    "subject",
+    "Family"
+   ],
+   [
+    "subject",
+    "Family life"
+   ],
+   [
+    "subject",
+    "Family relations"
+   ],
+   [
+    "subject",
+    "Fiction"
+   ],
+   [
+    "subject",
+    "Fiction Classics"
+   ],
+   [
+    "subject",
+    "History"
+   ],
+   [
+    "subject",
+    "Interpersonal relations"
+   ],
+   [
+    "subject",
+    "Juvenile fiction"
+   ],
+   [
+    "subject",
+    "Literary Fiction"
+   ],
+   [
+    "subject",
+    "love stories"
+   ],
+   [
+    "subject",
+    "manners"
+   ],
+   [
+    "subject",
+    "Manners and customs"
+   ],
+   [
+    "subject",
+    "marriage"
+   ],
+   [
+    "subject",
+    "Romance"
+   ],
+   [
+    "subject",
+    "Sisters"
+   ],
+   [
+    "subject",
+    "Social classes"
+   ],
+   [
+    "subject",
+    "Social life and customs"
+   ],
+   [
+    "subject",
+    "Upper class"
+   ],
+   [
+    "subject",
+    "wealth"
+   ],
+   [
+    "subject",
+    "Women in England"
+   ],
+   [
+    "subject",
+    "young ladies"
+   ],
+   [
+    "subject",
+    "Young women"
+   ],
+   [
+    "subject",
+    "entail"
+   ],
+   [
+    "subject",
+    "Austen, Jane, 1775-1817"
+   ],
+   [
+    "subject",
+    "English literature -- 19th century"
+   ],
+   [
+    "subject",
+    "Littérature anglaise -- 19e siècle"
+   ],
+   [
+    "subject",
+    "Romans"
+   ],
+   [
+    "subject",
+    "Engels"
+   ],
+   [
+    "subject",
+    "English Love stories"
+   ],
+   [
+    "subject",
+    "English Romance fiction"
+   ],
+   [
+    "subject",
+    "Literature"
+   ],
+   [
+    "format",
+    "reference"
+   ],
+   [
+    "source",
+    "openlibrary"
+   ],
+   [
+    "json",
+    "{\"word\":{\"slug\":\"ol-ol66512w\",\"name\":\"Novels (Emma / Mansfield Park / Northanger Abbey / Persuasion / Pride and Prejudice / Sense and Sensibility)\",\"title\":\"Novels (Emma / Mansfield Park / Northanger Abbey / Persuasion / Pride and Prejudice / Sense and Sensibility)\",\"wordTypes\":[\"word\",\"bookSubmission\"]},\"bookSubmission\":{\"slug\":\"ol-ol66512w\",\"title\":\"Novels (Emma / Mansfield Park / Northanger Abbey / Persuasion / Pride and Prejudice / Sense and Sensibility)\",\"authorName\":\"Jane Austen\",\"authorPubkey\":null,\"isbn13\":\"9781905716760\",\"isbn10\":\"1435101162\",\"openLibraryId\":\"OL66512W\",\"coverUrl\":\"https://covers.openlibrary.org/b/id/9276728-L.jpg\",\"pageCount\":1076,\"publishYear\":1818,\"language\":\"eng\",\"subjects\":[\"British and irish fiction (fictional works by one author)\",\"Brothers and sisters\",\"Children's fiction\",\"Courtship\",\"Drama\",\"English fiction\",\"English literature\",\"Families\",\"Family\",\"Family life\",\"Family relations\",\"Fiction\",\"Fiction Classics\",\"History\",\"Interpersonal relations\",\"Juvenile fiction\",\"Literary Fiction\",\"love stories\",\"manners\",\"Manners and customs\",\"marriage\",\"Romance\",\"Sisters\",\"Social classes\",\"Social life and customs\",\"Upper class\",\"wealth\",\"Women in England\",\"young ladies\",\"Young women\",\"entail\",\"Austen, Jane, 1775-1817\",\"English literature -- 19th century\",\"Littérature anglaise -- 19e siècle\",\"Romans\",\"Engels\",\"English Love stories\",\"English Romance fiction\",\"Literature\"],\"blurb\":\"Emma\\nMansfield Park\\nNorthanger Abbey\\nPersuasion\\n[Pride and Prejudice](https://openlibrary.org/works/OL66554W)\\nSense and Sensibility\",\"format\":\"reference\",\"fileUrl\":null,\"source\":\"openlibrary\",\"submittedBy\":null}}"
+   ]
+  ],
+  [
+   [
+    "d",
+    "ol-ol19722168w"
+   ],
+   [
+    "z",
+    "39998:6aca05b812da97601151776d13de04ae71afc9d86da1408f0e72cffef72ece4b:books"
+   ],
+   [
+    "t",
+    "ol-ol19722168w"
+   ],
+   [
+    "title",
+    "The storm before the storm"
+   ],
+   [
+    "author",
+    "Duncan, Michael (Podcaster)"
+   ],
+   [
+    "isbn",
+    "9781610397216"
+   ],
+   [
+    "isbn10",
+    "1549167774"
+   ],
+   [
+    "open-library-id",
+    "OL19722168W"
+   ],
+   [
+    "lang",
+    "eng"
+   ],
+   [
+    "year",
+    "2017"
+   ],
+   [
+    "pages",
+    "327"
+   ],
+   [
+    "cover",
+    "https://covers.openlibrary.org/b/id/10092515-L.jpg"
+   ],
+   [
+    "subject",
+    "History"
+   ],
+   [
+    "subject",
+    "Rome, history, republic, 510-30 b.c."
+   ],
+   [
+    "subject",
+    "nyt:combined-print-and-e-book-nonfiction=2017-11-12"
+   ],
+   [
+    "subject",
+    "New York Times bestseller"
+   ],
+   [
+    "subject",
+    "Roman Empire"
+   ],
+   [
+    "format",
+    "reference"
+   ],
+   [
+    "source",
+    "openlibrary"
+   ],
+   [
+    "json",
+    "{\"word\":{\"slug\":\"ol-ol19722168w\",\"name\":\"The storm before the storm\",\"title\":\"The storm before the storm\",\"wordTypes\":[\"word\",\"bookSubmission\"]},\"bookSubmission\":{\"slug\":\"ol-ol19722168w\",\"title\":\"The storm before the storm\",\"authorName\":\"Duncan, Michael (Podcaster)\",\"authorPubkey\":null,\"isbn13\":\"9781610397216\",\"isbn10\":\"1549167774\",\"openLibraryId\":\"OL19722168W\",\"coverUrl\":\"https://covers.openlibrary.org/b/id/10092515-L.jpg\",\"pageCount\":327,\"publishYear\":2017,\"language\":\"eng\",\"subjects\":[\"History\",\"Rome, history, republic, 510-30 b.c.\",\"nyt:combined-print-and-e-book-nonfiction=2017-11-12\",\"New York Times bestseller\",\"Roman Empire\"],\"format\":\"reference\",\"fileUrl\":null,\"source\":\"openlibrary\",\"submittedBy\":null}}"
+   ]
+  ],
+  [
+   [
+    "d",
+    "ol-ol2031159w"
+   ],
+   [
+    "z",
+    "39998:6aca05b812da97601151776d13de04ae71afc9d86da1408f0e72cffef72ece4b:books"
+   ],
+   [
+    "t",
+    "ol-ol2031159w"
+   ],
+   [
+    "title",
+    "Medieval Europe"
+   ],
+   [
+    "author",
+    "C. Warren (Charles Warren) Hollister"
+   ],
+   [
+    "isbn",
+    "9780471019398"
+   ],
+   [
+    "isbn10",
+    "047140697X"
+   ],
+   [
+    "open-library-id",
+    "OL2031159W"
+   ],
+   [
+    "lang",
+    "eng"
+   ],
+   [
+    "year",
+    "1964"
+   ],
+   [
+    "pages",
+    "396"
+   ],
+   [
+    "cover",
+    "https://covers.openlibrary.org/b/id/6924936-L.jpg"
+   ],
+   [
+    "subject",
+    "Church history"
+   ],
+   [
+    "subject",
+    "Europe"
+   ],
+   [
+    "subject",
+    "History"
+   ],
+   [
+    "subject",
+    "Medieval Civilization"
+   ],
+   [
+    "subject",
+    "Middle Ages"
+   ],
+   [
+    "subject",
+    "Social conditions"
+   ],
+   [
+    "subject",
+    "Histoire"
+   ],
+   [
+    "subject",
+    "Europe, history, 476-1492"
+   ],
+   [
+    "subject",
+    "Civilization, medieval"
+   ],
+   [
+    "subject",
+    "Middle ages, history"
+   ],
+   [
+    "format",
+    "reference"
+   ],
+   [
+    "source",
+    "openlibrary"
+   ],
+   [
+    "json",
+    "{\"word\":{\"slug\":\"ol-ol2031159w\",\"name\":\"Medieval Europe\",\"title\":\"Medieval Europe\",\"wordTypes\":[\"word\",\"bookSubmission\"]},\"bookSubmission\":{\"slug\":\"ol-ol2031159w\",\"title\":\"Medieval Europe\",\"authorName\":\"C. Warren (Charles Warren) Hollister\",\"authorPubkey\":null,\"isbn13\":\"9780471019398\",\"isbn10\":\"047140697X\",\"openLibraryId\":\"OL2031159W\",\"coverUrl\":\"https://covers.openlibrary.org/b/id/6924936-L.jpg\",\"pageCount\":396,\"publishYear\":1964,\"language\":\"eng\",\"subjects\":[\"Church history\",\"Europe\",\"History\",\"Medieval Civilization\",\"Middle Ages\",\"Social conditions\",\"Histoire\",\"Europe, history, 476-1492\",\"Civilization, medieval\",\"Middle ages, history\"],\"format\":\"reference\",\"fileUrl\":null,\"source\":\"openlibrary\",\"submittedBy\":null}}"
+   ]
+  ],
+  [
+   [
+    "d",
+    "ol-ol23095423w"
+   ],
+   [
+    "z",
+    "39998:6aca05b812da97601151776d13de04ae71afc9d86da1408f0e72cffef72ece4b:books"
+   ],
+   [
+    "t",
+    "ol-ol23095423w"
+   ],
+   [
+    "title",
+    "How the Word Is Passed"
+   ],
+   [
+    "author",
+    "Clint Smith III"
+   ],
+   [
+    "isbn",
+    "9781549138393"
+   ],
+   [
+    "isbn10",
+    "0349701180"
+   ],
+   [
+    "open-library-id",
+    "OL23095423W"
+   ],
+   [
+    "lang",
+    "eng"
+   ],
+   [
+    "year",
+    "2021"
+   ],
+   [
+    "pages",
+    "344"
+   ],
+   [
+    "cover",
+    "https://covers.openlibrary.org/b/id/10510048-L.jpg"
+   ],
+   [
+    "subject",
+    "nyt:combined-print-and-e-book-nonfiction=2021-06-20"
+   ],
+   [
+    "subject",
+    "New York Times bestseller"
+   ],
+   [
+    "subject",
+    "New York Times reviewed"
+   ],
+   [
+    "subject",
+    "Slavery, united states, history"
+   ],
+   [
+    "subject",
+    "United states, race relations"
+   ],
+   [
+    "subject",
+    "United states, history"
+   ],
+   [
+    "subject",
+    "Travel"
+   ],
+   [
+    "subject",
+    "Slavery"
+   ],
+   [
+    "subject",
+    "History"
+   ],
+   [
+    "subject",
+    "Slaveholders"
+   ],
+   [
+    "subject",
+    "African Americans"
+   ],
+   [
+    "subject",
+    "Social conditions"
+   ],
+   [
+    "subject",
+    "Historic sites"
+   ],
+   [
+    "subject",
+    "Plantations"
+   ],
+   [
+    "subject",
+    "Race relations"
+   ],
+   [
+    "subject",
+    "Local History"
+   ],
+   [
+    "subject",
+    "Esclavage"
+   ],
+   [
+    "subject",
+    "Histoire"
+   ],
+   [
+    "subject",
+    "Propriétaires d'esclaves"
+   ],
+   [
+    "subject",
+    "Noirs américains"
+   ],
+   [
+    "subject",
+    "Conditions sociales"
+   ],
+   [
+    "subject",
+    "Relations raciales"
+   ],
+   [
+    "subject",
+    "Histoire locale"
+   ],
+   [
+    "subject",
+    "HISTORY / African American"
+   ],
+   [
+    "subject",
+    "HISTORY / United States / General"
+   ],
+   [
+    "subject",
+    "SOCIAL SCIENCE / Black Studies (Global)"
+   ],
+   [
+    "subject",
+    "SOCIAL SCIENCE / Discrimination"
+   ],
+   [
+    "subject",
+    "SOCIAL SCIENCE / Ethnic Studies / American / African American Studies"
+   ],
+   [
+    "subject",
+    "Study and teaching"
+   ],
+   [
+    "subject",
+    "Discrimination"
+   ],
+   [
+    "subject",
+    "Ethnology"
+   ],
+   [
+    "subject",
+    "Minorities"
+   ],
+   [
+    "subject",
+    "Racism"
+   ],
+   [
+    "format",
+    "reference"
+   ],
+   [
+    "source",
+    "openlibrary"
+   ],
+   [
+    "json",
+    "{\"word\":{\"slug\":\"ol-ol23095423w\",\"name\":\"How the Word Is Passed\",\"title\":\"How the Word Is Passed\",\"wordTypes\":[\"word\",\"bookSubmission\"]},\"bookSubmission\":{\"slug\":\"ol-ol23095423w\",\"title\":\"How the Word Is Passed\",\"authorName\":\"Clint Smith III\",\"authorPubkey\":null,\"isbn13\":\"9781549138393\",\"isbn10\":\"0349701180\",\"openLibraryId\":\"OL23095423W\",\"coverUrl\":\"https://covers.openlibrary.org/b/id/10510048-L.jpg\",\"pageCount\":344,\"publishYear\":2021,\"language\":\"eng\",\"subjects\":[\"nyt:combined-print-and-e-book-nonfiction=2021-06-20\",\"New York Times bestseller\",\"New York Times reviewed\",\"Slavery, united states, history\",\"United states, race relations\",\"United states, history\",\"Travel\",\"Slavery\",\"History\",\"Slaveholders\",\"African Americans\",\"Social conditions\",\"Historic sites\",\"Plantations\",\"Race relations\",\"Local History\",\"Esclavage\",\"Histoire\",\"Propriétaires d'esclaves\",\"Noirs américains\",\"Conditions sociales\",\"Relations raciales\",\"Histoire locale\",\"HISTORY / African American\",\"HISTORY / United States / General\",\"SOCIAL SCIENCE / Black Studies (Global)\",\"SOCIAL SCIENCE / Discrimination\",\"SOCIAL SCIENCE / Ethnic Studies / American / African American Studies\",\"Study and teaching\",\"Discrimination\",\"Ethnology\",\"Minorities\",\"Racism\"],\"format\":\"reference\",\"fileUrl\":null,\"source\":\"openlibrary\",\"submittedBy\":null}}"
+   ]
+  ],
+  [
+   [
+    "d",
+    "ol-ol24314956w"
+   ],
+   [
+    "z",
+    "39998:6aca05b812da97601151776d13de04ae71afc9d86da1408f0e72cffef72ece4b:books"
+   ],
+   [
+    "t",
+    "ol-ol24314956w"
+   ],
+   [
+    "title",
+    "The God Equation"
+   ],
+   [
+    "author",
+    "Michio Kaku"
+   ],
+   [
+    "isbn",
+    "9780593396445"
+   ],
+   [
+    "isbn10",
+    "014199519X"
+   ],
+   [
+    "open-library-id",
+    "OL24314956W"
+   ],
+   [
+    "lang",
+    "eng"
+   ],
+   [
+    "year",
+    "2021"
+   ],
+   [
+    "pages",
+    "240"
+   ],
+   [
+    "cover",
+    "https://covers.openlibrary.org/b/id/10832321-L.jpg"
+   ],
+   [
+    "subject",
+    "nyt:combined-print-and-e-book-nonfiction=2021-04-25"
+   ],
+   [
+    "subject",
+    "New York Times bestseller"
+   ],
+   [
+    "subject",
+    "Cosmology"
+   ],
+   [
+    "subject",
+    "Big bang theory"
+   ],
+   [
+    "subject",
+    "Quantum theory"
+   ],
+   [
+    "subject",
+    "Physics, popular works"
+   ],
+   [
+    "subject",
+    "Physics, philosophy"
+   ],
+   [
+    "subject",
+    "Physics, history"
+   ],
+   [
+    "subject",
+    "Physics"
+   ],
+   [
+    "subject",
+    "Philosophy"
+   ],
+   [
+    "subject",
+    "SCIENCE / Astronomy"
+   ],
+   [
+    "format",
+    "reference"
+   ],
+   [
+    "source",
+    "openlibrary"
+   ],
+   [
+    "json",
+    "{\"word\":{\"slug\":\"ol-ol24314956w\",\"name\":\"The God Equation\",\"title\":\"The God Equation\",\"wordTypes\":[\"word\",\"bookSubmission\"]},\"bookSubmission\":{\"slug\":\"ol-ol24314956w\",\"title\":\"The God Equation\",\"authorName\":\"Michio Kaku\",\"authorPubkey\":null,\"isbn13\":\"9780593396445\",\"isbn10\":\"014199519X\",\"openLibraryId\":\"OL24314956W\",\"coverUrl\":\"https://covers.openlibrary.org/b/id/10832321-L.jpg\",\"pageCount\":240,\"publishYear\":2021,\"language\":\"eng\",\"subjects\":[\"nyt:combined-print-and-e-book-nonfiction=2021-04-25\",\"New York Times bestseller\",\"Cosmology\",\"Big bang theory\",\"Quantum theory\",\"Physics, popular works\",\"Physics, philosophy\",\"Physics, history\",\"Physics\",\"Philosophy\",\"SCIENCE / Astronomy\"],\"blurb\":\"\\\"Michio Kaku, renowned theoretical physicist and author of Hyperspace and The Future of Humanity, tells the story of the greatest quest in science. When Newton discovered the laws of motion and gravity, he unified the rules of heaven and earth. From then on, physicists have been discovering new forces and incorporating them into ever-greater theories. But the major breakthroughs of the 20th century--relativity and quantum mechanics--are incompatible, and so since then, physicists have been endeavoring to combine these two theories. This would ultimately tie all the forces in the universe together into one beautiful equation that can unlock the deepest mysteries of space and time. That epic journey is the story of this book\\\"--\",\"format\":\"reference\",\"fileUrl\":null,\"source\":\"openlibrary\",\"submittedBy\":null}}"
+   ]
+  ]
+ ],
+ "templateEvents": [
+  {
+   "content": "",
+   "created_at": 1792495970,
+   "id": "a3037637a77a5b0338639f570b6cf24aa292a1bea322e18d2f4e69144df0cb57",
+   "kind": 9999,
+   "pubkey": "b83a28b7e4e5d20bd960c5faeb6625f95529166b8bdb045d42634a2f35919450",
+   "sig": "6426b2d76c860f4494d7d027d21ed31660dc5ef45b8cfd07d315a8baf90dfa3d96a819b8270d0bbd7e6e0602605613e79b9c042bebb95a5645a12d081e1a61a1",
+   "tags": [
+    [
+     "z",
+     "39998:2efaa715bbb46dd5be6b7da8d7700266d11674b913b8178addb5c2e63d987331:url-templates"
+    ],
+    [
+     "name",
+     "Goodreads book (ISBN-10)"
+    ],
+    [
+     "url-template",
+     "https://www.goodreads.com/book/isbn/{isbn10}"
+    ],
+    [
+     "alt",
+     "URL template: Goodreads book (ISBN-10)"
+    ]
+   ]
+  },
+  {
+   "content": "",
+   "created_at": 1792495968,
+   "id": "e722c94c9ee31ed28b79687b17daa313c0d02a9936a1c07dc73fbab4288fbc10",
+   "kind": 9999,
+   "pubkey": "b83a28b7e4e5d20bd960c5faeb6625f95529166b8bdb045d42634a2f35919450",
+   "sig": "b458692d82108e1fe45beec735c7da97d0d8c1359c60a636fb19576b321572d3bc55a84d23c28e9f024ab80875e8f6824adfb73b5fe54e117514436caad1415a",
+   "tags": [
+    [
+     "z",
+     "39998:2efaa715bbb46dd5be6b7da8d7700266d11674b913b8178addb5c2e63d987331:url-templates"
+    ],
+    [
+     "name",
+     "Open Library work"
+    ],
+    [
+     "url-template",
+     "https://openlibrary.org/works/{id}"
+    ],
+    [
+     "alt",
+     "URL template: Open Library work"
+    ]
+   ]
+  }
+ ]
+}
