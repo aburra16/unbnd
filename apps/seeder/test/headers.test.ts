@@ -46,8 +46,8 @@ const OL: LinkTemplate = {
 const GR: LinkTemplate = {
   id: "b".repeat(64),
   relay: "wss://dcosl.brainstorm.world",
-  placeholder: "isbn",
-  field: "isbn",
+  placeholder: "isbn10",
+  field: "isbn10",
 };
 
 const books = (links: readonly LinkTemplate[] = [OL, GR]) =>
@@ -112,7 +112,7 @@ describe("buildBooksHeaderTemplate (ADR 0087)", () => {
   it("pins link templates by id in the given order, and emits none when none are given", () => {
     expect(all(books(), "link")).toEqual([
       ["link", OL.id, OL.relay, "id", "open-library-id"],
-      ["link", GR.id, GR.relay, "isbn", "isbn"],
+      ["link", GR.id, GR.relay, "isbn10", "isbn10"],
     ]);
     expect(all(books([]), "link")).toEqual([]);
   });

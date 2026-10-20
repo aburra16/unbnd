@@ -11,7 +11,7 @@ The seeder republishes the `books` header at the start of every run, in the old 
 3. One builder is the single source: a full seed run and a header-only run publish identical templates (bar `created_at`).
 4. A header-only entrypoint (`headers.js`, bundled beside `recast.js`) and a `headers` task on the Staging ops menu publish the seeded headers without running the seed.
 5. The drafted header and a sample of real items pass Brainstorm-UI's `listCheck` (`checkHeader` zero problems; `checkItem` zero blocking problems across the sample); the resolved output is read and recorded.
-6. Link templates are signed by the operator in List Management before the header is published; the header pins only templates whose signer is a held key (the existing Goodreads template is signed with the publicly known private key `1` and is not pinned).
+6. Link templates are signed by the operator before the header is published, from a local NIP-07 signing page (List Management publishes a new template only together with a header the same key signs, and this header is the librarian's); the header pins only templates whose signer is a held key (the existing Goodreads template is signed with the publicly known private key `1` and is not pinned).
 
 ## Out of scope
 - An `i` (NIP-73 `isbn:`) tag on items, which joins books to the content-categories Books category (an item republish across the catalog; its own story).
