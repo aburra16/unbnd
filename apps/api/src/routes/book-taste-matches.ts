@@ -11,16 +11,15 @@ import { parse as parseCookie } from "cookie";
 import { npubEncode } from "nostr-tools/nip19";
 import {
   asHexPubkey,
-  buildBookRatingsHeaderAddress,
   formatAddress,
   type SignedNostrEvent,
 } from "@unbnd/schemas";
 import { computeTasteMatch } from "@unbnd/trust";
 import type { Config } from "../config";
 import type { NostrFilter, PagedResult } from "../nostr/query";
-import { scoresByAuthor } from "../ratings/summary";
+import { dedupeRatings, reviewScope, scoresByAuthor } from "../ratings/summary";
+import { readBookReviews, readBookReviewsPaged } from "../reviews/read";
 
-const KIND = 39999;
 const COOKIE_NAME = "session";
 const DEFAULT_MIN_OVERLAP = 5;
 // Bound the batched authors read (tracks strfry's maxFilterLimit). A book with
@@ -60,7 +59,6 @@ export type BookTasteMatchesResponse =
 export function buildBookTasteMatchesRouter(deps: BookTasteMatchesDeps): Router {
   const router = express.Router();
   const lib = () => deps.config.librarianPubkey;
-  const ratingsZ = () => formatAddress(buildBookRatingsHeaderAddress(lib() as never));
   const minOverlap = () => deps.config.tasteMatchMinOverlap ?? DEFAULT_MIN_OVERLAP;
 
   router.get("/api/books/:slug/taste-matches", async (req, res, next) => {
@@ -78,28 +76,23 @@ export function buildBookTasteMatchesRouter(deps: BookTasteMatchesDeps): Router 
       });
 
       try {
-        // 1. The book's raters (#a-scoped), distinct, viewer excluded, capped.
-        const raterEvents = await deps.query({ kinds: [KIND], "#a": [bookAddr] });
-        const raterHexes: string[] = [];
-        const seen = new Set<string>([viewer.pubkeyHex]);
-        for (const e of raterEvents) {
-          if (seen.has(e.pubkey)) continue;
-          seen.add(e.pubkey);
-          raterHexes.push(e.pubkey);
-          if (raterHexes.length >= RATER_CAP) break;
-        }
+        // 1. The book's raters: authors of its standing reviews, viewer excluded, capped.
+        const scope = reviewScope(deps.config);
+        const standing = dedupeRatings(await readBookReviews(deps.query, { book: bookAddr }), scope);
+        const raterHexes = standing
+          .map((r) => r.pubkey)
+          .filter((p) => p !== viewer.pubkeyHex)
+          .slice(0, RATER_CAP);
         if (raterHexes.length === 0)
           return void res.status(200).json({ signedIn: true, matches: {} });
 
         // 2. ONE batched author-scoped read over the viewer + the raters.
-        const paged = await deps.queryPaged({
-          kinds: [KIND],
-          "#z": [ratingsZ()],
+        const paged = await readBookReviewsPaged(deps.queryPaged, {
           authors: [viewer.pubkeyHex, ...raterHexes],
         });
 
         // 3. Group by author, compute the viewer vs each rater (pure).
-        const byAuthor = scoresByAuthor(paged.events);
+        const byAuthor = scoresByAuthor(paged.events, scope);
         const viewerMap = byAuthor.get(viewer.pubkeyHex) ?? new Map<string, number>();
         const matches: Record<string, BylineMatch> = {};
         for (const raterHex of raterHexes) {

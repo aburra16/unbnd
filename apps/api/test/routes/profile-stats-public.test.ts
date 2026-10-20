@@ -17,10 +17,8 @@ import { npubEncode } from "nostr-tools/nip19";
 import { generateSecretKey, getPublicKey } from "nostr-tools/pure";
 import {
   asHexPubkey,
-  toBookRatingEvent,
   toBookTagAssertionEvent,
   toWireTemplate,
-  type BookRating,
   type SignedNostrEvent,
 } from "@unbnd/schemas";
 import type { Config } from "../../src/config";
@@ -41,20 +39,17 @@ const cfg = {
   databaseUrl: "x", backupEncryptionKey: "a".repeat(64), publicOrigin: "x", librarianPubkey: LIB,
 } as Config;
 
-const RATINGS_HDR = { kind: 39998 as const, pubkey: LIB, dTag: "book-ratings" };
 const TAGS_HDR = { kind: 39998 as const, pubkey: LIB, dTag: "book-tag-assertions" };
 
 function ratingEvent(opts: { bookSlug: string; score: number; reviewText?: string; createdAt?: number }): SignedNostrEvent {
-  const r: BookRating = {
-    bookSlug: opts.bookSlug,
-    bookAddress: { kind: 39999 as const, pubkey: LIB, dTag: opts.bookSlug },
-    raterPubkey: TARGET_HEX,
-    score: opts.score as BookRating["score"],
-    reviewText: opts.reviewText,
-    reviewDate: "2026-05-27",
-    parentHeader: RATINGS_HDR,
+  // The shared book review record (Story 99 / ADR 0089).
+  const address = `39999:${LIB}:${opts.bookSlug}`;
+  const t = {
+    kind: 34259,
+    created_at: opts.createdAt ?? 1,
+    content: opts.reviewText ?? "",
+    tags: [["d", `book:${address}`], ["a", address], ["m", "book"], ["s", String(opts.score)]],
   };
-  const t = toWireTemplate(toBookRatingEvent(r), opts.createdAt ?? 1);
   return { id: `${opts.bookSlug}-${opts.createdAt ?? 1}`, pubkey: TARGET_HEX, sig: "x", ...t } as SignedNostrEvent;
 }
 
@@ -77,8 +72,10 @@ function queryByConcept(handlers: {
   tags?: () => SignedNostrEvent[] | Promise<SignedNostrEvent[]>;
 }) {
   return vi.fn(async (filter: Record<string, unknown>) => {
+    const kinds = (filter.kinds as number[] | undefined) ?? [];
+    if (kinds.includes(34259)) return handlers.ratings ? handlers.ratings() : [];
+    if (kinds.includes(5)) return [];
     const z = ((filter["#z"] as string[]) ?? [])[0] ?? "";
-    if (z.endsWith("book-ratings")) return handlers.ratings ? handlers.ratings() : [];
     if (z.endsWith("book-tag-assertions")) return handlers.tags ? handlers.tags() : [];
     return [];
   });
@@ -118,7 +115,7 @@ describe("GET /api/profile/:npub/stats — public by-pubkey counts (AC-4)", () =
       // fourth parallel kind-3 read (the following-count) through this same
       // `query` dep; the 39999 concept reads still carry kind 39999.
       const kinds = (filter.kinds as number[]) ?? [];
-      expect(kinds.includes(39999) || kinds.includes(3)).toBe(true);
+      expect([39999, 34259, 5, 3].some((k) => kinds.includes(k))).toBe(true);
     }
   });
 

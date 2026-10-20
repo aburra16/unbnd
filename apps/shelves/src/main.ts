@@ -75,6 +75,19 @@ async function main(): Promise<void> {
   const readConcept = (z: string) =>
     queryAllPages((cursor) => queryRelay(relayUrl, { kinds: [KIND], "#z": [z], ...cursor }));
 
+  // Book reviews and their removals (Story 99 / ADR 0089), paged like the concepts.
+  const readReviews = async () => {
+    const reviews = await queryAllPages((cursor) =>
+      queryRelay(relayUrl, { kinds: [34259], "#m": ["book"], ...cursor }),
+    );
+    if (reviews.length === 0) return reviews;
+    const authors = [...new Set(reviews.map((e) => e.pubkey))];
+    const removals = await queryAllPages((cursor) =>
+      queryRelay(relayUrl, { kinds: [5], authors, "#k": ["34259"], ...cursor }),
+    );
+    return [...reviews, ...removals];
+  };
+
   console.log(
     `[shelves] relay=${relayUrl} trust=${trust.name} librarian=${lib.slice(0, 12)} observer=${houseObserverPubkey.slice(0, 12)}`,
   );
@@ -83,6 +96,7 @@ async function main(): Promise<void> {
     await runShelvesCycle({
       config: { librarianPubkey: lib, houseObserverPubkey },
       readConcept,
+      readReviews,
       trust,
       now: () => Math.floor(Date.now() / 1000),
       defs,

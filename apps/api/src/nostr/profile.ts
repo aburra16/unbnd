@@ -152,6 +152,29 @@ export async function fetchRawKind0(
 }
 
 /**
+ * A person's NIP-65 write relays (Story 99 / ADR 0089 §4): the freshest kind
+ * 10002 across the relays, its `r` tags that are unmarked or marked `write`.
+ * Same best-effort fan-out as the kind-0/kind-3 reads; empty when none is found.
+ */
+export async function fetchWriteRelays(
+  relays: readonly string[],
+  pubkeyHex: string,
+  queryFn: RelayQuery = (url, filter) => queryRelayUrl(url, filter, KIND0_TIMEOUT_MS),
+): Promise<string[]> {
+  const filter: NostrFilter = { kinds: [10002], authors: [pubkeyHex], limit: 1 };
+  const results = (await Promise.all(relays.map((url) => queryFn(url, filter).catch(() => [])))).flat();
+  const newest = results.reduce<(typeof results)[number] | null>(
+    (best, e) => (!best || e.created_at > best.created_at ? e : best),
+    null,
+  );
+  if (!newest) return [];
+  return newest.tags
+    .filter((t) => t[0] === "r" && typeof t[1] === "string" && (t[2] === undefined || t[2] === "write"))
+    .map((t) => t[1] as string)
+    .filter((u) => /^wss?:\/\//.test(u));
+}
+
+/**
  * Fan out a kind-3 read across relays and return the freshest event's UNTOUCHED
  * `tags` array + `content` string + `created_at` (ADR 0023). The kind-3 twin of
  * `fetchRawKind0` — same best-effort fan-out + 3s timeout + `limit: 1` — but the

@@ -1,4 +1,4 @@
-// FAILING TESTS — Story 79 / ADR 0077 (web: the Remove rating affordance).
+// Story 79 / ADR 0077 (web: the Remove rating affordance); a NIP-09 removal since Story 99.
 //
 // RatingControl, when the caller has rated, offers a DELIBERATE "Remove
 // rating" action: a separated quiet control, gated by a small two-step
@@ -131,8 +131,9 @@ describe("RatingControl — the Remove rating action (Story 79)", () => {
 
   it("sovereign confirm: runs removeTemplate -> signEvent -> removeSubmit and reconciles with the own rating CLEARED", async () => {
     signedIn(sovereignUser);
-    const template = { kind: 39999, created_at: 1, tags: [["d", "x"], ["retracted", "true"]], content: "" };
-    const signed = { id: "e", pubkey: HEX, kind: 39999, created_at: 1, tags: template.tags, content: "", sig: "s" };
+    // A NIP-09 removal of the caller's review (Story 99 / ADR 0089).
+    const template = { kind: 5, created_at: 1, tags: [["e", "r".repeat(64)], ["a", "34259:x:book:y"], ["k", "34259"]], content: "" };
+    const signed = { id: "e", pubkey: HEX, kind: 5, created_at: 1, tags: template.tags, content: "", sig: "s" };
     removeTemplateMock.mockResolvedValue({ template });
     signEvent.mockResolvedValue(signed);
     removeSubmitMock.mockResolvedValue({ removed: true, summary: EMPTY_SUMMARY, yourRating: null });
@@ -151,6 +152,21 @@ describe("RatingControl — the Remove rating action (Story 79)", () => {
     expect(summaryArg).toBe(EMPTY_SUMMARY);
     expect(ownArg).toBeNull();
     expect(removeCustodialMock).not.toHaveBeenCalled();
+  });
+
+  it("sovereign confirm when nothing is left to remove: no signing, no submit; refreshes and clears", async () => {
+    signedIn(sovereignUser);
+    removeTemplateMock.mockResolvedValue({ template: null });
+    const applyWrite = vi.fn();
+    renderControl({ yourRating: MY_RATING, applyWrite });
+    fireEvent.click(await screen.findByRole("button", { name: /remove rating/i }));
+    fireEvent.click(await screen.findByRole("button", { name: /^remove$/i }));
+
+    await waitFor(() => expect(applyWrite).toHaveBeenCalled());
+    expect(signEvent).not.toHaveBeenCalled();
+    expect(removeSubmitMock).not.toHaveBeenCalled();
+    const [, ownArg] = applyWrite.mock.calls[0]! as [RatingsSummary, PublicRating | null];
+    expect(ownArg).toBeNull();
   });
 
   it("custodial confirm: runs removeCustodial with the book slug; no template, no extension signing", async () => {

@@ -20,6 +20,9 @@ import { useSession } from "../hooks/useSession";
 import { Button, Icon, IconButton } from "@unbnd/ui";
 import "./RatingControl.css";
 
+/** The shared review record's limit (books actions contract §10; Story 99). */
+const REVIEW_WORDS_MAX = 1200;
+
 type Nip07 = {
   signEvent: (template: {
     kind: number;
@@ -87,7 +90,7 @@ export function RatingControl({
     const reviewDate = todayIso();
     try {
       let result: {
-        rating: { score: number; reviewText?: string; reviewDate: string };
+        rating: { score: number | null; reviewText?: string; reviewDate: string } | null;
         summary: RatingsSummary;
       };
       if (isSovereign) {
@@ -97,21 +100,11 @@ export function RatingControl({
           setStatus("error");
           return;
         }
-        const { template } = await api.ratings.template({
-          bookSlug,
-          score,
-          reviewText,
-          reviewDate,
-        });
+        const { template } = await api.ratings.template({ bookSlug, score, reviewText });
         const signed = await nostr.signEvent(template);
         result = await api.ratings.submit(signed);
       } else {
-        result = await api.ratings.submitCustodial({
-          bookSlug,
-          score,
-          reviewText,
-          reviewDate,
-        });
+        result = await api.ratings.submitCustodial({ bookSlug, score, reviewText });
       }
       // Reconcile both slices from the single saved source (ADR 0029 §4): the
       // POST's refreshed aggregate + the own rating we just published.
@@ -141,8 +134,8 @@ export function RatingControl({
     }
   }
 
-  // Story 79: publish the retraction through the same per-tier path as a
-  // rating, then reconcile with the own slice CLEARED (the control returns to
+  // Publish the removal (a NIP-09 kind 5, Story 99) through the same per-tier
+  // path as a rating, then reconcile with the own slice CLEARED (the control returns to
   // the un-rated state; re-rating later is the restore).
   async function onRemoveConfirm() {
     setRemoveStep("removing");
@@ -162,8 +155,12 @@ export function RatingControl({
           return;
         }
         const { template } = await api.ratings.removeTemplate(bookSlug);
-        const signed = await nostr.signEvent(template);
-        result = await api.ratings.removeSubmit(signed);
+        if (template) {
+          result = await api.ratings.removeSubmit(await nostr.signEvent(template));
+        } else {
+          // Nothing left to remove (already removed elsewhere): show the book as it stands.
+          result = { removed: false, summary: await api.ratings.list(bookSlug), yourRating: null };
+        }
       } else {
         result = await api.ratings.removeCustodial(bookSlug);
       }
@@ -218,7 +215,7 @@ export function RatingControl({
             className="rate-review"
             placeholder="Add a short review (optional)"
             value={review}
-            maxLength={2000}
+            maxLength={REVIEW_WORDS_MAX}
             onChange={(e) => setReview(e.target.value)}
           />
           {status === "error" && errorMsg && (

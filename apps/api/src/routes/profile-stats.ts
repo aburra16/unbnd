@@ -11,7 +11,8 @@ import type { Config } from "../config";
 import type { TrustProvider } from "@unbnd/trust";
 import type { NostrFilter, PagedResult } from "../nostr/query";
 import type { SignedNostrEvent } from "@unbnd/schemas";
-import { countOwnRatings } from "../ratings/summary";
+import { countOwnRatings, reviewScope } from "../ratings/summary";
+import { readBookReviewsPaged } from "../reviews/read";
 import { countOwnAppliedTags } from "../tags/aggregate";
 import { toHex } from "../nostr/npub";
 import { distinctFollowCount } from "../profile/follow-count";
@@ -74,7 +75,6 @@ function cookieOf(req: Request): string | undefined {
 export function buildProfileStatsRouter(deps: ProfileStatsDeps): Router {
   const router = express.Router();
   const lib = () => deps.config.librarianPubkey;
-  const ratingsConcept = () => `39998:${lib()}:book-ratings`;
   const tagsConcept = () => `39998:${lib()}:book-tag-assertions`;
   const now = deps.now ?? (() => Date.now());
 
@@ -87,12 +87,8 @@ export function buildProfileStatsRouter(deps: ProfileStatsDeps): Router {
     // A throw (e.g. total-budget exhaustion) still omits ONLY its field(s) and
     // contributes nothing to `capped` (omit-on-throw, Story 19/20).
     const ratingsP = (async () => {
-      const paged = await deps.queryPaged({
-        kinds: [KIND],
-        "#z": [ratingsConcept()],
-        authors: [author],
-      });
-      return { r: countOwnRatings(paged.events), capped: paged.capped };
+      const paged = await readBookReviewsPaged(deps.queryPaged, { authors: [author] });
+      return { r: countOwnRatings(paged.events, reviewScope(deps.config, now())), capped: paged.capped };
     })().then(
       (v) => ({ ok: true as const, ...v }),
       () => ({ ok: false as const }),

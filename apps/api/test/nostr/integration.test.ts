@@ -6,7 +6,7 @@ import { describe, expect, it } from "vitest";
 import type { Config } from "../../src/config";
 import { publishEvent } from "../../src/nostr/publish";
 import { queryEvents } from "../../src/nostr/query";
-import { summarizeRatings } from "../../src/ratings/summary";
+import { reviewScope, summarizeRatings } from "../../src/ratings/summary";
 import { LIBRARIAN, signedRating } from "../ratings/_fixtures";
 
 const STRFRY_TEST_URL = process.env.STRFRY_TEST_URL;
@@ -31,7 +31,8 @@ function testConfig(): Config {
 }
 
 describe.skipIf(!STRFRY_TEST_URL)("strfry publish + read-back", () => {
-  it("publishes a signed rating and reads it back through the summary", async () => {
+  // Story 99: also the proof that Unbnd's relay accepts the shared review record (kind 34259).
+  it("publishes a signed review and reads it back through the summary", async () => {
     const config = testConfig();
     const slug = `it-${Math.floor(Date.now() / 1000)}`;
     const { event, pubkey } = signedRating({ bookSlug: slug, score: 5 });
@@ -41,12 +42,12 @@ describe.skipIf(!STRFRY_TEST_URL)("strfry publish + read-back", () => {
 
     const addr = `39999:${LIBRARIAN}:${slug}`;
     const events = await queryEvents(config, {
-      kinds: [39999],
+      kinds: [34259],
       "#a": [addr],
     });
     expect(events.some((e) => e.id === event.id)).toBe(true);
 
-    const summary = summarizeRatings(events as never);
+    const summary = summarizeRatings(events as never, reviewScope(config));
     expect(summary.count).toBeGreaterThanOrEqual(1);
     expect(summary.average).toBeGreaterThanOrEqual(1);
     // Honest read-back: no trust/weight field leaks.

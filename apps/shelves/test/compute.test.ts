@@ -16,18 +16,15 @@ import { describe, expect, it, vi } from "vitest";
 import { finalizeEvent, generateSecretKey, getPublicKey } from "nostr-tools/pure";
 import {
   asHexPubkey,
-  buildBookRatingsHeaderAddress,
   buildBookRecordsHeaderAddress,
   buildBookTagsHeaderAddress,
   buildBookTagAssertionsHeaderAddress,
   formatAddress,
-  toBookRatingEvent,
   toBookRecordEvent,
   toBookTagEvent,
   toBookTagAssertionEvent,
   toWireTemplate,
   type BookRecord,
-  type BookRating,
   type SignedNostrEvent,
 } from "@unbnd/schemas";
 // The trust + weighted-view machinery the worker REUSES (no new math). These
@@ -58,7 +55,8 @@ const NOW = 1_750_000_000; // seconds
 const DAY = 86_400;
 
 const BOOKS_Z = formatAddress(buildBookRecordsHeaderAddress(LIB));
-const RATINGS_Z = formatAddress(buildBookRatingsHeaderAddress(LIB));
+/** Not a concept address since Story 99: the label the fake serves the review read under. */
+const RATINGS_Z = "reviews: kind 34259, m book";
 const TAGS_Z = formatAddress(buildBookTagsHeaderAddress(LIB));
 const ASSERTS_Z = formatAddress(buildBookTagAssertionsHeaderAddress(LIB));
 
@@ -121,7 +119,7 @@ function genreAssertionEvent(
   return JSON.parse(JSON.stringify(finalizeEvent(t as never, sk))) as SignedNostrEvent;
 }
 
-/** A signed kind-39999 rating for `bookSlug` at `score`, created at `createdAt`. */
+/** A signed book review (kind 34259, Story 99) of `bookSlug` at `score`, created at `createdAt`. */
 function ratingEvent(opts: {
   sk?: Uint8Array;
   bookSlug: string;
@@ -129,26 +127,18 @@ function ratingEvent(opts: {
   createdAt: number;
 }): { pubkey: string; event: SignedNostrEvent } {
   const sk = opts.sk ?? generateSecretKey();
-  const raterPubkey = asHexPubkey(getPublicKey(sk));
-  const rating: BookRating = {
-    bookSlug: opts.bookSlug,
-    bookAddress: { kind: 39999, pubkey: LIB, dTag: opts.bookSlug },
-    raterPubkey,
-    score: opts.score as BookRating["score"],
-    reviewDate: "2026-05-27",
-    parentHeader: { kind: 39998, pubkey: LIB, dTag: "book-ratings" },
-  };
-  const unsigned = toBookRatingEvent(rating);
-  const tags = [
-    ...unsigned.tags.map((t) => [...t]),
-    ["json", JSON.stringify(unsigned.payload)],
-  ];
+  const address = `39999:${LIB}:${opts.bookSlug}`;
   const signed = finalizeEvent(
-    { kind: 39999, created_at: opts.createdAt, tags, content: unsigned.content },
+    {
+      kind: 34259,
+      created_at: opts.createdAt,
+      tags: [["d", `book:${address}`], ["a", address], ["m", "book"], ["s", String(opts.score)]],
+      content: "",
+    },
     sk,
   );
   return {
-    pubkey: raterPubkey,
+    pubkey: asHexPubkey(getPublicKey(sk)),
     event: JSON.parse(JSON.stringify(signed)) as SignedNostrEvent,
   };
 }
@@ -160,7 +150,9 @@ function ratingEvent(opts: {
  * reads it served so we can assert the scan is bounded.
  */
 function makeReadConcept(byZ: Record<string, SignedNostrEvent[]>) {
-  return vi.fn(async (z: string) => byZ[z] ?? []);
+  const read = vi.fn(async (z: string) => byZ[z] ?? []);
+  // The review read (readReviews) is served from the same canned map.
+  return Object.assign(read, { reviews: byZ[RATINGS_Z] ?? [] });
 }
 
 /** The house fixture provider: HOUSE trusts every (rater→weight) in `row`. */
@@ -188,6 +180,9 @@ function baseDeps(overrides: Partial<ShelfComputeDeps> = {}): ShelfComputeDeps {
     now: () => NOW,
     defs: SHELF_DEFS,
     ...overrides,
+    readReviews:
+      overrides.readReviews ??
+      (async () => (overrides.readConcept as { reviews?: SignedNostrEvent[] } | undefined)?.reviews ?? []),
   } as ShelfComputeDeps;
 }
 

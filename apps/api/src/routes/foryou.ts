@@ -26,13 +26,7 @@
 import express, { type Request, type Router } from "express";
 import { parse as parseCookie } from "cookie";
 import { npubEncode } from "nostr-tools/nip19";
-import {
-  buildBookRatingsHeaderAddress,
-  formatAddress,
-  fromBookRatingEvent,
-  fromWireEvent,
-  type SignedNostrEvent,
-} from "@unbnd/schemas";
+import type { SignedNostrEvent } from "@unbnd/schemas";
 import {
   dedupeRatings,
   weightedRatings,
@@ -41,7 +35,8 @@ import {
 import type { Config } from "../config";
 import type { NostrFilter, PagedResult } from "../nostr/query";
 import type { TrustProvider } from "../trust";
-import { ownRatedSlugs } from "../ratings/summary";
+import { ownRatedSlugs, reviewScope, type ReviewScope } from "../ratings/summary";
+import { readBookReviewsPaged } from "../reviews/read";
 import { parseBook, type PublicBook } from "../books/effective";
 
 const KIND = 39999;
@@ -91,34 +86,23 @@ export type ForYouCandidate = {
   readonly ratings: ParsedRating[];
 };
 
-/** The bookSlug a kind-39999 rating event targets, or null when malformed. */
-function ratingBookSlug(event: SignedNostrEvent): string | null {
-  try {
-    const rating = fromBookRatingEvent(
-      fromWireEvent({ kind: event.kind, content: event.content, tags: event.tags }) as never,
-    );
-    return rating.bookSlug;
-  } catch {
-    return null;
-  }
-}
-
 /**
- * Group candidate rating events by book slug, dedup per (rater, book). Returns
+ * Group the standing reviews (books actions contract §4, §6) by book. Returns
  * candidates sorted by slug ascending (deterministic) so the rater-union cap is
- * stable. Ratings with no parseable slug are dropped.
+ * stable.
  */
-export function buildCandidates(ratingEvents: SignedNostrEvent[]): ForYouCandidate[] {
-  const byBook = new Map<string, SignedNostrEvent[]>();
-  for (const e of ratingEvents) {
-    const slug = ratingBookSlug(e);
-    if (!slug) continue;
-    const arr = byBook.get(slug) ?? [];
-    arr.push(e);
-    byBook.set(slug, arr);
+export function buildCandidates(
+  reviewEvents: readonly SignedNostrEvent[],
+  scope: ReviewScope,
+): ForYouCandidate[] {
+  const byBook = new Map<string, ParsedRating[]>();
+  for (const r of dedupeRatings(reviewEvents, scope)) {
+    const arr = byBook.get(r.bookSlug) ?? [];
+    arr.push(r);
+    byBook.set(r.bookSlug, arr);
   }
   return [...byBook.entries()]
-    .map(([slug, events]) => ({ slug, ratings: dedupeRatings(events) }))
+    .map(([slug, ratings]) => ({ slug, ratings }))
     .sort((a, b) => a.slug.localeCompare(b.slug));
 }
 
@@ -180,7 +164,6 @@ export function buildForYouRouter(deps: ForYouDeps): Router {
   const router = express.Router();
   const lib = () => deps.config.librarianPubkey;
   const booksConcept = () => `39998:${lib()}:books`;
-  const ratingsZ = () => formatAddress(buildBookRatingsHeaderAddress(lib() as never));
 
   const defs = (): ForYouDefs => ({
     minAvg: deps.config.foryouMinAvg ?? 4.0,
@@ -206,16 +189,14 @@ export function buildForYouRouter(deps: ForYouDeps): Router {
 
       // ── Read-time compute from the user's OWN vantage (user.pubkeyHex) ──
       // 1. Candidate ratings (cap-safe) + the user's own ratings, in parallel.
+      const scope = reviewScope(deps.config);
       const [candidatePaged, ownPaged] = await Promise.all([
-        deps.queryPaged({ kinds: [KIND], "#z": [ratingsZ()] }),
-        // Author-scoped to the session hex on kind 39999 (the established
-        // own-ratings read convention; ADR ambiguity resolved to NO `#z` tag,
-        // consistent with `countOwnRatings`/profile-stats).
-        deps.queryPaged({ kinds: [KIND], authors: [user.pubkeyHex] }),
+        readBookReviewsPaged(deps.queryPaged, { all: true }),
+        readBookReviewsPaged(deps.queryPaged, { authors: [user.pubkeyHex] }),
       ]);
 
-      const candidates = buildCandidates(candidatePaged.events);
-      const ownSlugs = ownRatedSlugs(ownPaged.events);
+      const candidates = buildCandidates(candidatePaged.events, scope);
+      const ownSlugs = ownRatedSlugs(ownPaged.events, scope);
       const raterUnion = boundedRaterUnion(candidates, defs().candidateRaters);
 
       // 2. ONE batched weights call over the bounded rater union (AC-6). Wrapped

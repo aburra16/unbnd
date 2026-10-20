@@ -27,12 +27,9 @@ import { npubEncode } from "nostr-tools/nip19";
 import {
   asHexPubkey,
   toBookRecordEvent,
-  toBookRatingEvent,
   toWireTemplate,
   buildBookSubmissionsHeaderAddress,
-  buildBookRatingsHeaderAddress,
   formatAddress,
-  type DListAddress,
   type SignedNostrEvent,
 } from "@unbnd/schemas";
 import type { Config } from "../../src/config";
@@ -52,7 +49,6 @@ const ABOVE = "c".repeat(64);
 const BELOW = "e".repeat(64);
 
 const SUB_HEADER = formatAddress(buildBookSubmissionsHeaderAddress(LIB));
-const RATINGS_HEADER = buildBookRatingsHeaderAddress(LIB);
 
 // Three known slugs so we can pin per-row promotionStatus + signals deterministically.
 const SLUG_DONE = "ol-the-done-book";
@@ -98,18 +94,14 @@ function signedSubmission(slug: string, title: string): SignedNostrEvent {
 // A rating event from a given secret key, pointed at `39999:<lib>:<slug>` (the
 // canonical book address the per-row signals read queries on `#a`).
 function signedRating(sk: Uint8Array, slug: string, score: 1 | 2 | 3 | 4 | 5): SignedNostrEvent {
-  const bookAddress: DListAddress<39999> = { kind: KIND, pubkey: LIB, dTag: slug };
-  const tmpl = toWireTemplate(
-    toBookRatingEvent({
-      bookSlug: slug,
-      bookAddress,
-      raterPubkey: asHexPubkey(getPublicKey(sk)),
-      score,
-      reviewDate: "2026-06-01",
-      parentHeader: RATINGS_HEADER,
-    }),
-    1_700_000_000,
-  );
+  // The shared book review record (Story 99 / ADR 0089).
+  const address = `39999:${LIB}:${slug}`;
+  const tmpl = {
+    kind: 34259,
+    created_at: 1_700_000_000,
+    content: "",
+    tags: [["d", `book:${address}`], ["a", address], ["m", "book"], ["s", String(score)]],
+  };
   return JSON.parse(JSON.stringify(finalizeEvent(tmpl as never, sk))) as SignedNostrEvent;
 }
 

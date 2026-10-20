@@ -18,7 +18,10 @@ export type {
 
 // Shared trust-weighting helpers (ADR 0036 A1) — one implementation, reused by
 // the apps/api routes (via the re-export shim) and the off-path workers.
-export { dedupeRatings, weightedRatings } from "./ratings";
+export { dedupeRatings, weightedRatings, REVIEW_WEIGHT_LINE } from "./ratings";
+// Story 99 / ADR 0089 — which book reviews stand (books actions contract §4, §6).
+export { standingReviews } from "./reviews";
+export type { StandingReview } from "./reviews";
 export type { ParsedRating, PublicRating, WeightedRatings } from "./ratings";
 
 // Story 65 / ADR 0064 — observer-relative taste-match metric (raw agreement v1).

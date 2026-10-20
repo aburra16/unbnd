@@ -8,7 +8,8 @@ import type { SignedNostrEvent } from "@unbnd/schemas";
 import type { Config } from "../config";
 import type { NostrFilter } from "../nostr/query";
 import { parseBook, type PublicBook } from "../books/effective";
-import { dedupeRatings, rawFromParsed } from "../ratings/summary";
+import { dedupeRatings, rawFromParsed, reviewScope } from "../ratings/summary";
+import { readBookReviews } from "../reviews/read";
 import { aggregateBookTags, parseTaxonomy, type RawBookTags } from "../tags/aggregate";
 import type { RawRatingSummary } from "./card";
 
@@ -24,7 +25,7 @@ export function buildUnfurlReaders(deps: UnfurlReaderDeps) {
   const booksConcept = () => `39998:${lib()}:books`;
   const tagsConcept = () => `39998:${lib()}:book-tags`;
   const assertConcept = () => `39998:${lib()}:book-tag-assertions`;
-  // A rating event tags its book by the book-record address (ratings.ts:72).
+  // A review names its book by the book-record address (books actions contract §2).
   const bookAddr = (slug: string) => `${KIND}:${lib()}:${slug}`;
 
   async function readBook(slug: string): Promise<PublicBook | null> {
@@ -36,8 +37,8 @@ export function buildUnfurlReaders(deps: UnfurlReaderDeps) {
 
   async function readRawRatings(slug: string): Promise<RawRatingSummary> {
     if (!lib()) return { count: 0, average: null };
-    const events = await deps.query({ kinds: [KIND], "#a": [bookAddr(slug)] });
-    const { count, average } = rawFromParsed(dedupeRatings(events));
+    const events = await readBookReviews(deps.query, { book: bookAddr(slug) });
+    const { count, average } = rawFromParsed(dedupeRatings(events, reviewScope(deps.config)));
     return { count, average };
   }
 

@@ -27,6 +27,8 @@ import {
   computeSubmissionSignals,
   type SubmissionSignals,
 } from "../submissions/signals";
+import { readBookReviews } from "../reviews/read";
+import { reviewScope } from "../ratings/summary";
 
 const COOKIE_NAME = "session";
 const KIND = 39999;
@@ -258,15 +260,13 @@ export function buildSubmissionsRouter(deps: SubmissionsDeps): Router {
           let signals: SubmissionSignals | null = null;
           if (deps.trust && house && lib) {
             try {
-              const ratingEvents = await deps.query({
-                kinds: [KIND],
-                "#a": [`${KIND}:${lib}:${row.slug}`],
-              });
+              const ratingEvents = await readBookReviews(deps.query, { book: `${KIND}:${lib}:${row.slug}` });
               signals = await computeSubmissionSignals({
                 trust: deps.trust,
                 houseObserverHex: house,
                 threshold,
                 ratingEvents,
+                scope: reviewScope(deps.config),
               });
             } catch {
               signals = null;
@@ -381,12 +381,13 @@ export function buildSubmissionsRouter(deps: SubmissionsDeps): Router {
         return void res.status(200).json({ signals: null });
       }
       const addr = `${KIND}:${lib}:${req.params.slug}`;
-      const ratingEvents = await deps.query({ kinds: [KIND], "#a": [addr] });
+      const ratingEvents = await readBookReviews(deps.query, { book: addr });
       const signals = await computeSubmissionSignals({
         trust: deps.trust,
         houseObserverHex: house,
         threshold: deps.config.curatorThreshold ?? 0.5,
         ratingEvents,
+        scope: reviewScope(deps.config),
       });
       res.status(200).json({ signals });
     } catch (err) {

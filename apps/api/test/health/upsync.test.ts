@@ -34,7 +34,7 @@
 // SEAMS ASSUMED (flag for the Implementer):
 //   - `checkUpsyncBacklog` takes the single `deps` bag above; the two reads are
 //     the `{ ok, events }` wrapper (NOT bare `SignedNostrEvent[]`).
-//   - The local read is issued with `{ kinds:[39999], "#z":[…ratings, …tags],
+//   - The local read is issued with `{ kinds:[39999], "#z":[…tag assertions],
 //     since, limit }`; the dcosl read uses `{ ids: localIds }` (preferred exact
 //     membership form). These tests assert the local `since`/`limit` are honored
 //     and that the dcosl read is keyed on the local ids; if the Implementer takes
@@ -56,7 +56,6 @@ import type { NostrFilter } from "../../src/nostr/query";
 import type { SignedNostrEvent } from "@unbnd/schemas";
 
 const LIBRARIAN = "1".repeat(64);
-const RATINGS_Z = `39998:${LIBRARIAN}:book-ratings`;
 const TAGS_Z = `39998:${LIBRARIAN}:book-tag-assertions`;
 
 // A fixed clock so age math is deterministic. now = 2,000,000 ms.
@@ -73,7 +72,7 @@ function ev(id: string, createdAtSec: number): SignedNostrEvent {
     kind: 39999,
     pubkey: "reader",
     sig: "s",
-    tags: [["z", RATINGS_Z]],
+    tags: [["z", TAGS_Z]],
     content: "",
   } as SignedNostrEvent;
 }
@@ -226,10 +225,8 @@ describe("checkUpsyncBacklog — window + cap honored", () => {
     expect(filter.kinds).toEqual([39999]);
     expect(filter.since).toBe(Math.floor((NOW_MS - WINDOW_MS) / 1000));
     expect(filter.limit).toBe(LIMIT);
-    // Both up-sync #z handles requested.
-    expect(filter["#z"]).toEqual(
-      expect.arrayContaining([RATINGS_Z, TAGS_Z]),
-    );
+    // Tag assertions only: book reviews never go to dcosl (Story 99 / ADR 0089).
+    expect(filter["#z"]).toEqual([TAGS_Z]);
   });
 
   it("keys the dcosl read on the local event ids (exact membership form)", async () => {

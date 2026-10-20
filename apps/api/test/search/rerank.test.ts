@@ -334,12 +334,14 @@ describe("rerankByTrust — AC-6: bounded + batched (no N+1)", () => {
       config: cfg,
     });
 
-    // Each per-book read targets exactly one book `#a`; total reads ≤ page size.
-    expect(query.mock.calls.length).toBeLessThanOrEqual(2);
-    for (const [filter] of query.mock.calls) {
-      expect(filter.kinds).toContain(39999);
-      expect(filter["#a"]).toHaveLength(1);
-    }
+    // Per book: one review read targeting exactly that book's `#a`, then one read
+    // for those reviewers' removals (Story 99). Bounded by the page, never by raters.
+    const reviewReads = query.mock.calls.filter(([f]) => f.kinds?.includes(34259));
+    const removalReads = query.mock.calls.filter(([f]) => f.kinds?.includes(5));
+    expect(reviewReads.length).toBeLessThanOrEqual(2);
+    expect(removalReads.length).toBeLessThanOrEqual(2);
+    expect(query.mock.calls.length).toBe(reviewReads.length + removalReads.length);
+    for (const [filter] of reviewReads) expect(filter["#a"]).toHaveLength(1);
   });
 
   it("leaves the page contract (total/offset/limit) untouched", async () => {

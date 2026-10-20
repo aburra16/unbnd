@@ -22,8 +22,8 @@ import type { Config } from "../config";
 import type { NostrFilter } from "../nostr/query";
 import type { TrustProvider } from "../trust";
 import { dedupeRatings, weightedRatings } from "../ratings/summary";
+import { readBookReviews } from "../reviews/read";
 
-const BOOK_RATING_KIND = 39999;
 const NEUTRAL = 0.5;
 
 export type RerankDeps = {
@@ -68,9 +68,9 @@ export async function rerankByTrust(
     // 1. Page-bounded per-book read: one `#a` filter per hit (≤ limit ≤ MAX_LIMIT).
     const perBook = await Promise.all(
       hits.map(async (hit) => {
-        const addr = `${BOOK_RATING_KIND}:${librarian}:${hit.slug}`;
-        const events = await query({ kinds: [BOOK_RATING_KIND], "#a": [addr] });
-        return dedupeRatings(events);
+        const addr = `39999:${librarian}:${hit.slug}`;
+        const events = await readBookReviews(query, { book: addr });
+        return dedupeRatings(events, { librarian, now: Math.floor(Date.now() / 1000) });
       }),
     );
 
