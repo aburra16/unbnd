@@ -35,9 +35,11 @@ const taxonomy = [buildBookTagEventForTest("fantasy", "genre", "Fantasy", "norma
 
 function makeDeps(over: Partial<LabelsDeps> = {}) {
   const published: { where: string; event: SignedNostrEvent }[] = [];
+  const snapshot = new Map<string, SignedNostrEvent>();
   const deps: LabelsDeps = {
     librarianPubkey: LIB,
     readBooks: vi.fn(async () => [record("orbital"), record("dune")]),
+    readCurrent: undefined as unknown as LabelsDeps["readCurrent"],
     readTaxonomy: vi.fn(async () => taxonomy),
     readAssertions: vi.fn(async () => buildBookAssertionEventsForTest("orbital", [["a".repeat(64), "fantasy", 1]])),
     sign: vi.fn((t) => ({ ...t, id: `signed-${t.tags.find((x: string[]) => x[0] === "d")?.[1]}`, pubkey: LIB, sig: "e".repeat(128) }) as unknown as SignedNostrEvent),
@@ -47,6 +49,20 @@ function makeDeps(over: Partial<LabelsDeps> = {}) {
     log: () => undefined,
     ...over,
   };
+  // By default the hub holds what the pass read: the newest copy of each slug.
+  if (!over.readCurrent) {
+    const readBooks = deps.readBooks;
+    (deps as { readBooks: LabelsDeps["readBooks"] }).readBooks = async () => {
+      const books = await readBooks();
+      for (const b of books) {
+        const slug = b.tags.find((t) => t[0] === "d")![1]!;
+        const prior = snapshot.get(slug);
+        if (b.pubkey === LIB && (!prior || b.created_at > prior.created_at)) snapshot.set(slug, b);
+      }
+      return books;
+    };
+    (deps as { readCurrent: LabelsDeps["readCurrent"] }).readCurrent = async (slug) => snapshot.get(slug) ?? null;
+  }
   return { deps, published };
 }
 
@@ -68,7 +84,7 @@ describe("runLabelsCycle", () => {
     const out = published[0]!.event;
     expect(out.content).toBe("Blurb of orbital.");
     expect(out.created_at).toBe(NOW + 501);
-    expect(out.tags.filter((t) => t[0] !== "L" && t[0] !== "l")).toEqual(future.tags);
+    expect(out.tags.filter((t) => t[0] !== "L" && t[0] !== "l" && t[0] !== "added")).toEqual(future.tags);
   });
 
   it("publishes to the hub first, then Unbnd's relay; a hub refusal publishes nothing locally and counts as failed", async () => {
@@ -106,5 +122,63 @@ describe("runLabelsCycle", () => {
       }),
     });
     expect(await runLabelsCycle(deps)).toEqual({ checked: 2, relabelled: 1, failed: 1 });
+  });
+
+  it("stamps the first-added date from the record's own created_at, and keeps one already there", async () => {
+    const fresh = record("orbital", [], NOW - 1000);
+    const stamped = record("dune", [["added", "1700000000"]], NOW - 900);
+    const { deps, published } = makeDeps({ readBooks: vi.fn(async () => [fresh, stamped]) });
+    await runLabelsCycle(deps);
+    const added = (id: string) => published.find((p) => p.event.id === id)!.event.tags.filter((t) => t[0] === "added");
+    expect(added("signed-orbital")).toEqual([["added", String(NOW - 1000)]]);
+    expect(added("signed-dune")).toEqual([["added", "1700000000"]]);
+  });
+
+  it("builds on the hub's current version, not the snapshot (ADR 0094 §5)", async () => {
+    const snap = record("orbital", [["year", "1990"]], NOW - 1000);
+    const current = record("orbital", [["year", "2001"]], NOW - 10);
+    const { deps, published } = makeDeps({
+      readBooks: vi.fn(async () => [snap]),
+      readCurrent: vi.fn(async () => current),
+    });
+    expect(await runLabelsCycle(deps)).toEqual({ checked: 1, relabelled: 1, failed: 0 });
+    const out = published[0]!.event;
+    expect(out.tags).toContainEqual(["year", "2001"]);
+    expect(out.tags).not.toContainEqual(["year", "1990"]);
+    expect(out.created_at).toBe(NOW);
+    expect(out.tags).toContainEqual(["added", String(NOW - 10)]);
+  });
+
+  it("a record delisted since the snapshot is left alone", async () => {
+    const { deps, published } = makeDeps({
+      readBooks: vi.fn(async () => [record("orbital")]),
+      readCurrent: vi.fn(async () => record("orbital", [["delisted", "true"]], NOW - 5)),
+    });
+    expect(await runLabelsCycle(deps)).toEqual({ checked: 1, relabelled: 0, failed: 0 });
+    expect(published).toEqual([]);
+  });
+
+  it("a record the hub no longer returns is counted as failed and not written", async () => {
+    const { deps, published } = makeDeps({
+      readBooks: vi.fn(async () => [record("orbital")]),
+      readCurrent: vi.fn(async () => null),
+    });
+    expect(await runLabelsCycle(deps)).toEqual({ checked: 1, relabelled: 0, failed: 1 });
+    expect(published).toEqual([]);
+  });
+
+  it("an empty book list or tag list stops the pass before it writes anything", async () => {
+    for (const over of [{ readTaxonomy: vi.fn(async () => []) }, { readBooks: vi.fn(async () => []) }]) {
+      const { deps, published } = makeDeps(over);
+      const summary = await runLabelsCycle(deps);
+      expect(summary).toMatchObject({ checked: 0, relabelled: 0, failed: 0 });
+      expect(summary.stopped).toMatch(/empty/);
+      expect(published).toEqual([]);
+    }
+  });
+
+  it("a local publish that throws after the hub accepted still counts as relabelled", async () => {
+    const { deps } = makeDeps({ publishLocal: vi.fn(async () => { throw new Error("socket closed"); }) });
+    expect(await runLabelsCycle(deps)).toEqual({ checked: 2, relabelled: 2, failed: 0 });
   });
 });

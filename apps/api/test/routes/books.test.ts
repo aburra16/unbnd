@@ -86,4 +86,21 @@ describe("GET /api/books", () => {
     expect(res.status).toBe(200);
     expect(res.body.books[0].slug).toBe("ol-new");
   });
+
+  it("recent shelf comes from the shelves cache when it has one, in cached order (Story 105)", async () => {
+    const query = vi.fn(async () => [bookEvent("ol-b", "Beta", 9), bookEvent("ol-a", "Alpha", 1), bookEvent("ol-c", "Gamma", 5)]);
+    const readRecent = vi.fn(async () => ["ol-a", "ol-missing", "ol-c", "ol-b"]);
+    const res = await request(makeApp({ query, readRecent })).get("/api/books?limit=2");
+    expect(res.status).toBe(200);
+    expect(res.body.books.map((b: { slug: string }) => b.slug)).toEqual(["ol-a", "ol-c"]);
+    expect(query).toHaveBeenCalledWith(expect.objectContaining({ "#d": ["ol-a", "ol-missing", "ol-c", "ol-b"] }));
+  });
+
+  it("an empty or failing cache falls back to the newest records on the relay", async () => {
+    const query = vi.fn(async () => [bookEvent("ol-old", "Old", 1), bookEvent("ol-new", "New", 9)]);
+    for (const readRecent of [vi.fn(async () => []), vi.fn(async () => { throw new Error("db down"); })]) {
+      const res = await request(makeApp({ query, readRecent })).get("/api/books?limit=2");
+      expect(res.body.books[0].slug).toBe("ol-new");
+    }
+  });
 });

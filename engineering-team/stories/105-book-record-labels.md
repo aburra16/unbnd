@@ -15,7 +15,9 @@ So a search answered by the relay cannot be filtered, and filtering after the se
 2. **Applied genres are today's search genres.** The same rule the index uses: raw consensus per book, net count above zero, genre-type tags only, accusatory tags never.
 3. **A labels pass keeps them current.** A promoter command (`node index.js labels`, beside `reveal`) reads the catalog, the tag list and the assertions, computes each book's labels, and republishes only records whose labels differ. A republish keeps every other tag and the content exactly, replaces only labels in these three namespaces, and is dated `max(now, previous + 1)`. It runs from the documented crontab and as a Staging ops task.
 4. **New records are born labelled.** The seeder's record template carries format and language labels from the record's own fields; genre labels arrive on the next pass.
-5. **Nothing reading a record changes.** The API, indexer and search document ignore the labels; Brainstorm's book view shows undeclared tags only where its header asks.
+5. **A republish never undoes a newer write.** Just before signing, the pass reads the record again from the hub and builds on that version; a record delisted meanwhile is left alone. The pass stops when the book list or the tag list reads empty, so a failed read can never strip every book's genres.
+6. **"Recently added" keeps its order.** A relabelled record keeps its first date in an `added` tag (stamped from its own `created_at` the first time the pass touches it). The shelves worker computes "Recently added" by that date and caches it like the other shelves; `GET /api/books` without slugs serves from that cache and falls back to the relay when the cache is empty.
+7. **Nothing else reading a record changes.** The API, indexer and search document ignore the labels; Brainstorm's book view shows undeclared tags only where its header asks.
 
 ## Out of scope
 - Switching search to the relay (story 106, waiting on how the relay pages).
