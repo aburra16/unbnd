@@ -20,6 +20,9 @@ export type OLSearchDoc = {
   readonly edition_count?: number;
   readonly cover_i?: number | null;
   readonly first_publish_year?: number;
+  /** Every edition's year (ADR 0093 §5); the gate does not read it. */
+  readonly publish_year?: readonly number[];
+  readonly author_key?: readonly string[];
   readonly language?: readonly string[];
   readonly number_of_pages_median?: number;
   readonly isbn?: readonly string[];

@@ -104,6 +104,11 @@ describe("fetchSubjectSearch — request shape (ADR §1 template)", () => {
     ]) {
       expect(decoded).toContain(f);
     }
+    // Story 104 / ADR 0093 §5: every edition year and the first author, for the
+    // year rule. Exact names: "first_publish_year" contains "publish_year".
+    const fields = new URL(url).searchParams.get("fields")!.split(",");
+    expect(fields).toContain("publish_year");
+    expect(fields).toContain("author_key");
     // Page size 100 (ADR §1: PAGE_SIZE = 100).
     expect(url).toContain("limit=100");
   });
