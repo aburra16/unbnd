@@ -322,3 +322,12 @@ describe("Submit cover preview — renders and falls back gracefully", () => {
     expect(fallback()).not.toBeNull();
   });
 });
+
+// Story 103 / ADR 0091 §5: the form's lowest year is the shared print-era floor,
+// so a reader can submit an early printed work (The Canterbury Tales, 1478).
+describe("Submit year field — accepts early printed works", () => {
+  it("sets the lowest publication year to 1450", () => {
+    renderSubmit();
+    expect(yearInput()).toHaveAttribute("min", "1450");
+  });
+});

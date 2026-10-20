@@ -75,13 +75,14 @@ const userBelow: SubmissionsSessionUser = { id: "u2", pubkeyHex: BELOW, tier: "s
 
 // A submission event with a chosen slug, z-tagged to the book-submissions header
 // (so the list query `#z:[SUB_HEADER]` returns it). The submitter is a throwaway key.
-function signedSubmission(slug: string, title: string): SignedNostrEvent {
+function signedSubmission(slug: string, title: string, publishYear?: number): SignedNostrEvent {
   const sk = generateSecretKey();
   const tmpl = toWireTemplate(
     toBookRecordEvent({
       slug,
       title,
       authorName: "Ada",
+      publishYear,
       format: "reference" as const,
       source: "community" as const,
       parentHeader: buildBookSubmissionsHeaderAddress(LIB),
@@ -381,5 +382,24 @@ describe("GET /api/submissions — per-row signals enrichment (computed / honest
     for (const row of res.body.submissions) {
       expect(row.signals ?? null).toBeNull();
     }
+  });
+});
+
+describe("GET /api/submissions — the year Unbnd believes (Story 103, ADR 0091 §3)", () => {
+  it("shows an early printed year and no year before printing", async () => {
+    const { app } = makeApp({
+      query: makeQuery([
+        signedSubmission("ol-early", "Hamlet", 1603),
+        signedSubmission("ol-preprint", "The War of the Worlds", 0),
+      ]),
+    });
+    const res = await request(app).get("/api/submissions");
+    expect(res.status).toBe(200);
+    const bySlug = new Map(
+      (res.body.submissions as Array<{ slug: string; publishYear?: number }>).map((r) => [r.slug, r]),
+    );
+    expect(bySlug.get("ol-early")?.publishYear).toBe(1603);
+    expect(bySlug.get("ol-preprint")).toBeDefined();
+    expect(bySlug.get("ol-preprint")).not.toHaveProperty("publishYear");
   });
 });

@@ -175,7 +175,7 @@ describe("gateWork — pages signal (absent passes; <50 drops)", () => {
   });
 });
 
-describe("gateWork — year signal (1800..currentYear inclusive)", () => {
+describe("gateWork — year signal (PRINT_ERA_START..currentYear inclusive; Story 103, ADR 0091 §4)", () => {
   it("drops a doc with absent first_publish_year", async () => {
     const { gateWork, gateReason } = await load();
     const doc = { ...validDoc, first_publish_year: undefined };
@@ -183,9 +183,13 @@ describe("gateWork — year signal (1800..currentYear inclusive)", () => {
     expect(gateReason(doc, CURRENT_YEAR)).toBe("year");
   });
 
-  it("drops a doc published before 1800 (1799)", async () => {
-    const { gateWork } = await load();
-    expect(gateWork({ ...validDoc, first_publish_year: 1799 }, CURRENT_YEAR)).toBe(false);
+  it("drops a doc with a year before printing (1449, 0)", async () => {
+    const { gateWork, gateReason } = await load();
+    for (const year of [1449, 0]) {
+      const doc = { ...validDoc, first_publish_year: year };
+      expect(gateWork(doc, CURRENT_YEAR)).toBe(false);
+      expect(gateReason(doc, CURRENT_YEAR)).toBe("year");
+    }
   });
 
   it("drops a doc published after the current year (currentYear + 1)", async () => {
@@ -195,9 +199,16 @@ describe("gateWork — year signal (1800..currentYear inclusive)", () => {
     ).toBe(false);
   });
 
-  it("passes the lower bound year 1800", async () => {
+  it("passes the lower bound year 1450", async () => {
     const { gateWork } = await load();
-    expect(gateWork({ ...validDoc, first_publish_year: 1800 }, CURRENT_YEAR)).toBe(true);
+    expect(gateWork({ ...validDoc, first_publish_year: 1450 }, CURRENT_YEAR)).toBe(true);
+  });
+
+  it("passes early printed works (1478, 1726, 1799)", async () => {
+    const { gateWork } = await load();
+    for (const year of [1478, 1726, 1799]) {
+      expect(gateWork({ ...validDoc, first_publish_year: year }, CURRENT_YEAR)).toBe(true);
+    }
   });
 
   it("passes the upper bound year (currentYear)", async () => {

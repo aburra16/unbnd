@@ -329,3 +329,19 @@ describe("normalizeIsbnParam (pure, ADR 0063 §2 — same rule as DuplicateCheck
     expect(normalizeIsbnParam(undefined)).toBeNull();
   });
 });
+
+describe("normalizeDoc — the year Unbnd believes (Story 103, ADR 0091 §3)", () => {
+  it("keeps an early printed year (Gulliver's Travels, 1726)", async () => {
+    const { normalizeDoc } = await loadOlLookup();
+    expect(normalizeDoc({ ...FOUND_DOC, first_publish_year: 1726 }, ISBN).publishYear).toBe(1726);
+  });
+
+  it("leaves the year out when Open Library gives one before printing (0, 1449)", async () => {
+    const { normalizeDoc } = await loadOlLookup();
+    for (const year of [0, 1449]) {
+      const out = normalizeDoc({ ...FOUND_DOC, first_publish_year: year }, ISBN);
+      expect(out.found).toBe(true);
+      expect(out).not.toHaveProperty("publishYear");
+    }
+  });
+});
