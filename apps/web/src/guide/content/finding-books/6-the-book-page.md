@@ -12,7 +12,7 @@ sourceStories: 10, 28, 66, 70, 101
 
 1. The cover and the basics: author, year, pages, language, and the genre and style chips readers have applied.
 2. The description, with its source named.
-3. The ratings area: the trusted average and how many trusted ratings stand behind it, or, before any trusted reader has rated, how many ratings there are; then the faces of recent raters. A line above it [names the view](/guide/ratings-you-can-trust#unbnd-house-view); a line below it may call the book a [hidden gem or overhyped](/guide/ratings-you-can-trust#hidden-gem-and-overhyped) when trusted readers and the crowd disagree.
+3. The ratings area: the trusted average and how many trusted ratings stand behind it (before any trusted reader has rated, only the count of ratings), then the faces of recent raters. A line above it [names the view](/guide/ratings-you-can-trust#unbnd-house-view); a line below it may call the book a [hidden gem or overhyped](/guide/ratings-you-can-trust#hidden-gem-and-overhyped) when trusted readers and the crowd disagree.
 4. Reviews, with the reviewer's name and date, [sortable](/guide/ratings-you-can-trust#sorting-reviews) by how trusted the reviewer is.
 5. The rating control: your stars, your review, and the option to update or remove them later.
 6. Classification: the genre and style consensus, with the option to suggest or dispute a tag.

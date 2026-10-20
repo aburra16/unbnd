@@ -14,7 +14,7 @@ We built Unbnd because a book recommendation is only as good as the person it ca
 
 ## Why the numbers here are different
 
-Most book sites show you one average, computed from everyone. On Unbnd, a book's star figure comes only from readers with standing. The Unbnd house view counts the readers this site's network has come to trust, the way a good bookshop's staff picks shelf counts the staff. A book no trusted reader has rated yet shows how many ratings it has and what people wrote, and no figure. When you have followed enough readers, you get a second view: yours. The books and the counts stay the same; the judges change.
+Most book sites show you one average, computed from everyone. On Unbnd, a book's star figure comes only from readers with standing. The Unbnd house view counts the readers this site's network has come to trust, the way a good bookshop's staff picks shelf counts the staff. Until a trusted reader rates a book, its page shows how many ratings it has and what people wrote, without a star figure. When you have followed enough readers, you get a second view: yours. Switching views changes whose ratings count.
 
 ## If you curate
 
