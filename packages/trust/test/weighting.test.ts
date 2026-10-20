@@ -19,11 +19,17 @@ const spec: FixtureSpec = { weights: { [O]: { [A]: 0.9, [B]: 0.3 } } };
 // no Brainstorm/relay/network involved.
 describe("trust-consuming feature against the fixture: weightedRatings (ADR 0017)", () => {
   it("produces a deterministic weighted average that differs from raw", async () => {
-    const deduped: ParsedRating[] = [
-      { pubkey: A, createdAt: 3, score: 5, reviewDate: "2026-01-03" },
-      { pubkey: B, createdAt: 2, score: 3, reviewDate: "2026-01-02" },
-      { pubkey: C, createdAt: 1, score: 1, reviewDate: "2026-01-01" },
-    ];
+    const r = (pubkey: string, createdAt: number, score: number): ParsedRating => ({
+      id: pubkey.slice(0, 1).repeat(64),
+      pubkey,
+      d: "book:39999:" + "1".repeat(64) + ":b",
+      bookSlug: "b",
+      bookAddress: "39999:" + "1".repeat(64) + ":b",
+      createdAt,
+      score,
+      reviewDate: `2026-01-0${createdAt}`,
+    });
+    const deduped: ParsedRating[] = [r(A, 3, 5), r(B, 2, 3), r(C, 1, 1)];
     const weights = await new FixtureTrustProvider(spec).weights(
       O,
       deduped.map((r) => r.pubkey),
@@ -32,7 +38,7 @@ describe("trust-consuming feature against the fixture: weightedRatings (ADR 0017
     // Raw arithmetic mean over the deduped set (rawFromParsed stays apps/api-only
     // per ADR 0036 A1; the divergence assertion is preserved by computing it here).
     const rawAverage =
-      deduped.reduce((s, r) => s + r.score, 0) / deduped.length;
+      deduped.reduce((s, x) => s + (x.score ?? 0), 0) / deduped.length;
     const weighted = weightedRatings(deduped, weights, npubEncode(O));
 
     expect(rawAverage).toBe(3); // (5+3+1)/3

@@ -134,6 +134,24 @@ describe("runReviewSyncCycle (ADR 0089 §5)", () => {
     expect(written).toEqual(new Set([good.id, rem.id]));
   });
 
+  it("keeps a removal naming a held book review by id alone, by its author; drops one by someone else", async () => {
+    const held = ev({ id: "5".repeat(64) });
+    const byAuthor = ev({ id: "6".repeat(64), kind: 5, tags: [["e", held.id], ["k", "34259"]] });
+    const byOther = ev({ id: "7".repeat(64), kind: 5, pubkey: "b".repeat(64), tags: [["e", held.id], ["k", "34259"]] });
+    const writeLocal = vi.fn<(e: SignedNostrEvent) => Promise<{ ok: true; id: string }>>(async () => ({ ok: true as const, id: "x" }));
+    await runReviewSyncCycle({
+      librarian: LIB,
+      since: 0,
+      now: 2_000_000_000,
+      pull: async (_u: string, f: NostrFilter) => (f.kinds?.includes(5) ? [byAuthor, byOther] : []) as never,
+      verify: () => true,
+      writeLocal,
+      readLocal: async (f: NostrFilter) => (f.ids ? [held] : []) as never,
+      push: async () => [],
+    });
+    expect(writeLocal.mock.calls.map((c) => c[0].id)).toEqual([byAuthor.id]);
+  });
+
   it("re-sends Unbnd's reviews and removals from the last two days to the index", async () => {
     const readLocal = vi.fn<Q>(async () => [ev({})] as never);
     const push = vi.fn<Fanout>(async () => []);
