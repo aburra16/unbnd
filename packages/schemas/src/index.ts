@@ -2,6 +2,7 @@ export * from "./envelope";
 export * from "./wire";
 export * from "./concept-headers";
 export * from "./BookRecord";
+export * from "./BookLabels";
 export * from "./BookGenre";
 export * from "./BookTag";
 export * from "./BookTagAssertion";

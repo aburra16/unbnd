@@ -5,6 +5,7 @@ import {
   type HexPubkey,
   type UnsignedDListEvent,
 } from "./envelope";
+import { bookLabels } from "./BookLabels";
 
 export const BOOK_RECORD_KIND = 39999 as const;
 export const BOOK_RECORD_WORD_TYPE = "bookSubmission" as const;
@@ -189,6 +190,10 @@ export function toBookRecordEvent(record: BookRecord): BookRecordEvent {
   }
   tags.push(["format", record.format]);
   tags.push(["source", record.source]);
+  // ADR 0094 §5: format and language as labels; genre labels come from the labels pass.
+  for (const label of bookLabels({ genres: [], format: record.format, language: record.language })) {
+    tags.push(label as [string, ...string[]]);
+  }
 
   const payload: BookRecordPayload = {
     word: {

@@ -15,13 +15,19 @@ type Row = {
 };
 
 /** Flatten a ShelfSet into ordered cache rows (kind/position/slug per shelf). */
-function toRows(observerHex: string, shelves: ShelfSet): Row[] {
+export function toRows(observerHex: string, shelves: ShelfSet): Row[] {
   const rows: Row[] = [];
   shelves.trending.forEach((r, i) =>
     rows.push({ observer_hex: observerHex, kind: "trending", position: i, book_slug: r.bookSlug }),
   );
   shelves.favorites.forEach((r, i) =>
     rows.push({ observer_hex: observerHex, kind: "favorites", position: i, book_slug: r.bookSlug }),
+  );
+  shelves.hiddenGems.forEach((r, i) =>
+    rows.push({ observer_hex: observerHex, kind: "hidden-gems", position: i, book_slug: r.bookSlug }),
+  );
+  shelves.recent.forEach((r, i) =>
+    rows.push({ observer_hex: observerHex, kind: "recent", position: i, book_slug: r.bookSlug }),
   );
   for (const g of shelves.genres) {
     g.books.forEach((r, i) =>

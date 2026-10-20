@@ -22,6 +22,11 @@ export type BooksDeps = {
   readonly query: (filter: NostrFilter) => Promise<SignedNostrEvent[]>;
   /** Trust seam (ADR 0014). Optional: absent → no verification (honest degrade). */
   readonly trust?: TrustProvider;
+  /**
+   * "Recently added" in order, from the shelves cache (Story 105 / ADR 0094 §6);
+   * empty, absent or failing → the relay's newest records.
+   */
+  readonly readRecent?: () => Promise<string[]>;
 };
 
 /**
@@ -112,6 +117,20 @@ export function buildBooksRouter(deps: BooksDeps): Router {
         return void res.status(200).json({ books });
       }
       const limit = Math.min(100, Math.max(1, Number(req.query.limit) || DEFAULT_RECENT));
+      const cached = deps.readRecent ? await deps.readRecent().catch(() => [] as string[]) : [];
+      if (cached.length > 0) {
+        const events = await deps.query({ kinds: [KIND], "#z": [booksConcept()], "#d": cached });
+        const bySlug = new Map<string, PublicBook>();
+        for (const e of events) {
+          const b = parseBook(e);
+          if (b && !bySlug.has(b.slug)) bySlug.set(b.slug, b);
+        }
+        const books = cached
+          .map((s) => bySlug.get(s))
+          .filter((b): b is PublicBook => Boolean(b))
+          .slice(0, limit);
+        return void res.status(200).json({ books });
+      }
       const events = await deps.query({ kinds: [KIND], "#z": [booksConcept()], limit });
       const books = events
         .slice()
