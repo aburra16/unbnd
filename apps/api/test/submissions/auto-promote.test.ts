@@ -5,12 +5,8 @@ import { describe, expect, it, vi } from "vitest";
 import { finalizeEvent, generateSecretKey, getPublicKey } from "nostr-tools/pure";
 import {
   asHexPubkey,
-  buildBookRatingsHeaderAddress,
   buildBookSubmissionsHeaderAddress,
   formatAddress,
-  toBookRatingEvent,
-  toWireTemplate,
-  type DListAddress,
   type SignedNostrEvent,
 } from "@unbnd/schemas";
 import type { Config } from "../../src/config";
@@ -22,7 +18,6 @@ const LIB = asHexPubkey("1".repeat(63) + "a");
 const HOUSE = "b".repeat(64);
 const KIND = 39999;
 const SUBMISSIONS_Z = formatAddress(buildBookSubmissionsHeaderAddress(LIB));
-const RATINGS_HEADER = buildBookRatingsHeaderAddress(LIB);
 
 function cfg(over: Partial<Config> = {}): Config {
   return {
@@ -49,17 +44,14 @@ function submissionEvent(slug: string): SignedNostrEvent {
 }
 
 function rating(slug: string, sk: Uint8Array, score: 1 | 2 | 3 | 4 | 5): SignedNostrEvent {
-  const tmpl = toWireTemplate(
-    toBookRatingEvent({
-      bookSlug: slug,
-      bookAddress: { kind: KIND, pubkey: LIB, dTag: slug } as DListAddress<39999>,
-      raterPubkey: asHexPubkey(getPublicKey(sk)),
-      score,
-      reviewDate: "2026-06-01",
-      parentHeader: RATINGS_HEADER,
-    }),
-    1_700_000_000,
-  );
+  // The shared book review record (Story 99 / ADR 0089).
+  const address = `39999:${LIB}:${slug}`;
+  const tmpl = {
+    kind: 34259,
+    created_at: 1_700_000_000,
+    content: "",
+    tags: [["d", `book:${address}`], ["a", address], ["m", "book"], ["s", String(score)]],
+  };
   return JSON.parse(JSON.stringify(finalizeEvent(tmpl as never, sk))) as SignedNostrEvent;
 }
 

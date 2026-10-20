@@ -19,10 +19,8 @@ import { npubEncode } from "nostr-tools/nip19";
 import { generateSecretKey, getPublicKey } from "nostr-tools/pure";
 import {
   asHexPubkey,
-  toBookRatingEvent,
   toBookTagAssertionEvent,
   toWireTemplate,
-  type BookRating,
   type SignedNostrEvent,
 } from "@unbnd/schemas";
 import type { Config } from "../../src/config";
@@ -47,20 +45,17 @@ const cfg = {
   databaseUrl: "x", backupEncryptionKey: "a".repeat(64), publicOrigin: "x", librarianPubkey: LIB,
 } as Config;
 
-const RATINGS_HDR = { kind: 39998 as const, pubkey: LIB, dTag: "book-ratings" };
 const TAGS_HDR = { kind: 39998 as const, pubkey: LIB, dTag: "book-tag-assertions" };
 
 function ratingEvent(pubkey: string, opts: { bookSlug: string; score: number; reviewText?: string; createdAt?: number }): SignedNostrEvent {
-  const r: BookRating = {
-    bookSlug: opts.bookSlug,
-    bookAddress: { kind: 39999 as const, pubkey: LIB, dTag: opts.bookSlug },
-    raterPubkey: asHexPubkey(pubkey),
-    score: opts.score as BookRating["score"],
-    reviewText: opts.reviewText,
-    reviewDate: "2026-05-27",
-    parentHeader: RATINGS_HDR,
+  // The shared book review record (Story 99 / ADR 0089).
+  const address = `39999:${LIB}:${opts.bookSlug}`;
+  const t = {
+    kind: 34259,
+    created_at: opts.createdAt ?? 1,
+    content: opts.reviewText ?? "",
+    tags: [["d", `book:${address}`], ["a", address], ["m", "book"], ["s", String(opts.score)]],
   };
-  const t = toWireTemplate(toBookRatingEvent(r), opts.createdAt ?? 1);
   return { id: `${opts.bookSlug}-${opts.createdAt ?? 1}`, pubkey, sig: "x", ...t } as SignedNostrEvent;
 }
 
@@ -103,8 +98,10 @@ function queryPagedByConcept(handlers: {
   tags?: () => Paged | Promise<Paged>;
 }) {
   return vi.fn(async (filter: Record<string, unknown>): Promise<Paged> => {
+    const kinds = (filter.kinds as number[] | undefined) ?? [];
+    if (kinds.includes(34259)) return handlers.ratings ? handlers.ratings() : { events: [], capped: false };
+    if (kinds.includes(5)) return { events: [], capped: false };
     const z = ((filter["#z"] as string[]) ?? [])[0] ?? "";
-    if (z.endsWith("book-ratings")) return handlers.ratings ? handlers.ratings() : { events: [], capped: false };
     if (z.endsWith("book-tag-assertions")) return handlers.tags ? handlers.tags() : { events: [], capped: false };
     return { events: [], capped: false };
   });
@@ -151,7 +148,8 @@ describe("GET /api/profile/me/stats — over-cap author, true count (AC-1, AC-5)
     for (const call of queryPaged.mock.calls) {
       const filter = (call[0] ?? {}) as Record<string, unknown>;
       expect(filter.authors).toEqual([USER]);
-      expect(filter.kinds).toContain(39999);
+      // reviews (34259) and their removals (5), and the tag assertions (39999)
+      expect([39999, 34259, 5].some((k) => (filter.kinds as number[]).includes(k))).toBe(true);
     }
   });
 });

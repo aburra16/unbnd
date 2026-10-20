@@ -10,7 +10,10 @@
 // keeps its pubkey key for the public per-book read and is left untouched.
 import { describe, expect, it } from "vitest";
 import { countOwnRatings } from "../../src/ratings/summary";
-import { signedRating } from "./_fixtures";
+import { signedRating, LIBRARIAN } from "./_fixtures";
+
+/** The catalog and clock the review rules read against (Story 99). */
+const SCOPE = { librarian: LIBRARIAN, now: Math.floor(Date.now() / 1000) + 10 };
 
 const SK = (n: number) => new Uint8Array(32).fill(n);
 
@@ -24,7 +27,7 @@ describe("countOwnRatings — books rated (AC-5)", () => {
       signedRating({ sk, bookSlug: "north-woods", score: 4 }).event,
       signedRating({ sk, bookSlug: "the-bee-sting", score: 3 }).event,
     ];
-    expect(countOwnRatings(events).booksRated).toBe(3);
+    expect(countOwnRatings(events, SCOPE).booksRated).toBe(3);
   });
 
   it("counts a re-rating of the same book once (latest-wins per book)", () => {
@@ -33,7 +36,7 @@ describe("countOwnRatings — books rated (AC-5)", () => {
       signedRating({ sk, bookSlug: "orbital", score: 2, createdAt: 1 }).event,
       signedRating({ sk, bookSlug: "orbital", score: 5, createdAt: 9 }).event,
     ];
-    expect(countOwnRatings(events).booksRated).toBe(1);
+    expect(countOwnRatings(events, SCOPE).booksRated).toBe(1);
   });
 
   it("counts a rating that carries no review text in booksRated", () => {
@@ -41,13 +44,13 @@ describe("countOwnRatings — books rated (AC-5)", () => {
     const events = [
       signedRating({ sk, bookSlug: "orbital", score: 4 }).event, // no reviewText
     ];
-    const r = countOwnRatings(events);
+    const r = countOwnRatings(events, SCOPE);
     expect(r.booksRated).toBe(1);
     expect(r.reviews).toBe(0);
   });
 
   it("returns zero for a user with no ratings (a true, honest zero)", () => {
-    expect(countOwnRatings([])).toEqual({ booksRated: 0, reviews: 0 });
+    expect(countOwnRatings([], SCOPE)).toEqual({ booksRated: 0, reviews: 0 });
   });
 });
 
@@ -59,7 +62,7 @@ describe("countOwnRatings — reviews (AC-6)", () => {
       signedRating({ sk, bookSlug: "north-woods", score: 4, reviewText: "   " }).event, // whitespace → not a review
       signedRating({ sk, bookSlug: "the-bee-sting", score: 3 }).event, // no text → not a review
     ];
-    const r = countOwnRatings(events);
+    const r = countOwnRatings(events, SCOPE);
     expect(r.booksRated).toBe(3);
     expect(r.reviews).toBe(1);
   });
@@ -72,7 +75,7 @@ describe("countOwnRatings — reviews (AC-6)", () => {
       signedRating({ sk, bookSlug: "orbital", score: 4, reviewText: "Had thoughts.", createdAt: 1 }).event,
       signedRating({ sk, bookSlug: "orbital", score: 5, createdAt: 9 }).event, // latest has no review
     ];
-    const r = countOwnRatings(events);
+    const r = countOwnRatings(events, SCOPE);
     expect(r.booksRated).toBe(1);
     expect(r.reviews).toBe(0);
   });

@@ -10,6 +10,7 @@ import {
   type SessionUser,
 } from "../../src/routes/ratings";
 import { LIBRARIAN, signedRating } from "../ratings/_fixtures";
+import { memoryRelay } from "../ratings/_relay";
 
 const cfg: Config = {
   port: 8787,
@@ -49,20 +50,20 @@ function makeApp(overrides: Partial<RatingsDeps> = {}) {
 }
 
 describe("POST /api/ratings/template", () => {
-  it("returns a template for a signed-in user", async () => {
-    const { app } = makeApp();
+  it("returns the shared review record for a signed-in user (Story 99)", async () => {
+    const { app } = makeApp({ query: memoryRelay().query });
     const res = await request(app)
       .post("/api/ratings/template")
-      .send({ bookSlug: "orbital", score: 4, reviewDate: "2026-05-27" });
+      .send({ bookSlug: "orbital", score: 4 });
     expect(res.status).toBe(200);
-    expect(res.body.template.kind).toBe(39999);
+    expect(res.body.template.kind).toBe(34259);
   });
 
   it("401 when there is no session", async () => {
     const { app } = makeApp({ sessionUser: vi.fn(async () => null) });
     const res = await request(app)
       .post("/api/ratings/template")
-      .send({ bookSlug: "orbital", score: 4, reviewDate: "2026-05-27" });
+      .send({ bookSlug: "orbital", score: 4 });
     expect(res.status).toBe(401);
   });
 
@@ -70,7 +71,7 @@ describe("POST /api/ratings/template", () => {
     const { app } = makeApp();
     const res = await request(app)
       .post("/api/ratings/template")
-      .send({ bookSlug: "orbital", score: 9, reviewDate: "2026-05-27" });
+      .send({ bookSlug: "orbital", score: 9 });
     expect(res.status).toBe(400);
   });
 
@@ -79,7 +80,7 @@ describe("POST /api/ratings/template", () => {
     const { app } = makeApp({ config: noLibrarian as Config });
     const res = await request(app)
       .post("/api/ratings/template")
-      .send({ bookSlug: "orbital", score: 4, reviewDate: "2026-05-27" });
+      .send({ bookSlug: "orbital", score: 4 });
     expect(res.status).toBe(503);
   });
 });
@@ -222,14 +223,15 @@ function brancher(opts: {
   ownEvents?: unknown[];
 }) {
   const ownEvents = opts.ownEvents ?? [];
-  return vi.fn(async (filter: { authors?: string[] }) =>
-    (filter.authors ? ownEvents : opts.inAddressSet) as never,
-  );
+  return vi.fn(async (filter: { kinds?: number[]; authors?: string[] }) => {
+    if (filter.kinds?.includes(5)) return [] as never; // no removals in these cases
+    return (filter.authors ? ownEvents : opts.inAddressSet) as never;
+  });
 }
 
 describe("GET /api/books/:slug/ratings — yourRating (own-rating read seam)", () => {
   it("returns the caller's own rating as `yourRating`, sourced from the raw set", async () => {
-    const own = signedRating({ sk: OWN_SK, score: 5, reviewText: "Mine.", reviewDate: "2026-05-20" });
+    const own = signedRating({ sk: OWN_SK, score: 5, reviewText: "Mine.", createdAt: Date.UTC(2026, 4, 20) / 1000 });
     const other = signedRating({ score: 2 });
     const { app } = makeApp({
       sessionUser: vi.fn(async () => ownSession()),
@@ -249,7 +251,7 @@ describe("GET /api/books/:slug/ratings — yourRating (own-rating read seam)", (
   });
 
   it("is observer-independent: identical `yourRating` regardless of ?observer=", async () => {
-    const own = signedRating({ sk: OWN_SK, score: 4, reviewDate: "2026-05-21" });
+    const own = signedRating({ sk: OWN_SK, score: 4, createdAt: Date.UTC(2026, 4, 21) / 1000 });
     const other = signedRating({ score: 1 });
     const events = [own.event, other.event];
     const sessionUser = vi.fn(async () => ownSession());
@@ -269,7 +271,7 @@ describe("GET /api/books/:slug/ratings — yourRating (own-rating read seam)", (
   it("is present even when the caller's own rating is ABSENT from the weighted set (honesty seam)", async () => {
     // The caller rated, but the observer trusts only `other` — so the own rating
     // carries no weight and is absent from `weighted`. `yourRating` must still hold it.
-    const own = signedRating({ sk: OWN_SK, score: 3, reviewDate: "2026-05-22" });
+    const own = signedRating({ sk: OWN_SK, score: 3, createdAt: Date.UTC(2026, 4, 22) / 1000 });
     const other = signedRating({ score: 5 });
     const weights = new Map<string, number>([[other.pubkey, 0.9]]); // own NOT trusted
     const trust = {
@@ -301,8 +303,8 @@ describe("GET /api/books/:slug/ratings — yourRating (own-rating read seam)", (
   it("past the 500-cap: invokes the author-scoped fallback query and still populates yourRating", async () => {
     // The book-address read is truncated and does NOT contain the caller's own
     // event. The route must fall back to an author-scoped read
-    // ({ kinds:[39999], authors:[ownHex], "#a":[addr] }) to find it.
-    const own = signedRating({ sk: OWN_SK, score: 5, reviewDate: "2026-05-23" });
+    // ({ kinds:[34259], authors:[ownHex], "#a":[addr] }) to find it.
+    const own = signedRating({ sk: OWN_SK, score: 5, createdAt: Date.UTC(2026, 4, 23) / 1000 });
     const others = [signedRating({ score: 1 }), signedRating({ score: 2 })];
     const query = brancher({
       inAddressSet: others.map((o) => o.event), // own rating absent (capped out)
@@ -317,12 +319,13 @@ describe("GET /api/books/:slug/ratings — yourRating (own-rating read seam)", (
       .set("Cookie", "session=tok");
     expect(res.status).toBe(200);
     // The fallback fired with the author-scoped, book-scoped filter.
-    const authorScoped = query.mock.calls.find(
-      (c) => (c[0] as { authors?: string[] }).authors !== undefined,
-    );
+    const authorScoped = query.mock.calls.find((c) => {
+      const f = c[0] as { authors?: string[]; "#a"?: string[] };
+      return f.authors !== undefined && f["#a"] !== undefined;
+    });
     expect(authorScoped).toBeDefined();
     const filter = authorScoped![0] as { kinds: number[]; authors: string[]; "#a": string[] };
-    expect(filter.kinds).toContain(39999);
+    expect(filter.kinds).toContain(34259);
     expect(filter.authors).toContain(OWN_HEX);
     expect(filter["#a"][0]).toBe(`39999:${LIBRARIAN}:orbital`);
     // And the own rating is populated despite being outside the capped page.

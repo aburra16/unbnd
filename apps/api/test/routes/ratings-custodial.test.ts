@@ -7,7 +7,10 @@ import {
   type RatingsDeps,
   type SessionUser,
 } from "../../src/routes/ratings";
+import { finalizeEvent } from "nostr-tools/pure";
+import type { NostrEventTemplate, SignedNostrEvent } from "@unbnd/schemas";
 import { LIBRARIAN, signedRating } from "../ratings/_fixtures";
+import { memoryRelay } from "../ratings/_relay";
 
 const cfg: Config = {
   port: 8787,
@@ -33,11 +36,13 @@ function custodialUser(pubkeyHex: string): SessionUser {
 }
 
 function makeApp(overrides: Partial<RatingsDeps> = {}) {
+  // An in-memory relay holding the catalog book; publishing appends to it.
+  const relay = memoryRelay();
   const deps: RatingsDeps = {
     config: cfg,
     sessionUser: vi.fn(async () => custodialUser("9".repeat(64))),
-    publish: vi.fn(async () => ({ ok: true as const, id: "evt" })),
-    query: vi.fn(async () => []),
+    publish: relay.publish,
+    query: relay.query,
     custodialSign: vi.fn(async () => null),
     ...overrides,
   };
@@ -49,11 +54,13 @@ function makeApp(overrides: Partial<RatingsDeps> = {}) {
 
 describe("POST /api/ratings — custodial (server-signed)", () => {
   it("server-signs the rating and publishes it (no client event in the body)", async () => {
-    const { event, pubkey } = signedRating({ score: 4, bookSlug: "orbital" });
+    const { sk, pubkey } = signedRating({ score: 4, bookSlug: "orbital" });
     const { app, deps } = makeApp({
       sessionUser: vi.fn(async () => custodialUser(pubkey)),
-      custodialSign: vi.fn(async () => event as never),
-      query: vi.fn(async () => [event] as never),
+      custodialSign: vi.fn(
+        async (_id: string, t: NostrEventTemplate) =>
+          JSON.parse(JSON.stringify(finalizeEvent(t as never, sk))) as SignedNostrEvent,
+      ),
     });
     const res = await request(app)
       .post("/api/ratings")

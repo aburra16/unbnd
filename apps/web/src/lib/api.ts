@@ -31,7 +31,8 @@ export type NostrEventTemplate = {
 
 export type PublicRating = {
   npub: string;
-  score: number;
+  /** Null for a review with words and no stars, written in another app. */
+  score: number | null;
   reviewText?: string;
   reviewDate: string;
 };
@@ -371,12 +372,7 @@ export const api = {
     },
   },
   ratings: {
-    template(input: {
-      bookSlug: string;
-      score: number;
-      reviewText?: string;
-      reviewDate: string;
-    }) {
+    template(input: { bookSlug: string; score: number; reviewText?: string }) {
       return authFetch<{ template: NostrEventTemplate }>(
         "/api/ratings/template",
         { method: "POST", body: JSON.stringify(input) },
@@ -384,21 +380,16 @@ export const api = {
     },
     submit(event: SignedEvent) {
       return authFetch<{
-        rating: { score: number; reviewText?: string; reviewDate: string };
+        rating: { score: number | null; reviewText?: string; reviewDate: string } | null;
         summary: RatingsSummary;
       }>("/api/ratings", { method: "POST", body: JSON.stringify({ event }) });
     },
     // Custodial (email) users: the server signs server-side (ADR 0006). No
     // client signature — just the rating intent. Same endpoint, branched by
     // tier server-side.
-    submitCustodial(input: {
-      bookSlug: string;
-      score: number;
-      reviewText?: string;
-      reviewDate: string;
-    }) {
+    submitCustodial(input: { bookSlug: string; score: number; reviewText?: string }) {
       return authFetch<{
-        rating: { score: number; reviewText?: string; reviewDate: string };
+        rating: { score: number | null; reviewText?: string; reviewDate: string } | null;
         summary: RatingsSummary;
       }>("/api/ratings", { method: "POST", body: JSON.stringify(input) });
     },
@@ -408,12 +399,12 @@ export const api = {
         `/api/books/${encodeURIComponent(bookSlug)}/ratings${q}`,
       );
     },
-    // Story 79 / ADR 0077: remove (retract) the caller's own rating. Signed
-    // per tier exactly like a rating: sovereign fetches the retraction
-    // template, signs with NIP-07, and submits the event; custodial posts the
-    // book slug and the server signs with the session key.
+    // Remove the caller's own review with a NIP-09 removal (Story 99 / ADR
+    // 0089). Sovereign fetches the removal template (null when there is
+    // nothing to remove), signs with NIP-07, and submits it; custodial posts
+    // the book slug and the server signs with the session key.
     removeTemplate(bookSlug: string) {
-      return authFetch<{ template: NostrEventTemplate }>(
+      return authFetch<{ template: NostrEventTemplate | null }>(
         "/api/ratings/remove/template",
         { method: "POST", body: JSON.stringify({ bookSlug }) },
       );

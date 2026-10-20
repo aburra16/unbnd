@@ -1,25 +1,19 @@
-// FAILING TESTS — Story 79 / ADR 0077 (the removal endpoints).
+// Story 99 / ADR 0089 (the removal endpoints, formerly Story 79's retraction).
 //
-// POST /api/ratings/remove/template mirrors /api/ratings/template (the
-// server-built retraction template a sovereign client signs). POST
-// /api/ratings/remove mirrors POST /api/ratings: tier-branched (sovereign
-// posts a self-signed retraction event; custodial posts { bookSlug } and the
-// server signs with the session key), with the idempotent short-circuit —
-// no current rating means 200 { removed: false } and NO publish, so a double
-// remove never spams tombstones (relay-cap discipline). The query mock is
-// relay-replace realistic: after the retraction publishes, the book-address
-// read returns the retraction INSTEAD of the rating (kind 39999 is
-// parameterized-replaceable).
+// POST /api/ratings/remove/template returns the kind 5 a sovereign client signs
+// (null when there is nothing to remove). POST /api/ratings/remove is
+// tier-branched: sovereign posts the signed removal; custodial posts
+// { bookSlug } and the server signs with the session key. Idempotent: no
+// current review means 200 { removed: false } and NO publish.
 import express from "express";
 import request from "supertest";
 import { describe, expect, it, vi } from "vitest";
+import { finalizeEvent, generateSecretKey } from "nostr-tools/pure";
+import type { NostrEventTemplate, SignedNostrEvent } from "@unbnd/schemas";
 import type { Config } from "../../src/config";
-import {
-  buildRatingsRouter,
-  type RatingsDeps,
-  type SessionUser,
-} from "../../src/routes/ratings";
-import { LIBRARIAN, signedRating, signedRetraction } from "../ratings/_fixtures";
+import { buildRatingsRouter, type RatingsDeps, type SessionUser } from "../../src/routes/ratings";
+import { LIBRARIAN, bookAddress, signedRating } from "../ratings/_fixtures";
+import { memoryRelay } from "../ratings/_relay";
 
 const cfg: Config = {
   port: 8787,
@@ -39,131 +33,86 @@ const cfg: Config = {
 };
 
 const COOKIE = "session=" + "x".repeat(43);
+const sign = (sk: Uint8Array, t: NostrEventTemplate) =>
+  JSON.parse(JSON.stringify(finalizeEvent(t as never, sk))) as SignedNostrEvent;
 
-function makeApp(overrides: Partial<RatingsDeps> = {}) {
+/** A caller with a current review of "orbital" on an in-memory relay. */
+function ratedApp(tier: "sovereign" | "custodial", over: Partial<RatingsDeps> = {}) {
+  const rating = signedRating({ bookSlug: "orbital", score: 4, createdAt: 1_000 });
+  const user: SessionUser = { id: "u", pubkeyHex: rating.pubkey, tier };
+  const relay = memoryRelay([rating.event as SignedNostrEvent]);
   const deps: RatingsDeps = {
     config: cfg,
-    sessionUser: vi.fn(async () => null),
-    publish: vi.fn(async () => ({ ok: true as const, id: "evt-id" })),
-    query: vi.fn(async () => []),
-    ...overrides,
+    sessionUser: vi.fn(async () => user),
+    publish: relay.publish,
+    query: relay.query,
+    custodialSign: vi.fn(async (_id: string, t: NostrEventTemplate) => sign(rating.sk, t)),
+    ...over,
   };
   const app = express();
   app.use(express.json());
   app.use("/", buildRatingsRouter(deps));
-  return { app, deps };
-}
-
-/**
- * A rated-then-removed harness: the caller has a current rating; once the
- * retraction publishes, the book-address read returns the retraction instead
- * (the relay replaced the rating at the same d-tag).
- */
-function ratedApp(user: SessionUser, overrides: Partial<RatingsDeps> = {}) {
-  const rating = signedRating({ bookSlug: "orbital", score: 4 });
-  const sessionUser = { ...user, pubkeyHex: rating.pubkey };
-  const retraction = signedRetraction({ sk: rating.sk, bookSlug: "orbital", createdAt: 2_000_000_000 });
-  let published = false;
-  const made = makeApp({
-    sessionUser: vi.fn(async () => sessionUser),
-    publish: vi.fn(async () => {
-      published = true;
-      return { ok: true as const, id: "evt-id" };
-    }),
-    query: vi.fn(async () => (published ? [retraction.event] : [rating.event]) as never),
-    ...overrides,
-  });
-  return { ...made, rating, retraction, user: sessionUser };
+  return { app, deps, relay, rating, user };
 }
 
 describe("POST /api/ratings/remove/template", () => {
-  it("returns a retraction template for the signed-in caller: same d-tag, retracted marker, no score", async () => {
-    const sovereign: SessionUser = { id: "u1", pubkeyHex: "9".repeat(64), tier: "sovereign" };
-    const { app } = makeApp({ sessionUser: vi.fn(async () => sovereign) });
-    const res = await request(app)
-      .post("/api/ratings/remove/template")
-      .set("Cookie", COOKIE)
-      .send({ bookSlug: "orbital" });
+  it("returns a kind 5 naming the caller's current review by e and a, with k", async () => {
+    const { app, rating } = ratedApp("sovereign");
+    const res = await request(app).post("/api/ratings/remove/template").set("Cookie", COOKIE).send({ bookSlug: "orbital" });
     expect(res.status).toBe(200);
-    expect(res.body.template.kind).toBe(39999);
-    const tags = res.body.template.tags as string[][];
-    expect(tags.find((t) => t[0] === "d")?.[1]).toBe(`rating--orbital--${"9".repeat(8)}`);
-    expect(tags.find((t) => t[0] === "retracted")?.[1]).toBe("true");
-    expect(tags.find((t) => t[0] === "score")).toBeUndefined();
+    expect(res.body.template.kind).toBe(5);
+    expect(res.body.template.tags).toEqual([
+      ["e", rating.event.id],
+      ["a", `34259:${rating.pubkey}:book:${bookAddress("orbital")}`],
+      ["k", "34259"],
+    ]);
   });
 
-  it("401 when there is no session", async () => {
-    const { app } = makeApp();
-    const res = await request(app)
-      .post("/api/ratings/remove/template")
-      .send({ bookSlug: "orbital" });
-    expect(res.status).toBe(401);
+  it("returns a null template when there is nothing to remove", async () => {
+    const { app } = ratedApp("sovereign");
+    const res = await request(app).post("/api/ratings/remove/template").set("Cookie", COOKIE).send({ bookSlug: "other" });
+    expect(res.status).toBe(200);
+    expect(res.body.template).toBeNull();
   });
 });
 
-describe("POST /api/ratings/remove — sovereign (self-signed retraction)", () => {
-  it("publishes a valid self-signed retraction; the rating is gone from the summary and yourRating is null", async () => {
-    const { app, deps, retraction } = ratedApp({ id: "u1", pubkeyHex: "", tier: "sovereign" });
-    const res = await request(app)
-      .post("/api/ratings/remove")
-      .set("Cookie", COOKIE)
-      .send({ event: retraction.event });
+describe("POST /api/ratings/remove — sovereign (self-signed removal)", () => {
+  it("401 when there is no session", async () => {
+    const { app } = ratedApp("sovereign", { sessionUser: vi.fn(async () => null) });
+    const res = await request(app).post("/api/ratings/remove").send({ event: {} });
+    expect(res.status).toBe(401);
+  });
+
+  it("publishes a valid self-signed removal; the review is gone from the summary and yourRating is null", async () => {
+    const { app, deps, rating } = ratedApp("sovereign");
+    const tpl = (await request(app).post("/api/ratings/remove/template").set("Cookie", COOKIE).send({ bookSlug: "orbital" })).body.template;
+    const res = await request(app).post("/api/ratings/remove").set("Cookie", COOKIE).send({ event: sign(rating.sk, tpl) });
     expect(res.status).toBe(200);
     expect(res.body.removed).toBe(true);
-    expect(deps.publish).toHaveBeenCalledTimes(1);
-    // The recomputed summary excludes the removed rating (seam 1)…
     expect(res.body.summary.count).toBe(0);
-    // …and the caller's own rating is honestly gone (seam 2).
     expect(res.body.yourRating).toBeNull();
+    expect(deps.publish).toHaveBeenCalledTimes(1);
   });
 
-  it("403 when the retraction is signed by a different key than the session user", async () => {
-    const someoneElse = signedRetraction({
-      sk: signedRating({}).sk,
-      bookSlug: "orbital",
-    });
-    const { app, deps } = ratedApp({ id: "u1", pubkeyHex: "", tier: "sovereign" });
-    const res = await request(app)
-      .post("/api/ratings/remove")
-      .set("Cookie", COOKIE)
-      .send({ event: someoneElse.event });
-    expect(res.status).toBe(403);
-    expect(deps.publish).not.toHaveBeenCalled();
-  });
-
-  it("400 when the posted event is not a retraction (a rating with a score)", async () => {
-    const { app, deps, rating } = ratedApp({ id: "u1", pubkeyHex: "", tier: "sovereign" });
-    // A normal rating event, self-signed and valid — but not a retraction.
-    const notARetraction = signedRating({ sk: rating.sk, bookSlug: "orbital", score: 1 });
-    const res = await request(app)
-      .post("/api/ratings/remove")
-      .set("Cookie", COOKIE)
-      .send({ event: notARetraction.event });
+  it("400 when the posted event is a review, not a removal", async () => {
+    const { app, rating } = ratedApp("sovereign");
+    const res = await request(app).post("/api/ratings/remove").set("Cookie", COOKIE).send({ event: rating.event });
     expect(res.status).toBe(400);
-    expect(deps.publish).not.toHaveBeenCalled();
   });
 
-  it("401 when there is no session", async () => {
-    const { app } = makeApp();
-    const res = await request(app)
-      .post("/api/ratings/remove")
-      .send({ event: signedRetraction({ sk: signedRating({}).sk }).event });
-    expect(res.status).toBe(401);
+  it("403 when the removal is signed by a different key than the session user", async () => {
+    const { app, rating } = ratedApp("sovereign");
+    const tags = [["e", rating.event.id], ["a", `34259:${rating.pubkey}:book:${bookAddress("orbital")}`], ["k", "34259"]];
+    const forged = sign(generateSecretKey(), { kind: 5, created_at: 2_000, tags, content: "" });
+    const res = await request(app).post("/api/ratings/remove").set("Cookie", COOKIE).send({ event: forged });
+    expect(res.status).toBe(403);
   });
 });
 
 describe("POST /api/ratings/remove — idempotent short-circuit (AC-4)", () => {
-  it("200 { removed: false } and NO publish when the caller has no current rating", async () => {
-    const rater = signedRating({});
-    const retraction = signedRetraction({ sk: rater.sk, bookSlug: "orbital" });
-    const { app, deps } = makeApp({
-      sessionUser: vi.fn(async () => ({ id: "u1", pubkeyHex: rater.pubkey, tier: "sovereign" })),
-      query: vi.fn(async () => []), // never rated (or already removed)
-    });
-    const res = await request(app)
-      .post("/api/ratings/remove")
-      .set("Cookie", COOKIE)
-      .send({ event: retraction.event });
+  it("200 { removed: false } and NO publish when the caller has no current review", async () => {
+    const { app, deps } = ratedApp("custodial");
+    const res = await request(app).post("/api/ratings/remove").set("Cookie", COOKIE).send({ bookSlug: "other" });
     expect(res.status).toBe(200);
     expect(res.body.removed).toBe(false);
     expect(deps.publish).not.toHaveBeenCalled();
@@ -171,41 +120,19 @@ describe("POST /api/ratings/remove — idempotent short-circuit (AC-4)", () => {
 });
 
 describe("POST /api/ratings/remove — custodial (server-signed)", () => {
-  it("server-signs the retraction with the session key and publishes (no client event in the body)", async () => {
-    const { app, deps, retraction } = ratedApp(
-      { id: "u-cust", pubkeyHex: "", tier: "custodial" },
-      { custodialSign: vi.fn(async () => undefined as never) },
-    );
-    (deps.custodialSign as ReturnType<typeof vi.fn>).mockResolvedValue(retraction.event);
-    const res = await request(app)
-      .post("/api/ratings/remove")
-      .set("Cookie", COOKIE)
-      .send({ bookSlug: "orbital" });
+  it("server-signs the removal with the session key and publishes (no client event in the body)", async () => {
+    const { app, deps, relay } = ratedApp("custodial");
+    const res = await request(app).post("/api/ratings/remove").set("Cookie", COOKIE).send({ bookSlug: "orbital" });
     expect(res.status).toBe(200);
     expect(res.body.removed).toBe(true);
     expect(deps.custodialSign).toHaveBeenCalledTimes(1);
-    expect(deps.publish).toHaveBeenCalledTimes(1);
-    expect(res.body.yourRating).toBeNull();
-    // The server-built template it signed is a retraction: marker, no score.
-    const [, template] = (deps.custodialSign as ReturnType<typeof vi.fn>).mock.calls[0]! as [
-      string,
-      { tags: string[][] },
-    ];
-    expect(template.tags.find((t) => t[0] === "retracted")?.[1]).toBe("true");
-    expect(template.tags.find((t) => t[0] === "score")).toBeUndefined();
+    expect(relay.events.some((e) => e.kind === 5)).toBe(true);
   });
 
-  it("401 reauth_required when the session has no live signing key (the rate-path branch, reused)", async () => {
-    const { app, deps } = ratedApp(
-      { id: "u-cust", pubkeyHex: "", tier: "custodial" },
-      { custodialSign: vi.fn(async () => null) }, // wrap gone (post-restart)
-    );
-    const res = await request(app)
-      .post("/api/ratings/remove")
-      .set("Cookie", COOKIE)
-      .send({ bookSlug: "orbital" });
+  it("401 reauth_required when the session has no live signing key", async () => {
+    const { app } = ratedApp("custodial", { custodialSign: vi.fn(async () => null) });
+    const res = await request(app).post("/api/ratings/remove").set("Cookie", COOKIE).send({ bookSlug: "orbital" });
     expect(res.status).toBe(401);
     expect(res.body.error.code).toBe("reauth_required");
-    expect(deps.publish).not.toHaveBeenCalled();
   });
 });

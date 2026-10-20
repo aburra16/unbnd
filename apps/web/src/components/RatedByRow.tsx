@@ -46,9 +46,11 @@ function RaterBadge({
       {detailed && (
         <span className="rated-by-detail">
           <span className="rated-by-name">{name}</span>
-          <span className="rated-by-score" aria-hidden="true">
-            ★ {rating.score}
-          </span>
+          {rating.score !== null && (
+            <span className="rated-by-score" aria-hidden="true">
+              ★ {rating.score}
+            </span>
+          )}
           {match?.thresholdMet && typeof match.percentage === "number" && (
             <span className="rated-by-match">{match.percentage}% match</span>
           )}

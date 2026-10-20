@@ -18,8 +18,6 @@ import request from "supertest";
 import { describe, expect, it, vi } from "vitest";
 import {
   asHexPubkey,
-  buildBookRatingsHeaderAddress,
-  formatAddress,
   toBookRecordEvent,
   toWireTemplate,
   type BookRecord,
@@ -42,7 +40,6 @@ import {
 const USER_HEX = "9".repeat(64);
 const OTHER_USER_HEX = "7".repeat(64);
 
-const RATINGS_Z = formatAddress(buildBookRatingsHeaderAddress(LIBRARIAN));
 const BOOKS_Z = `39998:${LIBRARIAN}:books`;
 
 function baseConfig(overrides: Partial<Config> = {}): Config {
@@ -92,6 +89,7 @@ function makeReads(opts: {
 }) {
   const ownRatings = opts.ownRatings ?? [];
   const pick = (filter: NostrFilter): SignedNostrEvent[] => {
+    if (filter.kinds?.includes(5)) return []; // no removals in these cases (Story 99)
     if ((filter.authors as string[] | undefined)?.length) return ownRatings;
     if (filter["#d"] !== undefined) {
       const slugs = (filter["#d"] as string[]) ?? [];
@@ -373,13 +371,13 @@ describe("GET /api/foryou — AC-3: excludes books the user has already rated", 
       books: { alpha: bookEvent("alpha", "Alpha") },
     });
     await request(app).get("/api/foryou");
-    // One of the reads is author-scoped to USER_HEX on kind 39999 (own-ratings).
+    // One of the reads is author-scoped to USER_HEX on kind 34259 (own reviews).
     const calls = [...reads.query.mock.calls, ...reads.queryPaged.mock.calls];
     const authorScoped = calls.find(
       (c) => (c[0] as NostrFilter).authors?.includes(USER_HEX),
     );
     expect(authorScoped).toBeDefined();
-    expect((authorScoped![0] as NostrFilter).kinds).toContain(39999);
+    expect((authorScoped![0] as NostrFilter).kinds).toContain(34259);
   });
 });
 
@@ -609,12 +607,9 @@ describe("GET /api/foryou — no trust score/tier/count on the wire (CLAUDE.md)"
   });
 });
 
-// Keep the imported header-address constants referenced so the red set is clean
-// under `noUnusedLocals` (the Implementer asserts the route's read filters against
-// these; here they document the candidate/hydrate read shape this story pins).
+// The books concept the hydrate read is scoped to (reviews are read by kind, Story 99).
 describe("GET /api/foryou — read shape constants are well-formed (documentation guard)", () => {
-  it("the ratings header and books-concept addresses resolve to the librarian", () => {
-    expect(RATINGS_Z).toBe(`39998:${LIBRARIAN}:book-ratings`);
+  it("the books-concept address resolves to the librarian", () => {
     expect(BOOKS_Z).toBe(`39998:${LIBRARIAN}:books`);
     expect(asHexPubkey(LIBRARIAN)).toBe(LIBRARIAN);
   });

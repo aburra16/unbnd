@@ -8,7 +8,10 @@
 // export that does NOT exist yet (intentionally red).
 import { describe, expect, it } from "vitest";
 import { ownRatedSlugs } from "../../src/ratings/summary";
-import { signedRating } from "./_fixtures";
+import { signedRating, LIBRARIAN } from "./_fixtures";
+
+/** The catalog and clock the review rules read against (Story 99). */
+const SCOPE = { librarian: LIBRARIAN, now: Math.floor(Date.now() / 1000) + 10 };
 
 const SK = (n: number) => new Uint8Array(32).fill(n);
 
@@ -20,7 +23,7 @@ describe("ownRatedSlugs — the set of slugs the user currently rates (AC-3)", (
       signedRating({ sk, bookSlug: "north-woods", score: 4 }).event,
       signedRating({ sk, bookSlug: "the-bee-sting", score: 3 }).event,
     ];
-    const set = ownRatedSlugs(events);
+    const set = ownRatedSlugs(events, SCOPE);
     expect(set).toBeInstanceOf(Set);
     expect([...set].sort()).toEqual(["north-woods", "orbital", "the-bee-sting"]);
   });
@@ -31,20 +34,20 @@ describe("ownRatedSlugs — the set of slugs the user currently rates (AC-3)", (
       signedRating({ sk, bookSlug: "orbital", score: 2, createdAt: 1 }).event,
       signedRating({ sk, bookSlug: "orbital", score: 5, createdAt: 9 }).event,
     ];
-    const set = ownRatedSlugs(events);
+    const set = ownRatedSlugs(events, SCOPE);
     expect(set.size).toBe(1);
     expect(set.has("orbital")).toBe(true);
   });
 
   it("returns an empty set for a user with no ratings", () => {
-    expect(ownRatedSlugs([]).size).toBe(0);
+    expect(ownRatedSlugs([], SCOPE).size).toBe(0);
   });
 
   it("ignores events that are not well-formed ratings", () => {
     const sk = SK(9);
     const good = signedRating({ sk, bookSlug: "orbital", score: 4 }).event;
     const junk = { ...good, kind: 1, tags: [], content: "not a rating" } as typeof good;
-    const set = ownRatedSlugs([good, junk]);
+    const set = ownRatedSlugs([good, junk], SCOPE);
     expect([...set]).toEqual(["orbital"]);
   });
 
@@ -56,6 +59,6 @@ describe("ownRatedSlugs — the set of slugs the user currently rates (AC-3)", (
       signedRating({ sk, bookSlug: "orbital", score: 4, createdAt: 99 }).event, // re-rate
       signedRating({ sk, bookSlug: "piranesi", score: 5 }).event,
     ];
-    expect(ownRatedSlugs(events).size).toBe(countOwnRatings(events).booksRated);
+    expect(ownRatedSlugs(events, SCOPE).size).toBe(countOwnRatings(events, SCOPE).booksRated);
   });
 });

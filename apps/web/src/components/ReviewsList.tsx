@@ -52,9 +52,11 @@ export function ReviewsList({ ratings, tasteMatches }: Props) {
               <div className="review-id">
                 <ReviewByline npub={r.npub} match={tasteMatches?.[r.npub]} />
                 <div className="review-sub">
-                  <span className="review-stars" aria-hidden="true">
-                    {stars(r.score)}
-                  </span>
+                  {r.score !== null && (
+                    <span className="review-stars" aria-hidden="true">
+                      {stars(r.score)}
+                    </span>
+                  )}
                   <span className="review-time">{r.reviewDate}</span>
                 </div>
               </div>
