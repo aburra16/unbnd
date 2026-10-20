@@ -119,14 +119,14 @@
   ],
   [
    "link",
-   "0000000000000000000000000000000000000000000000000000000000000001",
+   "e722c94c9ee31ed28b79687b17daa313c0d02a9936a1c07dc73fbab4288fbc10",
    "wss://dcosl.brainstorm.world",
    "id",
    "open-library-id"
   ],
   [
    "link",
-   "0000000000000000000000000000000000000000000000000000000000000002",
+   "a3037637a77a5b0338639f570b6cf24aa292a1bea322e18d2f4e69144df0cb57",
    "wss://dcosl.brainstorm.world",
    "isbn10",
    "isbn10"
@@ -629,7 +629,7 @@
    ],
    [
     "json",
-    "{\"word\":{\"slug\":\"ol-ol1077895w\",\"name\":\"A history of ancient and early medieval India\",\"title\":\"A history of ancient and early medieval India\",\"wordTypes\":[\"word\",\"bookSubmission\"]},\"bookSubmission\":{\"slug\":\"ol-ol1077895w\",\"title\":\"A history of ancient and early medieval India\",\"authorName\":\"Upinder Singh\",\"authorPubkey\":null,\"isbn13\":\"9788131711200\",\"isbn10\":\"8131716775\",\"openLibraryId\":\"OL1077895W\",\"coverUrl\":\"https://covers.openlibrary.org/b/id/3367446-L.jpg\",\"publishYear\":2008,\"language\":\"eng\",\"subjects\":[\"History\",\"India, history\"],\"blurb\":\"Developed as a comprehensive introductory work for scholars and students of ancient and early medieval Indian history, this book provides the most exhaustive overview of the subject. Dividing the vast historical expanse from the stone age to the 12th century into broad chronological units, it constructs profiles of various geographical regions of the subcontinent, weaving together and analysing an unparalleled range of literary and archaeological evidence. Dealing with prehistory and protohistory of the subcontinent in considerable detail, the narrative of the historical period breaks away from conventional text-based history writing. Providing a window into the world of primary sources, it incorporates a large volume of archaeological data, along with literary, epigraphic, and numismatic evidence. Revealing the ways in which our past is constructed, it explains fundamental concepts, and illuminates contemporary debates, discoveries, and research. Situating prevailing historical debates in their contexts, Ancient and Early Medieval India presents balanced assessments, encouraging readers to independently evaluate theories, evidence, and arguments. Beautifully illustrated with over four hundred photographs, maps, and figures, Ancient and Early Medieval India helps visualize and understand the extraordinarily rich and varied remains of the ancient past of Indian subcontinent. It offers a scholarly and nuanced\u2014yet lucid\u2014account of India\u2019s early past, and will surely transform the discovery of this past into an exciting experience.\",\"format\":\"reference\",\"fileUrl\":null,\"source\":\"openlibrary\",\"submittedBy\":null}}"
+    "{\"word\":{\"slug\":\"ol-ol1077895w\",\"name\":\"A history of ancient and early medieval India\",\"title\":\"A history of ancient and early medieval India\",\"wordTypes\":[\"word\",\"bookSubmission\"]},\"bookSubmission\":{\"slug\":\"ol-ol1077895w\",\"title\":\"A history of ancient and early medieval India\",\"authorName\":\"Upinder Singh\",\"authorPubkey\":null,\"isbn13\":\"9788131711200\",\"isbn10\":\"8131716775\",\"openLibraryId\":\"OL1077895W\",\"coverUrl\":\"https://covers.openlibrary.org/b/id/3367446-L.jpg\",\"publishYear\":2008,\"language\":\"eng\",\"subjects\":[\"History\",\"India, history\"],\"blurb\":\"Developed as a comprehensive introductory work for scholars and students of ancient and early medieval Indian history, this book provides the most exhaustive overview of the subject. Dividing the vast historical expanse from the stone age to the 12th century into broad chronological units, it constructs profiles of various geographical regions of the subcontinent, weaving together and analysing an unparalleled range of literary and archaeological evidence. Dealing with prehistory and protohistory of the subcontinent in considerable detail, the narrative of the historical period breaks away from conventional text-based history writing. Providing a window into the world of primary sources, it incorporates a large volume of archaeological data, along with literary, epigraphic, and numismatic evidence. Revealing the ways in which our past is constructed, it explains fundamental concepts, and illuminates contemporary debates, discoveries, and research. Situating prevailing historical debates in their contexts, Ancient and Early Medieval India presents balanced assessments, encouraging readers to independently evaluate theories, evidence, and arguments. Beautifully illustrated with over four hundred photographs, maps, and figures, Ancient and Early Medieval India helps visualize and understand the extraordinarily rich and varied remains of the ancient past of Indian subcontinent. It offers a scholarly and nuanced—yet lucid—account of India’s early past, and will surely transform the discovery of this past into an exciting experience.\",\"format\":\"reference\",\"fileUrl\":null,\"source\":\"openlibrary\",\"submittedBy\":null}}"
    ]
   ],
   [
@@ -953,7 +953,7 @@
    ],
    [
     "subject",
-    "Litte\u0301rature anglaise -- 19e sie\u0300cle"
+    "Littérature anglaise -- 19e siècle"
    ],
    [
     "subject",
@@ -985,7 +985,7 @@
    ],
    [
     "json",
-    "{\"word\":{\"slug\":\"ol-ol66512w\",\"name\":\"Novels (Emma / Mansfield Park / Northanger Abbey / Persuasion / Pride and Prejudice / Sense and Sensibility)\",\"title\":\"Novels (Emma / Mansfield Park / Northanger Abbey / Persuasion / Pride and Prejudice / Sense and Sensibility)\",\"wordTypes\":[\"word\",\"bookSubmission\"]},\"bookSubmission\":{\"slug\":\"ol-ol66512w\",\"title\":\"Novels (Emma / Mansfield Park / Northanger Abbey / Persuasion / Pride and Prejudice / Sense and Sensibility)\",\"authorName\":\"Jane Austen\",\"authorPubkey\":null,\"isbn13\":\"9781905716760\",\"isbn10\":\"1435101162\",\"openLibraryId\":\"OL66512W\",\"coverUrl\":\"https://covers.openlibrary.org/b/id/9276728-L.jpg\",\"pageCount\":1076,\"publishYear\":1818,\"language\":\"eng\",\"subjects\":[\"British and irish fiction (fictional works by one author)\",\"Brothers and sisters\",\"Children's fiction\",\"Courtship\",\"Drama\",\"English fiction\",\"English literature\",\"Families\",\"Family\",\"Family life\",\"Family relations\",\"Fiction\",\"Fiction Classics\",\"History\",\"Interpersonal relations\",\"Juvenile fiction\",\"Literary Fiction\",\"love stories\",\"manners\",\"Manners and customs\",\"marriage\",\"Romance\",\"Sisters\",\"Social classes\",\"Social life and customs\",\"Upper class\",\"wealth\",\"Women in England\",\"young ladies\",\"Young women\",\"entail\",\"Austen, Jane, 1775-1817\",\"English literature -- 19th century\",\"Litte\u0301rature anglaise -- 19e sie\u0300cle\",\"Romans\",\"Engels\",\"English Love stories\",\"English Romance fiction\",\"Literature\"],\"blurb\":\"Emma\\nMansfield Park\\nNorthanger Abbey\\nPersuasion\\n[Pride and Prejudice](https://openlibrary.org/works/OL66554W)\\nSense and Sensibility\",\"format\":\"reference\",\"fileUrl\":null,\"source\":\"openlibrary\",\"submittedBy\":null}}"
+    "{\"word\":{\"slug\":\"ol-ol66512w\",\"name\":\"Novels (Emma / Mansfield Park / Northanger Abbey / Persuasion / Pride and Prejudice / Sense and Sensibility)\",\"title\":\"Novels (Emma / Mansfield Park / Northanger Abbey / Persuasion / Pride and Prejudice / Sense and Sensibility)\",\"wordTypes\":[\"word\",\"bookSubmission\"]},\"bookSubmission\":{\"slug\":\"ol-ol66512w\",\"title\":\"Novels (Emma / Mansfield Park / Northanger Abbey / Persuasion / Pride and Prejudice / Sense and Sensibility)\",\"authorName\":\"Jane Austen\",\"authorPubkey\":null,\"isbn13\":\"9781905716760\",\"isbn10\":\"1435101162\",\"openLibraryId\":\"OL66512W\",\"coverUrl\":\"https://covers.openlibrary.org/b/id/9276728-L.jpg\",\"pageCount\":1076,\"publishYear\":1818,\"language\":\"eng\",\"subjects\":[\"British and irish fiction (fictional works by one author)\",\"Brothers and sisters\",\"Children's fiction\",\"Courtship\",\"Drama\",\"English fiction\",\"English literature\",\"Families\",\"Family\",\"Family life\",\"Family relations\",\"Fiction\",\"Fiction Classics\",\"History\",\"Interpersonal relations\",\"Juvenile fiction\",\"Literary Fiction\",\"love stories\",\"manners\",\"Manners and customs\",\"marriage\",\"Romance\",\"Sisters\",\"Social classes\",\"Social life and customs\",\"Upper class\",\"wealth\",\"Women in England\",\"young ladies\",\"Young women\",\"entail\",\"Austen, Jane, 1775-1817\",\"English literature -- 19th century\",\"Littérature anglaise -- 19e siècle\",\"Romans\",\"Engels\",\"English Love stories\",\"English Romance fiction\",\"Literature\"],\"blurb\":\"Emma\\nMansfield Park\\nNorthanger Abbey\\nPersuasion\\n[Pride and Prejudice](https://openlibrary.org/works/OL66554W)\\nSense and Sensibility\",\"format\":\"reference\",\"fileUrl\":null,\"source\":\"openlibrary\",\"submittedBy\":null}}"
    ]
   ],
   [
@@ -1295,11 +1295,11 @@
    ],
    [
     "subject",
-    "Propri\u00e9taires d'esclaves"
+    "Propriétaires d'esclaves"
    ],
    [
     "subject",
-    "Noirs am\u00e9ricains"
+    "Noirs américains"
    ],
    [
     "subject",
@@ -1363,7 +1363,7 @@
    ],
    [
     "json",
-    "{\"word\":{\"slug\":\"ol-ol23095423w\",\"name\":\"How the Word Is Passed\",\"title\":\"How the Word Is Passed\",\"wordTypes\":[\"word\",\"bookSubmission\"]},\"bookSubmission\":{\"slug\":\"ol-ol23095423w\",\"title\":\"How the Word Is Passed\",\"authorName\":\"Clint Smith III\",\"authorPubkey\":null,\"isbn13\":\"9781549138393\",\"isbn10\":\"0349701180\",\"openLibraryId\":\"OL23095423W\",\"coverUrl\":\"https://covers.openlibrary.org/b/id/10510048-L.jpg\",\"pageCount\":344,\"publishYear\":2021,\"language\":\"eng\",\"subjects\":[\"nyt:combined-print-and-e-book-nonfiction=2021-06-20\",\"New York Times bestseller\",\"New York Times reviewed\",\"Slavery, united states, history\",\"United states, race relations\",\"United states, history\",\"Travel\",\"Slavery\",\"History\",\"Slaveholders\",\"African Americans\",\"Social conditions\",\"Historic sites\",\"Plantations\",\"Race relations\",\"Local History\",\"Esclavage\",\"Histoire\",\"Propri\u00e9taires d'esclaves\",\"Noirs am\u00e9ricains\",\"Conditions sociales\",\"Relations raciales\",\"Histoire locale\",\"HISTORY / African American\",\"HISTORY / United States / General\",\"SOCIAL SCIENCE / Black Studies (Global)\",\"SOCIAL SCIENCE / Discrimination\",\"SOCIAL SCIENCE / Ethnic Studies / American / African American Studies\",\"Study and teaching\",\"Discrimination\",\"Ethnology\",\"Minorities\",\"Racism\"],\"format\":\"reference\",\"fileUrl\":null,\"source\":\"openlibrary\",\"submittedBy\":null}}"
+    "{\"word\":{\"slug\":\"ol-ol23095423w\",\"name\":\"How the Word Is Passed\",\"title\":\"How the Word Is Passed\",\"wordTypes\":[\"word\",\"bookSubmission\"]},\"bookSubmission\":{\"slug\":\"ol-ol23095423w\",\"title\":\"How the Word Is Passed\",\"authorName\":\"Clint Smith III\",\"authorPubkey\":null,\"isbn13\":\"9781549138393\",\"isbn10\":\"0349701180\",\"openLibraryId\":\"OL23095423W\",\"coverUrl\":\"https://covers.openlibrary.org/b/id/10510048-L.jpg\",\"pageCount\":344,\"publishYear\":2021,\"language\":\"eng\",\"subjects\":[\"nyt:combined-print-and-e-book-nonfiction=2021-06-20\",\"New York Times bestseller\",\"New York Times reviewed\",\"Slavery, united states, history\",\"United states, race relations\",\"United states, history\",\"Travel\",\"Slavery\",\"History\",\"Slaveholders\",\"African Americans\",\"Social conditions\",\"Historic sites\",\"Plantations\",\"Race relations\",\"Local History\",\"Esclavage\",\"Histoire\",\"Propriétaires d'esclaves\",\"Noirs américains\",\"Conditions sociales\",\"Relations raciales\",\"Histoire locale\",\"HISTORY / African American\",\"HISTORY / United States / General\",\"SOCIAL SCIENCE / Black Studies (Global)\",\"SOCIAL SCIENCE / Discrimination\",\"SOCIAL SCIENCE / Ethnic Studies / American / African American Studies\",\"Study and teaching\",\"Discrimination\",\"Ethnology\",\"Minorities\",\"Racism\"],\"format\":\"reference\",\"fileUrl\":null,\"source\":\"openlibrary\",\"submittedBy\":null}}"
    ]
   ],
   [
@@ -1475,12 +1475,38 @@
  ],
  "templateEvents": [
   {
-   "id": "0000000000000000000000000000000000000000000000000000000000000001",
+   "content": "",
+   "created_at": 1792495970,
+   "id": "a3037637a77a5b0338639f570b6cf24aa292a1bea322e18d2f4e69144df0cb57",
    "kind": 9999,
    "pubkey": "b83a28b7e4e5d20bd960c5faeb6625f95529166b8bdb045d42634a2f35919450",
-   "created_at": 1790000000,
+   "sig": "6426b2d76c860f4494d7d027d21ed31660dc5ef45b8cfd07d315a8baf90dfa3d96a819b8270d0bbd7e6e0602605613e79b9c042bebb95a5645a12d081e1a61a1",
+   "tags": [
+    [
+     "z",
+     "39998:2efaa715bbb46dd5be6b7da8d7700266d11674b913b8178addb5c2e63d987331:url-templates"
+    ],
+    [
+     "name",
+     "Goodreads book (ISBN-10)"
+    ],
+    [
+     "url-template",
+     "https://www.goodreads.com/book/isbn/{isbn10}"
+    ],
+    [
+     "alt",
+     "URL template: Goodreads book (ISBN-10)"
+    ]
+   ]
+  },
+  {
    "content": "",
-   "sig": "",
+   "created_at": 1792495968,
+   "id": "e722c94c9ee31ed28b79687b17daa313c0d02a9936a1c07dc73fbab4288fbc10",
+   "kind": 9999,
+   "pubkey": "b83a28b7e4e5d20bd960c5faeb6625f95529166b8bdb045d42634a2f35919450",
+   "sig": "b458692d82108e1fe45beec735c7da97d0d8c1359c60a636fb19576b321572d3bc55a84d23c28e9f024ab80875e8f6824adfb73b5fe54e117514436caad1415a",
    "tags": [
     [
      "z",
@@ -1497,32 +1523,6 @@
     [
      "alt",
      "URL template: Open Library work"
-    ]
-   ]
-  },
-  {
-   "id": "0000000000000000000000000000000000000000000000000000000000000002",
-   "kind": 9999,
-   "pubkey": "b83a28b7e4e5d20bd960c5faeb6625f95529166b8bdb045d42634a2f35919450",
-   "created_at": 1790000000,
-   "content": "",
-   "sig": "",
-   "tags": [
-    [
-     "z",
-     "39998:2efaa715bbb46dd5be6b7da8d7700266d11674b913b8178addb5c2e63d987331:url-templates"
-    ],
-    [
-     "name",
-     "Goodreads book (ISBN)"
-    ],
-    [
-     "url-template",
-     "https://www.goodreads.com/book/isbn/{isbn10}"
-    ],
-    [
-     "alt",
-     "URL template: Goodreads book (ISBN)"
     ]
    ]
   }

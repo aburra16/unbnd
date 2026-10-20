@@ -139,6 +139,14 @@ describe("seededHeaderTemplates: one source for both entrypoints (ADR 0087 §1)"
     for (const t of ts) expect(t.created_at).toBe(1_790_000_000);
   });
 
+  it("the seeded books header pins the two signed templates, Open Library first", () => {
+    const links = all(seededHeaderTemplates(LIB, 1_790_000_000)[0]!, "link");
+    expect(links).toEqual([
+      ["link", "e722c94c9ee31ed28b79687b17daa313c0d02a9936a1c07dc73fbab4288fbc10", "wss://dcosl.brainstorm.world", "id", "open-library-id"],
+      ["link", "a3037637a77a5b0338639f570b6cf24aa292a1bea322e18d2f4e69144df0cb57", "wss://dcosl.brainstorm.world", "isbn10", "isbn10"],
+    ]);
+  });
+
   it("the seed and the header-only entrypoint both publish exactly its output", () => {
     const src = (f: string) => readFileSync(join(__dirname, "../src", f), "utf8");
     for (const f of ["index.ts", "publish-headers.ts"]) {

@@ -2,8 +2,8 @@
  "header": {
   "problems": [],
   "templateIds": [
-   "0000000000000000000000000000000000000000000000000000000000000001",
-   "0000000000000000000000000000000000000000000000000000000000000002"
+   "e722c94c9ee31ed28b79687b17daa313c0d02a9936a1c07dc73fbab4288fbc10",
+   "a3037637a77a5b0338639f570b6cf24aa292a1bea322e18d2f4e69144df0cb57"
   ]
  },
  "items": [
@@ -24,7 +24,7 @@
     {
      "code": "template-unfilled",
      "field": null,
-     "message": "The Goodreads book (ISBN) link builds nothing: \"isbn10\" is empty.",
+     "message": "The Goodreads book (ISBN-10) link builds nothing: \"isbn10\" is empty.",
      "blocking": false
     }
    ],
@@ -66,7 +66,7 @@
     "listImage": "https://raw.githubusercontent.com/aburra16/unbnd/0b4535752a90883cc81881cace2cda9abb440e81/assets/logos/android-chrome-512x512.png",
     "links": [
      {
-      "templateId": "0000000000000000000000000000000000000000000000000000000000000001",
+      "templateId": "e722c94c9ee31ed28b79687b17daa313c0d02a9936a1c07dc73fbab4288fbc10",
       "name": "Open Library work",
       "template": "https://openlibrary.org/works/{id}",
       "bindings": [
@@ -80,8 +80,8 @@
       "problem": null
      },
      {
-      "templateId": "0000000000000000000000000000000000000000000000000000000000000002",
-      "name": "Goodreads book (ISBN)",
+      "templateId": "a3037637a77a5b0338639f570b6cf24aa292a1bea322e18d2f4e69144df0cb57",
+      "name": "Goodreads book (ISBN-10)",
       "template": "https://www.goodreads.com/book/isbn/{isbn10}",
       "bindings": [
        {
@@ -113,7 +113,7 @@
     {
      "code": "template-unfilled",
      "field": null,
-     "message": "The Goodreads book (ISBN) link builds nothing: \"isbn10\" is empty.",
+     "message": "The Goodreads book (ISBN-10) link builds nothing: \"isbn10\" is empty.",
      "blocking": false
     }
    ],
@@ -155,7 +155,7 @@
     "listImage": "https://raw.githubusercontent.com/aburra16/unbnd/0b4535752a90883cc81881cace2cda9abb440e81/assets/logos/android-chrome-512x512.png",
     "links": [
      {
-      "templateId": "0000000000000000000000000000000000000000000000000000000000000001",
+      "templateId": "e722c94c9ee31ed28b79687b17daa313c0d02a9936a1c07dc73fbab4288fbc10",
       "name": "Open Library work",
       "template": "https://openlibrary.org/works/{id}",
       "bindings": [
@@ -169,8 +169,8 @@
       "problem": null
      },
      {
-      "templateId": "0000000000000000000000000000000000000000000000000000000000000002",
-      "name": "Goodreads book (ISBN)",
+      "templateId": "a3037637a77a5b0338639f570b6cf24aa292a1bea322e18d2f4e69144df0cb57",
+      "name": "Goodreads book (ISBN-10)",
       "template": "https://www.goodreads.com/book/isbn/{isbn10}",
       "bindings": [
        {
@@ -202,7 +202,7 @@
     {
      "code": "template-unfilled",
      "field": null,
-     "message": "The Goodreads book (ISBN) link builds nothing: \"isbn10\" is empty.",
+     "message": "The Goodreads book (ISBN-10) link builds nothing: \"isbn10\" is empty.",
      "blocking": false
     }
    ],
@@ -244,7 +244,7 @@
     "listImage": "https://raw.githubusercontent.com/aburra16/unbnd/0b4535752a90883cc81881cace2cda9abb440e81/assets/logos/android-chrome-512x512.png",
     "links": [
      {
-      "templateId": "0000000000000000000000000000000000000000000000000000000000000001",
+      "templateId": "e722c94c9ee31ed28b79687b17daa313c0d02a9936a1c07dc73fbab4288fbc10",
       "name": "Open Library work",
       "template": "https://openlibrary.org/works/{id}",
       "bindings": [
@@ -258,8 +258,8 @@
       "problem": null
      },
      {
-      "templateId": "0000000000000000000000000000000000000000000000000000000000000002",
-      "name": "Goodreads book (ISBN)",
+      "templateId": "a3037637a77a5b0338639f570b6cf24aa292a1bea322e18d2f4e69144df0cb57",
+      "name": "Goodreads book (ISBN-10)",
       "template": "https://www.goodreads.com/book/isbn/{isbn10}",
       "bindings": [
        {
@@ -319,7 +319,7 @@
     "listImage": "https://raw.githubusercontent.com/aburra16/unbnd/0b4535752a90883cc81881cace2cda9abb440e81/assets/logos/android-chrome-512x512.png",
     "links": [
      {
-      "templateId": "0000000000000000000000000000000000000000000000000000000000000001",
+      "templateId": "e722c94c9ee31ed28b79687b17daa313c0d02a9936a1c07dc73fbab4288fbc10",
       "name": "Open Library work",
       "template": "https://openlibrary.org/works/{id}",
       "bindings": [
@@ -333,8 +333,8 @@
       "problem": null
      },
      {
-      "templateId": "0000000000000000000000000000000000000000000000000000000000000002",
-      "name": "Goodreads book (ISBN)",
+      "templateId": "a3037637a77a5b0338639f570b6cf24aa292a1bea322e18d2f4e69144df0cb57",
+      "name": "Goodreads book (ISBN-10)",
       "template": "https://www.goodreads.com/book/isbn/{isbn10}",
       "bindings": [
        {
@@ -394,7 +394,7 @@
     "listImage": "https://raw.githubusercontent.com/aburra16/unbnd/0b4535752a90883cc81881cace2cda9abb440e81/assets/logos/android-chrome-512x512.png",
     "links": [
      {
-      "templateId": "0000000000000000000000000000000000000000000000000000000000000001",
+      "templateId": "e722c94c9ee31ed28b79687b17daa313c0d02a9936a1c07dc73fbab4288fbc10",
       "name": "Open Library work",
       "template": "https://openlibrary.org/works/{id}",
       "bindings": [
@@ -408,8 +408,8 @@
       "problem": null
      },
      {
-      "templateId": "0000000000000000000000000000000000000000000000000000000000000002",
-      "name": "Goodreads book (ISBN)",
+      "templateId": "a3037637a77a5b0338639f570b6cf24aa292a1bea322e18d2f4e69144df0cb57",
+      "name": "Goodreads book (ISBN-10)",
       "template": "https://www.goodreads.com/book/isbn/{isbn10}",
       "bindings": [
        {
@@ -477,7 +477,7 @@
     "listImage": "https://raw.githubusercontent.com/aburra16/unbnd/0b4535752a90883cc81881cace2cda9abb440e81/assets/logos/android-chrome-512x512.png",
     "links": [
      {
-      "templateId": "0000000000000000000000000000000000000000000000000000000000000001",
+      "templateId": "e722c94c9ee31ed28b79687b17daa313c0d02a9936a1c07dc73fbab4288fbc10",
       "name": "Open Library work",
       "template": "https://openlibrary.org/works/{id}",
       "bindings": [
@@ -491,8 +491,8 @@
       "problem": null
      },
      {
-      "templateId": "0000000000000000000000000000000000000000000000000000000000000002",
-      "name": "Goodreads book (ISBN)",
+      "templateId": "a3037637a77a5b0338639f570b6cf24aa292a1bea322e18d2f4e69144df0cb57",
+      "name": "Goodreads book (ISBN-10)",
       "template": "https://www.goodreads.com/book/isbn/{isbn10}",
       "bindings": [
        {
@@ -560,7 +560,7 @@
     "listImage": "https://raw.githubusercontent.com/aburra16/unbnd/0b4535752a90883cc81881cace2cda9abb440e81/assets/logos/android-chrome-512x512.png",
     "links": [
      {
-      "templateId": "0000000000000000000000000000000000000000000000000000000000000001",
+      "templateId": "e722c94c9ee31ed28b79687b17daa313c0d02a9936a1c07dc73fbab4288fbc10",
       "name": "Open Library work",
       "template": "https://openlibrary.org/works/{id}",
       "bindings": [
@@ -574,8 +574,8 @@
       "problem": null
      },
      {
-      "templateId": "0000000000000000000000000000000000000000000000000000000000000002",
-      "name": "Goodreads book (ISBN)",
+      "templateId": "a3037637a77a5b0338639f570b6cf24aa292a1bea322e18d2f4e69144df0cb57",
+      "name": "Goodreads book (ISBN-10)",
       "template": "https://www.goodreads.com/book/isbn/{isbn10}",
       "bindings": [
        {
@@ -643,7 +643,7 @@
     "listImage": "https://raw.githubusercontent.com/aburra16/unbnd/0b4535752a90883cc81881cace2cda9abb440e81/assets/logos/android-chrome-512x512.png",
     "links": [
      {
-      "templateId": "0000000000000000000000000000000000000000000000000000000000000001",
+      "templateId": "e722c94c9ee31ed28b79687b17daa313c0d02a9936a1c07dc73fbab4288fbc10",
       "name": "Open Library work",
       "template": "https://openlibrary.org/works/{id}",
       "bindings": [
@@ -657,8 +657,8 @@
       "problem": null
      },
      {
-      "templateId": "0000000000000000000000000000000000000000000000000000000000000002",
-      "name": "Goodreads book (ISBN)",
+      "templateId": "a3037637a77a5b0338639f570b6cf24aa292a1bea322e18d2f4e69144df0cb57",
+      "name": "Goodreads book (ISBN-10)",
       "template": "https://www.goodreads.com/book/isbn/{isbn10}",
       "bindings": [
        {
@@ -726,7 +726,7 @@
     "listImage": "https://raw.githubusercontent.com/aburra16/unbnd/0b4535752a90883cc81881cace2cda9abb440e81/assets/logos/android-chrome-512x512.png",
     "links": [
      {
-      "templateId": "0000000000000000000000000000000000000000000000000000000000000001",
+      "templateId": "e722c94c9ee31ed28b79687b17daa313c0d02a9936a1c07dc73fbab4288fbc10",
       "name": "Open Library work",
       "template": "https://openlibrary.org/works/{id}",
       "bindings": [
@@ -740,8 +740,8 @@
       "problem": null
      },
      {
-      "templateId": "0000000000000000000000000000000000000000000000000000000000000002",
-      "name": "Goodreads book (ISBN)",
+      "templateId": "a3037637a77a5b0338639f570b6cf24aa292a1bea322e18d2f4e69144df0cb57",
+      "name": "Goodreads book (ISBN-10)",
       "template": "https://www.goodreads.com/book/isbn/{isbn10}",
       "bindings": [
        {
@@ -809,7 +809,7 @@
     "listImage": "https://raw.githubusercontent.com/aburra16/unbnd/0b4535752a90883cc81881cace2cda9abb440e81/assets/logos/android-chrome-512x512.png",
     "links": [
      {
-      "templateId": "0000000000000000000000000000000000000000000000000000000000000001",
+      "templateId": "e722c94c9ee31ed28b79687b17daa313c0d02a9936a1c07dc73fbab4288fbc10",
       "name": "Open Library work",
       "template": "https://openlibrary.org/works/{id}",
       "bindings": [
@@ -823,8 +823,8 @@
       "problem": null
      },
      {
-      "templateId": "0000000000000000000000000000000000000000000000000000000000000002",
-      "name": "Goodreads book (ISBN)",
+      "templateId": "a3037637a77a5b0338639f570b6cf24aa292a1bea322e18d2f4e69144df0cb57",
+      "name": "Goodreads book (ISBN-10)",
       "template": "https://www.goodreads.com/book/isbn/{isbn10}",
       "bindings": [
        {
@@ -892,7 +892,7 @@
     "listImage": "https://raw.githubusercontent.com/aburra16/unbnd/0b4535752a90883cc81881cace2cda9abb440e81/assets/logos/android-chrome-512x512.png",
     "links": [
      {
-      "templateId": "0000000000000000000000000000000000000000000000000000000000000001",
+      "templateId": "e722c94c9ee31ed28b79687b17daa313c0d02a9936a1c07dc73fbab4288fbc10",
       "name": "Open Library work",
       "template": "https://openlibrary.org/works/{id}",
       "bindings": [
@@ -906,8 +906,8 @@
       "problem": null
      },
      {
-      "templateId": "0000000000000000000000000000000000000000000000000000000000000002",
-      "name": "Goodreads book (ISBN)",
+      "templateId": "a3037637a77a5b0338639f570b6cf24aa292a1bea322e18d2f4e69144df0cb57",
+      "name": "Goodreads book (ISBN-10)",
       "template": "https://www.goodreads.com/book/isbn/{isbn10}",
       "bindings": [
        {

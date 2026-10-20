@@ -48,10 +48,26 @@ export type LinkTemplate = {
 
 /**
  * Button order on the book page: the canonical page first (Open Library),
- * then reviews (Goodreads). Filled with the ids of the kind-9999 templates the
- * operator signs on `39998:2efaa715…:url-templates`; empty until they exist.
+ * then reviews (Goodreads). Kind-9999 items on `39998:2efaa715…:url-templates`,
+ * signed by the operator's key (b83a28b7…); pinned by id so no one can edit
+ * them under this list.
  */
-export const BOOKS_LINK_TEMPLATES: readonly LinkTemplate[] = [];
+export const BOOKS_LINK_TEMPLATES: readonly LinkTemplate[] = [
+  {
+    // Open Library work: https://openlibrary.org/works/{id}
+    id: "e722c94c9ee31ed28b79687b17daa313c0d02a9936a1c07dc73fbab4288fbc10",
+    relay: "wss://dcosl.brainstorm.world",
+    placeholder: "id",
+    field: "open-library-id",
+  },
+  {
+    // Goodreads book (ISBN-10): https://www.goodreads.com/book/isbn/{isbn10}
+    id: "a3037637a77a5b0338639f570b6cf24aa292a1bea322e18d2f4e69144df0cb57",
+    relay: "wss://dcosl.brainstorm.world",
+    placeholder: "isbn10",
+    field: "isbn10",
+  },
+];
 
 /** The Unbnd mark, pinned to the commit that added it. */
 const BOOKS_LIST_IMAGE =

@@ -22,7 +22,7 @@
 _None._
 
 ### Not yet done, by design (operator steps)
-1. The two URL templates are unsigned, so `BOOKS_LINK_TEMPLATES` is empty. Merging now would let any seed run publish the declared header without buttons (still strictly better than today). The intended order is: operator signs templates, ids pinned in a one-line commit, merge, `headers` run, read-back.
+1. ~~The two URL templates are unsigned.~~ RESOLVED 2026-10-20: the operator signed both from a local NIP-07 page (List Management publishes templates only with a header the same key signs). Verified on dcosl and the search relay: signer b83a28b7…, valid signatures, exact tags. Pinned in `BOOKS_LINK_TEMPLATES` with a test; listCheck re-run against the real template events: clean. Remaining order: merge, `headers` run, read-back.
 2. Team review page published for the operator to share: https://claude.ai/artifact/J4HgniZawTVpytGtERb81F
 
 ### Non-blocking
@@ -31,4 +31,4 @@ _None._
 3. `house-copies.md` in Brainstorm-UI becomes stale once this ships; the review page tells the team.
 
 ## Verdict
-**PASS**, pending the operator's template signatures before publish.
+**PASS.** Ready to merge; publish via the `headers` task after deploy.

@@ -2,7 +2,7 @@
 
 Run 2026-10-19, re-run 2026-10-20 after the Goodreads binding moved to ISBN-10, with Brainstorm-UI `client/src/lib/listCheck.ts` at `origin/staging` `00e7799f`, per `docs/dictionary/building-lists-with-claude.md`.
 
-- `list.json`: the header exactly as `buildBooksHeaderTemplate` emits it, with two draft URL templates (stand-in ids `…01` Open Library work, `…02` Goodreads by ISBN-10), and 11 real items from dcosl chosen to be awkward (no ISBN, no page count, several authors, long titles, parenthetical authors).
+- `list.json`: the header exactly as `buildBooksHeaderTemplate` emits it, with two draft URL templates and, since 2026-10-20, the two real signed template events fetched from dcosl (`e722c94c…` Open Library work, `a3037637…` Goodreads by ISBN-10), and 11 real items from dcosl chosen to be awkward (no ISBN, no page count, several authors, long titles, parenthetical authors).
 - `listcheck-output.json`: the raw output.
 
 **Header:** zero problems; both template ids recognised.
