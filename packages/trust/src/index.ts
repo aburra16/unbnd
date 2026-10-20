@@ -6,6 +6,7 @@ import { FixtureTrustProvider } from "./fixture";
 import type { TrustOptions, TrustProvider } from "./types";
 
 export { BrainstormProvider } from "./brainstorm";
+export { BRAINSTORM_DEFAULTS } from "./defaults";
 export { FixtureTrustProvider } from "./fixture";
 export type {
   FixtureSpec,

@@ -94,21 +94,11 @@ async function profile(): Promise<void> {
   const config = loadProfileConfig();
   const { sk, pubkey } = decodeLibrarian(config.nsec);
 
-  const { conns, close } = await openRelays([
-    config.dcoslUrl,
-    ...config.profileRelays,
-  ]);
+  const { conns, close } = await openRelays(config.publishRelays);
   try {
     await runProfileCycle({
       librarianPubkey: pubkey,
-      profile: {
-        name: config.name,
-        about: config.about,
-        picture: config.picture,
-        nip05: config.nip05,
-      },
-      dcoslUrl: config.dcoslUrl,
-      profileRelays: config.profileRelays,
+      publishRelays: config.publishRelays,
       sign: (template: NostrEventTemplate) =>
         finalizeEvent(template as never, sk) as unknown as SignedNostrEvent,
       publish: fanoutPublish(conns, config.relayPublishTimeoutMs),

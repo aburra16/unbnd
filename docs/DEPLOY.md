@@ -271,15 +271,22 @@ starts with the normal stack. Two subcommands:
   plus the general relays (never dcosl, which rejects kind-3), then triggers
   GrapeRank for the librarian observer.
 
-**Firewall:** `SEED_CURATORS` and the profile content are a business decision
-supplied out of band. No real curator pubkey or name lives in the repo or in
-`.env.production.example`. The operator fills `SEED_CURATORS` (a CSV of
-64-lowercase-hex pubkeys), `LIBRARIAN_NAME`, and the optional profile fields in
+**Firewall:** `SEED_CURATORS` is a business decision supplied out of band. No
+real curator pubkey or name lives in the repo or in `.env.production.example`.
+The operator fills `SEED_CURATORS` (a CSV of 64-lowercase-hex pubkeys) in
 `/opt/unbnd/.env` on the droplet.
+
+The librarian's public profile is not configuration. Since ADR 0088 it is
+reviewed code (`LIBRARIAN_PROFILE` and `LIBRARIAN_RELAY_LIST` in
+`apps/librarian/src/profile-content.ts`): name, display name, picture, NIP-05,
+website, `bot: true`, and a kind-10002 relay list naming dcosl. `profile`
+publishes both to `LIBRARIAN_PUBLISH_RELAYS` (blank = general relays,
+purplepag.es and the Brainstorm search relay; never dcosl). The Staging ops
+workflow runs it as the `librarian-profile` task.
 
 ```sh
 cd /opt/unbnd
-# publish the kind-0 profile
+# publish the kind-0 profile and the kind-10002 relay list
 docker compose -f docker-compose.prod.yml --profile librarian run --rm librarian profile
 # publish the kind-3 seed-follow list + trigger GrapeRank
 docker compose -f docker-compose.prod.yml --profile librarian run --rm librarian follows
@@ -350,7 +357,7 @@ kind-3 and register GrapeRank **before** the swap, otherwise every trust read
 falls to the raw fallback prematurely. Cross-reference the divergence checks in
 [`ops/trust-seed-harness.md`](../ops/trust-seed-harness.md).
 
-1. **Publish the kind-0 profile:**
+1. **Publish the kind-0 profile and kind-10002 relay list:**
    ```sh
    docker compose -f docker-compose.prod.yml --profile librarian run --rm librarian profile
    ```

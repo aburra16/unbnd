@@ -1,4 +1,4 @@
-// FAILING TESTS (red) — Story 58 / ADR 0057 §4 / §Implementation (the `profile`
+// Story 98 / ADR 0088 rewrite. Originally Story 58 / ADR 0057 §4 / §Implementation (the `profile`
 // cycle).
 //
 // runProfileCycle(deps) with INJECTED deps (mirrors the promoter cycle pattern —
@@ -15,10 +15,10 @@
 import { describe, expect, it, vi } from "vitest";
 import type { SignedNostrEvent } from "@unbnd/schemas";
 import { runProfileCycle, type ProfileDeps } from "../src/profile-cycle";
+import { LIBRARIAN_PROFILE, LIBRARIAN_RELAY_LIST } from "../src/profile-content";
 
 const LIBRARIAN = "1".repeat(64);
-const DCOSL = "wss://dcosl.brainstorm.world/";
-const PROFILE_RELAYS = ["wss://relay.damus.io", "wss://relay.primal.net"];
+const PUBLISH_RELAYS = ["wss://relay.damus.io", "wss://purplepag.es", "wss://search.brainstorm.world"];
 
 type PublishCall = { relays: readonly string[]; event: SignedNostrEvent };
 
@@ -39,9 +39,7 @@ function makeDeps(over: Partial<ProfileDeps> = {}): ProfileDeps {
   const published: PublishCall[] = [];
   return {
     librarianPubkey: LIBRARIAN,
-    profile: { name: "Unbnd Librarian", about: "Curated book records." },
-    dcoslUrl: DCOSL,
-    profileRelays: PROFILE_RELAYS,
+    publishRelays: PUBLISH_RELAYS,
     sign: fakeSign(),
     publish: vi.fn(async (event: SignedNostrEvent, relays: readonly string[]) => {
       published.push({ event, relays });
@@ -57,44 +55,33 @@ function publishedCalls(deps: ProfileDeps): PublishCall[] {
   return (deps as unknown as { published: PublishCall[] }).published;
 }
 
-describe("runProfileCycle — relay routing (AC: kind-0 → dcosl + PROFILE_RELAYS)", () => {
-  it("publishes the kind-0 to dcosl unioned with the profile relays", async () => {
-    const deps = makeDeps();
-    await runProfileCycle(deps);
-    const allRelays = publishedCalls(deps).flatMap((c) => c.relays);
-    for (const r of [DCOSL, ...PROFILE_RELAYS]) {
-      expect(allRelays).toContain(r);
-    }
-  });
-
-  it("publishes a kind-0 event (not some other kind)", async () => {
-    const sign = fakeSign();
-    const deps = makeDeps({ sign });
-    await runProfileCycle(deps);
-    expect((sign.mock.calls[0]![0] as { kind: number }).kind).toBe(0);
-  });
-});
-
-describe("runProfileCycle — the published event is the built kind-0", () => {
-  it("publishes exactly the signed kind-0 built from the configured profile", async () => {
+describe("runProfileCycle (ADR 0088 §2): the profile, then the relay list", () => {
+  it("publishes the kind-0 and then the kind-10002, both to the publish relays", async () => {
     const deps = makeDeps();
     await runProfileCycle(deps);
     const calls = publishedCalls(deps);
-    expect(calls.length).toBeGreaterThan(0);
-    for (const call of calls) {
-      expect(call.event.kind).toBe(0);
-      expect(call.event.pubkey).toBe(LIBRARIAN);
-      const content = JSON.parse(call.event.content) as Record<string, unknown>;
-      expect(content.name).toBe("Unbnd Librarian");
-      expect(content.display_name).toBe("Unbnd Librarian");
-      expect(content.about).toBe("Curated book records.");
-    }
+    expect(calls.map((c) => c.event.kind)).toEqual([0, 10002]);
+    for (const c of calls) expect(c.relays).toEqual(PUBLISH_RELAYS);
   });
-});
 
-describe("runProfileCycle — config validation (AC: LIBRARIAN_NAME required)", () => {
-  it("hard-errors when the profile name is missing/empty", async () => {
-    const deps = makeDeps({ profile: { name: "" } });
-    await expect(runProfileCycle(deps)).rejects.toThrow();
+  it("publishes the reviewed constants, not configuration", async () => {
+    const deps = makeDeps();
+    await runProfileCycle(deps);
+    const [k0, k10002] = publishedCalls(deps).map((c) => c.event);
+    expect(JSON.parse(k0!.content)).toEqual(LIBRARIAN_PROFILE);
+    expect(k10002!.tags).toEqual(LIBRARIAN_RELAY_LIST.map((r) => ["r", r]));
+  });
+
+  it("never sends the profile to dcosl, which stores only list kinds", async () => {
+    const deps = makeDeps({ publishRelays: [...PUBLISH_RELAYS, "wss://dcosl.brainstorm.world/"] });
+    await expect(runProfileCycle(deps)).rejects.toThrow(/dcosl/);
+  });
+
+  it("fails loudly when a publish is refused everywhere, and stops before the relay list", async () => {
+    const deps = makeDeps({
+      publish: vi.fn(async () => ({ ok: false as const, reason: "all relays refused" })),
+    });
+    await expect(runProfileCycle(deps)).rejects.toThrow(/refused/);
+    expect((deps.publish as ReturnType<typeof vi.fn>).mock.calls).toHaveLength(1);
   });
 });

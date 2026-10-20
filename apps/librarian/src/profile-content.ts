@@ -1,52 +1,39 @@
-// Pure kind-0 profile builders for the librarian worker (Story 58 / ADR 0057
-// §3). Mirrors apps/api/src/profile/kind0.ts — re-declared worker-side rather
-// than imported, to keep the worker off any apps/api coupling (same posture as
-// the seeder mirroring its own builders).
+// The librarian's public identity (Story 98 / ADR 0088 §1-2). Reviewed code,
+// like the books header: a worker republishes it, so the code owns it. Kept
+// from the operator's 2026-05-30 profile: name, display name, picture, NIP-05,
+// website. Added: the automated flag and an about line that says so.
 import type { NostrEventTemplate } from "@unbnd/schemas";
 
-export type LibrarianProfileFields = {
-  /** LIBRARIAN_NAME → both `name` and `display_name` (name-floor invariant). */
-  name: string;
-  /** LIBRARIAN_ABOUT → `about` (role description). Optional. */
-  about?: string;
-  /** LIBRARIAN_PICTURE_URL → `picture` (logo/avatar). Optional. */
-  picture?: string;
-  /** LIBRARIAN_NIP05 → `nip05`. Optional. */
-  nip05?: string;
+export const LIBRARIAN_PROFILE: Readonly<Record<string, string | boolean>> = {
+  name: "unbnd",
+  display_name: "Unbnd Librarian",
+  about:
+    "Unbnd's house point of view. An automated account that keeps the book catalog, seeded from Open Library.",
+  picture:
+    "https://blossom.primal.net/53e4b6216c43ab1a3b5eb745cdc84b1c9cff15efd991e51b1554d08a30aa6105.jpg",
+  nip05: "librarian@unbnd.ink",
+  website: "https://unbnd.ink",
+  bot: true,
 };
 
-/**
- * Build the librarian kind-0 content object from config. `name` and
- * `display_name` are both set from `name` (the name-floor invariant). The
- * optional fields are emitted ONLY when present and non-empty — an absent or
- * empty-string optional is omitted entirely (no empty strings on the wire).
- * Deterministic: the same config yields the same content object.
- */
-export function buildLibrarianProfileContent(
-  fields: LibrarianProfileFields,
-): Record<string, unknown> {
-  const content: Record<string, unknown> = {
-    name: fields.name,
-    display_name: fields.name,
-  };
-  if (fields.about) content.about = fields.about;
-  if (fields.picture) content.picture = fields.picture;
-  if (fields.nip05) content.nip05 = fields.nip05;
-  return content;
-}
+/** Where the librarian publishes: its lists on dcosl, everything else on general relays. Unmarked = read and write. */
+export const LIBRARIAN_RELAY_LIST: readonly string[] = [
+  "wss://dcosl.brainstorm.world",
+  "wss://relay.damus.io",
+  "wss://relay.primal.net",
+  "wss://nos.lol",
+];
 
-/**
- * Build the unsigned kind-0 template: kind 0, empty tags, the content object
- * stringified as JSON. Mirrors the API's buildKind0Template shape.
- */
 export function buildLibrarianKind0Template(
-  content: Record<string, unknown>,
+  profile: Readonly<Record<string, unknown>>,
   createdAt: number,
 ): NostrEventTemplate {
-  return {
-    kind: 0,
-    created_at: createdAt,
-    content: JSON.stringify(content),
-    tags: [],
-  };
+  return { kind: 0, created_at: createdAt, content: JSON.stringify(profile), tags: [] };
+}
+
+export function buildLibrarianRelayListTemplate(
+  relays: readonly string[],
+  createdAt: number,
+): NostrEventTemplate {
+  return { kind: 10002, created_at: createdAt, content: "", tags: relays.map((r) => ["r", r]) };
 }
