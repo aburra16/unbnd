@@ -42,5 +42,8 @@ Every year it would change, plus the kept and unresolved records, is in the hand
 ## Owed after merge and deploy
 `years-check` on staging (should match the list), Avi's OK on the list, then `years-fix`, then `index`; a second `years-check` lists no `correct` lines; spot-check `/api/books/ol-ol5734023w` (Step on a Crack) reads 2007.
 
+## Renumber and merge (after round 2)
+Main took ADR 0092 for story 101 (no plain averages), so this ADR is 0093 (references renumbered only in this story's files). `origin/main` (stories 101 and 103) merged in cleanly; full `pnpm -r --no-bail` typecheck, test, lint and build green on the merged tree (seeder 231, api 1017 + 13 skipped, web 452, trust 68, shelves 30, the rest as above).
+
 ## Verdict
 **PASS.**
