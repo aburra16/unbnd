@@ -55,6 +55,13 @@ services:
       # Curator gate threshold (ADR 0031). Default 0.5; calibrated on staging.
       # The API enqueues promotions — it does NOT hold LIBRARIAN_NSEC.
       - CURATOR_THRESHOLD=${CURATOR_THRESHOLD:-0.5}
+      # The house vantage and Brainstorm's endpoints, as the shelves worker reads
+      # them (ADR 0057 §5, story 107): one observer for ratings and the shelves.
+      - HOUSE_OBSERVER_PUBKEY=${HOUSE_OBSERVER_PUBKEY:-}
+      - TRUST_PROVIDER=${TRUST_PROVIDER:-brainstorm}
+      - BRAINSTORM_API_URL=${BRAINSTORM_API_URL:-}
+      - TRUST_RELAYS=${TRUST_RELAYS:-}
+      - TRUST_FIXTURE=${TRUST_FIXTURE:-}
     depends_on:
       db:
         condition: service_healthy

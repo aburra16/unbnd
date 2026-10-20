@@ -10,8 +10,8 @@ ADR 0057 §5 made the house observer a config-only swap: set `HOUSE_OBSERVER_PUB
 - The `set-brainstorm-endpoints` ops task rewrites `.env` and recreates the API, which changes nothing in the API.
 
 ## Acceptance criteria
-1. The `api` service receives `HOUSE_OBSERVER_PUBKEY`, `TRUST_PROVIDER`, `BRAINSTORM_API_URL` and `TRUST_RELAYS` from `.env`, written exactly as the `shelves` service writes them.
-2. A test holds every trust-reading service in `docker-compose.prod.yml` (`api`, `shelves`) to the same four lines, so the two cannot drift again.
+1. The `api` service receives `HOUSE_OBSERVER_PUBKEY`, `TRUST_PROVIDER`, `BRAINSTORM_API_URL`, `TRUST_RELAYS` and `TRUST_FIXTURE` from `.env`, written exactly as the `shelves` service writes them.
+2. A test holds every trust-reading service in `docker-compose.prod.yml` (`api`, `shelves`) to the same five lines, so the two cannot drift again.
 3. After deploy the API's homepage shelves carry the shelves worker's latest `computedAt`.
 
 ## Out of scope

@@ -1,5 +1,5 @@
-// FAILING TESTS — Story 107: every service that reads trust gets the house
-// observer and the Brainstorm endpoints from .env, written the same way, so the
+// Story 107: every service that reads trust gets the house observer, the
+// Brainstorm endpoints and the fixture setting from .env, written the same way, so the
 // API and the shelves worker share one vantage (ADR 0057 §5).
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
@@ -21,12 +21,12 @@ function envOf(service: string): string[] {
   return out;
 }
 
-const TRUST_KEYS = ["HOUSE_OBSERVER_PUBKEY", "TRUST_PROVIDER", "BRAINSTORM_API_URL", "TRUST_RELAYS"];
+const TRUST_KEYS = ["HOUSE_OBSERVER_PUBKEY", "TRUST_PROVIDER", "BRAINSTORM_API_URL", "TRUST_RELAYS", "TRUST_FIXTURE"];
 
 describe("trust settings reach every trust-reading service", () => {
-  it("the api and the shelves worker receive the same four lines", () => {
+  it("the api and the shelves worker receive the same five lines", () => {
     const pick = (service: string) => envOf(service).filter((l) => TRUST_KEYS.includes(l.split("=")[0]!)).sort();
-    expect(pick("shelves")).toHaveLength(4);
+    expect(pick("shelves")).toHaveLength(5);
     expect(pick("api")).toEqual(pick("shelves"));
   });
 });
