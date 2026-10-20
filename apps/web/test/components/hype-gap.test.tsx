@@ -40,22 +40,22 @@ describe("classifyHypeGap", () => {
 
 describe("HypeGapIndicator", () => {
   it("renders a Hidden gem signal when the trusted network rates above the crowd", () => {
-    render(<MemoryRouter><HypeGapIndicator rawAverage={3.5} trustedAverage={4.6} trustedCount={3} /></MemoryRouter>);
+    render(<MemoryRouter><HypeGapIndicator crowdAverage={3.5} trustedAverage={4.6} trustedCount={3} /></MemoryRouter>);
     expect(screen.getByText(/hidden gem/i)).toBeInTheDocument();
   });
 
   it("renders an Overhyped signal when the crowd rates above the trusted network", () => {
-    render(<MemoryRouter><HypeGapIndicator rawAverage={4.6} trustedAverage={3.5} trustedCount={3} /></MemoryRouter>);
+    render(<MemoryRouter><HypeGapIndicator crowdAverage={4.6} trustedAverage={3.5} trustedCount={3} /></MemoryRouter>);
     expect(screen.getByText(/overhyped/i)).toBeInTheDocument();
   });
 
   it("renders nothing on consensus", () => {
-    const { container } = render(<MemoryRouter><HypeGapIndicator rawAverage={4.0} trustedAverage={4.1} trustedCount={3} /></MemoryRouter>);
+    const { container } = render(<MemoryRouter><HypeGapIndicator crowdAverage={4.0} trustedAverage={4.1} trustedCount={3} /></MemoryRouter>);
     expect(container).toBeEmptyDOMElement();
   });
 
   it("renders nothing below the trusted-rater minimum", () => {
-    const { container } = render(<MemoryRouter><HypeGapIndicator rawAverage={3.0} trustedAverage={5.0} trustedCount={1} /></MemoryRouter>);
+    const { container } = render(<MemoryRouter><HypeGapIndicator crowdAverage={3.0} trustedAverage={5.0} trustedCount={1} /></MemoryRouter>);
     expect(container).toBeEmptyDOMElement();
   });
 });

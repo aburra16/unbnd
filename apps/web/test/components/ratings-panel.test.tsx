@@ -10,7 +10,7 @@
 // personalize/status), but the panel no longer calls `api.ratings.list`.
 //
 // The SAME behaviors the old file protected survive, re-expressed against the
-// controlled props: house weighted render, raw fallback, Personalize trigger,
+// controlled props: house weighted render, the no-trusted count, Personalize trigger,
 // the building note, the Yours vantage render + label, and the toggle calling
 // setView. The single behavior that moved out — "fetches the user's vantage"
 // (the `api.ratings.list(slug, npub)` call) — now lives in the hook and is
@@ -39,12 +39,12 @@ const listMock = vi.fn();
 vi.mock("../../src/lib/api", () => ({ api: { ratings: { list: (...a: unknown[]) => listMock(...a) } } }));
 
 const houseWeighted: RatingsSummary = {
-  count: 3, average: 3, ratings: [],
-  weighted: { observer: "npub1nos", average: 4.5, trustedCount: 2, ratings: [] },
+  count: 3, ratings: [],
+  weighted: { observer: "npub1nos", average: 4.5, trustedCount: 2, crowdAverage: 4.2, crowdCount: 3, ratings: [] },
 };
 const yoursWeighted: RatingsSummary = {
-  count: 3, average: 3, ratings: [],
-  weighted: { observer: "npub1me", average: 2, trustedCount: 1, ratings: [] },
+  count: 3, ratings: [],
+  weighted: { observer: "npub1me", average: 2, trustedCount: 1, crowdAverage: 2, crowdCount: 1, ratings: [] },
 };
 
 function trust(over: Record<string, unknown> = {}) {
@@ -76,7 +76,7 @@ function renderPanel(
 
 beforeEach(() => {
   trustMock.mockReset();
-  listMock.mockReset().mockResolvedValue({ count: 0, average: null, ratings: [], weighted: null });
+  listMock.mockReset().mockResolvedValue({ count: 0, ratings: [], weighted: null });
 });
 afterEach(() => vi.clearAllMocks());
 
@@ -90,11 +90,41 @@ describe("RatingsPanel — controlled by useBookRatings", () => {
     expect(screen.queryByRole("button", { name: /personalize/i })).not.toBeInTheDocument();
   });
 
-  it("falls back to raw when there's no trusted signal", async () => {
+  it("no trusted signal: the count and the reviews, no figure (Story 101 / ADR 0092 §4)", async () => {
     trustMock.mockReturnValue(trust());
-    renderPanel({ house: { count: 2, average: 3, ratings: [], weighted: null } });
-    expect(await screen.findByText("3.0")).toBeInTheDocument();
-    expect(screen.getByText(/2 ratings/i)).toBeInTheDocument();
+    const ratings = [
+      { npub: "npub1a", score: 5, reviewDate: "2026-10-01" },
+      { npub: "npub1b", score: 1, reviewDate: "2026-10-02" },
+    ];
+    const { container } = renderPanel({ house: { count: 2, ratings, weighted: null } });
+    expect(await screen.findByText(/2 ratings/i)).toBeInTheDocument();
+    expect(screen.getByText(/No trusted ratings for this book yet/i)).toBeInTheDocument();
+    expect(container.querySelector(".ratings-num")).toBeNull();
+    expect(container.querySelector(".ratings-stars")).toBeNull();
+    expect(screen.queryByText("3.0")).not.toBeInTheDocument();
+  });
+
+  it("the hype gap compares the trusted average against the crowd (Story 101 / ADR 0092 §2)", async () => {
+    trustMock.mockReturnValue(trust());
+    renderPanel({
+      house: {
+        count: 9, ratings: [],
+        weighted: { observer: "npub1nos", average: 4.6, trustedCount: 3, crowdAverage: 3.5, crowdCount: 5, ratings: [] },
+      },
+    });
+    expect(await screen.findByText(/hidden gem/i)).toBeInTheDocument();
+  });
+
+  it("no hype-gap line when the crowd agrees with the trusted view", async () => {
+    trustMock.mockReturnValue(trust());
+    renderPanel({
+      house: {
+        count: 9, ratings: [],
+        weighted: { observer: "npub1nos", average: 4.6, trustedCount: 3, crowdAverage: 4.5, crowdCount: 4, ratings: [] },
+      },
+    });
+    await screen.findByText(/Unbnd house view/i);
+    expect(screen.queryByText(/hidden gem|overhyped/i)).not.toBeInTheDocument();
   });
 
   it("status=none: shows Personalize and triggers it", async () => {

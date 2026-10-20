@@ -143,7 +143,8 @@ describe("GET /api/books/:slug/ratings", () => {
     const res = await request(app).get("/api/books/orbital/ratings");
     expect(res.status).toBe(200);
     expect(res.body.count).toBe(2);
-    expect(res.body.average).toBe(3);
+    // Story 101 / ADR 0092 §3: the plain mean never leaves the API.
+    expect(res.body).not.toHaveProperty("average");
     // No trust dep → no fabricated weighting (ADR 0014 fail-safe).
     expect(res.body.weighted).toBeNull();
   });
@@ -157,10 +158,10 @@ describe("GET /api/books/:slug/ratings", () => {
       weights: vi.fn(async () => weights),
       hasScores: vi.fn(async () => true),
       followers: vi.fn(async () => new Map()),
+      designation: vi.fn(async () => []),
       // CONTRACT MIGRATION (ADR 0026): authChallenge returns the unsigned
       // kind-27235 template now, not a bare string. These ratings tests never
       // call it; the mock is updated to the new return type for compilation.
-      designation: vi.fn(async () => []),
       authChallenge: vi.fn(async () => ({ kind: 27235, created_at: 1, tags: [["challenge", "c"]], content: "" })),
       personalize: vi.fn(async () => true),
     };
@@ -183,10 +184,10 @@ describe("GET /api/books/:slug/ratings", () => {
       weights: vi.fn(async () => new Map()),
       hasScores: vi.fn(async () => true),
       followers: vi.fn(async () => new Map()),
+      designation: vi.fn(async () => []),
       // CONTRACT MIGRATION (ADR 0026): authChallenge returns the unsigned
       // kind-27235 template now, not a bare string. These ratings tests never
       // call it; the mock is updated to the new return type for compilation.
-      designation: vi.fn(async () => []),
       authChallenge: vi.fn(async () => ({ kind: 27235, created_at: 1, tags: [["challenge", "c"]], content: "" })),
       personalize: vi.fn(async () => true),
     };
@@ -358,5 +359,63 @@ describe("GET /api/books/:slug/ratings — yourRating (own-rating read seam)", (
       .set("Cookie", "session=tok");
     expect(res.status).toBe(200);
     expect(res.body.yourRating).toBeNull();
+  });
+});
+
+// ── Story 101 / ADR 0092 §3: one summary, with the trusted view, from every route ──
+describe("rating summaries carry no plain mean and the house trusted view (Story 101)", () => {
+  const HOUSE = "c".repeat(64);
+  const houseCfg: Config = { ...cfg, houseObserverPubkey: HOUSE };
+  function trustWith(weights: Map<string, number>) {
+    return {
+      name: "brainstorm" as const,
+      weights: vi.fn(async () => weights),
+      hasScores: vi.fn(async () => true),
+      followers: vi.fn(async () => new Map()),
+      designation: vi.fn(async () => []),
+      authChallenge: vi.fn(async () => null),
+      personalize: vi.fn(async () => true),
+    };
+  }
+
+  it("the read carries the crowd: reviewers with standing, counted once each", async () => {
+    const a = signedRating({ score: 5 });
+    const b = signedRating({ score: 2 }); // standing, below the line
+    const c = signedRating({ score: 1 }); // no standing
+    const trust = trustWith(new Map([[a.pubkey, 0.9], [b.pubkey, 0.02]]));
+    const { app } = makeApp({ config: houseCfg, query: vi.fn(async () => [a.event, b.event, c.event] as never), trust });
+    const res = await request(app).get("/api/books/orbital/ratings");
+    expect(res.body.weighted).toMatchObject({ average: 5, trustedCount: 1, crowdCount: 2 });
+    expect(res.body.weighted.crowdAverage).toBeCloseTo(3.5, 6);
+  });
+
+  it("a submit answers with the same summary the read gives, trusted view included", async () => {
+    const own = signedRating({ score: 5 });
+    const other = signedRating({ score: 4 });
+    const relay = memoryRelay([other.event]);
+    const trust = trustWith(new Map([[own.pubkey, 0.6], [other.pubkey, 0.6]]));
+    const { app } = makeApp({
+      config: houseCfg,
+      sessionUser: vi.fn(async () => ({ ...sovereign, pubkeyHex: own.pubkey })),
+      query: relay.query,
+      publish: relay.publish,
+      trust,
+    });
+    const res = await request(app).post("/api/ratings").send({ event: own.event });
+    expect(res.status).toBe(200);
+    expect(res.body.summary).not.toHaveProperty("average");
+    expect(res.body.summary.weighted).toMatchObject({ trustedCount: 2, average: 4.5 });
+    const read = await request(app).get("/api/books/orbital/ratings");
+    expect(res.body.summary.weighted).toEqual(read.body.weighted);
+  });
+
+  it("a trust failure gives a summary with no trusted view and still no plain mean", async () => {
+    const a = signedRating({ score: 4 });
+    const trust = { ...trustWith(new Map()), weights: vi.fn(async () => { throw new Error("down"); }) };
+    const { app } = makeApp({ config: houseCfg, query: vi.fn(async () => [a.event] as never), trust });
+    const res = await request(app).get("/api/books/orbital/ratings");
+    expect(res.status).toBe(200);
+    expect(res.body).toMatchObject({ count: 1, weighted: null });
+    expect(res.body).not.toHaveProperty("average");
   });
 });
