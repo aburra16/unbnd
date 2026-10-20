@@ -209,8 +209,11 @@ starts with the normal stack.
    ```
    2-59/5 * * * * cd /opt/unbnd && flock -n /opt/unbnd/ops-logs/labels.lock docker compose -f docker-compose.prod.yml --profile promote run --rm promoter node index.js labels >> /opt/unbnd/ops-logs/labels.log 2>&1
    ```
-   Run it by hand with `gh workflow run "Staging ops" -f task=labels`. The first
-   pass after deploy labels the whole catalog.
+   The line takes effect once `install-cron` is run again after this deploy. Run a
+   pass by hand with `gh workflow run "Staging ops" -f task=labels` (same lock).
+   The first pass after deploy labels the whole catalog and can outlast one run;
+   a later pass picks up where it stopped. A relabelled record keeps its first
+   date in an `added` tag, which "Recently added" sorts by (ADR 0094 §6).
    It is idempotent: each promoted book is republished under the same address
    `39999:<librarian>:<slug>`, and a re-enqueue of the same slug collides on the
    `promotions.slug` unique constraint, so double-promote can never duplicate a

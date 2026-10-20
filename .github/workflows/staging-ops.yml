@@ -55,8 +55,11 @@ jobs:
               labels)
                 # Pull the deployed promoter image, then relabel the records whose
                 # labels differ (ADR 0094). Librarian-signed, to the hub and local.
+                # Same lock as the cron line, so a manual pass never overlaps a scheduled
+                # one; a pass cut off by the job timeout resumes on the next run.
                 docker compose -f docker-compose.prod.yml --profile promote pull promoter
-                docker compose -f docker-compose.prod.yml --profile promote run --rm promoter node index.js labels
+                mkdir -p /opt/unbnd/ops-logs
+                flock -n /opt/unbnd/ops-logs/labels.lock docker compose -f docker-compose.prod.yml --profile promote run --rm promoter node index.js labels || echo "labels: a pass is already running"
                 ;;
               index)
                 docker compose -f docker-compose.prod.yml --profile index run --rm indexer

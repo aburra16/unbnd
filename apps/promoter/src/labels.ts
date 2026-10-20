@@ -27,6 +27,8 @@ export type LabelsDeps = {
   readonly readTaxonomy: () => Promise<SignedNostrEvent[]>;
   /** Every `book-tag-assertions` item. */
   readonly readAssertions: () => Promise<SignedNostrEvent[]>;
+  /** The librarian's current record for a slug on the hub, read just before signing; null when absent. */
+  readonly readCurrent: (slug: string) => Promise<SignedNostrEvent | null>;
   readonly sign: (template: NostrEventTemplate) => SignedNostrEvent;
   /** The hub first: the record's home, and the source Unbnd's relay syncs from. */
   readonly publishDcosl: (event: SignedNostrEvent) => Promise<PublishResult>;
@@ -35,7 +37,7 @@ export type LabelsDeps = {
   readonly log?: (message: string) => void;
 };
 
-export type LabelsSummary = { checked: number; relabelled: number; failed: number };
+export type LabelsSummary = { checked: number; relabelled: number; failed: number; stopped?: string };
 
 const tagValue = (e: SignedNostrEvent, name: string) => e.tags.find((t) => t[0] === name)?.[1];
 
@@ -75,34 +77,54 @@ export async function runLabelsCycle(deps: LabelsDeps): Promise<LabelsSummary> {
     deps.readTaxonomy(),
     deps.readAssertions(),
   ]);
-  const byBook = assertionsByBook(assertions);
   const summary: LabelsSummary = { checked: 0, relabelled: 0, failed: 0 };
-
-  for (const record of currentRecords(books, deps.librarianPubkey)) {
-    summary.checked++;
-    const slug = tagValue(record, "d") ?? "";
-    const labels = bookLabels({
-      genres: appliedTags(taxonomy, byBook.get(slug) ?? []).genreSlugs,
+  // A failed read must never look like a catalog with no genres (ADR 0094 §5).
+  if (books.length === 0 || taxonomy.length === 0) {
+    summary.stopped = books.length === 0 ? "the book list read empty" : "the tag list read empty";
+    log(`[labels] stopped: ${summary.stopped}`);
+    return summary;
+  }
+  const byBook = assertionsByBook(assertions);
+  const labelsFor = (record: SignedNostrEvent) =>
+    bookLabels({
+      genres: appliedTags(taxonomy, byBook.get(tagValue(record, "d") ?? "") ?? []).genreSlugs,
       format: tagValue(record, "format"),
       language: tagValue(record, "lang"),
     });
-    if (sameBookLabels(record.tags, labels)) continue;
 
+  for (const snapshot of currentRecords(books, deps.librarianPubkey)) {
+    summary.checked++;
+    const slug = tagValue(snapshot, "d") ?? "";
+    if (sameBookLabels(snapshot.tags, labelsFor(snapshot))) continue;
+
+    let signed: SignedNostrEvent;
     try {
-      const signed = deps.sign({
+      // The snapshot can be minutes old; build on the hub's version (ADR 0094 §5).
+      const record = await deps.readCurrent(slug);
+      if (!record) throw new Error("the hub returned no current record");
+      if (isDelistedRecord(record)) continue;
+      const labels = labelsFor(record);
+      if (sameBookLabels(record.tags, labels)) continue;
+      const added = tagValue(record, "added") ? [] : [["added", String(record.created_at)]];
+      signed = deps.sign({
         kind: record.kind,
         created_at: Math.max(deps.now(), record.created_at + 1),
         content: record.content,
-        tags: withBookLabels(record.tags, labels),
+        tags: withBookLabels([...record.tags, ...added], labels),
       });
       const hub = await deps.publishDcosl(signed);
       if (!hub.ok) throw new Error(`hub refused: ${hub.reason}`);
-      const local = await deps.publishLocal(signed);
-      if (!local.ok) log(`[labels] ${slug}: Unbnd's relay refused (${local.reason}); the down-sync brings it`);
-      summary.relabelled++;
     } catch (err) {
       summary.failed++;
       log(`[labels] ${slug}: ${err instanceof Error ? err.message : String(err)}`);
+      continue;
+    }
+    summary.relabelled++;
+    try {
+      const local = await deps.publishLocal(signed);
+      if (!local.ok) log(`[labels] ${slug}: Unbnd's relay refused (${local.reason}); the down-sync brings it`);
+    } catch (err) {
+      log(`[labels] ${slug}: Unbnd's relay failed (${err instanceof Error ? err.message : String(err)}); the down-sync brings it`);
     }
   }
   log(`[labels] checked ${summary.checked}, relabelled ${summary.relabelled}, failed ${summary.failed}`);

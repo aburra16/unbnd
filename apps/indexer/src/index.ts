@@ -42,11 +42,14 @@ async function main() {
   console.log(`[indexer] relay=${relayUrl} provider=${provider.name} librarian=${lib.slice(0, 12)}`);
 
   // Paginate past the relay's per-REQ cap so the WHOLE catalog is indexed.
-  const readAll = (z: string) =>
-    queryAllPages((cursor) => queryRelay(relayUrl, { kinds: [KIND], "#z": [z], ...cursor }));
+  const readAll = (z: string, authors?: string[]) =>
+    queryAllPages((cursor) =>
+      queryRelay(relayUrl, { kinds: [KIND], "#z": [z], ...(authors ? { authors } : {}), ...cursor }),
+    );
   const [books, taxonomy, assertions] = await Promise.all([
     readAll(booksZ),
-    readAll(tagsZ),
+    // The tag list is the librarian's alone, as the labels pass reads it (ADR 0094 §5).
+    readAll(tagsZ, [lib]),
     readAll(assertZ),
   ]);
   console.log(

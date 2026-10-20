@@ -425,7 +425,16 @@ async function main() {
     custodialSign,
   };
 
-  app.use("/", buildBooksRouter({ config, query: userEventDeps.query, trust }));
+  const houseObserver = config.houseObserverPubkey;
+  app.use(
+    "/",
+    buildBooksRouter({
+      config,
+      query: userEventDeps.query,
+      trust,
+      ...(houseObserver ? { readRecent: async () => (await readShelfCache(houseObserver)).recent ?? [] } : {}),
+    }),
+  );
   // Link-unfurl service (Story 72 / ADR 0070): per-book OG/Twitter card document
   // (Caddy reverse-proxies social crawlers to /unfurl/book/:slug) + the oEmbed
   // JSON endpoint. RAW reads only — never a trust call. Humans keep the SPA.

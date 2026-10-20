@@ -189,19 +189,25 @@ async function labels(): Promise<void> {
 
   const local = await connectRelay(strfryUrl);
   const dcosl = await connectRelay(dcoslUrl);
-  const readAll = async (zAddress: string) =>
+  const booksZ = formatAddress(buildBookRecordsHeaderAddress(librarianPubkey));
+  const readAll = async (zAddress: string, authors?: string[]) =>
     (
       await queryAllPages(
-        (cursor) => local.query({ kinds: [39999], "#z": [zAddress], ...cursor }),
+        (cursor) => local.query({ kinds: [39999], "#z": [zAddress], ...(authors ? { authors } : {}), ...cursor }),
         { pageSize: 500, maxPages: Infinity, totalBudgetMs: 10 * 60 * 1000 },
       )
     ).events;
   try {
     await runLabelsCycle({
       librarianPubkey,
-      readBooks: () => readAll(formatAddress(buildBookRecordsHeaderAddress(librarianPubkey))),
-      readTaxonomy: () => readAll(formatAddress(buildBookTagsHeaderAddress(librarianPubkey))),
+      readBooks: () => readAll(booksZ, [librarianPubkey]),
+      // The seeder is the tag list's only writer (ADR 0094 §5).
+      readTaxonomy: () => readAll(formatAddress(buildBookTagsHeaderAddress(librarianPubkey)), [librarianPubkey]),
       readAssertions: () => readAll(formatAddress(buildBookTagAssertionsHeaderAddress(librarianPubkey))),
+      readCurrent: async (slug) => {
+        const found = await dcosl.query({ kinds: [39999], authors: [librarianPubkey], "#z": [booksZ], "#d": [slug] });
+        return found.sort((a, b) => b.created_at - a.created_at)[0] ?? null;
+      },
       sign: (template: NostrEventTemplate) => finalizeEvent(template as never, sk) as unknown as SignedNostrEvent,
       publishDcosl: (event) => dcosl.publish(event),
       publishLocal: (event) => local.publish(event),
