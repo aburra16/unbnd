@@ -16,4 +16,4 @@ sourceStories: 5, 28, 99
 
 **Changing your mind.** Open the same book later and the control is prefilled with your rating. Change the stars or the words and choose "Update rating"; the new rating replaces the old one everywhere it shows. There is one current rating per book, always your latest.
 
-**Beyond Unbnd.** Your rating is kept in a shared format that other book apps can read, so it goes where you go. Ratings people leave in those apps on the same books show up here as well. A review from elsewhere can have words and no stars; it appears with its words and no star count, and it is left out of every average.
+**Beyond Unbnd.** Your rating is kept in a shared format that other book apps can read, so you can take it with you. Ratings people leave in those apps on the same books show up here as well. A review from elsewhere can have words and no stars; it shows its words and no star count, and it is left out of every average.
