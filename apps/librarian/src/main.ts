@@ -13,7 +13,7 @@ import { decode } from "nostr-tools/nip19";
 import type { NostrEventTemplate, SignedNostrEvent } from "@unbnd/schemas";
 import { connectRelay, type RelayConnection, type PublishResult } from "@unbnd/relay";
 import { resolveTrustProvider } from "@unbnd/trust";
-import { loadFollowsConfig, loadProfileConfig } from "./env";
+import { DEFAULT_TRUST_RELAYS, loadFollowsConfig, loadProfileConfig } from "./env";
 import { runProfileCycle } from "./profile-cycle";
 import { runFollowsCycle, type ExistingKind3 } from "./follows-cycle";
 
@@ -99,6 +99,12 @@ async function profile(): Promise<void> {
     await runProfileCycle({
       librarianPubkey: pubkey,
       publishRelays: config.publishRelays,
+      designationOf: (observer: string) =>
+        resolveTrustProvider({
+          provider: "brainstorm",
+          apiUrl: config.brainstormApiUrl,
+          relays: DEFAULT_TRUST_RELAYS,
+        }).designation(observer),
       sign: (template: NostrEventTemplate) =>
         finalizeEvent(template as never, sk) as unknown as SignedNostrEvent,
       publish: fanoutPublish(conns, config.relayPublishTimeoutMs),

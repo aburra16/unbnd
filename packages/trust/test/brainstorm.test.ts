@@ -215,3 +215,42 @@ describe("BrainstormProvider.followers", () => {
     expect(query).not.toHaveBeenCalled();
   });
 });
+
+describe("BrainstormProvider.designation (Story 102 / ADR 0090)", () => {
+  it("gives the /setup tuples as string triples, dropping anything malformed", async () => {
+    const p = new BrainstormProvider(
+      { apiUrl: "https://api", relays: ["wss://r1"] },
+      {
+        fetchImpl: setupFetch([
+          ["30382:rank", SVC, "wss://scores", "extra"],
+          ["30382:followers", SVC, "wss://scores"],
+          ["30382:rank", SVC],
+          ["30382:rank", 7, "wss://scores"],
+          "junk",
+        ]),
+        query: vi.fn(async () => []),
+      },
+    );
+    expect(await p.designation(OBS)).toEqual([
+      ["30382:rank", SVC, "wss://scores"],
+      ["30382:followers", SVC, "wss://scores"],
+    ]);
+  });
+
+  it("shares one /setup read with the rank lookup", async () => {
+    const fetchImpl = setupFetch();
+    const p = new BrainstormProvider(
+      { apiUrl: "https://api", relays: ["wss://r1"] },
+      { fetchImpl, query: vi.fn(async () => [score(T1, 50)]) },
+    );
+    await p.designation(OBS);
+    await p.weights(OBS, [T1]);
+    expect(fetchImpl).toHaveBeenCalledTimes(1);
+  });
+
+  it("is empty when /setup fails", async () => {
+    const fetchImpl = vi.fn(async () => new Response("no", { status: 500 })) as unknown as typeof fetch;
+    const p = new BrainstormProvider({ apiUrl: "https://api", relays: ["wss://r1"] }, { fetchImpl, query: vi.fn(async () => []) });
+    expect(await p.designation(OBS)).toEqual([]);
+  });
+});

@@ -10,6 +10,8 @@ import {
   LIBRARIAN_RELAY_LIST,
   buildLibrarianKind0Template,
   buildLibrarianRelayListTemplate,
+  buildTrustDesignationTemplate,
+  trustDesignationTags,
 } from "./profile-content";
 
 export type ProfileDeps = {
@@ -23,6 +25,8 @@ export type ProfileDeps = {
     event: SignedNostrEvent,
     relays: readonly string[],
   ) => Promise<PublishResult>;
+  /** The trust provider's designation for an observer (Story 102 / ADR 0090). */
+  readonly designationOf: (observer: string) => Promise<readonly unknown[]>;
   /** Wall-clock for created_at; deterministic in tests. */
   readonly now?: () => number;
 };
@@ -36,12 +40,20 @@ export async function runProfileCycle(deps: ProfileDeps): Promise<void> {
     ["kind-0 profile", buildLibrarianKind0Template(LIBRARIAN_PROFILE, now)],
     ["kind-10002 relay list", buildLibrarianRelayListTemplate(LIBRARIAN_RELAY_LIST, now)],
   ];
-  for (const [label, template] of events) {
+  const publish = async (label: string, template: NostrEventTemplate) => {
     const signed = deps.sign(template);
     const result = await deps.publish(signed, deps.publishRelays);
     if (!result.ok) {
       throw new Error(`librarian profile: ${label} refused (${result.reason}); re-run 'librarian profile'`);
     }
     console.log(`[librarian] ${label} published (${signed.id})`);
+  };
+  for (const [label, template] of events) await publish(label, template);
+
+  // The trust designation (Story 102 / ADR 0090): the scorer the trust provider names.
+  const designation = trustDesignationTags(await deps.designationOf(deps.librarianPubkey).catch(() => []));
+  if (designation.length === 0) {
+    throw new Error("librarian profile: the trust provider's setup named no scorer for the librarian; re-run 'librarian profile'");
   }
+  await publish("kind-10040 trust designation", buildTrustDesignationTemplate(designation, now));
 }

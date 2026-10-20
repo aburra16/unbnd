@@ -104,6 +104,8 @@ export type FollowsConfig = {
 export type ProfileConfig = {
   readonly nsec: string;
   readonly publishRelays: string[];
+  /** Brainstorm's API, for the trust designation's `/setup` read (ADR 0090). */
+  readonly brainstormApiUrl: string;
   readonly relayPublishTimeoutMs: number;
 };
 
@@ -154,6 +156,7 @@ export function loadProfileConfig(): ProfileConfig {
       optionalEnv("LIBRARIAN_PUBLISH_RELAYS") ?? "",
       DEFAULT_LIBRARIAN_PUBLISH_RELAYS,
     ),
+    brainstormApiUrl: env("BRAINSTORM_API_URL", DEFAULT_BRAINSTORM_API_URL),
     relayPublishTimeoutMs: parseTimeoutMs(),
   };
 }

@@ -17,6 +17,7 @@ export class FixtureTrustProvider implements TrustProvider {
   readonly #followers: Readonly<Record<string, Readonly<Record<string, number>>>>;
   readonly #scored: Set<string>;
   readonly #challenge: string | null | undefined;
+  readonly #designations: Readonly<Record<string, readonly (readonly string[])[]>>;
   readonly #personalizeOk: boolean;
 
   constructor(spec: FixtureSpec) {
@@ -30,6 +31,12 @@ export class FixtureTrustProvider implements TrustProvider {
     this.#scored = new Set(seeded);
     this.#challenge = spec.challenge;
     this.#personalizeOk = spec.personalizeOk ?? true;
+    this.#designations = spec.designations ?? {};
+  }
+
+  // Story 102 / ADR 0090 — the canned designation, if the spec names one.
+  async designation(observerHex: string): Promise<string[][]> {
+    return (this.#designations[observerHex] ?? []).map((t) => [...t]);
   }
 
   // Return the configured weight for each requested target the observer trusts.

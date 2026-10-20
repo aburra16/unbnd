@@ -40,6 +40,7 @@ function makeDeps(over: Partial<ProfileDeps> = {}): ProfileDeps {
   return {
     librarianPubkey: LIBRARIAN,
     publishRelays: PUBLISH_RELAYS,
+    designationOf: vi.fn(async () => [["30382:rank", "4".repeat(64), "wss://scores.brainstorm.world"]]),
     sign: fakeSign(),
     publish: vi.fn(async (event: SignedNostrEvent, relays: readonly string[]) => {
       published.push({ event, relays });
@@ -56,11 +57,11 @@ function publishedCalls(deps: ProfileDeps): PublishCall[] {
 }
 
 describe("runProfileCycle (ADR 0088 §2): the profile, then the relay list", () => {
-  it("publishes the kind-0 and then the kind-10002, both to the publish relays", async () => {
+  it("publishes the kind-0, the kind-10002 and the kind-10040, all to the publish relays", async () => {
     const deps = makeDeps();
     await runProfileCycle(deps);
     const calls = publishedCalls(deps);
-    expect(calls.map((c) => c.event.kind)).toEqual([0, 10002]);
+    expect(calls.map((c) => c.event.kind)).toEqual([0, 10002, 10040]);
     for (const c of calls) expect(c.relays).toEqual(PUBLISH_RELAYS);
   });
 
@@ -83,5 +84,21 @@ describe("runProfileCycle (ADR 0088 §2): the profile, then the relay list", () 
     });
     await expect(runProfileCycle(deps)).rejects.toThrow(/refused/);
     expect((deps.publish as ReturnType<typeof vi.fn>).mock.calls).toHaveLength(1);
+  });
+});
+
+describe("runProfileCycle: the trust designation (Story 102 / ADR 0090)", () => {
+  it("asks the trust provider about the librarian and publishes what it names", async () => {
+    const deps = makeDeps();
+    await runProfileCycle(deps);
+    expect((deps as unknown as { designationOf: ReturnType<typeof vi.fn> }).designationOf).toHaveBeenCalledWith(LIBRARIAN);
+    const k10040 = publishedCalls(deps).find((c) => c.event.kind === 10040)!.event;
+    expect(k10040.tags).toEqual([["30382:rank", "4".repeat(64), "wss://scores.brainstorm.world"]]);
+  });
+
+  it("with nothing usable from the provider: the profile and relay list still go out, then it fails loudly", async () => {
+    const deps = makeDeps({ designationOf: vi.fn(async () => []) } as never);
+    await expect(runProfileCycle(deps)).rejects.toThrow(/setup/);
+    expect(publishedCalls(deps).map((c) => c.event.kind)).toEqual([0, 10002]);
   });
 });
