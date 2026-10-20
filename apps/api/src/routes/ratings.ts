@@ -18,11 +18,13 @@ import {
 import { validateSignedRemoval, validateSignedReview } from "../ratings/validate";
 import {
   dedupeRatings,
-  rawFromParsed,
   reviewScope,
+  summaryFromParsed,
   weightedRatings,
   type ParsedRating,
   type PublicRating,
+  type RatingsSummary,
+  type WeightedRatings,
 } from "../ratings/summary";
 import { readBookReviews } from "../reviews/read";
 import { BOOK_REVIEW_KIND } from "@unbnd/schemas";
@@ -89,6 +91,28 @@ async function bookReviews(deps: RatingsDeps, address: string): Promise<ParsedRa
 }
 
 /**
+ * The public summary every route answers with (ADR 0092 §3): the standing
+ * reviews and the trusted view from `observerHex`, the house by default. No
+ * trusted view on a trust failure, never a fallback figure.
+ */
+async function summaryWithTrust(
+  deps: RatingsDeps,
+  deduped: readonly ParsedRating[],
+  observerHex: string | null = deps.config.houseObserverPubkey ?? null,
+): Promise<RatingsSummary & { readonly weighted: WeightedRatings | null }> {
+  let weighted: WeightedRatings | null = null;
+  if (deps.trust && observerHex && deduped.length > 0) {
+    try {
+      const weights = await deps.trust.weights(observerHex, deduped.map((r) => r.pubkey));
+      weighted = weightedRatings(deduped, weights, npubEncode(observerHex));
+    } catch {
+      weighted = null;
+    }
+  }
+  return { ...summaryFromParsed(deduped), weighted };
+}
+
+/**
  * Story 28 / ADR 0029 §1–2: the signed-in caller's OWN standing review of this
  * book, from the unweighted set (never the trust-weighted subset). When it is
  * absent from the (500-capped) book read, ONE author-scoped read guarantees it
@@ -108,7 +132,7 @@ async function resolveYourRating(
     const events = await readBookReviews(deps.query, { book: address, authors: [user.pubkeyHex] });
     own = dedupeRatings(events, reviewScope(deps.config)).find((r) => r.pubkey === user.pubkeyHex) ?? null;
   }
-  return own ? (rawFromParsed([own]).ratings[0] ?? null) : null;
+  return own ? (summaryFromParsed([own]).ratings[0] ?? null) : null;
 }
 
 function ratingErrorResponse(res: express.Response, err: RatingError): void {
@@ -216,7 +240,7 @@ export function buildRatingsRouter(deps: RatingsDeps): Router {
         rating: mine
           ? { score: mine.score, reviewText: mine.reviewText, reviewDate: mine.reviewDate }
           : null,
-        summary: rawFromParsed(deduped),
+        summary: await summaryWithTrust(deps, deduped),
       });
     } catch (err) {
       if (err instanceof RatingError) return void ratingErrorResponse(res, err);
@@ -260,7 +284,7 @@ export function buildRatingsRouter(deps: RatingsDeps): Router {
 
       const { standing } = await currentReview(deps.config, deps.query, user.pubkeyHex, address);
       if (!standing) {
-        res.status(200).json({ removed: false, summary: rawFromParsed(await bookReviews(deps, address)), yourRating: null });
+        res.status(200).json({ removed: false, summary: await summaryWithTrust(deps, await bookReviews(deps, address)), yourRating: null });
         return;
       }
 
@@ -302,38 +326,27 @@ export function buildRatingsRouter(deps: RatingsDeps): Router {
         res.status(502).json({ error: { code: "publish_failed", message: "Could not publish the removal to the relay." } });
         return;
       }
-      res.status(200).json({ removed: true, summary: rawFromParsed(await bookReviews(deps, address)), yourRating: null });
+      res.status(200).json({ removed: true, summary: await summaryWithTrust(deps, await bookReviews(deps, address)), yourRating: null });
     } catch (err) {
       if (err instanceof RatingError) return void ratingErrorResponse(res, err);
       next(err);
     }
   });
 
-  // Public read-back for a book. Always returns the raw summary; when trust is
-  // configured, also a trust-weighted view for the observer (ADR 0014).
-  // `?observer=<npub|hex>` picks the vantage; default = the house observer.
+  // Public read-back for a book: the summary with the trusted view (ADR 0014,
+  // ADR 0092 §3). `?observer=<npub|hex>` picks the vantage; default = the house.
   router.get("/api/books/:slug/ratings", async (req, res, next) => {
     try {
       const address = bookAddressOf(deps.config, req.params.slug);
       const deduped = await bookReviews(deps, address);
-      const raw = rawFromParsed(deduped);
 
       const observerParam = typeof req.query.observer === "string" ? req.query.observer : "";
       const observerHex = observerParam ? toObserverHex(observerParam) : (deps.config.houseObserverPubkey ?? null);
-
-      let weighted = null;
-      if (deps.trust && observerHex && deduped.length > 0) {
-        try {
-          const weights = await deps.trust.weights(observerHex, deduped.map((r) => r.pubkey));
-          weighted = weightedRatings(deduped, weights, npubEncode(observerHex));
-        } catch {
-          weighted = null; // degrade to raw on any trust failure
-        }
-      }
+      const summary = await summaryWithTrust(deps, deduped, observerHex);
 
       // Story 28 / ADR 0029: the caller's own review, from the unweighted set.
       const yourRating = await resolveYourRating(deps, readSessionCookie(req), address, deduped);
-      res.status(200).json({ ...raw, weighted, yourRating });
+      res.status(200).json({ ...summary, yourRating });
     } catch (err) {
       if (err instanceof RatingError) return void ratingErrorResponse(res, err);
       next(err);

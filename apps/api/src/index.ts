@@ -429,7 +429,7 @@ async function main() {
   // Link-unfurl service (Story 72 / ADR 0070): per-book OG/Twitter card document
   // (Caddy reverse-proxies social crawlers to /unfurl/book/:slug) + the oEmbed
   // JSON endpoint. RAW reads only — never a trust call. Humans keep the SPA.
-  app.use("/", buildUnfurlRouter({ config, ...buildUnfurlReaders({ config, query: userEventDeps.query }) }));
+  app.use("/", buildUnfurlRouter({ config, ...buildUnfurlReaders({ config, query: userEventDeps.query, trust }) }));
   // Homepage trust-shelf serve API (ADR 0036 §3) — serve-from-cache only; the
   // off-path `apps/shelves` worker computes + writes the cache. Read-only, public.
   app.use(

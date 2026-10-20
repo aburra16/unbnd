@@ -77,7 +77,6 @@ describe("RatedByRow — taste-match byline chip", () => {
 describe("RatingsPanel — taste-match sort control", () => {
   const houseRatings: RatingsSummary = {
     count: 1,
-    average: 5,
     ratings: [rating("npubX")],
     weighted: null,
   };

@@ -262,8 +262,9 @@ export async function computeShelves(deps: ShelfComputeDeps): Promise<ShelfSet> 
     .map((g) => ({ slug: g.slug, name: g.name, books: g.books }));
 
   // ── Hidden Gems (Story 71 / ADR 0069): highest positive hype-gap ──
-  // gap = the house-trusted weighted average − the crowd's raw (all-ratings)
-  // mean. A gem is a book the trusted network rates well ABOVE the crowd. Gated
+  // gap = the house-trusted weighted average − the crowd mean (ADR 0092 §2:
+  // raters with any standing, counted equally, so keys with none never move
+  // it). A gem is a book the trusted network rates well ABOVE the crowd. Gated
   // by the same trusted-rater minimum as Favorites (no new knob) AND a margin so
   // consensus books (gap ≈ 0) and overhyped books (negative gap) never surface.
   const gemScores: Array<{ slug: string; gap: number }> = [];
@@ -271,10 +272,7 @@ export async function computeShelves(deps: ShelfComputeDeps): Promise<ShelfSet> 
     const weighted = weightedRatings(deduped, weights, observerNpub);
     if (!weighted) continue; // no trusted signal → not a gem (honest empty)
     if (weighted.trustedCount < deps.defs.favoritesMinRatings) continue;
-    const starred = deduped.filter((r) => r.score !== null);
-    if (starred.length === 0) continue;
-    const rawAverage = starred.reduce((sum, r) => sum + (r.score as number), 0) / starred.length;
-    const gap = weighted.average - rawAverage;
+    const gap = weighted.average - weighted.crowdAverage;
     if (gap < deps.defs.hiddenGemsMargin) continue; // consensus + overhyped excluded
     gemScores.push({ slug, gap });
   }

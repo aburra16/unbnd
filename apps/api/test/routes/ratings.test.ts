@@ -404,7 +404,8 @@ describe("rating summaries carry no plain mean and the house trusted view (Story
     const res = await request(app).post("/api/ratings").send({ event: own.event });
     expect(res.status).toBe(200);
     expect(res.body.summary).not.toHaveProperty("average");
-    expect(res.body.summary.weighted).toMatchObject({ trustedCount: 2, average: 4.5 });
+    expect(res.body.summary.weighted.trustedCount).toBe(2);
+    expect(res.body.summary.weighted.average).toBeCloseTo(4.5, 6);
     const read = await request(app).get("/api/books/orbital/ratings");
     expect(res.body.summary.weighted).toEqual(read.body.weighted);
   });

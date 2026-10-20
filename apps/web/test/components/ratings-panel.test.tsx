@@ -36,7 +36,13 @@ vi.mock("../../src/hooks/useTrustView", () => ({ useTrustView: () => trustMock()
 // red is the clean "renders from its own state, not the props" failure, not a
 // connection error. Once the fetch effects are dropped, the mock is unused.
 const listMock = vi.fn();
-vi.mock("../../src/lib/api", () => ({ api: { ratings: { list: (...a: unknown[]) => listMock(...a) } } }));
+vi.mock("../../src/lib/api", () => ({
+  api: {
+    ratings: { list: (...a: unknown[]) => listMock(...a) },
+    // The rater faces (RatedByRow) look up each reviewer's profile.
+    profile: { get: vi.fn(() => new Promise(() => {})) },
+  },
+}));
 
 const houseWeighted: RatingsSummary = {
   count: 3, ratings: [],

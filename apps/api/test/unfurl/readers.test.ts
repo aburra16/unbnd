@@ -7,7 +7,7 @@ import { LIBRARIAN, signedRating } from "../ratings/_fixtures";
 import { memoryRelay } from "../ratings/_relay";
 
 const HOUSE = "c".repeat(64);
-const config = { librarianPubkey: LIBRARIAN, houseObserverPubkey: HOUSE } as Config;
+const config = { librarianPubkey: LIBRARIAN, houseObserverPubkey: HOUSE } as unknown as Config;
 
 function trust(weights: () => Promise<Map<string, number>>) {
   return {

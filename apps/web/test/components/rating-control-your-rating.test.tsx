@@ -63,13 +63,13 @@ const sovereignUser: PublicUser = { id: "u1", email: null, displayName: "me", np
 const custodialUser: PublicUser = { ...sovereignUser, email: "reader@example.com" };
 
 const MY_RATING: PublicRating = { npub: MY_NPUB, score: 4, reviewText: "A quiet marvel.", reviewDate: "2026-05-20" };
-const SUMMARY: RatingsSummary = { count: 1, average: 4, ratings: [MY_RATING], weighted: null };
+const SUMMARY: RatingsSummary = { count: 1, ratings: [MY_RATING], weighted: null };
 
 beforeEach(() => {
   templateMock.mockReset();
   submitMock.mockReset();
   submitCustodialMock.mockReset();
-  listMock.mockReset().mockResolvedValue({ count: 0, average: null, ratings: [] });
+  listMock.mockReset().mockResolvedValue({ count: 0, ratings: [] });
   signEvent.mockReset();
   sessionMock.mockReset();
   trustMock.mockReset().mockReturnValue({

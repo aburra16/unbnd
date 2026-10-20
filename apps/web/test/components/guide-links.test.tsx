@@ -60,7 +60,7 @@ describe("the placements", () => {
 
   it("HypeGapIndicator carries the hype-gap door", () => {
     const { container } = render(
-      <MemoryRouter><HypeGapIndicator rawAverage={3.0} trustedAverage={4.0} trustedCount={3} /></MemoryRouter>,
+      <MemoryRouter><HypeGapIndicator crowdAverage={3.0} trustedAverage={4.0} trustedCount={3} /></MemoryRouter>,
     );
     at(findGuideLink(container), "/guide/ratings-you-can-trust#hidden-gem-and-overhyped");
   });

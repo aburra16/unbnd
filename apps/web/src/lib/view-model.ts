@@ -39,22 +39,22 @@ export function sortRatingsByTasteMatch(
     .map((x) => x.r);
 }
 
-// Story 70 / ADR 0068 — the hype-gap classification: the crowd's raw average vs
-// the viewer's trusted (observer-weighted) average. STUB: real logic in impl.
+// Story 70 / ADR 0068 — the hype-gap classification: the crowd average (ADR
+// 0092 §1: readers with any standing, counted equally) vs the trusted average.
 export type HypeGap = "hidden-gem" | "overhyped" | "consensus" | null;
 export const HYPE_GAP_MARGIN = 0.5;
 export const HYPE_GAP_MIN_TRUSTED = 2;
 
 export function classifyHypeGap(
-  rawAverage: number | null,
+  crowdAverage: number | null,
   trustedAverage: number | null,
   trustedCount: number,
 ): HypeGap {
   // Honest silence: no trusted signal, or too few trusted raters behind it.
-  if (rawAverage === null || trustedAverage === null || trustedCount < HYPE_GAP_MIN_TRUSTED) {
+  if (crowdAverage === null || trustedAverage === null || trustedCount < HYPE_GAP_MIN_TRUSTED) {
     return null;
   }
-  const diff = trustedAverage - rawAverage;
+  const diff = trustedAverage - crowdAverage;
   if (diff >= HYPE_GAP_MARGIN) return "hidden-gem"; // trusted above the crowd
   if (-diff >= HYPE_GAP_MARGIN) return "overhyped"; // crowd above the trusted
   return "consensus";

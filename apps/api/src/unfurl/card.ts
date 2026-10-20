@@ -1,14 +1,17 @@
 // The unfurl card model + renderers (Story 72 / ADR 0070). PURE — no I/O, no
-// relay, no trust seam. Given a book, its RAW rating summary, and its RAW tag
-// consensus, it produces a viewer-independent card and the two wire artifacts a
-// link-unfurling crawler consumes: an Open Graph / Twitter HTML document and an
-// oEmbed JSON payload. Raw only by construction (no observer is ever passed in),
-// which is the honest choice for an unfurl: there is no viewer to weight for.
+// relay, no trust seam. Given a book, its ratings as the house view sees them
+// (ADR 0092 §5), and its RAW tag consensus, it produces the card and the two
+// wire artifacts a link-unfurling crawler consumes: an Open Graph / Twitter HTML
+// document and an oEmbed JSON payload. A crawler is an anonymous visitor, so the
+// card shows what the book page shows one: the house view's figure, or the count.
 import type { PublicBook } from "../books/effective";
 import type { RawBookTags, RawTagConsensus } from "../tags/aggregate";
 
-/** The raw, viewer-independent rating summary (from `rawFromParsed`). */
-export type RawRatingSummary = { readonly count: number; readonly average: number | null };
+/** A book's ratings for the card: how many give stars, and the house view's trusted figure if any. */
+export type CardRatings = {
+  readonly count: number;
+  readonly trusted: { readonly average: number; readonly count: number } | null;
+};
 
 /** The render-ready, viewer-independent card. `ratingLabel`/`coverUrl` are null
  * when honestly absent (no ratings yet / no cover). */
@@ -53,16 +56,18 @@ function selectTopTags(tags: RawBookTags): string[] {
     .map((t) => t.name);
 }
 
-/** Compose the card from a book + its raw rating + raw tag consensus. */
+/** Compose the card from a book + its ratings + raw tag consensus. */
 export function buildBookCard(
   book: PublicBook,
-  raw: RawRatingSummary,
+  ratings: CardRatings,
   tags: RawBookTags,
   baseUrl: string,
 ): BookCard {
-  const ratingLabel =
-    raw.count > 0 && raw.average !== null
-      ? `★ ${raw.average.toFixed(1)} · ${raw.count} ${raw.count === 1 ? "rating" : "ratings"}`
+  const plural = (n: number, noun: string) => `${n} ${noun}${n === 1 ? "" : "s"}`;
+  const ratingLabel = ratings.trusted
+    ? `★ ${ratings.trusted.average.toFixed(1)} · ${plural(ratings.trusted.count, "trusted rating")}`
+    : ratings.count > 0
+      ? plural(ratings.count, "rating")
       : null;
   return {
     slug: book.slug,

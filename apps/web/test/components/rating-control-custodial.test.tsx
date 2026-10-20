@@ -55,7 +55,7 @@ beforeEach(() => {
   templateMock.mockReset();
   submitMock.mockReset();
   submitCustodialMock.mockReset();
-  listMock.mockReset().mockResolvedValue({ count: 0, average: null, ratings: [], weighted: null });
+  listMock.mockReset().mockResolvedValue({ count: 0, ratings: [], weighted: null });
   signEvent.mockReset();
   sessionMock.mockReset();
   trustMock.mockReset().mockReturnValue({
@@ -92,7 +92,7 @@ describe("RatingControl — custodial (email) session, first rating", () => {
     });
     submitCustodialMock.mockResolvedValue({
       rating: { npub: CUSTODIAL_NPUB, score: 4, reviewDate: "2026-05-29" },
-      summary: { count: 1, average: 4, ratings: [], weighted: null },
+      summary: { count: 1, ratings: [], weighted: null },
     });
 
     renderControl({ yourRating: null });
@@ -119,7 +119,7 @@ describe("RatingControl — custodial (email) session, first rating", () => {
       user: custodialUser,
       refresh: vi.fn(),
     });
-    const SUMMARY: RatingsSummary = { count: 1, average: 4, ratings: [], weighted: null };
+    const SUMMARY: RatingsSummary = { count: 1, ratings: [], weighted: null };
     submitCustodialMock.mockResolvedValue({
       rating: { npub: CUSTODIAL_NPUB, score: 4, reviewDate: "2026-05-29" },
       summary: SUMMARY,
