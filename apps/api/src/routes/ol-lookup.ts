@@ -8,6 +8,7 @@
 // could break the submission form. Mirrors the public-route + injected-deps
 // posture of `search.ts` and the seeder's OL `search.json` call.
 import express, { type Router } from "express";
+import { credibleYear } from "@unbnd/schemas";
 
 /** A distinct, polite User-Agent so OL can tell the interactive lookup from the
  *  bulk seeder (which uses `SEEDER_USER_AGENT`). */
@@ -70,6 +71,10 @@ export function normalizeDoc(doc: unknown, isbn: string): OlLookupResult {
     Array.isArray(d.author_name) && typeof d.author_name[0] === "string"
       ? d.author_name[0].trim()
       : "";
+  // ADR 0091 §3: a year before printing is left for the reader to fill.
+  const publishYear = credibleYear(
+    typeof d.first_publish_year === "number" ? d.first_publish_year : undefined,
+  );
   return {
     found: true,
     ...(title ? { title } : {}),
@@ -78,9 +83,7 @@ export function normalizeDoc(doc: unknown, isbn: string): OlLookupResult {
     ...(typeof d.number_of_pages_median === "number"
       ? { pageCount: d.number_of_pages_median }
       : {}),
-    ...(typeof d.first_publish_year === "number"
-      ? { publishYear: d.first_publish_year }
-      : {}),
+    ...(publishYear !== undefined ? { publishYear } : {}),
   };
 }
 

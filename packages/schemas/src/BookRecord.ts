@@ -105,8 +105,23 @@ export function buildBookRecordDTag(slug: string): string {
 export const JUNK_TITLE_RE =
   /(?:^|[\s:(\[]|\s-\s)(?:summary of\b|study guide\b|workbook\b|sparknotes\b|cliffs?\s*notes\b|omnibus\b|box\s?set\b|boxed set\b)/i;
 
-/** The earliest publish year a real catalog record admits (ADR 0054 §2). */
-const RECORD_YEAR_MIN = 1800;
+/**
+ * The first year a book could have been printed (ADR 0091 §1). Open Library
+ * dates printed editions, and movable-type printing in Europe begins in the
+ * 1450s, so a publish year before this is a data error, never an edition. The
+ * single floor: the seed gate (apps/seeder/src/gate.ts), the read projections
+ * (via `credibleYear`) and the submit form all use it.
+ */
+export const PRINT_ERA_START = 1450;
+
+/**
+ * The publish year Unbnd reports for a record: the stored year from
+ * PRINT_ERA_START on, otherwise none (ADR 0091 §3). Read projections call this;
+ * the stored record keeps its source year.
+ */
+export function credibleYear(year: number | undefined): number | undefined {
+  return typeof year === "number" && year >= PRINT_ERA_START ? year : undefined;
+}
 
 /**
  * True iff a STORED book record is positively junk — i.e. it fails a legitimacy
@@ -126,17 +141,21 @@ const RECORD_YEAR_MIN = 1800;
  * carry an optional cover), plus user shelves / For-You / claims. A cover-less
  * record at this read site is therefore legitimate user content, not junk, and
  * already renders with the existing gradient fallback rather than being hidden.
- * The four remaining signals (title, author, denylist, present-out-of-range
- * year) are unambiguous junk regardless of source or surface. The SEED-TIME gate
- * (apps/seeder/src/gate.ts, which requires `cover_i`) is unchanged — only this
- * read-time stored-record oracle drops the cover signal.
+ * The four remaining signals (title, author, denylist, a present year after
+ * `currentYear`) are unambiguous junk regardless of source or surface. The
+ * SEED-TIME gate (apps/seeder/src/gate.ts, which requires `cover_i`) is
+ * unchanged — only this read-time stored-record oracle drops the cover signal.
+ *
+ * An EARLY year is not a signal (ADR 0091 §2): the old 1800 floor hid only real
+ * books, early works and modern books with a bad Open Library year alike. A
+ * year before printing reads as none at the projections (`credibleYear`).
  */
 export function isJunkRecord(book: BookRecord, currentYear: number): boolean {
   if (!book.title?.trim()) return true; // missing/empty title
   if (!book.authorName?.trim()) return true; // missing/empty author
   if (JUNK_TITLE_RE.test(book.title)) return true; // junk-denylist title
-  const y = book.publishYear; // out-of-range year (only if present)
-  if (typeof y === "number" && (y < RECORD_YEAR_MIN || y > currentYear)) return true;
+  const y = book.publishYear; // a future year (only if present)
+  if (typeof y === "number" && y > currentYear) return true;
   return false; // otherwise: keep
 }
 

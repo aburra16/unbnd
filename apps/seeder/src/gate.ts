@@ -8,7 +8,7 @@
 // `@unbnd/schemas` (ADR 0055 §1); we import and re-export it here so the seeder
 // gate and the read-time oracle share the exact same regex — one denylist, not
 // two.
-import { JUNK_TITLE_RE } from "@unbnd/schemas";
+import { JUNK_TITLE_RE, PRINT_ERA_START } from "@unbnd/schemas";
 
 export { JUNK_TITLE_RE };
 
@@ -32,9 +32,6 @@ export const EDITION_MIN = 3;
 /** The lowest plausible page count for a real book (absence does not drop). */
 const PAGE_MIN = 50;
 
-/** The earliest publish year the gate admits. */
-const YEAR_MIN = 1800;
-
 /**
  * The first failing signal name, in the ADR's ordered short-circuit sequence,
  * or null when the doc passes every signal. `currentYear` is injected so the
@@ -50,7 +47,8 @@ export function gateReason(doc: OLSearchDoc, currentYear: number): string | null
     return "pages";
   }
   const year = doc.first_publish_year;
-  if (typeof year !== "number" || year < YEAR_MIN || year > currentYear) return "year";
+  // ADR 0091 §4: the shared print-era floor, not a private one.
+  if (typeof year !== "number" || year < PRINT_ERA_START || year > currentYear) return "year";
   if (JUNK_TITLE_RE.test(doc.title)) return "denylist";
   return null;
 }
