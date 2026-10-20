@@ -11,6 +11,7 @@ import {
   toBookRecordEvent,
   toWireTemplate,
   type BookRecord,
+  type BookRecordPayload,
   type NostrEventTemplate,
   type SignedNostrEvent,
 } from "@unbnd/schemas";
@@ -66,14 +67,15 @@ export function withJudgedYear(record: BookRecord, verdict: YearVerdict | undefi
 type Candidate = { readonly event: SignedNostrEvent; readonly record: BookRecord & { publishYear: number } };
 
 /**
- * The live Open Library records with a year, newest event per slug. Community
- * records keep their submitter's year; delisted and unreadable events are not
- * book records.
+ * The librarian's live Open Library records with a year, newest event per slug.
+ * Only the librarian's own events: the correction re-signs their content with
+ * the librarian key. Community records keep their submitter's year; delisted
+ * and unreadable events are not book records.
  */
-function candidates(events: readonly SignedNostrEvent[]): Candidate[] {
+function candidates(events: readonly SignedNostrEvent[], librarian: string): Candidate[] {
   const newest = new Map<string, SignedNostrEvent>();
   for (const e of events) {
-    if (e.kind !== 39999) continue;
+    if (e.kind !== 39999 || e.pubkey !== librarian) continue;
     const slug = e.tags.find((t) => t[0] === "d")?.[1];
     if (!slug) continue;
     const seen = newest.get(slug);
@@ -107,11 +109,17 @@ const note = ({ record }: Candidate): YearNote => ({
 
 const byYearThenTitle = (a: YearNote, b: YearNote) => a.year - b.year || a.title.localeCompare(b.title);
 
+const payloadOf = (event: { readonly tags: readonly string[][] }): unknown => {
+  const json = event.tags.find((t) => t[0] === "json")?.[1];
+  return json === undefined ? undefined : JSON.parse(json);
+};
+
 /**
  * The librarian's record with only its year changed (ADR 0092 §4): rebuilt
  * through the schema, then checked to differ from the live event in nothing
- * but the `year` tag and `publishYear`. Throws when the record does not
- * rebuild to the same event.
+ * but the `year` tag and the payload's `publishYear`. The one allowed payload
+ * difference is the explicit `submittedBy: null` old records lack. Throws when
+ * the record does not rebuild to the same event.
  */
 export function correctedRecordTemplate(
   event: SignedNostrEvent,
@@ -124,11 +132,15 @@ export function correctedRecordTemplate(
 
   const named = (tags: readonly string[][]) => tags.filter((t) => t[0] !== "json");
   const expectedTags = named(event.tags).map((t) => (t[0] === "year" ? ["year", String(year)] : t));
-  const rebuilt = fromBookRecordEvent(fromWireEvent(template) as never);
+  const before = payloadOf(event) as BookRecordPayload;
+  const expectedPayload = {
+    ...before,
+    bookSubmission: { submittedBy: null, ...before.bookSubmission, publishYear: year },
+  };
   if (
     !isDeepStrictEqual(named(template.tags), expectedTags) ||
     template.content !== event.content ||
-    !isDeepStrictEqual(rebuilt, expected)
+    !isDeepStrictEqual(payloadOf(template), expectedPayload)
   ) {
     throw new Error(`record ${original.slug} does not rebuild to the same event`);
   }
@@ -138,6 +150,7 @@ export function correctedRecordTemplate(
 /** Plan every year correction over the librarian's records (ADR 0092 §1, §4). */
 export function planYearCorrections(
   events: readonly SignedNostrEvent[],
+  librarian: string,
   works: ReadonlyMap<string, WorkEvidence>,
   authors: ReadonlyMap<string, AuthorEvidence>,
   currentYear: number,
@@ -148,7 +161,7 @@ export function planYearCorrections(
   const noEvidence: YearNote[] = [];
   const refused: YearNote[] = [];
 
-  for (const c of candidates(events)) {
+  for (const c of candidates(events, librarian)) {
     const verdict = judgeRecordYear(c.record, works.get(c.record.openLibraryId!), authors, currentYear);
     if (!verdict) noEvidence.push(note(c));
     else if (verdict.kind === "kept") kept.push(note(c));
@@ -198,6 +211,7 @@ export type PublishResult = { readonly ok: boolean; readonly reason?: string };
 
 export type YearRunDeps = {
   readonly events: readonly SignedNostrEvent[];
+  readonly librarian: string;
   readonly fetchWorks: (workIds: readonly string[]) => Promise<Map<string, WorkEvidence>>;
   readonly fetchAuthors: (authorKeys: readonly string[]) => Promise<Map<string, AuthorEvidence>>;
   readonly currentYear: number;
@@ -205,16 +219,25 @@ export type YearRunDeps = {
   readonly log: (line: string) => void;
   /** Absent = dry run: plan and log, publish nothing. */
   readonly publish?: (template: NostrEventTemplate) => Promise<PublishResult>;
+  /**
+   * The record's live event, read again just before its correction is
+   * published. A record that changed since it was planned (a demotion, a seed
+   * write) is skipped, never overwritten. Absent = trust the planned event.
+   */
+  readonly latest?: (slug: string) => Promise<SignedNostrEvent | undefined>;
 };
 
 /**
  * Gather the evidence, plan, log the plan, and (with `publish`) publish one
  * corrected record per correction. Plans everything before publishing anything.
  */
-export async function runYearCorrection(
-  deps: YearRunDeps,
-): Promise<{ readonly plan: YearPlan; readonly published: number; readonly failed: number }> {
-  const pending = candidates(deps.events);
+export async function runYearCorrection(deps: YearRunDeps): Promise<{
+  readonly plan: YearPlan;
+  readonly published: number;
+  readonly failed: number;
+  readonly stale: number;
+}> {
+  const pending = candidates(deps.events, deps.librarian);
   const works = await deps.fetchWorks([...new Set(pending.map((c) => c.record.openLibraryId!))]);
   const authorKeys = new Set<string>();
   for (const c of pending) {
@@ -223,14 +246,29 @@ export async function runYearCorrection(
   }
   const authors = await deps.fetchAuthors([...authorKeys]);
 
-  const plan = planYearCorrections(deps.events, works, authors, deps.currentYear);
+  const plan = planYearCorrections(deps.events, deps.librarian, works, authors, deps.currentYear);
   for (const l of formatPlan(plan)) deps.log(l);
-  if (!deps.publish) return { plan, published: 0, failed: 0 };
+  if (!deps.publish) return { plan, published: 0, failed: 0, stale: 0 };
 
   let published = 0;
   let failed = 0;
+  let stale = 0;
   for (const c of plan.corrections) {
-    const r = await deps.publish(correctedRecordTemplate(c.event, c.to, deps.now()));
+    const live = deps.latest ? await deps.latest(c.slug) : c.event;
+    if (!live || live.id !== c.event.id) {
+      stale++;
+      deps.log(`stale\t${c.slug}\tchanged since it was planned; run years-check again`);
+      continue;
+    }
+    let template: NostrEventTemplate;
+    try {
+      template = correctedRecordTemplate(live, c.to, deps.now());
+    } catch (err) {
+      failed++;
+      deps.log(`failed\t${c.slug}\t${(err as Error).message}`);
+      continue;
+    }
+    const r = await deps.publish(template);
     if (r.ok) {
       published++;
       deps.log(`published\t${c.slug}\t${c.year}\t${c.to}`);
@@ -239,5 +277,5 @@ export async function runYearCorrection(
       deps.log(`failed\t${c.slug}\t${r.reason ?? "refused"}`);
     }
   }
-  return { plan, published, failed };
+  return { plan, published, failed, stale };
 }

@@ -56,7 +56,7 @@ describe("birthYearOf — Open Library's free-text birth_date", () => {
     expect(birthYearOf(text)).toBe(year);
   });
 
-  it.each([["384 BC"], ["c. 70 B.C."], ["unknown"], [""]])(
+  it.each([["384 BC"], ["c. 70 B.C."], ["500 BCE"], ["4 B.C.E."], ["unknown"], [""]])(
     "reads %s as no year",
     async (text) => {
       const { birthYearOf } = await load();
@@ -223,6 +223,13 @@ describe("judgeYear — impossible but with company: kept (AC 3)", () => {
     expect(
       judgeYear({ year: 1800, editionYears: [1800, 1802, 1850, 1855], authorBirthYear: 1812 }, NOW),
     ).toEqual({ kind: "kept", floor: 1832 });
+  });
+
+  it("an edition dated after the current year is not company", async () => {
+    const { judgeYear } = await load();
+    expect(
+      judgeYear({ year: 2020, editionYears: [2020, 2027], authorBirthYear: 2005 }, NOW),
+    ).toEqual({ kind: "unresolved", floor: 2025 });
   });
 
   it("the stored year's own duplicate is not company", async () => {

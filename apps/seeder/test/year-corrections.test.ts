@@ -46,12 +46,14 @@ type YearPlan = {
 type PublishResult = { readonly ok: boolean; readonly reason?: string };
 type RunDeps = {
   readonly events: readonly SignedNostrEvent[];
+  readonly librarian: string;
   readonly fetchWorks: (ids: readonly string[]) => Promise<Map<string, WorkEvidence>>;
   readonly fetchAuthors: (keys: readonly string[]) => Promise<Map<string, AuthorEvidence>>;
   readonly currentYear: number;
   readonly now: () => number;
   readonly log: (line: string) => void;
   readonly publish?: (template: NostrEventTemplate) => Promise<PublishResult>;
+  readonly latest?: (slug: string) => Promise<SignedNostrEvent | undefined>;
 };
 type CorrectionsModule = {
   judgeRecordYear: (
@@ -63,6 +65,7 @@ type CorrectionsModule = {
   withJudgedYear: (record: BookRecord, verdict: YearVerdict | undefined) => BookRecord;
   planYearCorrections: (
     events: readonly SignedNostrEvent[],
+    librarian: string,
     works: ReadonlyMap<string, WorkEvidence>,
     authors: ReadonlyMap<string, AuthorEvidence>,
     currentYear: number,
@@ -75,7 +78,12 @@ type CorrectionsModule = {
   formatPlan: (plan: YearPlan) => string[];
   runYearCorrection: (
     deps: RunDeps,
-  ) => Promise<{ readonly plan: YearPlan; readonly published: number; readonly failed: number }>;
+  ) => Promise<{
+    readonly plan: YearPlan;
+    readonly published: number;
+    readonly failed: number;
+    readonly stale: number;
+  }>;
 };
 
 const load = () => loadSeederModule<CorrectionsModule>("year-corrections");
@@ -170,7 +178,7 @@ const HUB = [STEP, LAKE, WOTW, MAST, GULLIVER, HAMLET, ODYSSEY, JACKS_BABY, OLD_
 describe("planYearCorrections — what changes (AC 1)", () => {
   it("corrects the four impossible, lone years to Open Library's earliest possible edition", async () => {
     const { planYearCorrections } = await load();
-    const plan = planYearCorrections(HUB, WORKS, AUTHORS, NOW);
+    const plan = planYearCorrections(HUB, LIBRARIAN, WORKS, AUTHORS, NOW);
     const got = plan.corrections.map((c) => [c.slug, c.year, c.to]);
     expect(got).toEqual(
       expect.arrayContaining([
@@ -185,7 +193,7 @@ describe("planYearCorrections — what changes (AC 1)", () => {
 
   it("carries the title, author and original event for each correction", async () => {
     const { planYearCorrections } = await load();
-    const plan = planYearCorrections(HUB, WORKS, AUTHORS, NOW);
+    const plan = planYearCorrections(HUB, LIBRARIAN, WORKS, AUTHORS, NOW);
     const step = plan.corrections.find((c) => c.slug === "ol-ol5734023w")!;
     expect(step.title).toBe("Step on a Crack");
     expect(step.authorName).toBe("James Patterson");
@@ -196,7 +204,7 @@ describe("planYearCorrections — what changes (AC 1)", () => {
 describe("planYearCorrections — what stays (AC 2–4)", () => {
   it("never plans a change for Gulliver's Travels, Hamlet or the Odyssey", async () => {
     const { planYearCorrections } = await load();
-    const plan = planYearCorrections(HUB, WORKS, AUTHORS, NOW);
+    const plan = planYearCorrections(HUB, LIBRARIAN, WORKS, AUTHORS, NOW);
     const touched = [
       ...plan.corrections,
       ...plan.kept,
@@ -210,19 +218,19 @@ describe("planYearCorrections — what stays (AC 2–4)", () => {
 
   it("keeps and reports a year with company (Jack's Baby 1996)", async () => {
     const { planYearCorrections } = await load();
-    const plan = planYearCorrections(HUB, WORKS, AUTHORS, NOW);
+    const plan = planYearCorrections(HUB, LIBRARIAN, WORKS, AUTHORS, NOW);
     expect(plan.kept.map((n) => [n.slug, n.year])).toEqual([["ol-ol2669046w", 1996]]);
   });
 
   it("reports an impossible year with no possible edition as unresolved (Old Yeller 1920)", async () => {
     const { planYearCorrections } = await load();
-    const plan = planYearCorrections(HUB, WORKS, AUTHORS, NOW);
+    const plan = planYearCorrections(HUB, LIBRARIAN, WORKS, AUTHORS, NOW);
     expect(plan.unresolved.map((n) => [n.slug, n.year])).toEqual([["ol-ol64366w", 1920]]);
   });
 
   it("reports a record Open Library returned no evidence for, and leaves it", async () => {
     const { planYearCorrections } = await load();
-    const plan = planYearCorrections(HUB, WORKS, AUTHORS, NOW);
+    const plan = planYearCorrections(HUB, LIBRARIAN, WORKS, AUTHORS, NOW);
     expect(plan.noEvidence.map((n) => n.slug)).toEqual(["ol-ol644386w"]);
   });
 
@@ -239,7 +247,7 @@ describe("planYearCorrections — what stays (AC 2–4)", () => {
     const delisted = signedLike(
       toWireTemplate(buildBookDelisting({ slug: "ol-ol1059693w", parentHeader: BOOKS }), T0),
     );
-    const plan = planYearCorrections([community, noYear, noOl, delisted], WORKS, AUTHORS, NOW);
+    const plan = planYearCorrections([community, noYear, noOl, delisted], LIBRARIAN, WORKS, AUTHORS, NOW);
     expect(plan).toEqual({ corrections: [], kept: [], unresolved: [], noEvidence: [], refused: [] });
   });
 
@@ -247,7 +255,7 @@ describe("planYearCorrections — what stays (AC 2–4)", () => {
     const { planYearCorrections } = await load();
     const older = eventOf(STEP, T0);
     const newer = eventOf({ ...STEP, publishYear: 2007 }, T0 + 60);
-    const plan = planYearCorrections([newer, older], WORKS, AUTHORS, NOW);
+    const plan = planYearCorrections([newer, older], LIBRARIAN, WORKS, AUTHORS, NOW);
     expect(plan.corrections).toEqual([]);
   });
 });
@@ -282,23 +290,76 @@ describe("correctedRecordTemplate — only the year changes (AC 6)", () => {
     const { planYearCorrections } = await load();
     const base = toWireTemplate(toBookRecordEvent(STEP), T0);
     const odd = signedLike({ ...base, tags: [...base.tags, ["unknown-tag", "x"]] });
-    const plan = planYearCorrections([odd], WORKS, AUTHORS, NOW);
+    const plan = planYearCorrections([odd], LIBRARIAN, WORKS, AUTHORS, NOW);
     expect(plan.corrections).toEqual([]);
     expect(plan.refused.map((n) => n.slug)).toEqual(["ol-ol5734023w"]);
+  });
+});
+
+describe("only-the-year check covers the payload (review round 1)", () => {
+  const withPayload = (edit: (p: Record<string, any>) => void): SignedNostrEvent => {
+    const base = toWireTemplate(toBookRecordEvent(STEP), T0);
+    const tags = base.tags.map((t) => {
+      if (t[0] !== "json") return t;
+      const payload = JSON.parse(t[1]!);
+      edit(payload);
+      return ["json", JSON.stringify(payload)];
+    });
+    return signedLike({ ...base, tags });
+  };
+
+  it("refuses a record whose payload carries a field the schema would drop", async () => {
+    const { correctedRecordTemplate } = await load();
+    const odd = withPayload((p) => (p.bookSubmission.extra = "kept by someone"));
+    expect(() => correctedRecordTemplate(odd, 2007, T0 + 100)).toThrow();
+  });
+
+  it("refuses a record whose word wrapper the schema would rewrite", async () => {
+    const { correctedRecordTemplate } = await load();
+    const odd = withPayload((p) => p.word.wordTypes.push("classic"));
+    expect(() => correctedRecordTemplate(odd, 2007, T0 + 100)).toThrow();
+  });
+
+  it("accepts an old record that only lacks the explicit submittedBy: null", async () => {
+    const { correctedRecordTemplate } = await load();
+    const old = withPayload((p) => delete p.bookSubmission.submittedBy);
+    const t = correctedRecordTemplate(old, 2007, T0 + 100);
+    const payload = JSON.parse(t.tags.find((x) => x[0] === "json")![1]!);
+    expect(payload.bookSubmission.publishYear).toBe(2007);
+    expect(payload.bookSubmission.submittedBy).toBeNull();
+  });
+
+  it("the new payload equals the old one but for publishYear", async () => {
+    const { correctedRecordTemplate } = await load();
+    const original = HUB[0]!;
+    const t = correctedRecordTemplate(original, 2007, T0 + 100);
+    const before = JSON.parse(original.tags.find((x) => x[0] === "json")![1]!);
+    const after = JSON.parse(t.tags.find((x) => x[0] === "json")![1]!);
+    expect(after).toEqual({ ...before, bookSubmission: { ...before.bookSubmission, publishYear: 2007 } });
+  });
+});
+
+describe("only the librarian's own records are candidates (review round 1)", () => {
+  it("ignores an event signed by anyone else at a librarian slug", async () => {
+    const { planYearCorrections } = await load();
+    const foreign = { ...eventOf(STEP), pubkey: "f".repeat(64) };
+    const plan = planYearCorrections([foreign], LIBRARIAN, WORKS, AUTHORS, NOW);
+    expect(plan.corrections).toEqual([]);
+    expect(plan.noEvidence).toEqual([]);
   });
 });
 
 describe("formatPlan — the dry-run list Avi checks (AC 5)", () => {
   it("lists each correction with slug, stored year, new year, title and author", async () => {
     const { planYearCorrections, formatPlan } = await load();
-    const lines = formatPlan(planYearCorrections(HUB, WORKS, AUTHORS, NOW));
+    const lines = formatPlan(planYearCorrections(HUB, LIBRARIAN, WORKS, AUTHORS, NOW));
     expect(lines).toContain("correct\tol-ol5734023w\t1658\t2007\tStep on a Crack\tJames Patterson");
     expect(lines).toContain("correct\tol-ol52114w\t0\t1898\tThe War of the Worlds\tH. G. Wells");
   });
 
   it("then the kept, unresolved, no-evidence and refused records, then the counts", async () => {
     const { planYearCorrections, formatPlan } = await load();
-    const lines = formatPlan(planYearCorrections(HUB, WORKS, AUTHORS, NOW));
+    const lines = formatPlan(planYearCorrections(HUB, LIBRARIAN, WORKS, AUTHORS, NOW));
     expect(lines).toContain("keep\tol-ol2669046w\t1996\t\tJack's Baby\tEmma Darcy");
     expect(lines).toContain("unresolved\tol-ol64366w\t1920\t\tOld Yeller\tFred Gipson");
     expect(lines).toContain("no-evidence\tol-ol644386w\t1800\t\tI promessi sposi\tAlessandro Manzoni");
@@ -314,6 +375,7 @@ describe("formatPlan — the dry-run list Avi checks (AC 5)", () => {
 describe("runYearCorrection — dry run and apply (AC 5, 6)", () => {
   const deps = (over: Partial<RunDeps> = {}): RunDeps => ({
     events: HUB,
+    librarian: LIBRARIAN,
     fetchWorks: vi.fn(async () => WORKS),
     fetchAuthors: vi.fn(async () => AUTHORS),
     currentYear: NOW,
@@ -365,6 +427,34 @@ describe("runYearCorrection — dry run and apply (AC 5, 6)", () => {
       tagValue(t, "d") === "ol-ol52114w" ? { ok: false, reason: "blocked" } : { ok: true },
     );
     const r = await runYearCorrection(deps({ publish }));
+    expect(r).toMatchObject({ published: 3, failed: 1 });
+  });
+
+  it("skips a record that changed on the relay since it was planned", async () => {
+    const { runYearCorrection } = await load();
+    const publish = vi.fn(async (_t: NostrEventTemplate): Promise<PublishResult> => ({ ok: true }));
+    const delisted = signedLike(
+      toWireTemplate(buildBookDelisting({ slug: "ol-ol52114w", parentHeader: BOOKS }), T0 + 300),
+    );
+    const latest = vi.fn(async (slug: string) =>
+      slug === "ol-ol52114w" ? delisted : HUB.find((e) => tagValue(e, "d") === slug),
+    );
+    const r = await runYearCorrection(deps({ publish, latest }));
+    expect(r).toMatchObject({ published: 3, failed: 0, stale: 1 });
+    expect(publish.mock.calls.map(([t]) => tagValue(t, "d"))).not.toContain("ol-ol52114w");
+  });
+
+  it("counts a record that fails to rebuild at publish time as failed, and goes on", async () => {
+    const { runYearCorrection } = await load();
+    const publish = vi.fn(async (_t: NostrEventTemplate): Promise<PublishResult> => ({ ok: true }));
+    const base = toWireTemplate(toBookRecordEvent(WOTW), T0);
+    const changed = signedLike({ ...base, tags: [...base.tags, ["unknown-tag", "x"]] });
+    // The relay serves a changed body under the planned id (a misbehaving relay).
+    const latest = async (slug: string) => {
+      const planned = HUB.find((e) => tagValue(e, "d") === slug)!;
+      return slug === "ol-ol52114w" ? { ...changed, id: planned.id } : planned;
+    };
+    const r = await runYearCorrection(deps({ publish, latest }));
     expect(r).toMatchObject({ published: 3, failed: 1 });
   });
 

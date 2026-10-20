@@ -4,8 +4,10 @@
 // authors, plans every correction before publishing any, and replaces each
 // corrected record at its own address, librarian-signed. A dry run needs only
 // the librarian's public key (LIBRARIAN_PUBKEY, or derived from LIBRARIAN_NSEC);
-// --apply needs LIBRARIAN_NSEC. Exits non-zero if any publish is refused.
-import { finalizeEvent, getPublicKey } from "nostr-tools/pure";
+// --apply needs LIBRARIAN_NSEC. Each record is read again just before its
+// correction is published and skipped if it changed. Exits non-zero if any
+// publish is refused or any record was skipped as stale.
+import { finalizeEvent, getPublicKey, verifyEvent } from "nostr-tools/pure";
 import { decode } from "nostr-tools/nip19";
 import {
   asHexPubkey,
@@ -63,14 +65,18 @@ async function main(): Promise<void> {
   console.error(`[years] librarian=${pubkey.slice(0, 12)} relay=${relayUrl} ${apply ? "APPLY" : "dry run"}`);
 
   const booksZ = formatAddress(buildBookRecordsHeaderAddress(pubkey));
-  const { events } = await queryAllPages(
+  const { events: read } = await queryAllPages(
     (cursor) => relay.query({ kinds: [39999], authors: [pubkey], "#z": [booksZ], ...cursor }, 15_000),
     { pageSize: 500, maxPages: Infinity, totalBudgetMs: Infinity },
   );
-  console.error(`[years] read ${events.length} records`);
+  // The correction re-signs this content with the librarian key: keep only
+  // events the librarian really signed, whatever the relay sends.
+  const events = read.filter((e) => e.pubkey === pubkey && verifyEvent(e as never));
+  console.error(`[years] read ${read.length} records, ${events.length} librarian-signed`);
 
   const result = await runYearCorrection({
     events,
+    librarian: pubkey,
     fetchWorks: (ids) => fetchWorkEvidence(ids),
     fetchAuthors: (keys) => fetchAuthors(keys),
     currentYear: new Date().getUTCFullYear(),
@@ -84,12 +90,23 @@ async function main(): Promise<void> {
             await sleep(rateMs);
             return r;
           },
+          latest: async (slug) => {
+            const [live] = await relay.query(
+              { kinds: [39999], authors: [pubkey], "#d": [slug], limit: 1 },
+              15_000,
+            );
+            // Same id is not enough: the body is re-signed, so check its signature.
+            return live && verifyEvent(live as never) ? live : undefined;
+          },
         }
       : {}),
   });
   relay.close();
-  console.error(`[years] published=${result.published} failed=${result.failed}`);
-  if (result.failed > 0) process.exit(1);
+  console.error(
+    `[years] published=${result.published} stale=${result.stale} failed=${result.failed}`,
+  );
+  // A stale record was skipped, not corrected: the operator should run again.
+  if (result.failed > 0 || result.stale > 0) process.exit(1);
 }
 
 main().catch((err) => {

@@ -1,6 +1,6 @@
 # Story 104: Catalog records carry a year the book could have been published
 
-**Status:** Approved
+**Status:** Done
 **Created:** 2026-10-20
 **Type:** Bug
 

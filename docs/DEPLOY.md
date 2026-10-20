@@ -209,7 +209,9 @@ gh workflow run "Staging ops" -f task=years-fix
 ```
 
 This replaces each corrected record at its own address, librarian-signed, on
-dcosl (only the year changes). The five-minute down-sync brings them to the
+dcosl (only the year changes). Each record is read again just before it is
+replaced; one that changed since the plan (a demotion, a seed write) is skipped
+as `stale` and the run exits non-zero, so run `years-check` again. The five-minute down-sync brings them to the
 local relay; follow with `-f task=index` so search shows the new years. A
 second `years-check` should list no `correct` lines.
 

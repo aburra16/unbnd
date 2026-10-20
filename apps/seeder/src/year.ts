@@ -30,12 +30,12 @@ export type YearInput = {
 
 /**
  * The birth year in Open Library's free-text `birth_date` ("21 September 1866",
- * "ca. 1775"): the first three- or four-digit year. None for a BC date or a date
- * with no year.
+ * "ca. 1775"): the first three- or four-digit year. None for a BC or BCE date or
+ * a date with no year.
  */
 export function birthYearOf(date?: string): number | undefined {
   if (!date) return undefined;
-  if (/\bB\.?\s?C\b/i.test(date)) return undefined;
+  if (/\bB\.?\s?C\.?\s?E?\b/i.test(date)) return undefined; // BC, B.C., BCE, B.C.E.
   const m = date.match(/\b(\d{3,4})\b/);
   return m ? Number(m[1]) : undefined;
 }
@@ -53,7 +53,7 @@ export function judgeYear(input: YearInput, currentYear: number): YearVerdict {
   const floor = yearFloor(input.authorBirthYear);
   if (year >= floor) return { kind: "credible" };
 
-  const later = editionYears.filter((y) => y > year);
+  const later = editionYears.filter((y) => y > year && y <= currentYear);
   if (later.some((y) => y - year < EDITION_COMPANY_YEARS)) return { kind: "kept", floor };
 
   const possible = editionYears.filter((y) => y >= floor && y <= currentYear);
