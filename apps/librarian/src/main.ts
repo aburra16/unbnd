@@ -99,6 +99,12 @@ async function profile(): Promise<void> {
     await runProfileCycle({
       librarianPubkey: pubkey,
       publishRelays: config.publishRelays,
+      fetchSetup: async (observer: string) => {
+        const res = await fetch(`${config.brainstormApiUrl}/setup/${observer}`);
+        if (!res.ok) return [];
+        const body: unknown = await res.json();
+        return Array.isArray(body) ? body : [];
+      },
       sign: (template: NostrEventTemplate) =>
         finalizeEvent(template as never, sk) as unknown as SignedNostrEvent,
       publish: fanoutPublish(conns, config.relayPublishTimeoutMs),

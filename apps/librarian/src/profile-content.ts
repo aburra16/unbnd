@@ -38,10 +38,25 @@ export function buildLibrarianRelayListTemplate(
   return { kind: 10002, created_at: createdAt, content: "", tags: relays.map((r) => ["r", r]) };
 }
 
-// STUBS (red): Story 102 / ADR 0090.
-export function trustDesignationTags(_entries: readonly unknown[]): string[][] {
-  throw new Error("stub");
+/**
+ * The librarian's trust designation (Story 102 / ADR 0090): which scorer to
+ * trust for each score type, as Brainstorm's `/setup` names it. Only
+ * well-formed entries pass: a kind with an optional `:metric`, a 64-hex
+ * scorer, a `wss://` relay.
+ */
+export function trustDesignationTags(entries: readonly unknown[]): string[][] {
+  const out: string[][] = [];
+  for (const e of entries) {
+    if (!Array.isArray(e) || e.length < 3) continue;
+    const [name, scorer, relay] = e as unknown[];
+    if (typeof name !== "string" || !/^\d+(:[a-z]+)?$/.test(name)) continue;
+    if (typeof scorer !== "string" || !/^[0-9a-f]{64}$/.test(scorer)) continue;
+    if (typeof relay !== "string" || !/^wss:\/\/\S+$/.test(relay)) continue;
+    out.push([name, scorer, relay]);
+  }
+  return out;
 }
-export function buildTrustDesignationTemplate(_tags: readonly string[][], _createdAt: number): NostrEventTemplate {
-  throw new Error("stub");
+
+export function buildTrustDesignationTemplate(tags: readonly string[][], createdAt: number): NostrEventTemplate {
+  return { kind: 10040, created_at: createdAt, content: "", tags: tags.map((t) => [...t]) };
 }
