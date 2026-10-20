@@ -61,6 +61,28 @@ function netByTagForBook(
 }
 
 /**
+ * The tags applied to ONE book (Story 105 / ADR 0094 §3), shared by the search
+ * document and the record's genre labels: RAW consensus, dedup by author
+ * keeping the latest, net count above zero, accusatory tags never.
+ */
+export function appliedTags(
+  taxonomyEvents: readonly SignedNostrEvent[],
+  assertionEventsForBook: readonly SignedNostrEvent[],
+): { names: string[]; genreSlugs: string[] } {
+  const tax = parseTaxonomy(taxonomyEvents);
+  const names: string[] = [];
+  const genreSlugs: string[] = [];
+  for (const [slug, net] of netByTagForBook(assertionEventsForBook)) {
+    if (net <= 0) continue;
+    const el = tax.get(slug);
+    if (!el || el.sensitivity === "accusatory") continue; // hide accusatory
+    names.push(el.name);
+    if (el.type === "genre") genreSlugs.push(slug);
+  }
+  return { names, genreSlugs };
+}
+
+/**
  * Build ONE SearchDocument for a single book from its record event, the
  * taxonomy, and THAT BOOK's assertion events. RAW consensus (net-positive,
  * accusatory-hidden, dedup-by-author). Returns null when the record is junk
@@ -84,17 +106,7 @@ export function buildBookDocument(
     return null;
   }
 
-  const tax = parseTaxonomy(taxonomyEvents);
-  const tagNames: string[] = [];
-  const genreSlugs: string[] = [];
-  const netByTag = netByTagForBook(assertionEventsForBook);
-  for (const [slug, net] of netByTag) {
-    if (net <= 0) continue;
-    const el = tax.get(slug);
-    if (!el || el.sensitivity === "accusatory") continue; // hide accusatory
-    tagNames.push(el.name);
-    if (el.type === "genre") genreSlugs.push(slug);
-  }
+  const { names: tagNames, genreSlugs } = appliedTags(taxonomyEvents, assertionEventsForBook);
 
   return {
     id: rec.slug,

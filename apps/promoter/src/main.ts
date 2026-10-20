@@ -21,11 +21,12 @@ import {
 } from "@unbnd/schemas";
 import { runDemotionCycle, runPromotionCycle, type DemoterDeps, type PromoterDeps } from "./index";
 import { createQueue } from "./queue";
-import { connectRelay } from "@unbnd/relay";
+import { connectRelay, queryAllPages } from "@unbnd/relay";
 import { resolveProvider, reindexBook, type ProviderName } from "@unbnd/search";
 import { createRevealQueue } from "./reveal/queue";
 import { runRevealCommand } from "./reveal/cli";
 import { runRevealCycle, type RevealDeps } from "./reveal/cycle";
+import { runLabelsCycle } from "./labels";
 
 function env(name: string, fallback?: string): string {
   const v = process.env[name];
@@ -176,12 +177,52 @@ async function promote(): Promise<void> {
   console.log("[promoter] cycle complete");
 }
 
-// Arg dispatch: `promoter reveal …` runs the operator reveal trigger; the bare
-// invocation (the cron) runs the promotion cycle.
+// Story 105 / ADR 0094 §4: one labels pass over the whole catalog, read from
+// Unbnd's relay past its per-request cap.
+async function labels(): Promise<void> {
+  const strfryUrl = env("STRFRY_URL", "ws://strfry:7777");
+  const dcoslUrl = env("DCOSL_RELAY_URL", "wss://dcosl.brainstorm.world/");
+  const decoded = decode(env("LIBRARIAN_NSEC"));
+  if (decoded.type !== "nsec") throw new Error("LIBRARIAN_NSEC is not an nsec");
+  const sk = decoded.data as Uint8Array;
+  const librarianPubkey = asHexPubkey(getPublicKey(sk));
+
+  const local = await connectRelay(strfryUrl);
+  const dcosl = await connectRelay(dcoslUrl);
+  const readAll = async (zAddress: string) =>
+    (
+      await queryAllPages(
+        (cursor) => local.query({ kinds: [39999], "#z": [zAddress], ...cursor }),
+        { pageSize: 500, maxPages: Infinity, totalBudgetMs: 10 * 60 * 1000 },
+      )
+    ).events;
+  try {
+    await runLabelsCycle({
+      librarianPubkey,
+      readBooks: () => readAll(formatAddress(buildBookRecordsHeaderAddress(librarianPubkey))),
+      readTaxonomy: () => readAll(formatAddress(buildBookTagsHeaderAddress(librarianPubkey))),
+      readAssertions: () => readAll(formatAddress(buildBookTagAssertionsHeaderAddress(librarianPubkey))),
+      sign: (template: NostrEventTemplate) => finalizeEvent(template as never, sk) as unknown as SignedNostrEvent,
+      publishDcosl: (event) => dcosl.publish(event),
+      publishLocal: (event) => local.publish(event),
+      now: () => Math.floor(Date.now() / 1000),
+    });
+  } finally {
+    local.close();
+    dcosl.close();
+  }
+}
+
+// Arg dispatch: `promoter reveal …` runs the operator reveal trigger, `promoter
+// labels` one labels pass; the bare invocation (the cron) runs the promotion cycle.
 async function main(): Promise<void> {
   const [, , subcommand, ...rest] = process.argv;
   if (subcommand === "reveal") {
     await reveal(rest);
+    return;
+  }
+  if (subcommand === "labels") {
+    await labels();
     return;
   }
   await promote();
