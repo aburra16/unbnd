@@ -165,7 +165,7 @@ never runs with the normal stack.
 The documented droplet tasks are dispatchable from GitHub Actions —
 `.github/workflows/staging-ops.yml` (Actions tab → "Staging ops" → Run
 workflow, or `gh workflow run "Staging ops" -f task=<task>`). Fixed menu:
-`promote` / `index` / `shelves` / `recast` / `set-public-origin` /
+`promote` / `index` / `shelves` / `recast` / `years-check` / `years-fix` / `set-public-origin` /
 `install-cron` (installs the documented worker crontab below, idempotently; logs to `/opt/unbnd/ops-logs/`) / `show-status` (read-only diagnostics). Each runs the same compose commands
 documented below over the CI deploy key, pinned to the deployed
 `UNBND_IMAGE_TAG`.
@@ -186,6 +186,35 @@ Check the run log's per-genre yield report: `booksSeen` should be near the
 known catalog size (paging didn't stall), and any genre printed `<-- EMPTY`
 should be dropped from `STARTER_TAXONOMY` before launch. Follow with a batch
 index rebuild (`-f task=index`) so search picks the new genres up.
+
+### Catalog year correction (Story 104 / ADR 0092; idempotent)
+
+The seeder image bundles `years.js`. It reads the librarian's catalog records
+from dcosl, asks Open Library search for each work's edition years and first
+author, and corrects a year that is before printing or before the author turned
+20 and has no other edition within ten years after it. The new year is the
+earliest edition year that passes. Always check first:
+
+```sh
+gh workflow run "Staging ops" -f task=years-check
+```
+
+The run log lists `correct  slug  stored  new  title  author` lines, then the
+records it keeps (`keep`), cannot resolve (`unresolved`), has no Open Library
+evidence for (`no-evidence`) or refuses to rebuild (`refused`), then a counts
+line. Nothing is published. When the list is right:
+
+```sh
+gh workflow run "Staging ops" -f task=years-fix
+```
+
+This replaces each corrected record at its own address, librarian-signed, on
+dcosl (only the year changes). The five-minute down-sync brings them to the
+local relay; follow with `-f task=index` so search shows the new years. A
+second `years-check` should list no `correct` lines.
+
+A dry run also works off the droplet with only the public key:
+`LIBRARIAN_PUBKEY=<hex> pnpm --filter @unbnd/seeder exec tsx src/correct-years.ts`.
 
 The promoter mints librarian-signed catalog records from curator-approved
 submissions. It holds `LIBRARIAN_NSEC` (the same secret the seeder uses) and runs

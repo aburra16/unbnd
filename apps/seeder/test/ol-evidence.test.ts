@@ -55,7 +55,7 @@ describe("fetchWorkEvidence — works by key", () => {
     expect(param(url, "q")).toBe('key:("/works/OL52114W" OR "/works/OL1W")');
     expect(param(url, "fields").split(",").sort()).toEqual(["author_key", "key", "publish_year"]);
     expect(param(url, "limit")).toBe("2");
-    expect((init?.headers as Record<string, string>)["User-Agent"]).toMatch(/Unbnd/);
+    expect((init?.headers as Record<string, string>)["User-Agent"]).toMatch(/unbnd/i);
 
     expect(got.get("OL52114W")).toEqual({ editionYears: [0, 1898, 1906], authorKey: "OL13066A" });
     expect(got.has("OL1W")).toBe(false); // not returned = no evidence

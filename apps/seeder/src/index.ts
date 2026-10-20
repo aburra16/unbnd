@@ -28,6 +28,8 @@ import { loadCheckpoint } from "./checkpoint";
 import { loadDescCache } from "./desc-cache";
 import { fingerprint } from "./fingerprint";
 import { capBlurb, requestWorkDescription, sanitizeDescription } from "./description";
+import { fetchAuthors, workEvidenceOf } from "./ol-evidence";
+import { judgeRecordYear, withJudgedYear } from "./year-corrections";
 import { connectResilientRelay } from "@unbnd/relay";
 
 const sleep = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
@@ -161,6 +163,15 @@ async function main() {
   const books = dedupBooks(collected);
   console.log(`[seeder] ${books.length} unique books collected`);
 
+  // The year rule's author evidence (ADR 0092 §5): the first author of every
+  // book we will publish, in batches. A failure throws (the run resumes from
+  // the checkpoint), so a seed never writes a year the repair would change.
+  const authorKeys = books
+    .map(({ slug }) => docBySlug.get(slug)?.author_key?.[0])
+    .filter((k): k is string => Boolean(k));
+  const authors = await fetchAuthors(authorKeys, { userAgent: SEEDER_USER_AGENT });
+  console.log(`[seeder] ${authors.size} authors for the year rule`);
+
   // 4. Publish each book record + its baseline genre assertions.
   let records = 0;
   let assertions = 0;
@@ -169,10 +180,13 @@ async function main() {
   for (const { slug, genres } of books) {
     const doc = docBySlug.get(slug);
     let record = doc ? mapSearchDocToBookRecord(doc, booksHeader) : null;
-    if (!record) {
+    if (!record || !doc) {
       skipped++;
       continue;
     }
+    // One year rule for the seed and the repair (ADR 0092 §5): a corrected year
+    // goes into the record before it is fingerprinted.
+    record = withJudgedYear(record, judgeRecordYear(record, workEvidenceOf(doc), authors, currentYear));
 
     // Enrich with a back-jacket blurb from the work description. Cache the raw
     // (or a genuine no-description null) so a re-run does not re-hit OL; a

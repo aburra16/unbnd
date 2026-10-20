@@ -13,4 +13,5 @@ ENV NODE_ENV=production
 COPY --from=builder /repo/apps/seeder/dist/index.js ./index.js
 COPY --from=builder /repo/apps/seeder/dist/recast.js ./recast.js
 COPY --from=builder /repo/apps/seeder/dist/publish-headers.js ./headers.js
+COPY --from=builder /repo/apps/seeder/dist/correct-years.js ./years.js
 CMD ["node", "index.js"]
