@@ -1,6 +1,6 @@
-// Ratings display with the trust perspective (ADR 0014). House view by default
-// (nosfabrica-weighted when there's a trusted signal, else raw so the catalog
-// never looks empty). Sovereign users with scores toggle House ⇄ Yours; those
+// Ratings display with the trust perspective (ADR 0014). House view by default:
+// the trusted figure when there is a trusted signal, else the count and the
+// reviews with no figure (ADR 0092 §4). Sovereign users with scores toggle House ⇄ Yours; those
 // without can Personalize (in-app self-serve trigger, ~5–6 min build).
 //
 // Story 28 / ADR 0029 §3: CONTROLLED. The shared `useBookRatings` hook (owned by
@@ -73,11 +73,11 @@ export function RatingsPanel({
     caption = "Trusted consensus, weighted by the Unbnd house web of trust.";
     countNoun = "trusted ratings";
   } else {
-    average = active.average;
+    average = null;
     count = active.count;
     reviews = active.ratings;
     label = "Unbnd house view";
-    caption = "Community consensus from all ratings. No trusted ratings for this book yet.";
+    caption = "No trusted ratings for this book yet.";
   }
 
   // Story 66 / ADR 0065: when signed in (tasteMatches present) and the viewer
@@ -164,7 +164,7 @@ export function RatingsPanel({
       <p className="rp-caption">{caption}</p>
       <RatingsBlock average={average} count={count} countNoun={countNoun} label={label} emptyNote={emptyNote} />
       <HypeGapIndicator
-        rawAverage={active.average}
+        crowdAverage={w?.crowdAverage ?? null}
         trustedAverage={w?.average ?? null}
         trustedCount={w?.trustedCount ?? 0}
       />

@@ -1,5 +1,5 @@
 // Story 72 / ADR 0070 — the PURE unfurl card model + renderers. No I/O. These
-// cover the rating label (AC-2/AC-5), raw-only (AC-4), top-tags selection, the
+// cover the rating label (Story 101: the house view, else the count), top-tags selection, the
 // OG/Twitter/oEmbed-discovery HTML, the oEmbed JSON (AC-3), and — critically —
 // HTML/attribute escaping of book-derived strings (security, ADR 0070).
 //
@@ -51,27 +51,33 @@ function tags(over: Partial<RawBookTags> = {}): RawBookTags {
   return { genres: [], styles: [], signals: [], ...over };
 }
 
-describe("buildBookCard — rating label (AC-2 / AC-5) and raw-only (AC-4)", () => {
-  it("formats the raw rating label when there are ratings", () => {
-    const card = buildBookCard(book(), { count: 12, average: 4.25 }, tags(), BASE);
-    expect(card.ratingLabel).toMatch(/4\.2|4\.3/); // toFixed(1) of 4.25
-    expect(card.ratingLabel).toContain("12");
+describe("buildBookCard — the rating line (Story 101 / ADR 0092 §5)", () => {
+  it("shows the house view's trusted average and how many trusted ratings stand behind it", () => {
+    const card = buildBookCard(book(), { count: 12, trusted: { average: 4.25, count: 5 } }, tags(), BASE);
+    expect(card.ratingLabel).toMatch(/4\.[23]/);
+    expect(card.ratingLabel).toContain("5 trusted ratings");
+    expect(card.ratingLabel).not.toContain("12");
+  });
+
+  it("one trusted rating reads in the singular", () => {
+    const card = buildBookCard(book(), { count: 1, trusted: { average: 5, count: 1 } }, tags(), BASE);
+    expect(card.ratingLabel).toContain("1 trusted rating");
+    expect(card.ratingLabel).not.toContain("ratings");
+  });
+
+  it("with no trusted ratings: the count alone, no figure", () => {
+    const card = buildBookCard(book(), { count: 3, trusted: null }, tags(), BASE);
+    expect(card.ratingLabel).toBe("3 ratings");
+    expect(buildBookCard(book(), { count: 1, trusted: null }, tags(), BASE).ratingLabel).toBe("1 rating");
   });
 
   it("returns a null rating label when there are no ratings (honest-empty, no fake 0.0)", () => {
-    const card = buildBookCard(book(), { count: 0, average: null }, tags(), BASE);
+    const card = buildBookCard(book(), { count: 0, trusted: null }, tags(), BASE);
     expect(card.ratingLabel).toBeNull();
   });
 
-  it("never carries a trust/observer-weighted number — the card is raw by construction", () => {
-    // buildBookCard takes no observer/weights argument; the label is the raw avg.
-    const card = buildBookCard(book(), { count: 3, average: 5 }, tags(), BASE);
-    expect(card.ratingLabel).toContain("5.0");
-    expect(JSON.stringify(card)).not.toMatch(/trust|tier|weighted/i);
-  });
-
   it("builds the canonical URL from the base and slug", () => {
-    const card = buildBookCard(book({ slug: "orbital" }), { count: 0, average: null }, tags(), BASE);
+    const card = buildBookCard(book({ slug: "orbital" }), { count: 0, trusted: null }, tags(), BASE);
     expect(card.canonicalUrl).toBe(`${BASE}/book/orbital`);
   });
 });
@@ -80,7 +86,7 @@ describe("buildBookCard — top tags selection", () => {
   it("takes the top 3 net-positive tags ranked by (applies − disputes)", () => {
     const card = buildBookCard(
       book(),
-      { count: 5, average: 4 },
+      { count: 5, trusted: null },
       tags({
         genres: [tag("genre", "litfic", "Literary Fiction", 9, 1)], // net 8
         styles: [tag("style", "lyrical", "Lyrical", 5, 0)], // net 5
@@ -97,7 +103,7 @@ describe("buildBookCard — top tags selection", () => {
   it("excludes tags whose disputes meet or exceed applies (no net-positive consensus)", () => {
     const card = buildBookCard(
       book(),
-      { count: 5, average: 4 },
+      { count: 5, trusted: null },
       tags({ genres: [tag("genre", "contested", "Contested", 2, 2)] }),
       BASE,
     );

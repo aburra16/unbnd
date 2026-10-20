@@ -39,7 +39,7 @@ vi.mock("../../src/lib/api", () => ({
       template: vi.fn(),
       submit: vi.fn(),
       submitCustodial: vi.fn(),
-      list: vi.fn(async () => ({ count: 0, average: null, ratings: [] })),
+      list: vi.fn(async () => ({ count: 0, ratings: [] })),
       removeTemplate: (...a: unknown[]) => removeTemplateMock(...a),
       removeSubmit: (...a: unknown[]) => removeSubmitMock(...a),
       removeCustodial: (...a: unknown[]) => removeCustodialMock(...a),
@@ -60,7 +60,7 @@ const MY_RATING: PublicRating = {
   reviewText: "A quiet marvel.",
   reviewDate: "2026-05-20",
 };
-const EMPTY_SUMMARY: RatingsSummary = { count: 0, average: null, ratings: [], weighted: null };
+const EMPTY_SUMMARY: RatingsSummary = { count: 0, ratings: [], weighted: null };
 
 beforeEach(() => {
   removeTemplateMock.mockReset();

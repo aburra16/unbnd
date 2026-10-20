@@ -42,7 +42,7 @@ function makeApp(extra: Partial<UnfurlDeps> = {}) {
   const deps: UnfurlDeps = {
     config: baseConfig(),
     readBook: vi.fn(async (slug: string) => (slug === "orbital" ? book() : null)),
-    readRawRatings: vi.fn(async () => ({ count: 8, average: 4.4 })),
+    readCardRatings: vi.fn(async () => ({ count: 8, trusted: { average: 4.4, count: 3 } })),
     readRawTags: vi.fn(async () => ({
       genres: [{ slug: "litfic", name: "Literary Fiction", type: "genre" as const, applies: 6, disputes: 0 }],
       styles: [],
@@ -66,12 +66,20 @@ describe("GET /unfurl/book/:slug — per-book HTML card (AC-1)", () => {
     expect(res.text).toMatch(/type="application\/json\+oembed"/);
   });
 
-  it("shows the raw community rating and tags, never a trust-weighted number (AC-4)", async () => {
+  it("shows the house view's trusted rating and the tags (Story 101 / ADR 0092 §5)", async () => {
     const { app } = makeApp();
     const res = await request(app).get("/unfurl/book/orbital");
     expect(res.text).toContain("4.4");
+    expect(res.text).toContain("3 trusted ratings");
     expect(res.text).toContain("Literary Fiction");
-    expect(res.text).not.toMatch(/graperank|trusted|tier|weighted/i);
+    expect(res.text).not.toMatch(/graperank|tier|weighted/i);
+  });
+
+  it("with no trusted ratings the card shows the count and no figure", async () => {
+    const { app } = makeApp({ readCardRatings: vi.fn(async () => ({ count: 8, trusted: null })) });
+    const res = await request(app).get("/unfurl/book/orbital");
+    expect(res.text).toContain("8 ratings");
+    expect(res.text).not.toMatch(/★/);
   });
 });
 

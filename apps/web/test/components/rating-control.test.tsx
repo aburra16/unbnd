@@ -70,7 +70,7 @@ beforeEach(() => {
   templateMock.mockReset();
   submitMock.mockReset();
   submitCustodialMock.mockReset();
-  listMock.mockReset().mockResolvedValue({ count: 0, average: null, ratings: [], weighted: null });
+  listMock.mockReset().mockResolvedValue({ count: 0, ratings: [], weighted: null });
   signEvent.mockReset();
   sessionMock.mockReset();
   trustMock.mockReset().mockReturnValue({
@@ -125,7 +125,7 @@ describe("RatingControl — sovereign session (first rating, never-rated)", () =
     });
     submitMock.mockResolvedValue({
       rating: { npub: sovereignUser.npub, score: 4, reviewDate: "2026-05-27" },
-      summary: { count: 1, average: 4, ratings: [], weighted: null },
+      summary: { count: 1, ratings: [], weighted: null },
     });
 
     renderControl({ yourRating: null });
@@ -152,7 +152,7 @@ describe("RatingControl — sovereign session (first rating, never-rated)", () =
     signEvent.mockResolvedValue({
       id: "e", pubkey: HEX, kind: 39999, created_at: 1, tags: [["d", "x"]], content: "", sig: "s",
     });
-    const SUMMARY: RatingsSummary = { count: 1, average: 4, ratings: [], weighted: null };
+    const SUMMARY: RatingsSummary = { count: 1, ratings: [], weighted: null };
     submitMock.mockResolvedValue({
       rating: { npub: sovereignUser.npub, score: 4, reviewDate: "2026-05-27" },
       summary: SUMMARY,

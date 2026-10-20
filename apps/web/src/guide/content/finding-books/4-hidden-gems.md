@@ -3,12 +3,12 @@ anchor: hidden-gems
 name: Hidden Gems
 order: 4
 related: [finding-books#the-homepage-shelves]
-sourceStories: 70, 71
+sourceStories: 70, 71, 101
 ---
 
-**What it is.** The homepage shelf of books that trusted readers rate clearly above the crowd. A book lands here when the people whose judgment counts in your active view love it more than the general average does.
+**What it is.** The homepage shelf of books that trusted readers rate clearly above the crowd. A book lands here when the people whose judgment counts in your active view love it more than the crowd does.
 
-**What it is based on.** The gap between two real numbers on the same book: the everyone-average and the trusted average. A wide gap in the book's favor makes it a gem.
+**What it is based on.** The gap between two averages on the same book: the trusted average and the crowd's. The crowd is every reader with any standing, each counted once, so accounts with no standing cannot push a book onto the shelf or off it. A wide gap in the book's favor makes it a gem.
 
 **How to use it.**
 

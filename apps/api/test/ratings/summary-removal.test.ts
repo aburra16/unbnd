@@ -17,7 +17,7 @@ describe("summaries after a removal", () => {
     const other = signedRating({ score: 3, createdAt: 1_000 });
     const s = summarizeRatings(evs(r, gone, other), SCOPE);
     expect(s.count).toBe(1);
-    expect(s.average).toBe(3);
+    expect(s.ratings.map((x) => x.score)).toEqual([3]);
     expect(countOwnRatings(evs(r, gone), SCOPE)).toEqual({ booksRated: 0, reviews: 0 });
     expect(ownRatedSlugs(evs(r, gone), SCOPE).size).toBe(0);
     expect(scoreBySlug(evs(r, gone), SCOPE).size).toBe(0);
@@ -28,14 +28,13 @@ describe("summaries after a removal", () => {
     const r = signedRating({ sk, score: 2, createdAt: 1_000 });
     const gone = signedRemoval({ sk, createdAt: 1_100 });
     const again = signedRating({ sk, score: 4, createdAt: 1_200 });
-    expect(summarizeRatings(evs(r, gone, again), SCOPE).average).toBe(4);
+    expect(summarizeRatings(evs(r, gone, again), SCOPE).ratings.map((x) => x.score)).toEqual([4]);
   });
 
-  it("a review without stars is listed but enters no count or average", () => {
+  it("a review without stars is listed but enters no count", () => {
     const words = signedRating({ score: null, reviewText: "Only words." });
     const s = summarizeRatings(evs(words), SCOPE);
     expect(s.count).toBe(0);
-    expect(s.average).toBeNull();
     expect(s.ratings).toHaveLength(1);
     expect(s.ratings[0]!.score).toBeNull();
   });

@@ -17,15 +17,15 @@ import {
   renderGenericHtml,
   renderUnfurlHtml,
   toOEmbed,
-  type RawRatingSummary,
+  type CardRatings,
 } from "../unfurl/card";
 
 export type UnfurlDeps = {
   readonly config: Config;
   /** Reads the effective book for a slug, or null when there is no catalog book. */
   readonly readBook: (slug: string) => Promise<PublicBook | null>;
-  /** Reads the RAW (viewer-independent) rating summary for a slug. */
-  readonly readRawRatings: (slug: string) => Promise<RawRatingSummary>;
+  /** Reads a slug's ratings as the house view sees them (ADR 0092 §5). */
+  readonly readCardRatings: (slug: string) => Promise<CardRatings>;
   /** Reads the RAW (viewer-independent) tag consensus for a slug. */
   readonly readRawTags: (slug: string) => Promise<RawBookTags>;
 };
@@ -55,13 +55,13 @@ export function buildUnfurlRouter(deps: UnfurlDeps): Router {
   const router = express.Router();
   const origin = () => deps.config.publicOrigin;
 
-  // Assemble the full card for a slug (book + raw rating + raw tags), or null
-  // when there is no catalog book. RAW reads only — never a trust call.
+  // Assemble the full card for a slug (book + ratings + raw tags), or null
+  // when there is no catalog book.
   async function cardFor(slug: string) {
     const book = await deps.readBook(slug);
     if (!book) return null;
-    const [raw, tags] = await Promise.all([deps.readRawRatings(slug), deps.readRawTags(slug)]);
-    return buildBookCard(book, raw, tags, origin());
+    const [ratings, tags] = await Promise.all([deps.readCardRatings(slug), deps.readRawTags(slug)]);
+    return buildBookCard(book, ratings, tags, origin());
   }
 
   // The per-book HTML card document (crawlers only; humans keep the SPA via

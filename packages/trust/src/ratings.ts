@@ -44,6 +44,14 @@ export type WeightedRatings = {
   readonly average: number;
   /** Number of counted reviewers whose review gives stars. */
   readonly trustedCount: number;
+  /**
+   * The crowd (ADR 0092 §1): the unweighted mean of the stars from every
+   * reviewer with any standing (weight above zero), each counted once. The
+   * counted reviewers are in it, so it exists whenever this view does.
+   */
+  readonly crowdAverage: number;
+  /** Number of crowd reviewers whose review gives stars. */
+  readonly crowdCount: number;
   /** Counted reviews, ordered by reviewer trust (desc). */
   readonly ratings: PublicRating[];
 };
@@ -100,10 +108,14 @@ export function weightedRatings(
   if (starred.length === 0) return null;
   const sumW = starred.reduce((s, x) => s + x.w, 0);
   const average = starred.reduce((s, x) => s + x.w * (x.r.score as number), 0) / sumW;
+  const crowd = deduped.filter((r) => r.score !== null && (weights.get(r.pubkey) ?? 0) > 0);
+  const crowdAverage = crowd.reduce((s, r) => s + (r.score as number), 0) / crowd.length;
   return {
     observer: observerNpub,
     average,
     trustedCount: starred.length,
+    crowdAverage,
+    crowdCount: crowd.length,
     ratings: counted.map((x) => toPublic(x.r)),
   };
 }

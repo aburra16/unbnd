@@ -49,7 +49,6 @@ describe.skipIf(!STRFRY_TEST_URL)("strfry publish + read-back", () => {
 
     const summary = summarizeRatings(events as never, reviewScope(config));
     expect(summary.count).toBeGreaterThanOrEqual(1);
-    expect(summary.average).toBeGreaterThanOrEqual(1);
     // Honest read-back: no trust/weight field leaks.
     expect(JSON.stringify(summary)).not.toMatch(/weight|graperank|trust/i);
     // npub, never hex.

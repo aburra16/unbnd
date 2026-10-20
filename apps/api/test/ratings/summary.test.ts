@@ -12,12 +12,12 @@ function events(...evs: { event: unknown }[]): SignedNostrEvent[] {
 }
 
 describe("summarizeRatings", () => {
-  it("returns a raw count and raw arithmetic mean", () => {
+  it("counts the reviews that give stars and carries no plain mean (Story 101)", () => {
     const a = signedRating({ score: 5 });
     const b = signedRating({ score: 3 });
     const s = summarizeRatings(events(a, b), SCOPE);
     expect(s.count).toBe(2);
-    expect(s.average).toBe(4);
+    expect(s).not.toHaveProperty("average");
   });
 
   it("dedups by rater, keeping the latest rating", () => {
@@ -26,13 +26,12 @@ describe("summarizeRatings", () => {
     const newer = signedRating({ sk, score: 5, createdAt: 2000 });
     const s = summarizeRatings(events(older, newer), SCOPE);
     expect(s.count).toBe(1);
-    expect(s.average).toBe(5);
+    expect(s.ratings.map((r) => r.score)).toEqual([5]);
   });
 
-  it("reports an empty book honestly: count 0, average null", () => {
+  it("reports an empty book honestly: count 0, no reviews", () => {
     const s = summarizeRatings([], SCOPE);
     expect(s.count).toBe(0);
-    expect(s.average).toBeNull();
     expect(s.ratings).toEqual([]);
   });
 

@@ -94,7 +94,7 @@ beforeEach(() => {
   tagsBook.mockReset().mockResolvedValue(TAGS);
   tagsList.mockReset().mockResolvedValue({ tags: [] });
   useBookRatingsMock.mockReset().mockReturnValue({
-    house: { count: 0, average: null, ratings: [], weighted: null },
+    house: { count: 0, ratings: [], weighted: null },
     yours: null,
     yourRating: null,
     status: "ready",

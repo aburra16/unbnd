@@ -17,11 +17,13 @@ export function reviewScope(config: Pick<Config, "librarianPubkey">, now = Date.
   return { librarian: config.librarianPubkey ?? "", now: Math.floor(now / 1000) };
 }
 
+/**
+ * A book's standing reviews without any trust weighting. It carries no mean:
+ * the only figure Unbnd shows comes from the trusted view (ADR 0092 §3).
+ */
 export type RatingsSummary = {
   /** Reviews that give stars. */
   readonly count: number;
-  /** Raw arithmetic mean of the stars given; null when none are. */
-  readonly average: number | null;
   /** Every standing review, stars or not, newest first. */
   readonly ratings: PublicRating[];
 };
@@ -79,13 +81,10 @@ export function scoresByAuthor(
   return out;
 }
 
-export function rawFromParsed(deduped: readonly ParsedRating[]): RatingsSummary {
-  const starred = deduped.filter((r) => r.score !== null);
-  const average =
-    starred.length === 0 ? null : starred.reduce((s, r) => s + (r.score as number), 0) / starred.length;
-  return { count: starred.length, average, ratings: deduped.map(toPublic) };
+export function summaryFromParsed(deduped: readonly ParsedRating[]): RatingsSummary {
+  return { count: deduped.filter((r) => r.score !== null).length, ratings: deduped.map(toPublic) };
 }
 
 export function summarizeRatings(events: readonly SignedNostrEvent[], scope: ReviewScope): RatingsSummary {
-  return rawFromParsed(dedupeRatings(events, scope));
+  return summaryFromParsed(dedupeRatings(events, scope));
 }

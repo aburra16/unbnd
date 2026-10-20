@@ -159,7 +159,6 @@ const BOOK_TAGS: BookTags = {
 
 const BOOK_RATINGS: RatingsSummary = {
   count: 3,
-  average: 4.3,
   ratings: [
     { npub: FIXTURE_RATER_NPUB, score: 5, reviewText: "A fixed fixture review for the baseline.", reviewDate: "2026-01-10" },
     { npub: FIXTURE_RATER_NPUB, score: 4, reviewDate: "2026-01-12" },

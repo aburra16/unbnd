@@ -51,7 +51,6 @@ const OTHER_RATING: PublicRating = {
 // House summary carries `yourRating` (the cap-safe additive field) + raw ratings.
 const HOUSE: RatingsSummary & { yourRating?: PublicRating | null } = {
   count: 2,
-  average: 3,
   ratings: [MY_RATING, OTHER_RATING],
   weighted: null,
   yourRating: MY_RATING,
@@ -59,9 +58,8 @@ const HOUSE: RatingsSummary & { yourRating?: PublicRating | null } = {
 // The "Yours" vantage weights the trust subset and EXCLUDES the user's own rating.
 const YOURS: RatingsSummary = {
   count: 2,
-  average: 3,
   ratings: [MY_RATING, OTHER_RATING],
-  weighted: { observer: MY_NPUB, average: 2, trustedCount: 1, ratings: [OTHER_RATING] },
+  weighted: { observer: MY_NPUB, average: 2, trustedCount: 1, crowdAverage: 2, crowdCount: 1, ratings: [OTHER_RATING] },
 };
 
 function trust(over: Record<string, unknown> = {}) {
@@ -153,14 +151,14 @@ describe("useBookRatings — applyWrite reconciles both slices from one source",
     const { result } = renderHook(() => useBookRatings("orbital"));
     await waitFor(() => expect(result.current.yourRating).toEqual(MY_RATING));
 
-    const savedAgg: RatingsSummary = { count: 2, average: 3.5, ratings: [], weighted: null };
+    const savedAgg: RatingsSummary = { count: 2, ratings: [], weighted: null };
     const savedOwn: PublicRating = { npub: MY_NPUB, score: 5, reviewText: "Updated.", reviewDate: "2026-05-25" };
 
     act(() => result.current.applyWrite(savedAgg, savedOwn));
 
     // Both the own-rating slice and the aggregate move together.
     expect(result.current.yourRating).toEqual(savedOwn);
-    expect(result.current.house?.average).toBe(3.5);
+    expect(result.current.house).toEqual(savedAgg);
     // Reconcile happens from the returned summary — no extra fetch on the happy path.
     const callsAfter = listMock.mock.calls.length;
     expect(callsAfter).toBe(listMock.mock.calls.length); // stable: applyWrite did not refetch

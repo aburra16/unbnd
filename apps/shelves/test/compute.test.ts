@@ -534,11 +534,12 @@ describe("runShelvesCycle — AC-6: atomic replace leaves the prior cache intact
 });
 
 // ── Story 71 / ADR 0069: Hidden Gems — highest positive hype-gap ──────────────
-// A book's hype-gap = trusted average − the crowd's raw average. A gem is a book
-// the trusted network rates well above the crowd. Mix trusted + untrusted raters
-// so the trusted average diverges from the all-ratings raw mean.
+// A book's hype-gap = trusted average − the crowd average. A gem is a book the
+// trusted network rates well above the crowd. Story 101 / ADR 0092: the crowd is
+// raters with any standing, counted equally, so the "crowd" raters here hold a
+// little standing (rank 2), below the rank-5 line that counts a trusted rating.
 
-/** N trusted (weighted) + N untrusted (zero-weight) raters at the given scores. */
+/** 3 trusted (rank 90) + 3 crowd (rank 2) raters at the given scores. */
 function gemBook(slug: string, trustedScore: number, untrustedScore: number) {
   const trusted = [0, 1, 2].map(() =>
     ratingEvent({ bookSlug: slug, score: trustedScore, createdAt: NOW - 2 * DAY }),
@@ -555,7 +556,12 @@ function gemDeps(gems: ReturnType<typeof gemBook>[], trustOn = true) {
     [RATINGS_Z]: gems.flatMap((g) => [...g.trusted, ...g.untrusted].map((r) => r.event)),
   });
   const weightRow = trustOn
-    ? Object.fromEntries(gems.flatMap((g) => g.trusted.map((r) => [r.pubkey, 0.9])))
+    ? Object.fromEntries(
+        gems.flatMap((g) => [
+          ...g.trusted.map((r) => [r.pubkey, 0.9] as const),
+          ...g.untrusted.map((r) => [r.pubkey, 0.02] as const),
+        ]),
+      )
     : {};
   return baseDeps({ readConcept, trust: trustProvider(weightRow) });
 }
@@ -564,8 +570,8 @@ describe("computeShelves — Hidden Gems: positive hype-gap, gated + ranked", ()
   it("ranks by gap (trusted above crowd) desc; excludes consensus and overhyped", async () => {
     const out = await computeShelves(
       gemDeps([
-        gemBook("gem", 5, 2), // trusted 5, raw 3.5 → gap 1.5
-        gemBook("big-gem", 5, 1), // trusted 5, raw 3.0 → gap 2.0 (ranks first)
+        gemBook("gem", 5, 2), // trusted 5, crowd 3.5 → gap 1.5
+        gemBook("big-gem", 5, 1), // trusted 5, crowd 3.0 → gap 2.0 (ranks first)
         gemBook("consensus", 4, 4), // gap 0 → excluded
         gemBook("overhyped", 2, 5), // gap negative → excluded
       ]),
@@ -587,6 +593,18 @@ describe("computeShelves — Hidden Gems: positive hype-gap, gated + ranked", ()
       baseDeps({ readConcept, trust: trustProvider({ [thinTrusted[0]!.pubkey]: 0.9 }) }),
     );
     expect(slugsOf(out.hiddenGems)).toEqual([]);
+  });
+
+  it("raters with no standing never make a gem (Story 101 / ADR 0092 §2)", async () => {
+    const g = gemBook("stuffed", 5, 1);
+    const readConcept = makeReadConcept({
+      [BOOKS_Z]: [bookEvent("stuffed", "Stuffed")],
+      [RATINGS_Z]: [...g.trusted, ...g.untrusted].map((r) => r.event),
+    });
+    // The 1-star raters hold no standing: outside the crowd, so the gap is 0.
+    const weights = Object.fromEntries(g.trusted.map((r) => [r.pubkey, 0.9]));
+    const out = await computeShelves(baseDeps({ readConcept, trust: trustProvider(weights) }));
+    expect(out.hiddenGems).toEqual([]);
   });
 
   it("honest empty when there is no trusted signal", async () => {

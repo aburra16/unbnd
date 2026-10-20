@@ -3,21 +3,21 @@
 // overhyped (crowd above the trusted network); nothing on consensus or below the
 // trusted-rater minimum. The text label carries the meaning, so it is legible
 // without colour (AC-6). Observer-relative: the caller passes the active
-// perspective's raw + trusted averages.
+// perspective's crowd and trusted averages (ADR 0092 §2).
 import { classifyHypeGap } from "../lib/view-model";
 import "./HypeGapIndicator.css";
 import { GuideLink } from "./GuideLink";
 
 export function HypeGapIndicator({
-  rawAverage,
+  crowdAverage,
   trustedAverage,
   trustedCount,
 }: {
-  rawAverage: number | null;
+  crowdAverage: number | null;
   trustedAverage: number | null;
   trustedCount: number;
 }) {
-  const gap = classifyHypeGap(rawAverage, trustedAverage, trustedCount);
+  const gap = classifyHypeGap(crowdAverage, trustedAverage, trustedCount);
   if (gap !== "hidden-gem" && gap !== "overhyped") return null;
 
   const label =
