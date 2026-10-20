@@ -40,7 +40,7 @@ function makeDeps(over: Partial<ProfileDeps> = {}): ProfileDeps {
   return {
     librarianPubkey: LIBRARIAN,
     publishRelays: PUBLISH_RELAYS,
-    fetchSetup: vi.fn(async () => [["30382:rank", "4".repeat(64), "wss://scores.brainstorm.world"]]),
+    designationOf: vi.fn(async () => [["30382:rank", "4".repeat(64), "wss://scores.brainstorm.world"]]),
     sign: fakeSign(),
     publish: vi.fn(async (event: SignedNostrEvent, relays: readonly string[]) => {
       published.push({ event, relays });
@@ -88,16 +88,16 @@ describe("runProfileCycle (ADR 0088 §2): the profile, then the relay list", () 
 });
 
 describe("runProfileCycle: the trust designation (Story 102 / ADR 0090)", () => {
-  it("asks /setup about the librarian and publishes what it names", async () => {
+  it("asks the trust provider about the librarian and publishes what it names", async () => {
     const deps = makeDeps();
     await runProfileCycle(deps);
-    expect((deps as unknown as { fetchSetup: ReturnType<typeof vi.fn> }).fetchSetup).toHaveBeenCalledWith(LIBRARIAN);
+    expect((deps as unknown as { designationOf: ReturnType<typeof vi.fn> }).designationOf).toHaveBeenCalledWith(LIBRARIAN);
     const k10040 = publishedCalls(deps).find((c) => c.event.kind === 10040)!.event;
     expect(k10040.tags).toEqual([["30382:rank", "4".repeat(64), "wss://scores.brainstorm.world"]]);
   });
 
-  it("with nothing usable from /setup: the profile and relay list still go out, then it fails loudly", async () => {
-    const deps = makeDeps({ fetchSetup: vi.fn(async () => []) } as never);
+  it("with nothing usable from the provider: the profile and relay list still go out, then it fails loudly", async () => {
+    const deps = makeDeps({ designationOf: vi.fn(async () => []) } as never);
     await expect(runProfileCycle(deps)).rejects.toThrow(/setup/);
     expect(publishedCalls(deps).map((c) => c.event.kind)).toEqual([0, 10002]);
   });

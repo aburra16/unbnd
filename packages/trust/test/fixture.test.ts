@@ -105,4 +105,10 @@ describe("FixtureTrustProvider (ADR 0017)", () => {
       expect(m.size).toBe(0);
     });
   });
+
+  it("designation: the spec's canned tuples, else none (Story 102)", async () => {
+    const p = new FixtureTrustProvider({ weights: {}, designations: { [O]: [["30382:rank", A, "wss://scores"]] } });
+    expect(await p.designation(O)).toEqual([["30382:rank", A, "wss://scores"]]);
+    expect(await p.designation(B)).toEqual([]);
+  });
 });

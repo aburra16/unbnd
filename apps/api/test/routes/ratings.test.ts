@@ -160,6 +160,7 @@ describe("GET /api/books/:slug/ratings", () => {
       // CONTRACT MIGRATION (ADR 0026): authChallenge returns the unsigned
       // kind-27235 template now, not a bare string. These ratings tests never
       // call it; the mock is updated to the new return type for compilation.
+      designation: vi.fn(async () => []),
       authChallenge: vi.fn(async () => ({ kind: 27235, created_at: 1, tags: [["challenge", "c"]], content: "" })),
       personalize: vi.fn(async () => true),
     };
@@ -185,6 +186,7 @@ describe("GET /api/books/:slug/ratings", () => {
       // CONTRACT MIGRATION (ADR 0026): authChallenge returns the unsigned
       // kind-27235 template now, not a bare string. These ratings tests never
       // call it; the mock is updated to the new return type for compilation.
+      designation: vi.fn(async () => []),
       authChallenge: vi.fn(async () => ({ kind: 27235, created_at: 1, tags: [["challenge", "c"]], content: "" })),
       personalize: vi.fn(async () => true),
     };
@@ -279,6 +281,7 @@ describe("GET /api/books/:slug/ratings — yourRating (own-rating read seam)", (
       weights: vi.fn(async () => weights),
       hasScores: vi.fn(async () => true),
       followers: vi.fn(async () => new Map()),
+      designation: vi.fn(async () => []),
       authChallenge: vi.fn(async () => ({ kind: 27235, created_at: 1, tags: [["challenge", "c"]], content: "" })),
       personalize: vi.fn(async () => true),
     };

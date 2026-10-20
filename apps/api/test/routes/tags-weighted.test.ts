@@ -174,6 +174,7 @@ describe("GET /api/books/:slug/tags — AC-7 honest degrade", () => {
       // CONTRACT MIGRATION (ADR 0026): authChallenge returns the unsigned
       // kind-27235 template now, not a bare string. These tag tests never call
       // it; the mock is updated to the new return type for compilation.
+      designation: vi.fn(async () => []),
       authChallenge: vi.fn(async () => ({ kind: 27235, created_at: 1, tags: [["challenge", "c"]], content: "" })),
       personalize: vi.fn(async () => true),
     };

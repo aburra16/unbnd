@@ -25,6 +25,8 @@ export type FixtureSpec = {
   readonly challenge?: string | null;
   /** Result of `personalize()`. Default true. */
   readonly personalizeOk?: boolean;
+  /** observerHex → the kind 10040 tags `designation()` returns. Absent = none. */
+  readonly designations?: Readonly<Record<string, readonly (readonly string[])[]>>;
 };
 
 export type TrustOptions =
@@ -64,6 +66,12 @@ export interface TrustProvider {
   ): Promise<Map<string, number>>;
   /** Whether the observer already has published trust scores. */
   hasScores(observerHex: string): Promise<boolean>;
+  /**
+   * The observer's trust designation, as NIP-85 kind 10040 tags (Story 102 /
+   * ADR 0090): `[score type, scorer pubkey, relay]` for each score type the
+   * backend names. Empty when it names none. Best-effort: never throws.
+   */
+  designation(observerHex: string): Promise<string[][]>;
   /**
    * Fetch the unsigned kind-27235 NIP-98-style challenge TEMPLATE for the
    * observer to sign (sovereign: NIP-07 in the browser; custodial: server-signed

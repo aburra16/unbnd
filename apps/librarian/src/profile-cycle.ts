@@ -25,8 +25,8 @@ export type ProfileDeps = {
     event: SignedNostrEvent,
     relays: readonly string[],
   ) => Promise<PublishResult>;
-  /** Brainstorm's `/setup` tuples for an observer (Story 102 / ADR 0090). */
-  readonly fetchSetup: (observer: string) => Promise<readonly unknown[]>;
+  /** The trust provider's designation for an observer (Story 102 / ADR 0090). */
+  readonly designationOf: (observer: string) => Promise<readonly unknown[]>;
   /** Wall-clock for created_at; deterministic in tests. */
   readonly now?: () => number;
 };
@@ -50,10 +50,10 @@ export async function runProfileCycle(deps: ProfileDeps): Promise<void> {
   };
   for (const [label, template] of events) await publish(label, template);
 
-  // The trust designation (Story 102 / ADR 0090): the scorer Brainstorm names.
-  const designation = trustDesignationTags(await deps.fetchSetup(deps.librarianPubkey).catch(() => []));
+  // The trust designation (Story 102 / ADR 0090): the scorer the trust provider names.
+  const designation = trustDesignationTags(await deps.designationOf(deps.librarianPubkey).catch(() => []));
   if (designation.length === 0) {
-    throw new Error("librarian profile: Brainstorm's /setup named no scorer for the librarian; re-run 'librarian profile'");
+    throw new Error("librarian profile: the trust provider's setup named no scorer for the librarian; re-run 'librarian profile'");
   }
   await publish("kind-10040 trust designation", buildTrustDesignationTemplate(designation, now));
 }

@@ -96,7 +96,7 @@ export class BrainstormProvider implements TrustProvider {
   readonly #fetch: typeof fetch;
   readonly #query: RelayQuery;
   readonly #now: () => number;
-  readonly #serviceKeys = new Map<string, Cached<{ key: string; relayHint?: string } | null>>();
+  readonly #setupCache = new Map<string, Cached<unknown[]>>();
   readonly #weights = new Map<string, Cached<Map<string, number>>>();
   readonly #followersCache = new Map<string, Cached<Map<string, number>>>();
 
@@ -111,32 +111,47 @@ export class BrainstormProvider implements TrustProvider {
     this.#now = deps.now ?? (() => Date.now());
   }
 
-  /** Resolve the observer's `30382:rank` service key (+ relay hint) via /setup. */
-  async #serviceKey(observer: string): Promise<{ key: string; relayHint?: string } | null> {
-    const hit = this.#serviceKeys.get(observer);
+  /**
+   * The observer's /setup tuples (`[score type, scorer, relay?]`), cached per
+   * observer. The one place this adapter reads /setup: the rank service key
+   * and the trust designation both come from it.
+   */
+  async #setup(observer: string): Promise<unknown[]> {
+    const hit = this.#setupCache.get(observer);
     if (hit && this.#now() - hit.at < SETUP_TTL_MS) return hit.value;
-    let value: { key: string; relayHint?: string } | null = null;
+    let value: unknown[] = [];
     try {
       const res = await this.#fetch(`${this.#apiUrl}/setup/${observer}`);
       if (res.ok) {
         const body = (await res.json()) as unknown;
-        const tuples = Array.isArray(body)
+        value = Array.isArray(body)
           ? (body as unknown[])
           : Array.isArray((body as { data?: unknown }).data)
             ? ((body as { data: unknown[] }).data)
             : [];
-        for (const t of tuples) {
-          if (Array.isArray(t) && t[0] === RANK_PROVIDER && typeof t[1] === "string") {
-            value = { key: t[1], relayHint: typeof t[2] === "string" ? t[2] : undefined };
-            break;
-          }
-        }
       }
     } catch {
-      value = null;
+      value = [];
     }
-    this.#serviceKeys.set(observer, { value, at: this.#now() });
+    this.#setupCache.set(observer, { value, at: this.#now() });
     return value;
+  }
+
+  /** Resolve the observer's `30382:rank` service key (+ relay hint) via /setup. */
+  async #serviceKey(observer: string): Promise<{ key: string; relayHint?: string } | null> {
+    for (const t of await this.#setup(observer)) {
+      if (Array.isArray(t) && t[0] === RANK_PROVIDER && typeof t[1] === "string") {
+        return { key: t[1], relayHint: typeof t[2] === "string" ? t[2] : undefined };
+      }
+    }
+    return null;
+  }
+
+  /** Story 102 / ADR 0090: the /setup tuples whose three parts are strings. */
+  async designation(observerHex: string): Promise<string[][]> {
+    return (await this.#setup(observerHex))
+      .filter((t): t is string[] => Array.isArray(t) && t.length >= 3 && t.slice(0, 3).every((x) => typeof x === "string"))
+      .map((t) => t.slice(0, 3));
   }
 
   /**
@@ -273,7 +288,7 @@ export class BrainstormProvider implements TrustProvider {
       const token = vbody.data?.token ?? vbody.token;
       if (!token) return false;
       // New calc coming → drop any cached service key/weights for this observer.
-      this.#serviceKeys.delete(observerHex);
+      this.#setupCache.delete(observerHex);
       this.#weights.delete(observerHex);
       const trigger = await this.#fetch(`${this.#apiUrl}/user/graperank`, {
         method: "POST",
