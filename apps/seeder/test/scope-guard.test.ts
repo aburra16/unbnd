@@ -26,7 +26,7 @@ describe("Story 55 scope guard — no relay-read capability", () => {
     // The seed talks to the relay only to publish. A REQ / subscribe is the
     // read path the prune (Story 56) would introduce. The one-off ops
     // entrypoints that bundle beside it read the catalog by design: the genre
-    // recast (ADR 0073) and the year correction (ADR 0092, correct-years.ts).
+    // recast (ADR 0073) and the year correction (ADR 0093, correct-years.ts).
     const opsEntrypoints = new Set(["recast.ts", "correct-years.ts"]);
     const files = readdirSync(srcDir).filter((f) => f.endsWith(".ts") && !opsEntrypoints.has(f));
     for (const f of files) {

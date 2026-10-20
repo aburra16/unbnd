@@ -1,4 +1,4 @@
-# ADR 0092: A catalog year must be possible and have company; the librarian corrects it at source
+# ADR 0093: A catalog year must be possible and have company; the librarian corrects it at source
 
 **Status:** Accepted
 **Date:** 2026-10-20

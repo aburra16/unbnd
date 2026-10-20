@@ -1,4 +1,4 @@
-// Catalog year correction (Story 104 / ADR 0092 §4): `run seeder node years.js`
+// Catalog year correction (Story 104 / ADR 0093 §4): `run seeder node years.js`
 // prints what it would change; `node years.js --apply` publishes it. Reads the
 // librarian's records from dcosl, asks Open Library for edition years and first
 // authors, plans every correction before publishing any, and replaces each

@@ -8,7 +8,7 @@
 - [x] `pnpm -r --no-bail test`: seeder 231, web 450, schemas 168, trust 64, promoter 38, librarian 44, shelves 29, indexer 28, relay 22, ui 20, search 16, guide-lint 13, api 1010 + 13 skipped. One api test (`GET /api/books > recent shelf (no slugs) returns newest first`) failed 2 of 4 runs with a transport error (`Parse Error: Expected HTTP/`) and passed on the others. This story changes nothing under `apps/api` or `packages/`; it is a pre-existing flake, noted for follow-up.
 - [x] Red set at `31dbf64`: 77 failing for the missing behavior, typecheck clean. Round-1 red additions: 17 failing before the fixes.
 
-## Spec adherence (ADR 0092)
+## Spec adherence (ADR 0093)
 - [x] §1 `judgeYear`: floor inclusive, company strictly under 10 years and only from editions up to the current year, the stored year's duplicates are not company, replacement from `[floor, currentYear]`. Constants 20 and 10.
 - [x] §2 `authorBirthFor` counts a birth year only when the author record's name is the record's author (Homer re-spelled is tested); `birthYearOf` gives none for BC, B.C., BCE, B.C.E.
 - [x] §3 `fetchWorkEvidence` / `fetchAuthors`: batches of 100, exact `q`, `fields` and `limit`, the seeder User-Agent, throw on HTTP error. `workEvidenceOf` is the one doc reader for seed and repair.

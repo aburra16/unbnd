@@ -39,9 +39,9 @@ As a Reader, I want a book's year to be one it could actually have been publishe
 - Running a seeding epoch, and the submit form's next-year limit (both carried from story 103).
 
 ## Open questions
-None. The correction rule and the ops path are the Architect's (ADR 0092).
+None. The correction rule and the ops path are the Architect's (ADR 0093).
 
 ## Linked artifacts
-- ADR: `engineering-team/decisions/0092-catalog-year-correction.md`
+- ADR: `engineering-team/decisions/0093-catalog-year-correction.md`
 - Test plan: `engineering-team/stories/104-catalog-year-correction.test-plan.md`
 - Review: `engineering-team/reviews/104-catalog-year-correction.md`

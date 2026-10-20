@@ -1,4 +1,4 @@
-// The catalog year rule (Story 104 / ADR 0092 §1–2). Pure, no I/O.
+// The catalog year rule (Story 104 / ADR 0093 §1–2). Pure, no I/O.
 //
 // Open Library's `first_publish_year` is the minimum over a work's editions, so
 // one mis-dated edition pulls a work back (Step on a Crack: 1658). A stored year
@@ -47,7 +47,7 @@ export function yearFloor(authorBirthYear?: number): number {
     : Math.max(PRINT_ERA_START, authorBirthYear + MIN_AUTHOR_AGE);
 }
 
-/** Judge a stored year against the work's edition years (ADR 0092 §1). */
+/** Judge a stored year against the work's edition years (ADR 0093 §1). */
 export function judgeYear(input: YearInput, currentYear: number): YearVerdict {
   const { year, editionYears } = input;
   const floor = yearFloor(input.authorBirthYear);
@@ -63,7 +63,7 @@ export function judgeYear(input: YearInput, currentYear: number): YearVerdict {
 
 /**
  * The author's birth year, counted only when the Open Library author record
- * names the record's author (ADR 0092 §2): a record never moves on evidence
+ * names the record's author (ADR 0093 §2): a record never moves on evidence
  * about someone else.
  */
 export function authorBirthFor(

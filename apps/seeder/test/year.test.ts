@@ -1,4 +1,4 @@
-// Failing tests for Story 104 (catalog year correction), per ADR 0092 §1–2:
+// Failing tests for Story 104 (catalog year correction), per ADR 0093 §1–2:
 // the year rule. A stored year below the floor (printing, or the author's
 // birth + MIN_AUTHOR_AGE) and with no other edition close behind it is
 // replaced by the earliest edition year at or above the floor. Edition years
@@ -37,7 +37,7 @@ type YearModule = {
 const load = () => loadSeederModule<YearModule>("year");
 const NOW = 2026;
 
-describe("the rule's constants (ADR 0092 §1)", () => {
+describe("the rule's constants (ADR 0093 §1)", () => {
   it("nominates a year before the author turned 20, and counts company within 10 years", async () => {
     const m = await load();
     expect(m.MIN_AUTHOR_AGE).toBe(20);
@@ -250,7 +250,7 @@ describe("judgeYear — impossible with nothing to replace it: unresolved (AC 4)
   });
 });
 
-describe("authorBirthFor — evidence must name the record's author (ADR 0092 §2)", () => {
+describe("authorBirthFor — evidence must name the record's author (ADR 0093 §2)", () => {
   it("uses the birth year when the author record's name is the record's author", async () => {
     const { authorBirthFor } = await load();
     expect(authorBirthFor("James Patterson", { name: "James Patterson", birthYear: 1947 })).toBe(

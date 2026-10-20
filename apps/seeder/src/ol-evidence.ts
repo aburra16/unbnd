@@ -1,4 +1,4 @@
-// Open Library evidence for the year rule (Story 104 / ADR 0092 §3): every
+// Open Library evidence for the year rule (Story 104 / ADR 0093 §3): every
 // edition year and the first author of a set of works, then those authors'
 // names and birth years, from the search API in batches. An HTTP error throws,
 // so a run never acts on partial evidence.
@@ -71,7 +71,7 @@ async function searchByKeys<D>(
 /**
  * A search doc's year evidence: its distinct whole-number edition years, sorted,
  * and its first author's bare key. The seed and the repair both read docs
- * through this, so they judge from the same evidence (ADR 0092 §5).
+ * through this, so they judge from the same evidence (ADR 0093 §5).
  */
 export function workEvidenceOf(doc: WorkDoc): WorkEvidence {
   const editionYears = [

@@ -1,4 +1,4 @@
-// Failing tests for Story 104, per ADR 0092 §4–5: the planner over the
+// Failing tests for Story 104, per ADR 0093 §4–5: the planner over the
 // librarian's live records, the only-the-year corrected template, the dry run
 // and the apply run, and the seed path's shared year (AC 1–7).
 //

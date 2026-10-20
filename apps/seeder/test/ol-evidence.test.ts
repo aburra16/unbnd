@@ -1,4 +1,4 @@
-// Failing tests for Story 104, per ADR 0092 §3: the year evidence comes from
+// Failing tests for Story 104, per ADR 0093 §3: the year evidence comes from
 // Open Library search in batches of 100 (works by key, then first authors by
 // key). HTTP is mocked; we pin the request shape, the batching, the parsing,
 // and that an HTTP error throws (a run never acts on partial evidence).

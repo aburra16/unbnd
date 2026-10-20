@@ -76,7 +76,7 @@ jobs:
               years-check)
                 # Read the catalog from dcosl and Open Library; print every year
                 # the correction would change, then the kept/unresolved ones.
-                # Publishes nothing (ADR 0092 §4).
+                # Publishes nothing (ADR 0093 §4).
                 docker compose -f docker-compose.prod.yml --profile seed pull seeder
                 docker compose -f docker-compose.prod.yml --profile seed run --rm seeder node years.js
                 ;;

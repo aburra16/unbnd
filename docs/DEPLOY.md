@@ -187,7 +187,7 @@ known catalog size (paging didn't stall), and any genre printed `<-- EMPTY`
 should be dropped from `STARTER_TAXONOMY` before launch. Follow with a batch
 index rebuild (`-f task=index`) so search picks the new genres up.
 
-### Catalog year correction (Story 104 / ADR 0092; idempotent)
+### Catalog year correction (Story 104 / ADR 0093; idempotent)
 
 The seeder image bundles `years.js`. It reads the librarian's catalog records
 from dcosl, asks Open Library search for each work's edition years and first

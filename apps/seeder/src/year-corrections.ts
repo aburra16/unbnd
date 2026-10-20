@@ -1,4 +1,4 @@
-// Correcting catalog years at source (Story 104 / ADR 0092 §4–5). Pure planning
+// Correcting catalog years at source (Story 104 / ADR 0093 §4–5). Pure planning
 // over the librarian's live records plus a runner with injected I/O; the
 // `years.js` entrypoint (correct-years.ts) wires the hub, Open Library and the
 // librarian key, and the seed (index.ts) shares judgeRecordYear/withJudgedYear
@@ -115,7 +115,7 @@ const payloadOf = (event: { readonly tags: readonly string[][] }): unknown => {
 };
 
 /**
- * The librarian's record with only its year changed (ADR 0092 §4): rebuilt
+ * The librarian's record with only its year changed (ADR 0093 §4): rebuilt
  * through the schema, then checked to differ from the live event in nothing
  * but the `year` tag and the payload's `publishYear`. The one allowed payload
  * difference is the explicit `submittedBy: null` old records lack. Throws when
@@ -147,7 +147,7 @@ export function correctedRecordTemplate(
   return template;
 }
 
-/** Plan every year correction over the librarian's records (ADR 0092 §1, §4). */
+/** Plan every year correction over the librarian's records (ADR 0093 §1, §4). */
 export function planYearCorrections(
   events: readonly SignedNostrEvent[],
   librarian: string,

@@ -23,7 +23,7 @@ const SEARCH_FIELDS = [
   "edition_count",
   "cover_i",
   "first_publish_year",
-  "publish_year", // every edition year, for the year rule (ADR 0092 §5)
+  "publish_year", // every edition year, for the year rule (ADR 0093 §5)
   "language",
   "number_of_pages_median",
   "readinglog_count",

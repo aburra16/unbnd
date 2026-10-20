@@ -163,7 +163,7 @@ async function main() {
   const books = dedupBooks(collected);
   console.log(`[seeder] ${books.length} unique books collected`);
 
-  // The year rule's author evidence (ADR 0092 §5): the first author of every
+  // The year rule's author evidence (ADR 0093 §5): the first author of every
   // book we will publish, in batches. A failure throws (the run resumes from
   // the checkpoint), so a seed never writes a year the repair would change.
   const authorKeys = books
@@ -184,7 +184,7 @@ async function main() {
       skipped++;
       continue;
     }
-    // One year rule for the seed and the repair (ADR 0092 §5): a corrected year
+    // One year rule for the seed and the repair (ADR 0093 §5): a corrected year
     // goes into the record before it is fingerprinted.
     record = withJudgedYear(record, judgeRecordYear(record, workEvidenceOf(doc), authors, currentYear));
 

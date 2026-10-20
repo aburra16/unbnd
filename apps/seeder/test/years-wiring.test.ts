@@ -1,4 +1,4 @@
-// Failing tests for Story 104, per ADR 0092 §4–6: structural wiring. The
+// Failing tests for Story 104, per ADR 0093 §4–6: structural wiring. The
 // behavior is covered by year.test.ts, ol-evidence.test.ts and
 // year-corrections.test.ts; here we assert the entrypoints actually use it, so
 // the rule cannot be dead code in the seed or the ops task. Like
@@ -63,7 +63,7 @@ describe("the years entrypoint (AC 5, 6)", () => {
   });
 });
 
-describe("Staging ops runs it (ADR 0092 §6)", () => {
+describe("Staging ops runs it (ADR 0093 §6)", () => {
   it("offers years-check (dry run) and years-fix (apply)", () => {
     expect(opsSrc).toMatch(/- years-check\b/);
     expect(opsSrc).toMatch(/- years-fix\b/);

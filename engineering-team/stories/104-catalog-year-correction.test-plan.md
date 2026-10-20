@@ -1,6 +1,6 @@
 # Test plan: Story 104 (catalog records carry a year the book could have been published)
 
-ADR 0092. All in `apps/seeder/test`, unit level: no relay, no network, no compose services. Open Library is mocked with an injected `fetch`; hub records are built with the real schema builders (`toBookRecordEvent` + `toWireTemplate`), so they have the hub's exact wire shape. Edition years and birth years in the fixtures are Open Library's own for those books (read 2026-10-20).
+ADR 0093. All in `apps/seeder/test`, unit level: no relay, no network, no compose services. Open Library is mocked with an injected `fetch`; hub records are built with the real schema builders (`toBookRecordEvent` + `toWireTemplate`), so they have the hub's exact wire shape. Edition years and birth years in the fixtures are Open Library's own for those books (read 2026-10-20).
 
 | AC | What | Where | Tests |
 |---|---|---|---|
@@ -20,7 +20,7 @@ ADR 0092. All in `apps/seeder/test`, unit level: no relay, no network, no compos
 | 7 | The seed requests `publish_year` and `author_key`, fetches first authors and judges each record before fingerprinting | `search.test.ts`, `years-wiring.test.ts` | `hits search.json with the decided fields…`, `the seed judges each record's year` |
 | 5–6 | The `years.js` entrypoint exists, is a dry run unless `--apply`, reads and publishes dcosl, ships in the seeder image; Staging ops offers `years-check` and `years-fix`; DEPLOY.md documents both | `years-wiring.test.ts` | `the years entrypoint`, `Staging ops runs it` |
 
-`scope-guard.test.ts` (story 55) forbade a relay read in any seeder file. Its boundary is the seed itself, so the read check now skips the two one-off ops entrypoints that read the catalog by design (`recast.ts`, ADR 0073; `correct-years.ts`, ADR 0092). The seed and every other module stay publish-only.
+`scope-guard.test.ts` (story 55) forbade a relay read in any seeder file. Its boundary is the seed itself, so the read check now skips the two one-off ops entrypoints that read the catalog by design (`recast.ts`, ADR 0073; `correct-years.ts`, ADR 0093). The seed and every other module stay publish-only.
 
 Missing modules load through the opaque `_load.ts` specifier so the red set typechecks.
 
