@@ -37,3 +37,11 @@ export function buildLibrarianRelayListTemplate(
 ): NostrEventTemplate {
   return { kind: 10002, created_at: createdAt, content: "", tags: relays.map((r) => ["r", r]) };
 }
+
+// STUBS (red): Story 102 / ADR 0090.
+export function trustDesignationTags(_entries: readonly unknown[]): string[][] {
+  throw new Error("stub");
+}
+export function buildTrustDesignationTemplate(_tags: readonly string[][], _createdAt: number): NostrEventTemplate {
+  throw new Error("stub");
+}

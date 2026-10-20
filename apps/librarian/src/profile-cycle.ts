@@ -23,6 +23,8 @@ export type ProfileDeps = {
     event: SignedNostrEvent,
     relays: readonly string[],
   ) => Promise<PublishResult>;
+  /** STUB (red): Story 102 — Brainstorm's /setup tuples for an observer. */
+  readonly fetchSetup?: (observer: string) => Promise<readonly unknown[]>;
   /** Wall-clock for created_at; deterministic in tests. */
   readonly now?: () => number;
 };
