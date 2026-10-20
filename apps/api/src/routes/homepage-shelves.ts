@@ -32,6 +32,8 @@ export type CachedShelfSet = {
   readonly favorites: string[];
   /** Story 71 / ADR 0069. Optional: old cache rows (pre-#71) lack it → read as []. */
   readonly hiddenGems?: string[];
+  /** Story 105 / ADR 0094 §6: Recently added, by first-added date. Optional like hiddenGems. */
+  readonly recent?: string[];
   readonly genres: CachedShelfGenre[];
 };
 

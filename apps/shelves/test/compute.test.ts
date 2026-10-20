@@ -612,3 +612,44 @@ describe("computeShelves — Hidden Gems: positive hype-gap, gated + ranked", ()
     expect(out.hiddenGems).toEqual([]);
   });
 });
+
+// ── Story 105 / ADR 0094 §6: Recently added, by first-added date ─────────────
+describe("computeShelves — Recently added", () => {
+  function dated(slug: string, createdAt: number, extra: string[][] = [], pubkey: string = LIB): SignedNostrEvent {
+    const e = bookEvent(slug, slug);
+    return { ...e, id: `book-${slug}-${createdAt}`, pubkey, created_at: createdAt, tags: [...e.tags, ...extra] } as SignedNostrEvent;
+  }
+
+  it("orders by the added tag, falling back to created_at; a relabel keeps a book's place", async () => {
+    const readConcept = makeReadConcept({
+      [BOOKS_Z]: [
+        dated("relabelled-old", NOW, [["added", String(NOW - 9 * DAY)]]),
+        dated("seeded-new", NOW - DAY),
+        dated("promoted-mid", NOW - 3 * DAY),
+      ],
+    });
+    const out = await computeShelves(baseDeps({ readConcept }));
+    expect(slugsOf(out.recent)).toEqual(["seeded-new", "promoted-mid", "relabelled-old"]);
+  });
+
+  it("takes the newest version per book, the librarian's only, never a delisted one", async () => {
+    const readConcept = makeReadConcept({
+      [BOOKS_Z]: [
+        dated("twice", NOW - 5 * DAY),
+        dated("twice", NOW - DAY, [["added", String(NOW - 5 * DAY)]]),
+        dated("stranger", NOW, [], "b".repeat(64)),
+        dated("gone", NOW, [["delisted", "true"]]),
+        dated("kept", NOW - 2 * DAY),
+      ],
+    });
+    const out = await computeShelves(baseDeps({ readConcept }));
+    expect(slugsOf(out.recent)).toEqual(["kept", "twice"]);
+  });
+
+  it("holds at most 100 books", async () => {
+    const many = Array.from({ length: 130 }, (_, i) => dated(`b${String(i).padStart(3, "0")}`, NOW - i));
+    const out = await computeShelves(baseDeps({ readConcept: makeReadConcept({ [BOOKS_Z]: many }) }));
+    expect(out.recent).toHaveLength(100);
+    expect(out.recent[0]!.bookSlug).toBe("b000");
+  });
+});

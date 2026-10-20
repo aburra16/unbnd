@@ -165,7 +165,7 @@ never runs with the normal stack.
 The documented droplet tasks are dispatchable from GitHub Actions —
 `.github/workflows/staging-ops.yml` (Actions tab → "Staging ops" → Run
 workflow, or `gh workflow run "Staging ops" -f task=<task>`). Fixed menu:
-`promote` / `index` / `shelves` / `recast` / `set-public-origin` /
+`promote` / `labels` / `index` / `shelves` / `recast` / `set-public-origin` /
 `install-cron` (installs the documented worker crontab below, idempotently; logs to `/opt/unbnd/ops-logs/`) / `show-status` (read-only diagnostics). Each runs the same compose commands
 documented below over the CI deploy key, pinned to the deployed
 `UNBND_IMAGE_TAG`.
@@ -201,6 +201,19 @@ starts with the normal stack.
    ```
    */5 * * * * cd /opt/unbnd && docker compose -f docker-compose.prod.yml --profile promote run --rm promoter >> /opt/unbnd/ops-logs/promote.log 2>&1
    ```
+   The same image keeps each record's labels current (Story 105 / ADR 0094): a
+   `labels` pass computes every book's genre, format and language labels and
+   republishes, librarian-signed, only the records whose labels differ. A second
+   crontab line runs it between promoter cycles, under a lock so a long pass (the
+   first one relabels the whole catalog) never overlaps the next:
+   ```
+   2-59/5 * * * * cd /opt/unbnd && flock -n /opt/unbnd/ops-logs/labels.lock docker compose -f docker-compose.prod.yml --profile promote run --rm promoter node index.js labels >> /opt/unbnd/ops-logs/labels.log 2>&1
+   ```
+   The line takes effect once `install-cron` is run again after this deploy. Run a
+   pass by hand with `gh workflow run "Staging ops" -f task=labels` (same lock).
+   The first pass after deploy labels the whole catalog and can outlast one run;
+   a later pass picks up where it stopped. A relabelled record keeps its first
+   date in an `added` tag, which "Recently added" sorts by (ADR 0094 §6).
    It is idempotent: each promoted book is republished under the same address
    `39999:<librarian>:<slug>`, and a re-enqueue of the same slug collides on the
    `promotions.slug` unique constraint, so double-promote can never duplicate a
@@ -218,11 +231,11 @@ the tag once that event is live.
 ```sh
 # reveal an accusatory tag for a book
 docker compose -f docker-compose.prod.yml --profile promote run --rm promoter \
-  reveal --book <book-slug> --tag <tag-slug>
+  node index.js reveal --book <book-slug> --tag <tag-slug>
 
 # withdraw a previously revealed tag (the reversal)
 docker compose -f docker-compose.prod.yml --profile promote run --rm promoter \
-  reveal --book <book-slug> --tag <tag-slug> --withdraw
+  node index.js reveal --book <book-slug> --tag <tag-slug> --withdraw
 ```
 
 The actor recorded as `requested_by` is the librarian identity. The effect is

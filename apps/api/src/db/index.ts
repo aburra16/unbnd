@@ -6,6 +6,7 @@ import * as schema from "./schema";
 import { homepageShelves, promotions, reveals } from "./schema";
 import { migrations } from "./migrations";
 import type { CachedShelfSet } from "../routes/homepage-shelves";
+import { shelfSetFromRows } from "./shelf-set";
 
 /** The promotion job lifecycle states (ADR 0031 §1). */
 export type PromotionStatus =
@@ -119,23 +120,10 @@ export async function runMigrations(databaseUrl: string): Promise<void> {
   }
 }
 
-const GENRE_KIND_PREFIX = "genre:";
-
-/** Title-case a genre slug for display (e.g. "sci-fi" → "Sci Fi"). The cache
- * stores only slugs (ADR 0036 §2); the slug is the identity, the name cosmetic. */
-function genreNameFromSlug(slug: string): string {
-  return slug
-    .split(/[-_]/)
-    .filter(Boolean)
-    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
-    .join(" ");
-}
-
 /**
- * Read the homepage trust-shelf cache for one observer (ADR 0036 §3). Groups the
- * `homepage_shelves` rows by `kind`, ordered by `position`, into the ordered-slug
- * `CachedShelfSet` the serve route hydrates. Honest empty when the observer has
- * no rows (`computedAt: null`). Genre rows carry `kind = 'genre:<slug>'`.
+ * Read the homepage trust-shelf cache for one observer (ADR 0036 §3): the rows
+ * for that observer, mapped by `shelfSetFromRows`. Honest empty when the
+ * observer has no rows (`computedAt: null`).
  */
 export async function readShelfCache(observerHex: string): Promise<CachedShelfSet> {
   const rows = await db
@@ -147,44 +135,7 @@ export async function readShelfCache(observerHex: string): Promise<CachedShelfSe
     })
     .from(homepageShelves)
     .where(eq(homepageShelves.observerHex, observerHex));
-
-  if (rows.length === 0) {
-    return { computedAt: null, trending: [], favorites: [], genres: [] };
-  }
-
-  const sorted = [...rows].sort((a, b) => a.position - b.position);
-  const trending: string[] = [];
-  const favorites: string[] = [];
-  const genreSlugs: string[] = [];
-  const byGenre = new Map<string, string[]>();
-  let computedAt: Date | null = null;
-
-  for (const r of sorted) {
-    if (r.computedAt && (!computedAt || r.computedAt > computedAt)) {
-      computedAt = r.computedAt;
-    }
-    if (r.kind === "trending") trending.push(r.bookSlug);
-    else if (r.kind === "favorites") favorites.push(r.bookSlug);
-    else if (r.kind.startsWith(GENRE_KIND_PREFIX)) {
-      const slug = r.kind.slice(GENRE_KIND_PREFIX.length);
-      if (!byGenre.has(slug)) {
-        byGenre.set(slug, []);
-        genreSlugs.push(slug);
-      }
-      byGenre.get(slug)!.push(r.bookSlug);
-    }
-  }
-
-  return {
-    computedAt: computedAt ? computedAt.toISOString() : null,
-    trending,
-    favorites,
-    genres: genreSlugs.map((slug) => ({
-      slug,
-      name: genreNameFromSlug(slug),
-      books: byGenre.get(slug) ?? [],
-    })),
-  };
+  return shelfSetFromRows(rows);
 }
 
 /**

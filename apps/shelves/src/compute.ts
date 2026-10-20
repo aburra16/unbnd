@@ -19,6 +19,7 @@ import {
   fromBookTagAssertionEvent,
   fromBookTagEvent,
   fromWireEvent,
+  isDelistedRecord,
   type SignedNostrEvent,
 } from "@unbnd/schemas";
 import {
@@ -48,6 +49,8 @@ export type ShelfSet = {
   readonly favorites: ShelfRow[];
   /** Story 71 / ADR 0069: highest positive hype-gap (trusted above the crowd). */
   readonly hiddenGems: ShelfRow[];
+  /** Story 105 / ADR 0094 §6: newest first-added date first. */
+  readonly recent: ShelfRow[];
   readonly genres: ShelfGenre[];
 };
 
@@ -94,7 +97,36 @@ export type ShelfCycleDeps = ShelfComputeDeps & {
   readonly cache: ShelvesCache;
 };
 
-const EMPTY: ShelfSet = { trending: [], favorites: [], hiddenGems: [], genres: [] };
+const EMPTY: ShelfSet = { trending: [], favorites: [], hiddenGems: [], recent: [], genres: [] };
+
+/** How many books "Recently added" keeps: the API's largest page. */
+export const RECENT_SHELF_SIZE = 100;
+
+/**
+ * "Recently added" (Story 105 / ADR 0094 §6): the librarian's newest version of
+ * each listed record, ordered by its first-added date (the `added` tag a relabel
+ * stamps), falling back to `created_at` for a record never republished.
+ */
+function recentlyAdded(bookEvents: readonly SignedNostrEvent[], lib: string): ShelfRow[] {
+  const newest = new Map<string, SignedNostrEvent>();
+  for (const e of bookEvents) {
+    if (e.pubkey !== lib) continue;
+    const slug = fromBookRecordEventSlug(e);
+    if (!slug) continue;
+    const prior = newest.get(slug);
+    if (!prior || e.created_at > prior.created_at) newest.set(slug, e);
+  }
+  const addedAt = (e: SignedNostrEvent) => {
+    const added = Number(e.tags.find((t) => t[0] === "added")?.[1]);
+    return Number.isInteger(added) && added > 0 ? added : e.created_at;
+  };
+  return [...newest.entries()]
+    .filter(([, e]) => !isDelistedRecord(e))
+    .map(([slug, e]) => ({ slug, at: addedAt(e) }))
+    .sort((a, b) => b.at - a.at || a.slug.localeCompare(b.slug))
+    .slice(0, RECENT_SHELF_SIZE)
+    .map((x) => ({ bookSlug: x.slug }));
+}
 
 /** Parse the genre taxonomy elements (keep `type === "genre"`). */
 function parseGenres(events: SignedNostrEvent[]): Array<{ slug: string; name: string }> {
@@ -165,7 +197,7 @@ export async function computeShelves(deps: ShelfComputeDeps): Promise<ShelfSet> 
   const [bookEvents, ratingEvents, taxonomyEvents, assertionEvents] = await Promise.all([
     deps.readConcept(booksZ),
     deps.readReviews(),
-    deps.readConcept(tagsZ),
+    deps.readConcept(tagsZ).then((events) => events.filter((e) => e.pubkey === lib)),
     deps.readConcept(assertsZ),
   ]);
 
@@ -281,7 +313,7 @@ export async function computeShelves(deps: ShelfComputeDeps): Promise<ShelfSet> 
     .slice(0, deps.defs.booksPerRow)
     .map((x) => ({ bookSlug: x.slug }));
 
-  return { trending, favorites, hiddenGems, genres: genresOut };
+  return { trending, favorites, hiddenGems, recent: recentlyAdded(bookEvents, lib), genres: genresOut };
 }
 
 /** The catalog book slug from a kind-39999 book record event, or null. */
