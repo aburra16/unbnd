@@ -71,6 +71,10 @@ describe("Staging ops runs it (ADR 0093 §6)", () => {
     expect(opsSrc).toMatch(/years-fix\)[\s\S]*?run --rm seeder node years\.js --apply/);
   });
 
+  it("years-fix waits for the labels pass's lock, so neither overwrites the other", () => {
+    expect(opsSrc).toMatch(/years-fix\)[\s\S]*?flock \/opt\/unbnd\/ops-logs\/labels\.lock docker compose[^\n]*node years\.js --apply/);
+  });
+
   it("documents both tasks in DEPLOY.md", () => {
     expect(deploySrc).toContain("years-check");
     expect(deploySrc).toContain("years-fix");

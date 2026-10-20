@@ -385,6 +385,21 @@ describe("correctedRecordTemplate — only the year changes (AC 6)", () => {
     expect(() => correctedRecordTemplate(odd, 2007, T0 + 100)).toThrow();
   });
 
+  it("refuses a stray schema tag the payload does not back (pages with no pageCount)", async () => {
+    const { correctedRecordTemplate } = await load();
+    const base = toWireTemplate(toBookRecordEvent(LAKE), T0); // LAKE has no pageCount
+    const odd = signedLike({ ...base, tags: [...base.tags, ["pages", "389"]] });
+    expect(() => correctedRecordTemplate(odd, 2003, T0 + 100)).toThrow();
+  });
+
+  it("refuses a word wrapper that disagrees with the record (word.title)", async () => {
+    const { correctedRecordTemplate } = await load();
+    const odd = editPayload(toWireTemplate(toBookRecordEvent(STEP), T0), (p) => {
+      p.word.title = "Step On A Crack";
+    });
+    expect(() => correctedRecordTemplate(odd, 2007, T0 + 100)).toThrow();
+  });
+
   it("the planner reports such a record as refused instead of correcting it", async () => {
     const { planYearCorrections } = await load();
     const base = toWireTemplate(toBookRecordEvent(STEP), T0);
