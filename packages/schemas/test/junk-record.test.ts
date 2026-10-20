@@ -133,12 +133,7 @@ describe("isJunkRecord — denylist title signal (the shared JUNK_TITLE_RE)", ()
   }
 });
 
-describe("isJunkRecord — year signal (PRESENT and out of 1800..currentYear)", () => {
-  it("flags a record whose publishYear is before 1800 (1799)", async () => {
-    const { isJunkRecord } = await load();
-    expect(isJunkRecord({ ...cleanBook, publishYear: 1799 }, CURRENT_YEAR)).toBe(true);
-  });
-
+describe("isJunkRecord — year signal: only a PRESENT year after currentYear (Story 103, ADR 0091 §2)", () => {
   it("flags a record whose publishYear is after the current year (currentYear + 1)", async () => {
     const { isJunkRecord } = await load();
     expect(
@@ -146,16 +141,63 @@ describe("isJunkRecord — year signal (PRESENT and out of 1800..currentYear)", 
     ).toBe(true);
   });
 
-  it("keeps a record at the lower bound year 1800", async () => {
-    const { isJunkRecord } = await load();
-    expect(isJunkRecord({ ...cleanBook, publishYear: 1800 }, CURRENT_YEAR)).toBe(false);
-  });
-
   it("keeps a record at the upper bound year (currentYear)", async () => {
     const { isJunkRecord } = await load();
     expect(
       isJunkRecord({ ...cleanBook, publishYear: CURRENT_YEAR }, CURRENT_YEAR),
     ).toBe(false);
+  });
+
+  // The hub's real early works (2026-10-20 count): an early year is evidence
+  // about the year, never about the record.
+  for (const [label, year] of [
+    ["Gulliver's Travels, 1726", 1726],
+    ["Hamlet, 1603", 1603],
+    ["The Canterbury Tales, 1478", 1478],
+    ["the year before the old floor, 1799", 1799],
+  ] as const) {
+    it(`keeps a record first printed before 1800 (${label})`, async () => {
+      const { isJunkRecord } = await load();
+      expect(isJunkRecord({ ...cleanBook, publishYear: year }, CURRENT_YEAR)).toBe(false);
+    });
+  }
+
+  // A real book with a bad Open Library year (The War of the Worlds reads 0).
+  for (const year of [0, 1000, 1449]) {
+    it(`keeps a record whose year is before printing (${year}): a bad year is not junk`, async () => {
+      const { isJunkRecord } = await load();
+      expect(isJunkRecord({ ...cleanBook, publishYear: year }, CURRENT_YEAR)).toBe(false);
+    });
+  }
+});
+
+// Story 103 / ADR 0091 §1: the single year floor and the read projection's
+// year. NEW exports of BookRecord, loaded opaquely like the oracle above.
+type YearModule = {
+  PRINT_ERA_START: number;
+  credibleYear: (year: number | undefined) => number | undefined;
+};
+const loadYear = () => loadSchemasModule<YearModule>("BookRecord");
+
+describe("PRINT_ERA_START and credibleYear (Story 103, ADR 0091 §1)", () => {
+  it("names 1450 as the year floor", async () => {
+    const { PRINT_ERA_START } = await loadYear();
+    expect(PRINT_ERA_START).toBe(1450);
+  });
+
+  it("reports the year from the floor on (1450, 1478, 1726, 2026)", async () => {
+    const { credibleYear } = await loadYear();
+    for (const y of [1450, 1478, 1726, 2026]) expect(credibleYear(y)).toBe(y);
+  });
+
+  it("reports no year before printing (0, 1000, 1111, 1449, a negative year)", async () => {
+    const { credibleYear } = await loadYear();
+    for (const y of [0, 1000, 1111, 1449, -400]) expect(credibleYear(y)).toBeUndefined();
+  });
+
+  it("reports no year when there is none", async () => {
+    const { credibleYear } = await loadYear();
+    expect(credibleYear(undefined)).toBeUndefined();
   });
 });
 

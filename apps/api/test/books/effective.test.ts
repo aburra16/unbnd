@@ -81,10 +81,36 @@ describe("parseBook — returns null for junk (Story 56, ADR 0055 §3)", () => {
       parseBook(bookEvent({ slug: "future", publishYear: CURRENT_YEAR + 1 }), CURRENT_YEAR),
     ).toBeNull();
   });
+});
 
-  it("returns null for a record with a publishYear before 1800", async () => {
+describe("parseBook — early books resolve (Story 103, ADR 0091 §2–§3)", () => {
+  it("returns Gulliver's Travels (1726) with its year", async () => {
     const { parseBook } = await load();
-    expect(parseBook(bookEvent({ slug: "ancient", publishYear: 1700 }), CURRENT_YEAR)).toBeNull();
+    const book = parseBook(
+      bookEvent({ slug: "ol-ol20600w", title: "Gulliver's Travels", publishYear: 1726 }),
+      CURRENT_YEAR,
+    );
+    expect(book?.slug).toBe("ol-ol20600w");
+    expect(book?.publishYear).toBe(1726);
+  });
+
+  it("returns The Canterbury Tales (1478) with its year", async () => {
+    const { parseBook } = await load();
+    const book = parseBook(bookEvent({ slug: "ol-ol531767w", publishYear: 1478 }), CURRENT_YEAR);
+    expect(book?.publishYear).toBe(1478);
+  });
+
+  it("returns a book whose year is before printing, with no year (The War of the Worlds at 0)", async () => {
+    const { parseBook } = await load();
+    const book = parseBook(bookEvent({ slug: "ol-ol52114w", publishYear: 0 }), CURRENT_YEAR);
+    expect(book?.slug).toBe("ol-ol52114w");
+    expect(book?.publishYear).toBeUndefined();
+  });
+
+  it("reports no year for 1449 and the year for 1450", async () => {
+    const { parseBook } = await load();
+    expect(parseBook(bookEvent({ slug: "a", publishYear: 1449 }), CURRENT_YEAR)?.publishYear).toBeUndefined();
+    expect(parseBook(bookEvent({ slug: "b", publishYear: 1450 }), CURRENT_YEAR)?.publishYear).toBe(1450);
   });
 });
 

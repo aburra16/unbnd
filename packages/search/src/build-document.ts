@@ -8,6 +8,7 @@
 // Returns null when the record is junk (isJunkRecord) → caller skips. Pure; no
 // relay/provider I/O here.
 import {
+  credibleYear,
   fromBookRecordEvent,
   fromBookTagEvent,
   fromBookTagAssertionEvent,
@@ -106,7 +107,7 @@ export function buildBookDocument(
     blurb: rec.blurb,
     format: rec.format,
     language: rec.language,
-    publishYear: rec.publishYear,
+    publishYear: credibleYear(rec.publishYear), // ADR 0091 §3
     coverUrl: rec.coverUrl,
     openLibraryId: rec.openLibraryId,
   };

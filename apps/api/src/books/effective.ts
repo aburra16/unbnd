@@ -7,6 +7,7 @@
 // no duplication. none-on-conflict (ADR 0033 D5): an overlay is applied only when
 // EXACTLY ONE claimant is verified; 0 or >1 → canonical, authorProvided [].
 import {
+  credibleYear,
   fromBookAuthorOverlayEvent,
   fromBookRecordEvent,
   fromWireEvent,
@@ -48,7 +49,8 @@ function toPublicBook(record: BookRecord): PublicBook {
     authorName: record.authorName,
     blurb: record.blurb,
     coverUrl: record.coverUrl,
-    publishYear: record.publishYear,
+    // ADR 0091 §3: a year before printing reads as none.
+    publishYear: credibleYear(record.publishYear),
     pageCount: record.pageCount,
     language: record.language,
     subjects: record.subjects,

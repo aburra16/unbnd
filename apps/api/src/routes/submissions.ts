@@ -8,6 +8,7 @@ import { parse as parseCookie } from "cookie";
 import { npubEncode } from "nostr-tools/nip19";
 import {
   buildBookSubmissionsHeaderAddress,
+  credibleYear,
   fromBookRecordEvent,
   fromWireEvent,
   asHexPubkey,
@@ -98,7 +99,7 @@ function toSubmission(e: SignedNostrEvent, withSubmitter: boolean) {
       authorName: rec.authorName,
       isbn13: rec.isbn13,
       coverUrl: rec.coverUrl,
-      publishYear: rec.publishYear,
+      publishYear: credibleYear(rec.publishYear), // ADR 0091 §3
       createdAt: e.created_at,
       ...(withSubmitter ? { submitter: npubEncode(e.pubkey) } : {}),
     };

@@ -6,6 +6,7 @@ import { ToggleSwitch } from "../components/ToggleSwitch";
 import { AccountPrompt } from "../components/AccountPrompt";
 import { useSession } from "../hooks/useSession";
 import { coverGradient } from "../lib/view-model";
+import { PRINT_ERA_START } from "@unbnd/schemas";
 import { Button, Field, Label, Link } from "@unbnd/ui";
 import { api, ApiError, type SignedEvent, type SubmissionInput } from "../lib/api";
 import "./Submit.css";
@@ -344,7 +345,7 @@ export function Submit() {
                 id="sub-year"
                 name="year"
                 type="number"
-                min={1500}
+                min={PRINT_ERA_START}
                 max={new Date().getFullYear() + 1}
                 placeholder="2025"
                 value={fields.year}

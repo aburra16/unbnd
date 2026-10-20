@@ -178,6 +178,32 @@ describe("buildBookDocument — junk record (AC: junk never indexed on write)", 
   });
 });
 
+describe("buildBookDocument — early books are indexed (Story 103, ADR 0091 §2–§3)", () => {
+  it("indexes Gulliver's Travels (1726) with its year", async () => {
+    const { buildBookDocument } = await load();
+    const doc = buildBookDocument(
+      bookEvent({ slug: "ol-ol20600w", title: "Gulliver's Travels", publishYear: 1726 }),
+      [],
+      [],
+      CURRENT_YEAR,
+    );
+    expect(doc?.id).toBe("ol-ol20600w");
+    expect(doc?.publishYear).toBe(1726);
+  });
+
+  it("indexes a book whose year is before printing, with no year (0)", async () => {
+    const { buildBookDocument } = await load();
+    const doc = buildBookDocument(
+      bookEvent({ slug: "ol-ol52114w", publishYear: 0 }),
+      [],
+      [],
+      CURRENT_YEAR,
+    );
+    expect(doc?.id).toBe("ol-ol52114w");
+    expect(doc?.publishYear).toBeUndefined();
+  });
+});
+
 describe("buildBookDocument — a clean book with no assertions still builds (empty tags)", () => {
   it("returns a doc with empty tags/genreSlugs", async () => {
     const { buildBookDocument } = await load();
