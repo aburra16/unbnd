@@ -175,6 +175,12 @@ export type Config = {
    */
   readonly maintenanceIntervalMs?: number;
   /**
+   * How often the review sync runs (Story 99 / ADR 0089 §5): pull book reviews
+   * and removals from the review set, push recent ones to the index. Env
+   * `REVIEW_SYNC_INTERVAL_MS`, a non-negative integer, default 2 min; 0 disables.
+   */
+  readonly reviewSyncIntervalMs?: number;
+  /**
    * The recent-window bound for the up-sync sync-health check (Story 63 / ADR
    * 0062): `since = now − window`. Env `UPSYNC_CHECK_WINDOW_MS`, validated as a
    * positive integer, default 30 min (~6 cron cycles of margin). Always set by
@@ -417,6 +423,15 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
     );
   }
 
+  // Review sync interval (Story 99 / ADR 0089 §5). Non-negative integer ms; 0 disables.
+  const reviewSyncRaw = withDefault(env, "REVIEW_SYNC_INTERVAL_MS", String(2 * 60 * 1000));
+  const reviewSyncIntervalMs = Number(reviewSyncRaw);
+  if (!Number.isInteger(reviewSyncIntervalMs) || reviewSyncIntervalMs < 0) {
+    throw new Error(
+      `config: REVIEW_SYNC_INTERVAL_MS must be a non-negative integer; got ${JSON.stringify(reviewSyncRaw)}`,
+    );
+  }
+
   // Maintenance timer interval (ADR 0061). Positive integer ms; default 1h.
   const maintenanceIntervalRaw = withDefault(
     env,
@@ -598,6 +613,7 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
     curatorSeedPubkeys,
     ephemeralKeyTtlMs,
     maintenanceIntervalMs,
+    reviewSyncIntervalMs,
     upsyncCheckWindowMs,
     upsyncCheckLimit,
     upsyncCheckIntervalMs,

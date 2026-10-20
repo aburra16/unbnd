@@ -12,12 +12,10 @@
 // neutral `TrustProvider.weights` seam (the architecture guard enforces it).
 import { npubEncode } from "nostr-tools/nip19";
 import {
-  buildBookRatingsHeaderAddress,
   buildBookRecordsHeaderAddress,
   buildBookTagsHeaderAddress,
   buildBookTagAssertionsHeaderAddress,
   formatAddress,
-  fromBookRatingEvent,
   fromBookTagAssertionEvent,
   fromBookTagEvent,
   fromWireEvent,
@@ -28,6 +26,7 @@ import {
   weightedRatings,
   type ParsedRating,
   type TrustProvider,
+  REVIEW_WEIGHT_LINE,
 } from "@unbnd/trust";
 import type { ShelfDefs } from "./config";
 
@@ -61,6 +60,11 @@ export type ShelfComputeDeps = {
   readonly config: ShelfComputeConfig;
   /** Reads the canned/live events for a `#z` concept address. */
   readonly readConcept: (z: string) => Promise<SignedNostrEvent[]>;
+  /**
+   * Every book review (kind 34259, `m book`) with its authors' removals
+   * (Story 99 / ADR 0089); the shared fold decides which stand.
+   */
+  readonly readReviews: () => Promise<SignedNostrEvent[]>;
   /** The neutral trust seam (ADR 0014). Never throws per its contract; we still
    * wrap the call so a surprise rejection degrades to an empty map. */
   readonly trust: TrustProvider;
@@ -91,18 +95,6 @@ export type ShelfCycleDeps = ShelfComputeDeps & {
 };
 
 const EMPTY: ShelfSet = { trending: [], favorites: [], hiddenGems: [], genres: [] };
-
-/** The bookSlug a rating event targets (the `["t", <bookSlug>]` tag / payload). */
-function ratingBookSlug(event: SignedNostrEvent): string | null {
-  try {
-    const rating = fromBookRatingEvent(
-      fromWireEvent({ kind: event.kind, content: event.content, tags: event.tags }) as never,
-    );
-    return rating.bookSlug;
-  } catch {
-    return null;
-  }
-}
 
 /** Parse the genre taxonomy elements (keep `type === "genre"`). */
 function parseGenres(events: SignedNostrEvent[]): Array<{ slug: string; name: string }> {
@@ -167,13 +159,12 @@ export async function computeShelves(deps: ShelfComputeDeps): Promise<ShelfSet> 
   if (!observer || !lib) return EMPTY;
 
   const booksZ = formatAddress(buildBookRecordsHeaderAddress(lib as never));
-  const ratingsZ = formatAddress(buildBookRatingsHeaderAddress(lib as never));
   const tagsZ = formatAddress(buildBookTagsHeaderAddress(lib as never));
   const assertsZ = formatAddress(buildBookTagAssertionsHeaderAddress(lib as never));
 
   const [bookEvents, ratingEvents, taxonomyEvents, assertionEvents] = await Promise.all([
     deps.readConcept(booksZ),
-    deps.readConcept(ratingsZ),
+    deps.readReviews(),
     deps.readConcept(tagsZ),
     deps.readConcept(assertsZ),
   ]);
@@ -189,24 +180,16 @@ export async function computeShelves(deps: ShelfComputeDeps): Promise<ShelfSet> 
     }
   }
 
-  // Group rating events by book slug (only catalog members).
-  const ratingsByBook = new Map<string, SignedNostrEvent[]>();
-  for (const e of ratingEvents) {
-    const slug = ratingBookSlug(e);
-    if (!slug || !catalogSlugs.has(slug)) continue;
-    const arr = ratingsByBook.get(slug) ?? [];
-    arr.push(e);
-    ratingsByBook.set(slug, arr);
-  }
-
-  // Dedup per (rater, book); collect the UNION of all rater hexes for ONE
-  // batched weights call (AC-7).
+  // The standing reviews (books actions contract §4, §6), grouped by catalog
+  // book; collect the UNION of all rater hexes for ONE batched weights call (AC-7).
   const dedupedByBook = new Map<string, ParsedRating[]>();
   const raterUnion = new Set<string>();
-  for (const [slug, events] of ratingsByBook) {
-    const deduped = dedupeRatings(events);
-    dedupedByBook.set(slug, deduped);
-    for (const r of deduped) raterUnion.add(r.pubkey);
+  for (const r of dedupeRatings(ratingEvents, { librarian: lib, now: deps.now() })) {
+    if (!catalogSlugs.has(r.bookSlug)) continue;
+    const arr = dedupedByBook.get(r.bookSlug) ?? [];
+    arr.push(r);
+    dedupedByBook.set(r.bookSlug, arr);
+    raterUnion.add(r.pubkey);
   }
 
   // ONE bounded, batched weights call from the HOUSE vantage. Wrapped so a
@@ -229,7 +212,8 @@ export async function computeShelves(deps: ShelfComputeDeps): Promise<ShelfSet> 
     for (const r of deduped) {
       if (r.createdAt < windowStart) continue; // out of window
       const w = weights.get(r.pubkey) ?? 0;
-      if (w > 0) activity += w * r.score;
+      // Counted from the rank-5 line, like every star value (contract §8).
+      if (w >= REVIEW_WEIGHT_LINE && r.score !== null) activity += w * r.score;
     }
     if (activity > 0) trendingScores.push({ slug, activity });
   }
@@ -287,8 +271,9 @@ export async function computeShelves(deps: ShelfComputeDeps): Promise<ShelfSet> 
     const weighted = weightedRatings(deduped, weights, observerNpub);
     if (!weighted) continue; // no trusted signal → not a gem (honest empty)
     if (weighted.trustedCount < deps.defs.favoritesMinRatings) continue;
-    if (deduped.length === 0) continue;
-    const rawAverage = deduped.reduce((sum, r) => sum + r.score, 0) / deduped.length;
+    const starred = deduped.filter((r) => r.score !== null);
+    if (starred.length === 0) continue;
+    const rawAverage = starred.reduce((sum, r) => sum + (r.score as number), 0) / starred.length;
     const gap = weighted.average - rawAverage;
     if (gap < deps.defs.hiddenGemsMargin) continue; // consensus + overhyped excluded
     gemScores.push({ slug, gap });

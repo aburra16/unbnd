@@ -1,27 +1,21 @@
-// Build the unsigned kind-39999 BookRating wire template, server-side, with
-// the librarian pubkey resolved from config. ADR 0005.
+// Unsigned book review and removal templates (Story 99 / ADR 0089 §4), built
+// on the person's current review so an edit carries over what other apps set,
+// and dated so it outranks the version, or the removal, it follows.
 import {
-  asHexPubkey,
-  buildBookRatingRetraction,
-  buildBookRatingsHeaderAddress,
-  toBookRatingEvent,
-  toWireTemplate,
-  type BookRating,
+  BOOK_REVIEW_KIND,
+  BOOK_REVIEW_WORDS_MAX,
+  buildBookReviewRemoval,
+  buildBookReviewTemplate,
   type NostrEventTemplate,
-  type RatingScore,
+  type SignedNostrEvent,
 } from "@unbnd/schemas";
 import type { Config } from "../config";
-
-export type BuildRatingInput = {
-  readonly raterPubkey: string;
-  readonly bookSlug: string;
-  readonly score: number;
-  readonly reviewText?: string;
-  readonly reviewDate: string;
-};
+import type { NostrFilter } from "../nostr/query";
+import { dedupeRatings, reviewScope, type ParsedRating } from "./summary";
 
 export type RatingErrorCode =
   | "score_out_of_range"
+  | "words_too_long"
   | "feature_unavailable"
   | "invalid_book";
 
@@ -35,79 +29,73 @@ export class RatingError extends Error {
   }
 }
 
-function isValidScore(n: number): n is RatingScore {
-  return Number.isInteger(n) && n >= 1 && n <= 5;
-}
+type Query = (filter: NostrFilter) => Promise<SignedNostrEvent[]>;
 
-export function buildRatingTemplate(
-  config: Config,
-  input: BuildRatingInput,
-  createdAt: number,
-): NostrEventTemplate {
-  if (!isValidScore(input.score)) {
-    throw new RatingError(
-      "score_out_of_range",
-      "Rating score must be an integer from 1 to 5.",
-    );
-  }
+export function bookAddressOf(config: Pick<Config, "librarianPubkey">, slug: unknown): string {
   if (!config.librarianPubkey) {
-    throw new RatingError(
-      "feature_unavailable",
-      "Rating publishing is not configured (no librarian pubkey).",
-    );
+    throw new RatingError("feature_unavailable", "Reviews are not configured (no librarian pubkey).");
   }
-
-  const librarian = asHexPubkey(config.librarianPubkey);
-  const raterPubkey = asHexPubkey(input.raterPubkey);
-
-  const rating: BookRating = {
-    bookSlug: input.bookSlug,
-    // The house catalog: book records are owned by the librarian identity.
-    bookAddress: { kind: 39999, pubkey: librarian, dTag: input.bookSlug },
-    raterPubkey,
-    score: input.score,
-    reviewText: input.reviewText,
-    reviewDate: input.reviewDate,
-    parentHeader: buildBookRatingsHeaderAddress(librarian),
-  };
-
-  return toWireTemplate(toBookRatingEvent(rating), createdAt);
-}
-
-export type BuildRetractionInput = {
-  readonly raterPubkey: string;
-  readonly bookSlug: string;
-};
-
-/**
- * Build the unsigned retraction wire template (Story 79 / ADR 0077): the SAME
- * `rating--<slug>--<rater8>` d-tag as the caller's rating, the retracted
- * marker, no score. Signing stays per-tier (sovereign NIP-07 / custodial
- * session key) exactly like the rating template.
- */
-export function buildRetractionTemplate(
-  config: Config,
-  input: BuildRetractionInput,
-  createdAt: number,
-): NostrEventTemplate {
-  if (typeof input.bookSlug !== "string" || input.bookSlug === "") {
+  if (typeof slug !== "string" || slug === "" || /[\s:]/.test(slug)) {
     throw new RatingError("invalid_book", "A book slug is required.");
   }
-  if (!config.librarianPubkey) {
-    throw new RatingError(
-      "feature_unavailable",
-      "Rating removal is not configured (no librarian pubkey).",
-    );
+  return `39999:${config.librarianPubkey}:${slug}`;
+}
+
+/** One person's own events at a book's review address: their reviews and removals. */
+async function ownHistory(query: Query, pubkey: string, address: string): Promise<SignedNostrEvent[]> {
+  const [reviews, removals] = await Promise.all([
+    query({ kinds: [BOOK_REVIEW_KIND], authors: [pubkey], "#d": [`book:${address}`] }),
+    query({ kinds: [5], authors: [pubkey], "#a": [`${BOOK_REVIEW_KIND}:${pubkey}:book:${address}`] }),
+  ]);
+  return [...reviews, ...removals];
+}
+
+/** The person's standing review of a book, if any, with its raw event. */
+export async function currentReview(
+  config: Config,
+  query: Query,
+  pubkey: string,
+  address: string,
+): Promise<{ standing: ParsedRating | null; history: SignedNostrEvent[] }> {
+  const history = await ownHistory(query, pubkey, address);
+  const standing = dedupeRatings(history, reviewScope(config)).find((r) => r.bookAddress === address) ?? null;
+  return { standing, history };
+}
+
+export async function buildReviewTemplateFor(
+  config: Config,
+  query: Query,
+  input: { readonly pubkey: string; readonly bookSlug: unknown; readonly score: unknown; readonly reviewText?: unknown },
+  nowSec: number,
+): Promise<NostrEventTemplate> {
+  const address = bookAddressOf(config, input.bookSlug);
+  const stars = input.score;
+  if (typeof stars !== "number" || !Number.isInteger(stars) || stars < 1 || stars > 5) {
+    throw new RatingError("score_out_of_range", "Rating score must be an integer from 1 to 5.");
+  }
+  const words = typeof input.reviewText === "string" ? input.reviewText.trim() : "";
+  if (words.length > BOOK_REVIEW_WORDS_MAX) {
+    throw new RatingError("words_too_long", `A review can be at most ${BOOK_REVIEW_WORDS_MAX} characters.`);
   }
 
-  const librarian = asHexPubkey(config.librarianPubkey);
-  return toWireTemplate(
-    buildBookRatingRetraction({
-      bookSlug: input.bookSlug,
-      bookAddress: { kind: 39999, pubkey: librarian, dTag: input.bookSlug },
-      raterPubkey: asHexPubkey(input.raterPubkey),
-      parentHeader: buildBookRatingsHeaderAddress(librarian),
-    }),
-    createdAt,
-  );
+  const [book] = await query({
+    kinds: [39999],
+    authors: [config.librarianPubkey as string],
+    "#d": [input.bookSlug as string],
+  });
+  const title = book?.tags.find((t) => t[0] === "title")?.[1];
+  if (!book || !title) throw new RatingError("invalid_book", "That book is not in the catalog.");
+
+  const { standing, history } = await currentReview(config, query, input.pubkey, address);
+  const previous = standing ? history.find((e) => e.id === standing.id) : undefined;
+  // After a removal, a new review must be dated past it, or the removal takes it down too.
+  const lastRemoval = Math.max(0, ...history.filter((e) => e.kind === 5).map((e) => e.created_at));
+  const now = Math.max(nowSec, lastRemoval + 1);
+
+  return buildBookReviewTemplate({ bookAddress: address, title, stars, words, now, previous });
+}
+
+export function buildRemovalTemplateFor(current: ParsedRating, pubkey: string, nowSec: number): NostrEventTemplate {
+  // Dated no earlier than the review, so the removal takes it down by address as well as by id.
+  return buildBookReviewRemoval({ id: current.id, pubkey, d: current.d }, Math.max(nowSec, current.createdAt));
 }

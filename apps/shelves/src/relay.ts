@@ -9,6 +9,7 @@ import type { SignedNostrEvent } from "@unbnd/schemas";
 
 export type NostrFilter = {
   readonly kinds?: number[];
+  readonly authors?: string[];
   readonly limit?: number;
   readonly until?: number;
   readonly since?: number;

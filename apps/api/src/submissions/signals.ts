@@ -15,6 +15,7 @@
 // presented as trusted, never a raw GrapeRank number on the wire.
 import { npubEncode } from "nostr-tools/nip19";
 import type { SignedNostrEvent } from "@unbnd/schemas";
+import type { ReviewScope } from "../ratings/summary";
 import type { TrustProvider } from "../trust";
 import { dedupeRatings, weightedRatings } from "../ratings/summary";
 
@@ -29,11 +30,13 @@ export async function computeSubmissionSignals(input: {
   readonly trust: TrustProvider;
   readonly houseObserverHex: string;
   readonly threshold: number;
-  readonly ratingEvents: SignedNostrEvent[];
+  /** The book's reviews and their removals (reviews/read). */
+  readonly ratingEvents: readonly SignedNostrEvent[];
+  readonly scope: ReviewScope;
 }): Promise<SubmissionSignals | null> {
-  const { trust, houseObserverHex, threshold, ratingEvents } = input;
+  const { trust, houseObserverHex, threshold, ratingEvents, scope } = input;
 
-  const deduped = dedupeRatings(ratingEvents);
+  const deduped = dedupeRatings(ratingEvents, scope);
   if (deduped.length === 0) return null;
 
   let weights: Map<string, number>;

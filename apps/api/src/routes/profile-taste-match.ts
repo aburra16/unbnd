@@ -7,14 +7,13 @@
 // House/Yours toggle (the trust-weighted variant is a later story).
 import express, { type Request, type Router } from "express";
 import { parse as parseCookie } from "cookie";
-import { buildBookRatingsHeaderAddress, formatAddress } from "@unbnd/schemas";
 import { computeTasteMatch } from "@unbnd/trust";
 import type { Config } from "../config";
 import type { NostrFilter, PagedResult } from "../nostr/query";
 import { toHex } from "../nostr/npub";
-import { scoreBySlug } from "../ratings/summary";
+import { reviewScope, scoreBySlug } from "../ratings/summary";
+import { readBookReviewsPaged } from "../reviews/read";
 
-const KIND = 39999;
 const COOKIE_NAME = "session";
 const DEFAULT_MIN_OVERLAP = 5;
 
@@ -50,8 +49,6 @@ export type TasteMatchResponse =
 
 export function buildTasteMatchRouter(deps: TasteMatchDeps): Router {
   const router = express.Router();
-  const lib = () => deps.config.librarianPubkey;
-  const ratingsZ = () => formatAddress(buildBookRatingsHeaderAddress(lib() as never));
   const minOverlap = () => deps.config.tasteMatchMinOverlap ?? DEFAULT_MIN_OVERLAP;
 
   router.get("/api/profile/:id/taste-match", async (req, res, next) => {
@@ -75,12 +72,13 @@ export function buildTasteMatchRouter(deps: TasteMatchDeps): Router {
       let observerScores: Map<string, number>;
       let targetScores: Map<string, number>;
       try {
+        const scope = reviewScope(deps.config);
         const [viewerPaged, targetPaged] = await Promise.all([
-          deps.queryPaged({ kinds: [KIND], "#z": [ratingsZ()], authors: [viewer.pubkeyHex] }),
-          deps.queryPaged({ kinds: [KIND], "#z": [ratingsZ()], authors: [targetHex] }),
+          readBookReviewsPaged(deps.queryPaged, { authors: [viewer.pubkeyHex] }),
+          readBookReviewsPaged(deps.queryPaged, { authors: [targetHex] }),
         ]);
-        observerScores = scoreBySlug(viewerPaged.events);
-        targetScores = scoreBySlug(targetPaged.events);
+        observerScores = scoreBySlug(viewerPaged.events, scope);
+        targetScores = scoreBySlug(targetPaged.events, scope);
       } catch {
         return void res.status(200).json({
           signedIn: true,

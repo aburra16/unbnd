@@ -84,3 +84,36 @@ export async function runReviewSyncCycle(
   }
   return { pulled: seen.size, written, pushed };
 }
+
+/**
+ * Run the sync on an unref'd, fault-isolated timer (like the maintenance
+ * sweeper). The watermark starts seven days back and then trails each cycle's
+ * start by ten minutes, so an event that lands mid-cycle is pulled next time.
+ */
+export function startReviewSync(opts: {
+  readonly intervalMs: number;
+  readonly cycle: (since: number, now: number) => Promise<{ pulled: number; written: number; pushed: number }>;
+  readonly log?: (message: string) => void;
+}): { stop: () => void } {
+  if (opts.intervalMs <= 0) return { stop: () => {} };
+  let since = Math.floor(Date.now() / 1000) - 7 * 86_400;
+  let running = false;
+  const tick = async () => {
+    if (running) return;
+    running = true;
+    const now = Math.floor(Date.now() / 1000);
+    try {
+      const r = await opts.cycle(since, now);
+      since = now - 600;
+      if (r.written > 0) opts.log?.(`[review-sync] pulled ${r.pulled}, wrote ${r.written}, pushed ${r.pushed}`);
+    } catch (err) {
+      opts.log?.(`[review-sync] cycle failed: ${err instanceof Error ? err.message : String(err)}`);
+    } finally {
+      running = false;
+    }
+  };
+  const timer = setInterval(() => void tick(), opts.intervalMs);
+  timer.unref();
+  void tick();
+  return { stop: () => clearInterval(timer) };
+}

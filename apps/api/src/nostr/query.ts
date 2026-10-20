@@ -12,6 +12,8 @@ export type NostrFilter = {
   readonly limit?: number;
   readonly since?: number;
   readonly until?: number;
+  /** NIP-50 search; the Brainstorm index needs a token such as "include:spam". */
+  readonly search?: string;
   // Tag filters such as "#a", "#t".
   readonly [tagFilter: `#${string}`]: string[] | undefined;
 };

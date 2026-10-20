@@ -35,13 +35,15 @@ import { buildShelvesRouter } from "./routes/shelves";
 import { buildSubmissionsRouter } from "./routes/submissions";
 import { publishEvent, publishToMany } from "./nostr/publish";
 import { publishPublicRelayKind } from "./nostr/publish-public-relay-kind";
-import { fetchRawKind0, fetchRawKind3 } from "./nostr/profile";
+import { fetchRawKind0, fetchRawKind3, fetchWriteRelays } from "./nostr/profile";
+import { makeReviewPublisher } from "./reviews/publish";
+import { runReviewSyncCycle, startReviewSync } from "./reviews/relay-sync";
 import { bootstrapCustodialKind0 } from "./profile/bootstrap-kind0";
 import { reconcileCustodialKind0 } from "./profile/reconcile-kind0";
 import { distinctFollowCount } from "./profile/follow-count";
 import { withUpSync } from "./nostr/propagate";
 import { resolveTrustProvider } from "./trust";
-import { queryEvents, queryEventsPaged, queryRelayUrlChecked } from "./nostr/query";
+import { queryEvents, queryEventsPaged, queryRelayUrl, queryRelayUrlChecked } from "./nostr/query";
 import {
   checkUpsyncBacklog,
   getUpsyncHealth,
@@ -79,7 +81,7 @@ import {
   useSessionKey,
   NoSessionKeyError,
 } from "./auth/ephemeral";
-import { finalizeEvent } from "nostr-tools/pure";
+import { finalizeEvent, verifyEvent } from "nostr-tools/pure";
 import type { SignedNostrEvent } from "@unbnd/schemas";
 import {
   consumeChallenge,
@@ -528,7 +530,23 @@ async function main() {
       custodialSign: userEventDeps.custodialSign,
     }),
   );
-  app.use("/", buildRatingsRouter(userEventDeps));
+  // Book reviews (Story 99 / ADR 0089): Unbnd's relay first, then the writer's
+  // own write relays (kind 10002, cached an hour) and the review set. Never dcosl.
+  const writeRelayCache = new Map<string, { relays: string[]; at: number }>();
+  const writeRelaysOf = async (pubkey: string): Promise<string[]> => {
+    const hit = writeRelayCache.get(pubkey);
+    if (hit && Date.now() - hit.at < 60 * 60 * 1000) return hit.relays;
+    const relays = await fetchWriteRelays(config.profileRelays ?? [], pubkey);
+    writeRelayCache.set(pubkey, { relays, at: Date.now() });
+    return relays;
+  };
+  const publishReview = makeReviewPublisher({
+    local: localPublish,
+    fanout: (relays, event) => publishToMany(relays, event),
+    writeRelaysOf,
+    onError: (reason) => console.warn(`[review-publish] ${reason}`),
+  });
+  app.use("/", buildRatingsRouter({ ...userEventDeps, publish: publishReview }));
   // Curator-role vouching (Story 67 / ADR 0066): the gated vouch write + the
   // curator-status read (seed OR vouched OR emergent).
   app.use(
@@ -617,6 +635,27 @@ async function main() {
     // eslint-disable-next-line no-console
     console.log(`unbnd-api listening on :${config.port}`);
   });
+
+  // The review sync (Story 99 / ADR 0089 §5): reviews written in other apps
+  // reach every read here; Unbnd's own reach the index even if a fan-out failed.
+  if (config.librarianPubkey) {
+    const librarian = config.librarianPubkey;
+    startReviewSync({
+      intervalMs: config.reviewSyncIntervalMs ?? 2 * 60 * 1000,
+      cycle: (since, now) =>
+        runReviewSyncCycle({
+          librarian,
+          since,
+          now,
+          pull: (url, filter) => queryRelayUrl(url, filter),
+          verify: (event) => verifyEvent(event as Parameters<typeof verifyEvent>[0]),
+          writeLocal: localPublish,
+          readLocal: (filter) => queryEvents(config, filter),
+          push: (relays, event) => publishToMany(relays, event),
+        }),
+      log: (m) => console.log(m),
+    });
+  }
 
   // Background hygiene (ADR 0061): evict idle custodial keys + run the expired
   // session/challenge DB sweeps on a periodic, unref()'d, fault-isolated timer.

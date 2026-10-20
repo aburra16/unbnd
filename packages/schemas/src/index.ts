@@ -3,7 +3,6 @@ export * from "./wire";
 export * from "./concept-headers";
 export * from "./BookRecord";
 export * from "./BookGenre";
-export * from "./BookRating";
 export * from "./BookTag";
 export * from "./BookTagAssertion";
 export * from "./BookClaim";

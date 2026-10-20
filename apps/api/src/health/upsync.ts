@@ -86,14 +86,14 @@ export async function checkUpsyncBacklog(
     };
   }
 
-  const ratingsZ = `${HEADER_KIND}:${librarianPubkey}:book-ratings`;
+  // Tag assertions only: book reviews never go to dcosl (Story 99 / ADR 0089).
   const tagsZ = `${HEADER_KIND}:${librarianPubkey}:book-tag-assertions`;
   const since = Math.floor((now() - windowMs) / 1000); // nostr created_at is seconds
 
   // 2. Local read.
   const local = await readLocal({
     kinds: [COMMUNITY_EVENT_KIND],
-    "#z": [ratingsZ, tagsZ],
+    "#z": [tagsZ],
     since,
     limit,
   });

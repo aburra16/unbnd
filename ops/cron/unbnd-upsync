@@ -1,8 +1,9 @@
 # /etc/cron.d/unbnd-upsync — write up-sync backstop (ADR 0011).
 #
-# Pushes community writes (ratings + tag assertions: kind 39999, z-tagged to
-# the librarian's book-ratings / book-tag-assertions concepts) from the local
-# strfry UP to dcosl, every 5 minutes. Negentropy reconciliation only transfers
+# Pushes community tag assertions (kind 39999, z-tagged to the librarian's
+# book-tag-assertions concept) from the local strfry UP to dcosl, every 5
+# minutes. Book reviews are not here: dcosl refuses them, and the API's review
+# sync re-sends them to the Brainstorm index instead (Story 99 / ADR 0089). Negentropy reconciliation only transfers
 # events dcosl is missing, so it is idempotent and does not re-push the
 # librarian's already-published seed assertions.
 #
@@ -19,4 +20,4 @@
 SHELL=/bin/sh
 PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 
-*/5 * * * * root docker exec unbnd-tapestry strfry sync wss://dcosl.brainstorm.world/ --dir up --filter '{"kinds":[39999],"#z":["39998:<LIBRARIAN_HEX>:book-ratings","39998:<LIBRARIAN_HEX>:book-tag-assertions"]}' >> /var/log/unbnd-upsync.log 2>&1
+*/5 * * * * root docker exec unbnd-tapestry strfry sync wss://dcosl.brainstorm.world/ --dir up --filter '{"kinds":[39999],"#z":["39998:<LIBRARIAN_HEX>:book-tag-assertions"]}' >> /var/log/unbnd-upsync.log 2>&1

@@ -11,6 +11,7 @@ import type { NostrFilter } from "../nostr/query";
 import type { PromotionStatus } from "../db";
 import type { TrustProvider } from "../trust";
 import { computeSubmissionSignals } from "./signals";
+import { readBookReviews } from "../reviews/read";
 
 const KIND = 39999;
 const DEFAULT_LIMIT = 200;
@@ -70,12 +71,13 @@ export async function evaluateAutoPromotions(
   const enqueued: string[] = [];
   for (const slug of candidates) {
     try {
-      const ratingEvents = await deps.query({ kinds: [KIND], "#a": [`${KIND}:${lib}:${slug}`] });
+      const ratingEvents = await readBookReviews(deps.query, { book: `${KIND}:${lib}:${slug}` });
       const signals = await computeSubmissionSignals({
         trust,
         houseObserverHex: house,
         threshold,
         ratingEvents,
+        scope: { librarian: lib, now: Math.floor(Date.now() / 1000) },
       });
       if (
         signals &&

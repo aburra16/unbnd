@@ -2,7 +2,7 @@
 // for the reviews in a scope, one for those authors' kind 5 removals of book
 // reviews; the fold in @unbnd/trust decides which stand.
 import { BOOK_REVIEW_KIND, BOOK_REVIEW_MARK, type SignedNostrEvent } from "@unbnd/schemas";
-import type { NostrFilter } from "../nostr/query";
+import type { NostrFilter, PagedResult } from "../nostr/query";
 
 /**
  * Where reviews are published and read besides the writer's own relays: the
@@ -15,14 +15,18 @@ export const REVIEW_RELAYS: readonly string[] = [
 ];
 
 export type ReviewScope =
-  | { readonly book: string }
+  | { readonly book: string; readonly authors?: readonly string[] }
   | { readonly authors: readonly string[] }
   | { readonly all: true };
 
 type Query = (filter: NostrFilter) => Promise<SignedNostrEvent[]>;
 
 function reviewFilter(scope: ReviewScope): NostrFilter {
-  if ("book" in scope) return { kinds: [BOOK_REVIEW_KIND], "#a": [scope.book] };
+  if ("book" in scope) {
+    return scope.authors
+      ? { kinds: [BOOK_REVIEW_KIND], authors: [...scope.authors], "#a": [scope.book] }
+      : { kinds: [BOOK_REVIEW_KIND], "#a": [scope.book] };
+  }
   if ("authors" in scope) return { kinds: [BOOK_REVIEW_KIND], authors: [...scope.authors], "#m": [BOOK_REVIEW_MARK] };
   return { kinds: [BOOK_REVIEW_KIND], "#m": [BOOK_REVIEW_MARK] };
 }
@@ -34,4 +38,19 @@ export async function readBookReviews(query: Query, scope: ReviewScope): Promise
   const authors = [...new Set(reviews.map((e) => e.pubkey))];
   const removals = await query({ kinds: [5], authors, "#k": [String(BOOK_REVIEW_KIND)] });
   return [...reviews, ...removals];
+}
+
+/**
+ * The paged form, for author-scoped reads that may pass the relay's cap: the
+ * reviews page (with its `capped` flag), followed by those authors' removals.
+ */
+export async function readBookReviewsPaged(
+  queryPaged: (filter: NostrFilter) => Promise<PagedResult>,
+  scope: ReviewScope,
+): Promise<PagedResult> {
+  const page = await queryPaged(reviewFilter(scope));
+  if (page.events.length === 0) return page;
+  const authors = [...new Set(page.events.map((e) => e.pubkey))];
+  const removals = (await queryPaged({ kinds: [5], authors, "#k": [String(BOOK_REVIEW_KIND)] })).events;
+  return { ...page, events: [...page.events, ...removals] };
 }

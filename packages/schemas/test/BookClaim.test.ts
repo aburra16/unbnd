@@ -3,7 +3,7 @@
 // address (39999:<librarian>:<slug>), carries the claimant's pubkey in a `p` tag,
 // z-tags to the NEW `book-claims` concept header, and lives under a per-(claimant,
 // book) replaceable d-tag `claim--<slug>--<claimant8>`. It carries NO editable
-// metadata (content ""). Mirrors BookTagAssertion.test / BookRating.test.
+// metadata (content ""). Mirrors BookTagAssertion.test.
 //
 // This file is red until packages/schemas/src/BookClaim.ts exists (and the new
 // `buildBookClaimsHeaderAddress` + BOOK_CLAIMS_HEADER_SLUG in concept-headers.ts).
