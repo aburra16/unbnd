@@ -61,7 +61,7 @@ function makeDeps(over: Partial<LabelsDeps> = {}) {
       }
       return books;
     };
-    (deps as { readCurrent: LabelsDeps["readCurrent"] }).readCurrent = async (slug) => snapshot.get(slug) ?? null;
+    (deps as { readCurrent: LabelsDeps["readCurrent"] }).readCurrent = async (slug) => (snapshot.has(slug) ? [snapshot.get(slug)!] : []);
   }
   return { deps, published };
 }
@@ -139,7 +139,7 @@ describe("runLabelsCycle", () => {
     const current = record("orbital", [["year", "2001"]], NOW - 10);
     const { deps, published } = makeDeps({
       readBooks: vi.fn(async () => [snap]),
-      readCurrent: vi.fn(async () => current),
+      readCurrent: vi.fn(async () => [snap, current]),
     });
     expect(await runLabelsCycle(deps)).toEqual({ checked: 1, relabelled: 1, failed: 0 });
     const out = published[0]!.event;
@@ -152,23 +152,36 @@ describe("runLabelsCycle", () => {
   it("a record delisted since the snapshot is left alone", async () => {
     const { deps, published } = makeDeps({
       readBooks: vi.fn(async () => [record("orbital")]),
-      readCurrent: vi.fn(async () => record("orbital", [["delisted", "true"]], NOW - 5)),
+      readCurrent: vi.fn(async () => [record("orbital", [["delisted", "true"]], NOW - 5)]),
     });
     expect(await runLabelsCycle(deps)).toEqual({ checked: 1, relabelled: 0, failed: 0 });
     expect(published).toEqual([]);
   });
 
-  it("a record the hub no longer returns is counted as failed and not written", async () => {
+  it("a delisting that reached only Unbnd's relay wins over the hub's older listed copy", async () => {
     const { deps, published } = makeDeps({
       readBooks: vi.fn(async () => [record("orbital")]),
-      readCurrent: vi.fn(async () => null),
+      readCurrent: vi.fn(async () => [record("orbital", [], NOW - 1000), record("orbital", [["delisted", "true"]], NOW - 5)]),
+    });
+    expect(await runLabelsCycle(deps)).toEqual({ checked: 1, relabelled: 0, failed: 0 });
+    expect(published).toEqual([]);
+  });
+
+  it("a record neither relay returns is counted as failed and not written", async () => {
+    const { deps, published } = makeDeps({
+      readBooks: vi.fn(async () => [record("orbital")]),
+      readCurrent: vi.fn(async () => []),
     });
     expect(await runLabelsCycle(deps)).toEqual({ checked: 1, relabelled: 0, failed: 1 });
     expect(published).toEqual([]);
   });
 
-  it("an empty book list or tag list stops the pass before it writes anything", async () => {
-    for (const over of [{ readTaxonomy: vi.fn(async () => []) }, { readBooks: vi.fn(async () => []) }]) {
+  it("an empty book list, tag list or assertion read stops the pass before it writes anything", async () => {
+    for (const over of [
+      { readTaxonomy: vi.fn(async () => []) },
+      { readBooks: vi.fn(async () => []) },
+      { readAssertions: vi.fn(async () => []) },
+    ]) {
       const { deps, published } = makeDeps(over);
       const summary = await runLabelsCycle(deps);
       expect(summary).toMatchObject({ checked: 0, relabelled: 0, failed: 0 });

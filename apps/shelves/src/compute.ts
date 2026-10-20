@@ -197,7 +197,7 @@ export async function computeShelves(deps: ShelfComputeDeps): Promise<ShelfSet> 
   const [bookEvents, ratingEvents, taxonomyEvents, assertionEvents] = await Promise.all([
     deps.readConcept(booksZ),
     deps.readReviews(),
-    deps.readConcept(tagsZ),
+    deps.readConcept(tagsZ).then((events) => events.filter((e) => e.pubkey === lib)),
     deps.readConcept(assertsZ),
   ]);
 

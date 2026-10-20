@@ -208,7 +208,7 @@ export function buildTagsRouter(deps: TagsDeps): Router {
     if (!slug) return false;
     try {
       const taxonomy = parseTaxonomy(
-        await deps.query({ kinds: [KIND], "#z": [tagsConcept()] }),
+        await deps.query({ kinds: [KIND], "#z": [tagsConcept()], authors: [lib() as string] }),
       );
       return taxonomy.some((t) => t.slug === slug && t.sensitivity === "accusatory");
     } catch {
@@ -220,7 +220,7 @@ export function buildTagsRouter(deps: TagsDeps): Router {
   router.get("/api/tags", async (_req, res, next) => {
     try {
       if (!lib()) return unavailable(res);
-      const els = parseTaxonomy(await deps.query({ kinds: [KIND], "#z": [tagsConcept()] }));
+      const els = parseTaxonomy(await deps.query({ kinds: [KIND], "#z": [tagsConcept()], authors: [lib() as string] }));
       res.status(200).json({ tags: els });
     } catch (err) {
       next(err);
@@ -240,7 +240,7 @@ export function buildTagsRouter(deps: TagsDeps): Router {
       // ONE batched, #a-scoped reveal query per book read (no N+1) alongside
       // taxonomy + assertions (ADR 0034 §3).
       const [taxEvents, assertEvents, revealEvents] = await Promise.all([
-        deps.query({ kinds: [KIND], "#z": [tagsConcept()] }),
+        deps.query({ kinds: [KIND], "#z": [tagsConcept()], authors: [lib() as string] }),
         deps.query({ kinds: [KIND], "#z": [assertConcept()], "#a": [bookAddr] }),
         deps.query({ kinds: [KIND], "#z": [revealsConcept()], "#a": [bookAddr] }),
       ]);

@@ -142,7 +142,7 @@ async function promote(): Promise<void> {
           const bookAddr = `39999:${librarianPubkey}:${bookSlug}`;
           const [bookEvents, taxonomyEvents, assertionEvents] = await Promise.all([
             local.query({ kinds: [39999], "#z": [booksZ], "#d": [bookSlug], limit: 1 }),
-            local.query({ kinds: [39999], "#z": [tagsZ] }),
+            local.query({ kinds: [39999], "#z": [tagsZ], authors: [librarianPubkey] }),
             local.query({ kinds: [39999], "#z": [assertZ], "#a": [bookAddr] }),
           ]);
           return { bookEvent: bookEvents[0] ?? null, taxonomyEvents, assertionEvents };
@@ -205,8 +205,9 @@ async function labels(): Promise<void> {
       readTaxonomy: () => readAll(formatAddress(buildBookTagsHeaderAddress(librarianPubkey)), [librarianPubkey]),
       readAssertions: () => readAll(formatAddress(buildBookTagAssertionsHeaderAddress(librarianPubkey))),
       readCurrent: async (slug) => {
-        const found = await dcosl.query({ kinds: [39999], authors: [librarianPubkey], "#z": [booksZ], "#d": [slug] });
-        return found.sort((a, b) => b.created_at - a.created_at)[0] ?? null;
+        const filter = { kinds: [39999], authors: [librarianPubkey], "#z": [booksZ], "#d": [slug] };
+        const [hub, mine] = await Promise.all([dcosl.query(filter), local.query(filter)]);
+        return [...hub, ...mine];
       },
       sign: (template: NostrEventTemplate) => finalizeEvent(template as never, sk) as unknown as SignedNostrEvent,
       publishDcosl: (event) => dcosl.publish(event),

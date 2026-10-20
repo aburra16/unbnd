@@ -58,7 +58,7 @@ export function buildUnfurlReaders(deps: UnfurlReaderDeps) {
   async function readRawTags(slug: string): Promise<RawBookTags> {
     if (!lib()) return { genres: [], styles: [], signals: [] };
     const [taxEvents, assertEvents] = await Promise.all([
-      deps.query({ kinds: [KIND], "#z": [tagsConcept()] }),
+      deps.query({ kinds: [KIND], "#z": [tagsConcept()], authors: [lib() as string] }),
       deps.query({ kinds: [KIND], "#z": [assertConcept()], "#a": [bookAddr(slug)] }),
     ]);
     return aggregateBookTags(assertEvents, parseTaxonomy(taxEvents));
