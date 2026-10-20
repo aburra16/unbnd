@@ -10,6 +10,7 @@ import {
   isDelistedRecord,
   toBookRecordEvent,
   toWireTemplate,
+  withBookLabels,
   type BookRecord,
   type BookRecordPayload,
   type NostrEventTemplate,
@@ -115,11 +116,21 @@ const payloadOf = (event: { readonly tags: readonly string[][] }): unknown => {
 };
 
 /**
- * The librarian's record with only its year changed (ADR 0093 §4): rebuilt
- * through the schema, then checked to differ from the live event in nothing
- * but the `year` tag and the payload's `publishYear`. The one allowed payload
- * difference is the explicit `submittedBy: null` old records lack. Throws when
- * the record does not rebuild to the same event.
+ * The tags the book schema writes, in order: not the json mirror, not the facet
+ * labels (ADR 0094) and not the first-added date, which other passes own, and
+ * only tag names the schema writes for this record (anything else is carried).
+ */
+function schemaTags(tags: readonly string[][], names: ReadonlySet<string>): string[][] {
+  return withBookLabels(tags, []).filter((t) => names.has(t[0]!));
+}
+
+/**
+ * The librarian's record with only its year changed (ADR 0093 §4): the live
+ * event with its `year` tag and the payload's `publishYear` edited, every other
+ * tag (labels, first-added date, tags it does not know) in place and every
+ * other payload field as it was. Then the schema's own rebuild of the corrected
+ * record must agree with it on every tag the schema writes and on the content,
+ * so the event stays one the schema would write. Throws when it does not.
  */
 export function correctedRecordTemplate(
   event: SignedNostrEvent,
@@ -127,24 +138,31 @@ export function correctedRecordTemplate(
   createdAt: number,
 ): NostrEventTemplate {
   const original = fromBookRecordEvent(fromWireEvent(event) as never);
-  const expected = { ...original, publishYear: year };
-  const template = toWireTemplate(toBookRecordEvent(expected), createdAt);
-
-  const named = (tags: readonly string[][]) => tags.filter((t) => t[0] !== "json");
-  const expectedTags = named(event.tags).map((t) => (t[0] === "year" ? ["year", String(year)] : t));
   const before = payloadOf(event) as BookRecordPayload;
-  const expectedPayload = {
-    ...before,
-    bookSubmission: { submittedBy: null, ...before.bookSubmission, publishYear: year },
-  };
+  const payload = { ...before, bookSubmission: { ...before.bookSubmission, publishYear: year } };
+  const tags = event.tags.map((t) =>
+    t[0] === "year" ? ["year", String(year)] : t[0] === "json" ? ["json", JSON.stringify(payload)] : [...t],
+  );
+
+  const rebuilt = toWireTemplate(toBookRecordEvent({ ...original, publishYear: year }), createdAt);
+  const names = new Set(
+    withBookLabels(rebuilt.tags, [])
+      .map((t) => t[0]!)
+      .filter((n) => n !== "json" && n !== "added"),
+  );
   if (
-    !isDeepStrictEqual(named(template.tags), expectedTags) ||
-    template.content !== event.content ||
-    !isDeepStrictEqual(payloadOf(template), expectedPayload)
+    !isDeepStrictEqual(schemaTags(tags, names), schemaTags(rebuilt.tags, names)) ||
+    rebuilt.content !== event.content
   ) {
     throw new Error(`record ${original.slug} does not rebuild to the same event`);
   }
-  return template;
+  return {
+    kind: event.kind,
+    // A replaceable event must be newer than the one it replaces.
+    created_at: Math.max(createdAt, event.created_at + 1),
+    content: event.content,
+    tags,
+  };
 }
 
 /** Plan every year correction over the librarian's records (ADR 0093 §1, §4). */
