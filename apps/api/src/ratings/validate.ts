@@ -152,3 +152,13 @@ export function validateSignedRetraction(
   }
   return { ok: true, bookSlug };
 }
+
+// STUBS (red): Story 99 / ADR 0089 §4.
+export type ReviewValidation =
+  | { readonly ok: true; readonly bookSlug: string; readonly stars: number }
+  | { readonly ok: false; readonly code: "invalid_event" | "wrong_kind" | "invalid_signature" | "pubkey_mismatch" | "malformed" };
+export function validateSignedReview(_e: unknown, _me: string, _librarian: string): ReviewValidation { throw new Error("stub"); }
+export type RemovalValidation =
+  | { readonly ok: true }
+  | { readonly ok: false; readonly code: "invalid_event" | "wrong_kind" | "invalid_signature" | "pubkey_mismatch" | "malformed" };
+export function validateSignedRemoval(_e: unknown, _me: string, _current: { id: string; d: string }): RemovalValidation { throw new Error("stub"); }

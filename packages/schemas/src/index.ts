@@ -12,3 +12,4 @@ export * from "./AccusatoryReveal";
 export * from "./BookAuthorOverlay";
 export * from "./CuratorRoleAssertion";
 export * from "./BookShelf";
+export * from "./BookReview";

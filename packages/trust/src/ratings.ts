@@ -55,7 +55,10 @@ function toPublic(r: ParsedRating): PublicRating {
  * (it must win against the older rating to suppress it, never be skipped);
  * a retracted head means the rater has no current rating.
  */
-export function dedupeRatings(events: SignedNostrEvent[]): ParsedRating[] {
+export function dedupeRatings(
+  events: SignedNostrEvent[],
+  _scope?: { librarian: string; now: number }, // STUB (red): Story 99 uses it
+): ParsedRating[] {
   const latest = new Map<
     string,
     { createdAt: number; rating: ParsedRating | null }
