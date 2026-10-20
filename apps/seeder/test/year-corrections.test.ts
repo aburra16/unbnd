@@ -10,8 +10,11 @@ import { describe, expect, it, vi } from "vitest";
 import {
   asHexPubkey,
   buildBookDelisting,
+  bookLabels,
   buildBookRecordsHeaderAddress,
   fromBookRecordEvent,
+  labelsOf,
+  withBookLabels,
   fromWireEvent,
   toBookRecordEvent,
   toWireTemplate,
@@ -130,7 +133,6 @@ const eventOf = (r: BookRecord, createdAt = T0): SignedNostrEvent =>
 const recordOf = (e: { kind: number; tags: string[][]; content: string }): BookRecord =>
   fromBookRecordEvent(fromWireEvent(e) as never);
 const tagValue = (e: { tags: string[][] }, name: string) => e.tags.find((t) => t[0] === name)?.[1];
-const withoutJson = (tags: string[][]) => tags.filter((t) => t[0] !== "json");
 
 // The hub's records and Open Library's evidence for them (2026-10-20).
 const STEP = record("OL5734023W", "Step on a Crack", "James Patterson", 1658, {
@@ -261,6 +263,29 @@ describe("planYearCorrections — what stays (AC 2–4)", () => {
 });
 
 describe("correctedRecordTemplate — only the year changes (AC 6)", () => {
+  const jsonOf = (e: { tags: string[][] }) => JSON.parse(e.tags.find((x) => x[0] === "json")![1]!);
+  const editPayload = (
+    e: NostrEventTemplate,
+    edit: (p: Record<string, any>) => void,
+  ): SignedNostrEvent =>
+    signedLike({
+      ...e,
+      tags: e.tags.map((t) => {
+        if (t[0] !== "json") return t;
+        const payload = JSON.parse(t[1]!);
+        edit(payload);
+        return ["json", JSON.stringify(payload)];
+      }),
+    });
+  /** Every tag but the year, in order, with the json tag's payload year blanked. */
+  const allButYear = (e: { tags: string[][] }) =>
+    e.tags.map((t) => {
+      if (t[0] === "year") return ["year"];
+      if (t[0] !== "json") return t;
+      const p = JSON.parse(t[1]!);
+      return ["json", JSON.stringify({ ...p, bookSubmission: { ...p.bookSubmission, publishYear: null } })];
+    });
+
   it("changes the year tag and the payload's publishYear and nothing else", async () => {
     const { correctedRecordTemplate } = await load();
     const original = HUB[0]!;
@@ -271,71 +296,105 @@ describe("correctedRecordTemplate — only the year changes (AC 6)", () => {
     expect(t.content).toBe(original.content);
     expect(tagValue(t, "d")).toBe("ol-ol5734023w");
     expect(tagValue(t, "year")).toBe("2007");
-    expect(withoutJson(t.tags).map((x) => (x[0] === "year" ? ["year"] : x))).toEqual(
-      withoutJson(original.tags).map((x) => (x[0] === "year" ? ["year"] : x)),
-    );
+    expect(allButYear(t)).toEqual(allButYear(original));
+    expect(jsonOf(t)).toEqual({
+      ...jsonOf(original),
+      bookSubmission: { ...jsonOf(original).bookSubmission, publishYear: 2007 },
+    });
     expect(recordOf(t)).toEqual({ ...recordOf(original), publishYear: 2007 });
   });
 
-  it("refuses a record that does not rebuild to the same event", async () => {
+  it("keeps a relabelled record's genre labels and first-added date in place (story 105)", async () => {
     const { correctedRecordTemplate } = await load();
-    const odd = signedLike({
-      ...toWireTemplate(toBookRecordEvent(STEP), T0),
-      tags: [...toWireTemplate(toBookRecordEvent(STEP), T0).tags, ["unknown-tag", "x"]],
+    const base = toWireTemplate(toBookRecordEvent(STEP), T0);
+    const labels = bookLabels({ genres: ["thriller", "mystery"], format: STEP.format, language: STEP.language });
+    const relabelled = signedLike({
+      ...base,
+      tags: withBookLabels([...base.tags, ["added", String(T0 - 5000)]], labels),
     });
+
+    const t = correctedRecordTemplate(relabelled, 2007, T0 + 100);
+
+    expect(allButYear(t)).toEqual(allButYear(relabelled));
+    expect(tagValue(t, "added")).toBe(String(T0 - 5000));
+    expect(labelsOf(t.tags)).toEqual({ genres: ["mystery", "thriller"], format: "reference", language: "eng" });
+    expect(tagValue(t, "year")).toBe("2007");
+    expect(jsonOf(t).bookSubmission.publishYear).toBe(2007);
+  });
+
+  it("corrects a record published before labels, and adds none", async () => {
+    const { correctedRecordTemplate } = await load();
+    const base = toWireTemplate(toBookRecordEvent(STEP), T0);
+    const unlabelled = signedLike({ ...base, tags: withBookLabels(base.tags, []) });
+    expect(unlabelled.tags.some((x) => x[0] === "L" || x[0] === "l")).toBe(false);
+
+    const t = correctedRecordTemplate(unlabelled, 2007, T0 + 100);
+
+    expect(allButYear(t)).toEqual(allButYear(unlabelled));
+    expect(t.tags.some((x) => x[0] === "L" || x[0] === "l")).toBe(false);
+    expect(tagValue(t, "year")).toBe("2007");
+  });
+
+  it("carries a tag it does not know in place", async () => {
+    const { correctedRecordTemplate } = await load();
+    const base = toWireTemplate(toBookRecordEvent(STEP), T0);
+    const odd = signedLike({ ...base, tags: [...base.tags.slice(0, 3), ["unknown-tag", "x"], ...base.tags.slice(3)] });
+    const t = correctedRecordTemplate(odd, 2007, T0 + 100);
+    expect(allButYear(t)).toEqual(allButYear(odd));
+  });
+
+  it("keeps payload fields the schema does not model, unchanged", async () => {
+    const { correctedRecordTemplate } = await load();
+    const odd = editPayload(toWireTemplate(toBookRecordEvent(STEP), T0), (p) => {
+      p.bookSubmission.extra = "kept by someone";
+      p.word.wordTypes.push("classic");
+    });
+    const t = correctedRecordTemplate(odd, 2007, T0 + 100);
+    expect(jsonOf(t).bookSubmission.extra).toBe("kept by someone");
+    expect(jsonOf(t).word.wordTypes).toEqual(["word", "bookSubmission", "classic"]);
+    expect(allButYear(t)).toEqual(allButYear(odd));
+  });
+
+  it("adds nothing to an old payload (no explicit submittedBy: null)", async () => {
+    const { correctedRecordTemplate } = await load();
+    const old = editPayload(toWireTemplate(toBookRecordEvent(STEP), T0), (p) => delete p.bookSubmission.submittedBy);
+    const t = correctedRecordTemplate(old, 2007, T0 + 100);
+    expect("submittedBy" in jsonOf(t).bookSubmission).toBe(false);
+  });
+
+  it("stamps a time after the live record even if the clock is behind it", async () => {
+    const { correctedRecordTemplate } = await load();
+    const live = eventOf(STEP, T0 + 1000);
+    expect(correctedRecordTemplate(live, 2007, T0).created_at).toBe(T0 + 1001);
+  });
+
+  it("refuses a record whose tags and payload disagree (the schema would not write it)", async () => {
+    const { correctedRecordTemplate } = await load();
+    const base = toWireTemplate(toBookRecordEvent(STEP), T0);
+    const odd = signedLike({
+      ...base,
+      tags: base.tags.map((t) => (t[0] === "title" ? ["title", "Step On A Crack"] : t)),
+    });
+    expect(() => correctedRecordTemplate(odd, 2007, T0 + 100)).toThrow();
+  });
+
+  it("refuses a record with a payload year and no year tag", async () => {
+    const { correctedRecordTemplate } = await load();
+    const base = toWireTemplate(toBookRecordEvent(STEP), T0);
+    const odd = signedLike({ ...base, tags: base.tags.filter((t) => t[0] !== "year") });
     expect(() => correctedRecordTemplate(odd, 2007, T0 + 100)).toThrow();
   });
 
   it("the planner reports such a record as refused instead of correcting it", async () => {
     const { planYearCorrections } = await load();
     const base = toWireTemplate(toBookRecordEvent(STEP), T0);
-    const odd = signedLike({ ...base, tags: [...base.tags, ["unknown-tag", "x"]] });
+    const odd = signedLike({
+      ...base,
+      tags: base.tags.map((t) => (t[0] === "title" ? ["title", "Step On A Crack"] : t)),
+    });
     const plan = planYearCorrections([odd], LIBRARIAN, WORKS, AUTHORS, NOW);
     expect(plan.corrections).toEqual([]);
     expect(plan.refused.map((n) => n.slug)).toEqual(["ol-ol5734023w"]);
-  });
-});
-
-describe("only-the-year check covers the payload (review round 1)", () => {
-  const withPayload = (edit: (p: Record<string, any>) => void): SignedNostrEvent => {
-    const base = toWireTemplate(toBookRecordEvent(STEP), T0);
-    const tags = base.tags.map((t) => {
-      if (t[0] !== "json") return t;
-      const payload = JSON.parse(t[1]!);
-      edit(payload);
-      return ["json", JSON.stringify(payload)];
-    });
-    return signedLike({ ...base, tags });
-  };
-
-  it("refuses a record whose payload carries a field the schema would drop", async () => {
-    const { correctedRecordTemplate } = await load();
-    const odd = withPayload((p) => (p.bookSubmission.extra = "kept by someone"));
-    expect(() => correctedRecordTemplate(odd, 2007, T0 + 100)).toThrow();
-  });
-
-  it("refuses a record whose word wrapper the schema would rewrite", async () => {
-    const { correctedRecordTemplate } = await load();
-    const odd = withPayload((p) => p.word.wordTypes.push("classic"));
-    expect(() => correctedRecordTemplate(odd, 2007, T0 + 100)).toThrow();
-  });
-
-  it("accepts an old record that only lacks the explicit submittedBy: null", async () => {
-    const { correctedRecordTemplate } = await load();
-    const old = withPayload((p) => delete p.bookSubmission.submittedBy);
-    const t = correctedRecordTemplate(old, 2007, T0 + 100);
-    const payload = JSON.parse(t.tags.find((x) => x[0] === "json")![1]!);
-    expect(payload.bookSubmission.publishYear).toBe(2007);
-    expect(payload.bookSubmission.submittedBy).toBeNull();
-  });
-
-  it("the new payload equals the old one but for publishYear", async () => {
-    const { correctedRecordTemplate } = await load();
-    const original = HUB[0]!;
-    const t = correctedRecordTemplate(original, 2007, T0 + 100);
-    const before = JSON.parse(original.tags.find((x) => x[0] === "json")![1]!);
-    const after = JSON.parse(t.tags.find((x) => x[0] === "json")![1]!);
-    expect(after).toEqual({ ...before, bookSubmission: { ...before.bookSubmission, publishYear: 2007 } });
   });
 });
 
@@ -448,7 +507,10 @@ describe("runYearCorrection — dry run and apply (AC 5, 6)", () => {
     const { runYearCorrection } = await load();
     const publish = vi.fn(async (_t: NostrEventTemplate): Promise<PublishResult> => ({ ok: true }));
     const base = toWireTemplate(toBookRecordEvent(WOTW), T0);
-    const changed = signedLike({ ...base, tags: [...base.tags, ["unknown-tag", "x"]] });
+    const changed = signedLike({
+      ...base,
+      tags: base.tags.map((t) => (t[0] === "title" ? ["title", "The War Of The Worlds"] : t)),
+    });
     // The relay serves a changed body under the planned id (a misbehaving relay).
     const latest = async (slug: string) => {
       const planned = HUB.find((e) => tagValue(e, "d") === slug)!;
