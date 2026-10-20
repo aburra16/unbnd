@@ -90,6 +90,7 @@ describe("POST /api/ratings/remove — sovereign (self-signed removal)", () => {
     expect(res.status).toBe(200);
     expect(res.body.removed).toBe(true);
     expect(res.body.summary.count).toBe(0);
+    expect(res.body.summary).not.toHaveProperty("average"); // Story 101
     expect(res.body.yourRating).toBeNull();
     expect(deps.publish).toHaveBeenCalledTimes(1);
   });

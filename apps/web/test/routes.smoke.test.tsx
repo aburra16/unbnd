@@ -77,7 +77,7 @@ const ORBITAL: PublicBook = {
   format: "reference",
 };
 const NO_TAGS: BookTags = { genres: [], styles: [], signals: [] };
-const NO_RATINGS: RatingsSummary = { count: 0, average: null, ratings: [] };
+const NO_RATINGS: RatingsSummary = { count: 0, ratings: [] };
 const TAXONOMY: TaxonomyElement[] = [
   { slug: "literary-fiction", type: "genre", name: "Literary fiction", sensitivity: "normal" },
 ];

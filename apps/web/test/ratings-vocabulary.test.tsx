@@ -27,6 +27,8 @@ const WEIGHTED: WeightedRatings = {
   observer: "npub1xxxx",
   average: 4.6,
   trustedCount: 3,
+  crowdAverage: 4.6,
+  crowdCount: 3,
   ratings: [],
 };
 
@@ -34,7 +36,6 @@ describe("RatingsPanel — AC-6 shared trusted/community vocabulary", () => {
   it("uses 'trusted consensus' wording when a trust-weighted view exists", async () => {
     const summary: RatingsSummary = {
       count: 5,
-      average: 4.2,
       ratings: [],
       weighted: WEIGHTED,
     };
@@ -42,14 +43,14 @@ describe("RatingsPanel — AC-6 shared trusted/community vocabulary", () => {
     expect(await screen.findByText(/trusted consensus/i)).toBeInTheDocument();
   });
 
-  it("uses 'community consensus' wording when there is no trust-weighted view", async () => {
+  it("says there are no trusted ratings when there is no trust-weighted view (Story 101)", async () => {
     const summary: RatingsSummary = {
       count: 5,
-      average: 4.2,
       ratings: [],
       weighted: null,
     };
     render(<RatingsPanel slug="orbital" house={summary} yours={null} status="ready" />);
-    expect(await screen.findByText(/community consensus/i)).toBeInTheDocument();
+    expect(await screen.findByText(/No trusted ratings for this book yet/i)).toBeInTheDocument();
+    expect(screen.getByText(/5 ratings/i)).toBeInTheDocument();
   });
 });

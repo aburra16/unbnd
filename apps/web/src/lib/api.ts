@@ -87,12 +87,15 @@ export type WeightedRatings = {
   observer: string;
   average: number;
   trustedCount: number;
+  // ADR 0092 §1: readers with any standing in this view, each counted once.
+  crowdAverage: number;
+  crowdCount: number;
   ratings: PublicRating[];
 };
 
+// ADR 0092 §3: no plain mean; the only figure is the trusted view's.
 export type RatingsSummary = {
   count: number;
-  average: number | null;
   ratings: PublicRating[];
   weighted?: WeightedRatings | null;
   // Story 28 / ADR 0029: the signed-in caller's own current rating, sourced

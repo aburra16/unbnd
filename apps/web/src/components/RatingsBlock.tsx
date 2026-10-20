@@ -17,7 +17,7 @@ function stars(n: number) {
 }
 
 export function RatingsBlock({ average, count, countNoun = "ratings", label, emptyNote }: Props) {
-  if (count === 0 || average === null) {
+  if (count === 0) {
     return (
       <section className="ratings ratings-empty">
         {label && <p className="ratings-label">{label}</p>}
@@ -26,6 +26,17 @@ export function RatingsBlock({ average, count, countNoun = "ratings", label, emp
     );
   }
   const noun = count === 1 ? countNoun.replace(/s$/, "") : countNoun;
+  // ADR 0092 §4: ratings with no trusted figure show their count alone.
+  if (average === null) {
+    return (
+      <section className="ratings">
+        {label && <p className="ratings-label">{label}</p>}
+        <p className="ratings-none">
+          {count.toLocaleString("en-US")} {noun}
+        </p>
+      </section>
+    );
+  }
   return (
     <section className="ratings">
       {label && <p className="ratings-label">{label}</p>}

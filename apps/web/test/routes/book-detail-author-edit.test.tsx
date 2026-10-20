@@ -74,7 +74,7 @@ vi.mock("../../src/hooks/useTrustView", () => ({
 
 vi.mock("../../src/hooks/useBookRatings", () => ({
   useBookRatings: () => ({
-    house: { count: 0, average: null, ratings: [], weighted: null },
+    house: { count: 0, ratings: [], weighted: null },
     yours: null,
     yourRating: null,
     status: "ready",
