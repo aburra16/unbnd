@@ -160,6 +160,33 @@ export function isJunkRecord(book: BookRecord, currentYear: number): boolean {
   return false; // otherwise: keep
 }
 
+/**
+ * Every tag name toBookRecordEvent can write, labels aside (ADR 0093 §4): the
+ * tags the record schema owns, for a check that an event is one the schema
+ * would write. A test pins it to a fully filled record.
+ */
+export const BOOK_RECORD_TAG_NAMES = [
+  "d",
+  "z",
+  "t",
+  "title",
+  "author",
+  "p",
+  "submitted-by",
+  "isbn",
+  "isbn10",
+  "open-library-id",
+  "lang",
+  "year",
+  "pages",
+  "cover",
+  "read-at",
+  "file",
+  "subject",
+  "format",
+  "source",
+] as const;
+
 export function toBookRecordEvent(record: BookRecord): BookRecordEvent {
   const dTag = buildBookRecordDTag(record.slug);
   const tags: Array<readonly [string, ...string[]]> = [

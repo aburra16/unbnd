@@ -94,8 +94,11 @@ jobs:
                 # The same plan, then replace each corrected record at its own
                 # address on dcosl, librarian-signed (only the year changes). The
                 # down-sync cron brings them local; run `index` after.
+                # Holds the labels pass's lock (waiting for a running pass), so
+                # neither rebuilds a record the other is about to replace.
                 docker compose -f docker-compose.prod.yml --profile seed pull seeder
-                docker compose -f docker-compose.prod.yml --profile seed run --rm seeder node years.js --apply
+                mkdir -p /opt/unbnd/ops-logs
+                flock /opt/unbnd/ops-logs/labels.lock docker compose -f docker-compose.prod.yml --profile seed run --rm seeder node years.js --apply
                 ;;
               librarian-profile)
                 # The librarian's public profile + relay list, from reviewed code

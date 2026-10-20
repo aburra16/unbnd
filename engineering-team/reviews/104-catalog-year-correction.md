@@ -13,7 +13,7 @@
 - [x] §2 `authorBirthFor` counts a birth year only when the author record's name is the record's author (Homer re-spelled is tested); `birthYearOf` gives none for BC, B.C., BCE, B.C.E.
 - [x] §3 `fetchWorkEvidence` / `fetchAuthors`: batches of 100, exact `q`, `fields` and `limit`, the seeder User-Agent, throw on HTTP error. `workEvidenceOf` is the one doc reader for seed and repair.
 - [x] §4 `years.js`: dry run by default, `--apply` needs `LIBRARIAN_NSEC` (a mismatched `LIBRARIAN_PUBKEY` throws), signature-verified librarian events only, the whole plan before any publish, each record re-read and verified before its publish (`stale` skips), exit non-zero on a refused publish or a stale skip.
-- [x] §4 Only the year changes: tags equal but the `year` value, content equal, `json` payload equal but `bookSubmission.publishYear` (only `submittedBy: null` may be added). Payload-only drift is refused (tested for an unknown `bookSubmission` key and a changed `word.wordTypes`).
+- [x] §4 Only the year changes (after round 3): the live event with only the `year` tag value and `bookSubmission.publishYear` edited; story 105's labels, `added`, unknown tags and unmodelled payload fields carried in place; the schema rebuild must agree on every `BOOK_RECORD_TAG_NAMES` tag, the content and the word wrapper, else `refused`.
 - [x] §5 The seed requests `publish_year`, fetches first authors after dedup, and judges each record before the blurb and the fingerprint.
 - [x] §6 Staging ops `years-check` / `years-fix`, Dockerfile `years.js`, esbuild entry, DEPLOY.md.
 - [x] Crypto only through nostr-tools (`finalizeEvent`, `getPublicKey`, `verifyEvent`, nip19 `decode`).
@@ -44,6 +44,11 @@ Every year it would change, plus the kept and unresolved records, is in the hand
 
 ## Renumber and merge (after round 2)
 Main took ADR 0092 for story 101 (no plain averages), so this ADR is 0093 (references renumbered only in this story's files). `origin/main` (stories 101 and 103) merged in cleanly; full `pnpm -r --no-bail` typecheck, test, lint and build green on the merged tree (seeder 231, api 1017 + 13 skipped, web 452, trust 68, shelves 30, the rest as above).
+
+## Adapted to story 105 (round 3)
+Story 105 (ADR 0094) adds NIP-32 labels and an `added` date that the schema rebuild does not write, so the round-2 builder would have refused every relabelled and every pre-105 record. `origin/story/105-book-record-labels` merged in (`71e37b2`; DEPLOY.md conflict: both task lists kept). The builder now edits the live event in place (`e4558d4`). Independent review of the adaptation: PASS with nits, all fixed (`b21a8d8` red, then the fix): the compared tag names come from a fixed schema list (a stray `pages`/`cover`/`p` is checked, not carried); the word wrapper is checked; `years-fix` holds the labels pass's lock (otherwise a labels pass that read a record before the correction could republish the old year); stale docs here, in the ADR and the test plan corrected. The earlier "only `submittedBy: null` may be added" and "payload-only drift is refused" no longer hold: nothing is added and unmodelled fields are carried.
+
+Gates on the merged tree after round 3: `pnpm -r --no-bail` typecheck, test, lint and build all exit 0 (seeder 237, schemas 177, api 1021 + 13 skipped, web 452, trust 68, promoter 51, shelves 34, librarian 44, indexer 28, relay 22, search 18, ui 20, guide-lint 13). Live dry run on the final code (read-only, dcosl + Open Library): 11,282 records, all librarian-signed; `corrections=255 kept=40 unresolved=1 no-evidence=73 refused=0`, the same plan line for line as before the adaptation. The hub's records are still pre-105 (no genre labels yet), so the relabelled case is covered by tests, not live data.
 
 ## Verdict
 **PASS.**

@@ -11,6 +11,7 @@ import {
   toBookRecordEvent,
   toWireTemplate,
   withBookLabels,
+  BOOK_RECORD_TAG_NAMES,
   type BookRecord,
   type BookRecordPayload,
   type NostrEventTemplate,
@@ -115,13 +116,15 @@ const payloadOf = (event: { readonly tags: readonly string[][] }): unknown => {
   return json === undefined ? undefined : JSON.parse(json);
 };
 
+const SCHEMA_TAG_NAMES: ReadonlySet<string> = new Set(BOOK_RECORD_TAG_NAMES);
+
 /**
- * The tags the book schema writes, in order: not the json mirror, not the facet
- * labels (ADR 0094) and not the first-added date, which other passes own, and
- * only tag names the schema writes for this record (anything else is carried).
+ * The tags the record schema writes, in order. The json mirror, the facet
+ * labels (ADR 0094), the first-added date and tags the schema does not know
+ * belong to others and are carried, not compared.
  */
-function schemaTags(tags: readonly string[][], names: ReadonlySet<string>): string[][] {
-  return withBookLabels(tags, []).filter((t) => names.has(t[0]!));
+function schemaTags(tags: readonly string[][]): string[][] {
+  return withBookLabels(tags, []).filter((t) => SCHEMA_TAG_NAMES.has(t[0]!));
 }
 
 /**
@@ -129,8 +132,9 @@ function schemaTags(tags: readonly string[][], names: ReadonlySet<string>): stri
  * event with its `year` tag and the payload's `publishYear` edited, every other
  * tag (labels, first-added date, tags it does not know) in place and every
  * other payload field as it was. Then the schema's own rebuild of the corrected
- * record must agree with it on every tag the schema writes and on the content,
- * so the event stays one the schema would write. Throws when it does not.
+ * record must agree with it on every tag the schema writes, on the content and
+ * on the word wrapper's slug, name and title, so the event stays one the schema
+ * would write. Throws when it does not.
  */
 export function correctedRecordTemplate(
   event: SignedNostrEvent,
@@ -145,14 +149,11 @@ export function correctedRecordTemplate(
   );
 
   const rebuilt = toWireTemplate(toBookRecordEvent({ ...original, publishYear: year }), createdAt);
-  const names = new Set(
-    withBookLabels(rebuilt.tags, [])
-      .map((t) => t[0]!)
-      .filter((n) => n !== "json" && n !== "added"),
-  );
+  const word = (p: BookRecordPayload) => [p.word.slug, p.word.name, p.word.title];
   if (
-    !isDeepStrictEqual(schemaTags(tags, names), schemaTags(rebuilt.tags, names)) ||
-    rebuilt.content !== event.content
+    !isDeepStrictEqual(schemaTags(tags), schemaTags(rebuilt.tags)) ||
+    rebuilt.content !== event.content ||
+    !isDeepStrictEqual(word(before), word(payloadOf(rebuilt) as BookRecordPayload))
   ) {
     throw new Error(`record ${original.slug} does not rebuild to the same event`);
   }
