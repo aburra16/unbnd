@@ -14,6 +14,8 @@ import {
 
 export type ProfileDeps = {
   readonly librarianPubkey: string;
+  /** STUB (red): Story 98 replaces profile/dcoslUrl/profileRelays with publishRelays. */
+  readonly publishRelays?: readonly string[];
   /** The librarian profile fields from config (LIBRARIAN_NAME required). */
   readonly profile: LibrarianProfileFields;
   /** kind-0 publish target. */

@@ -6,6 +6,8 @@ import { FixtureTrustProvider } from "./fixture";
 import type { TrustOptions, TrustProvider } from "./types";
 
 export { BrainstormProvider } from "./brainstorm";
+// STUB (red): Story 98.
+export const BRAINSTORM_DEFAULTS = { apiUrl: "", trustRelays: [] as readonly string[] };
 export { FixtureTrustProvider } from "./fixture";
 export type {
   FixtureSpec,

@@ -50,3 +50,10 @@ export function buildLibrarianKind0Template(
     tags: [],
   };
 }
+
+// STUBS (red): Story 98 / ADR 0088.
+export const LIBRARIAN_PROFILE: Record<string, unknown> = {};
+export const LIBRARIAN_RELAY_LIST: readonly string[] = [];
+export function buildLibrarianRelayListTemplate(_relays: readonly string[], _createdAt: number): NostrEventTemplate {
+  throw new Error("not implemented");
+}
