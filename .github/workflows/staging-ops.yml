@@ -18,6 +18,8 @@ on:
           - shelves # homepage trust-shelf recompute
           - recast # genre recast over the existing catalog (Story 75; idempotent)
           - headers # publish the seeder-owned list headers only (Story 97; idempotent)
+          - librarian-profile # publish the librarian's kind-0 + kind-10002 (Story 98; idempotent)
+          - set-brainstorm-endpoints # point BRAINSTORM_API_URL/TRUST_RELAYS in .env at Brainstorm production + recreate the api (Story 98)
           - set-public-origin # ensure PUBLIC_ORIGIN in .env + restart the api
           - install-cron # install the documented worker crontab (idempotent)
           - show-status # read-only: crontab, deployed tag, recent worker logs
@@ -68,6 +70,22 @@ jobs:
                 # to the local relay). The same templates a full seed publishes.
                 docker compose -f docker-compose.prod.yml --profile seed pull seeder
                 docker compose -f docker-compose.prod.yml --profile seed run --rm seeder node headers.js
+                ;;
+              librarian-profile)
+                # The librarian's public profile + relay list, from reviewed code
+                # (ADR 0088). Never sent to dcosl.
+                docker compose -f docker-compose.prod.yml --profile librarian pull librarian
+                docker compose -f docker-compose.prod.yml --profile librarian run --rm librarian profile
+                ;;
+              set-brainstorm-endpoints)
+                # Rewrite only keys that are present; an absent key already means
+                # the shared default (ADR 0088 §3). Prints the result, no secrets.
+                for kv in "BRAINSTORM_API_URL=https://api.brainstorm.world" "TRUST_RELAYS=wss://scores.brainstorm.world,wss://nip85.nosfabrica.com"; do
+                  k="${kv%%=*}"
+                  if grep -q "^${k}=" .env; then sed -i "s|^${k}=.*|${kv}|" .env; echo "set ${kv}"; else echo "${k} absent: shared default applies"; fi
+                done
+                grep -E '^(BRAINSTORM_API_URL|TRUST_RELAYS)=' .env || true
+                docker compose -f docker-compose.prod.yml up -d --force-recreate api
                 ;;
               install-cron)
                 # The documented schedule (docs/DEPLOY.md): relay down-sync +

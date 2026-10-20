@@ -9,7 +9,7 @@
 // secret. Kept SEPARATE from `compute.ts` so the unit tests import the pure core
 // without executing anything.
 import { asHexPubkey } from "@unbnd/schemas";
-import { resolveTrustProvider, type TrustProvider } from "@unbnd/trust";
+import { resolveTrustProvider, type TrustProvider, BRAINSTORM_DEFAULTS } from "@unbnd/trust";
 import { runShelvesCycle } from "./compute";
 import { loadShelfDefs } from "./config";
 import { createShelvesCache } from "./cache";
@@ -17,10 +17,6 @@ import { queryAllPages, queryRelay } from "./relay";
 
 const KIND = 39999;
 
-const DEFAULT_TRUST_RELAYS = [
-  "wss://nip85.nosfabrica.com",
-  "wss://nip85.brainstorm.world",
-];
 // nosfabrica — the interim default house observer (ADR 0014), mirrors the API.
 const DEFAULT_HOUSE_OBSERVER =
   "be7bf5de068c1d842ed34a7c270507ec940f5ea51671cfd062a95e9d09420d0a";
@@ -55,10 +51,10 @@ function resolveTrust(): TrustProvider {
     const relaysRaw = optionalEnv("TRUST_RELAYS");
     const relays = relaysRaw
       ? relaysRaw.split(",").map((s) => s.trim()).filter(Boolean)
-      : DEFAULT_TRUST_RELAYS;
+      : [...BRAINSTORM_DEFAULTS.trustRelays];
     return resolveTrustProvider({
       provider: "brainstorm",
-      apiUrl: env("BRAINSTORM_API_URL", "https://brainstormserver.nosfabrica.com"),
+      apiUrl: env("BRAINSTORM_API_URL", BRAINSTORM_DEFAULTS.apiUrl),
       relays,
     });
   }

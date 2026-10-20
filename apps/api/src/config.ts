@@ -1,6 +1,7 @@
 // Env-var validation per ADR 0002.
 import { SESSION_LIFETIME_MS } from "./auth/sessions";
 import type { FixtureSpec, TrustProviderName } from "./trust";
+import { BRAINSTORM_DEFAULTS } from "@unbnd/trust";
 
 export type Config = {
   readonly port: number;
@@ -196,10 +197,6 @@ export type Config = {
   readonly upsyncCheckIntervalMs?: number;
 };
 
-const DEFAULT_TRUST_RELAYS = [
-  "wss://nip85.nosfabrica.com",
-  "wss://nip85.brainstorm.world",
-];
 // nosfabrica (npub1health…) — a well-connected default house observer (ADR 0014).
 const DEFAULT_HOUSE_OBSERVER =
   "be7bf5de068c1d842ed34a7c270507ec940f5ea51671cfd062a95e9d09420d0a";
@@ -534,7 +531,7 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
   const trustRelays =
     trustRelaysRaw && trustRelaysRaw.length > 0
       ? trustRelaysRaw.split(",").map((s) => s.trim()).filter(Boolean)
-      : DEFAULT_TRUST_RELAYS;
+      : [...BRAINSTORM_DEFAULTS.trustRelays];
   const houseObserverRaw = env.HOUSE_OBSERVER_PUBKEY;
   const houseObserverPubkey =
     houseObserverRaw === undefined
@@ -582,7 +579,7 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
     propagateWrites,
     profileRelays,
     trustProvider,
-    brainstormApiUrl: withDefault(env, "BRAINSTORM_API_URL", "https://brainstormserver.nosfabrica.com"),
+    brainstormApiUrl: withDefault(env, "BRAINSTORM_API_URL", BRAINSTORM_DEFAULTS.apiUrl),
     trustRelays,
     trustFixture,
     houseObserverPubkey,

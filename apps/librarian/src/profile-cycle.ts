@@ -1,27 +1,21 @@
-// The `profile` cycle (Story 58 / ADR 0057 §4 / §Implementation): build the
-// librarian's kind-0 profile from config, sign it, and publish to dcosl ∪ the
-// profile relays.
+// The `profile` cycle (Story 98 / ADR 0088 §2): sign and publish the
+// librarian's kind-0, then its kind-10002 relay list, to the publish relays.
 //
 // Everything that touches a key or a relay is INJECTED so the cycle is
 // fixture-testable with no real LIBRARIAN_NSEC and no live network.
 import type { NostrEventTemplate, SignedNostrEvent } from "@unbnd/schemas";
 import type { PublishResult } from "@unbnd/relay";
 import {
+  LIBRARIAN_PROFILE,
+  LIBRARIAN_RELAY_LIST,
   buildLibrarianKind0Template,
-  buildLibrarianProfileContent,
-  type LibrarianProfileFields,
+  buildLibrarianRelayListTemplate,
 } from "./profile-content";
 
 export type ProfileDeps = {
   readonly librarianPubkey: string;
-  /** STUB (red): Story 98 replaces profile/dcoslUrl/profileRelays with publishRelays. */
-  readonly publishRelays?: readonly string[];
-  /** The librarian profile fields from config (LIBRARIAN_NAME required). */
-  readonly profile: LibrarianProfileFields;
-  /** kind-0 publish target. */
-  readonly dcoslUrl: string;
-  /** kind-0 publish target (unioned with dcosl). */
-  readonly profileRelays: readonly string[];
+  /** Where the kind-0 and kind-10002 go. Never dcosl (it stores only list kinds). */
+  readonly publishRelays: readonly string[];
   /** Librarian-sign a template → a signed event with an id (mirrors finalizeEvent). */
   readonly sign: (template: NostrEventTemplate) => SignedNostrEvent;
   /** Publish a signed event to a set of relays; ok when at least one accepted. */
@@ -33,25 +27,21 @@ export type ProfileDeps = {
   readonly now?: () => number;
 };
 
-/** One `profile` run: build the kind-0, sign it, publish to dcosl ∪ profile relays. */
 export async function runProfileCycle(deps: ProfileDeps): Promise<void> {
-  if (!deps.profile.name || deps.profile.name.trim() === "") {
-    throw new Error("librarian profile: LIBRARIAN_NAME is required");
+  if (deps.publishRelays.some((r) => r.includes("dcosl"))) {
+    throw new Error("librarian profile: dcosl stores only list kinds; remove it from LIBRARIAN_PUBLISH_RELAYS");
   }
-
   const now = deps.now ? deps.now() : Math.floor(Date.now() / 1000);
-  const content = buildLibrarianProfileContent(deps.profile);
-  const template = buildLibrarianKind0Template(content, now);
-  const signed = deps.sign(template);
-
-  const relays = [deps.dcoslUrl, ...deps.profileRelays];
-  const result = await deps.publish(signed, relays);
-  if (!result.ok) {
-    throw new Error(
-      `librarian profile: kind-0 publish failed (${result.reason}); re-run 'librarian profile'`,
-    );
+  const events: Array<[string, NostrEventTemplate]> = [
+    ["kind-0 profile", buildLibrarianKind0Template(LIBRARIAN_PROFILE, now)],
+    ["kind-10002 relay list", buildLibrarianRelayListTemplate(LIBRARIAN_RELAY_LIST, now)],
+  ];
+  for (const [label, template] of events) {
+    const signed = deps.sign(template);
+    const result = await deps.publish(signed, deps.publishRelays);
+    if (!result.ok) {
+      throw new Error(`librarian profile: ${label} refused (${result.reason}); re-run 'librarian profile'`);
+    }
+    console.log(`[librarian] ${label} published (${signed.id})`);
   }
-  console.log(
-    `[librarian] kind-0 profile published to ${relays.length} relay(s)`,
-  );
 }
