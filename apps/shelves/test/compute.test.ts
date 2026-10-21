@@ -183,6 +183,8 @@ function baseDeps(overrides: Partial<ShelfComputeDeps> = {}): ShelfComputeDeps {
     readReviews:
       overrides.readReviews ??
       (async () => (overrides.readConcept as { reviews?: SignedNostrEvent[] } | undefined)?.reviews ?? []),
+    readBooks: overrides.readBooks ?? (() => (overrides.readConcept ?? makeReadConcept({}))(BOOKS_Z)),
+    readAssertionsFor: overrides.readAssertionsFor ?? (() => (overrides.readConcept ?? makeReadConcept({}))(ASSERTS_Z)),
   } as ShelfComputeDeps;
 }
 
@@ -651,5 +653,28 @@ describe("computeShelves — Recently added", () => {
     const out = await computeShelves(baseDeps({ readConcept: makeReadConcept({ [BOOKS_Z]: many }) }));
     expect(out.recent).toHaveLength(100);
     expect(out.recent[0]!.bookSlug).toBe("b000");
+  });
+});
+
+// ── Story 108 / ADR 0096 §5: books as summaries, assertions only for rated books ──
+describe("computeShelves — reads in proportion to what it uses", () => {
+  it("asks for genre assertions only for books with reviews", async () => {
+    const rated = ratingEvent({ bookSlug: "rated", score: 5, createdAt: NOW - DAY });
+    const readAssertionsFor = vi.fn(async () => [] as SignedNostrEvent[]);
+    const readConcept = makeReadConcept({
+      [BOOKS_Z]: [bookEvent("rated", "Rated"), bookEvent("unrated", "Unrated")],
+    });
+    (readConcept as { reviews?: SignedNostrEvent[] }).reviews = [rated.event];
+    await computeShelves(baseDeps({ readConcept, readAssertionsFor, trust: trustProvider({ [rated.pubkey]: 0.9 }) }));
+    expect(readAssertionsFor).toHaveBeenCalledWith(["rated"]);
+  });
+
+  it("works from book summaries: slug, dates and the delisted mark", async () => {
+    const summary = (slug: string, at: number, extra: string[][] = []) =>
+      ({ id: `s-${slug}`, pubkey: LIB, kind: 39999, created_at: at, content: "", sig: "", tags: [["d", slug], ...extra] }) as SignedNostrEvent;
+    const out = await computeShelves(baseDeps({
+      readBooks: async () => [summary("new", NOW), summary("old", NOW - 9 * DAY, [["added", String(NOW - 20 * DAY)]]), summary("gone", NOW, [["delisted", "true"]])],
+    }));
+    expect(slugsOf(out.recent)).toEqual(["new", "old"]);
   });
 });
