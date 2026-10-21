@@ -3,7 +3,7 @@
 Unbnd's data layer is two Docker services:
 
 - **`tapestry`** — the Tapestry container, built locally from upstream source. Runs strfry (nostr relay), Neo4j (graph DB), the brainstorm Express server, GrapeRank, and nginx under supervisord.
-- **`search`** — Meilisearch today, named generically so a future swap to Vespa is a single image + env-var change.
+- **`search`** — Meilisearch by default; `SEARCH_PROVIDER=nip50` with `SEARCH_URL=wss://search.brainstorm.world` reads Brainstorm's search relay instead (Story 106 / ADR 0095), switched with the Staging ops tasks `search-relay` and `search-meili`.
 
 `apps/api` runs on the host (`pnpm dev:api`) and probes the data layer via `/health/data`.
 

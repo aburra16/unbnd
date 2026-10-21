@@ -12,7 +12,7 @@ export type Config = {
   readonly tapestryApiUrl: string;
   readonly searchUrl: string;
   readonly searchApiKey: string;
-  readonly searchProvider: "meili" | "vespa";
+  readonly searchProvider: "meili" | "vespa" | "nip50";
   readonly databaseUrl: string;
   /** 32-byte server-managed backup key, hex-encoded (64 hex chars). */
   readonly backupEncryptionKey: string;
@@ -214,7 +214,7 @@ const DEFAULT_PROFILE_RELAYS = [
   "wss://relay.nostr.band",
 ];
 
-const KNOWN_PROVIDERS: readonly Config["searchProvider"][] = ["meili", "vespa"];
+const KNOWN_PROVIDERS: readonly Config["searchProvider"][] = ["meili", "vespa", "nip50"];
 const KNOWN_TRUST_PROVIDERS: readonly TrustProviderName[] = ["brainstorm", "fixture"];
 
 function required(env: NodeJS.ProcessEnv, name: string): string {

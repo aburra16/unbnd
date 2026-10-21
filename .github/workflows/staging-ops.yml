@@ -24,6 +24,8 @@ on:
           - librarian-profile # publish the librarian's kind-0 + kind-10002 (Story 98; idempotent)
           - set-brainstorm-endpoints # point BRAINSTORM_API_URL/TRUST_RELAYS in .env at Brainstorm production + recreate the api (Story 98)
           - set-public-origin # ensure PUBLIC_ORIGIN in .env + restart the api
+          - search-relay # point the api's search at Brainstorm's search relay (Story 106) + recreate the api
+          - search-meili # point the api's search back at Meilisearch (Story 106 rollback) + recreate the api
           - install-cron # install the documented worker crontab (idempotent)
           - show-status # read-only: crontab, deployed tag, recent worker logs
 
@@ -130,6 +132,21 @@ jobs:
                 } | crontab -
                 echo "crontab installed:"
                 crontab -l
+                ;;
+              search-relay|search-meili)
+                # ADR 0095 §6: the api's search backend is two .env keys. The
+                # indexer and promoter keep Meilisearch current either way.
+                if [ "${{ inputs.task }}" = "search-relay" ]; then
+                  pairs="SEARCH_PROVIDER=nip50 SEARCH_URL=wss://search.brainstorm.world"
+                else
+                  pairs="SEARCH_PROVIDER=meili SEARCH_URL=http://search:7700"
+                fi
+                for kv in $pairs; do
+                  k="${kv%%=*}"
+                  if grep -q "^${k}=" .env; then sed -i "s|^${k}=.*|${kv}|" .env; else printf '\n%s\n' "$kv" >> .env; fi
+                  echo "set ${kv}"
+                done
+                docker compose -f docker-compose.prod.yml up -d --force-recreate api
                 ;;
               set-public-origin)
                 if grep -q '^PUBLIC_ORIGIN=' .env; then
