@@ -116,4 +116,30 @@ describe("recordEventFor", () => {
     if (p.kind !== "changed") throw new Error("expected changed");
     expect(recordEventFor(p.record, live, 1_790_000_000).tags.filter((x) => x[0] === "added")).toEqual([["added", "1770000000"]]);
   });
+
+});
+
+describe("an existing book keeps its identity (dry run of 2026-09-30)", () => {
+  it("keeps the live title, author and ISBNs, and still takes new content from the dump", () => {
+    const liveRec = liveEvent({ year: 2021 });
+    const tags = liveRec.tags.map((t) => (t[0] === "author" ? ["author", "Carolyn Keene"] : t[0] === "isbn" ? ["isbn", "9780000000002"] : t));
+    const json = JSON.parse(tags.find((t) => t[0] === "json")![1]!);
+    json.bookSubmission.authorName = "Carolyn Keene";
+    json.bookSubmission.isbn13 = "9780000000002";
+    const live = liveSummary({ ...liveRec, tags: tags.map((t) => (t[0] === "json" ? ["json", JSON.stringify(json)] : t)) });
+    const p = planBook(cand({ author_name: ["Leslie McFarlane"], isbn: ["9780802163103"] }), live, AUTHORS, HEADER, YEAR);
+    expect(p.kind).toBe("changed");
+    if (p.kind !== "changed") return;
+    expect(p.record).toMatchObject({ authorName: "Carolyn Keene", isbn13: "9780000000002", publishYear: 2023 });
+  });
+
+  it("a live record with no ISBN takes the dump's", () => {
+    const liveRec = liveEvent({ year: 2021 });
+    const json = JSON.parse(liveRec.tags.find((t) => t[0] === "json")![1]!);
+    delete json.bookSubmission.isbn13;
+    const live = liveSummary({ ...liveRec, tags: liveRec.tags.filter((t) => t[0] !== "isbn").map((t) => (t[0] === "json" ? ["json", JSON.stringify(json)] : t)) });
+    const p = planBook(cand(), live, AUTHORS, HEADER, YEAR);
+    if (p.kind !== "changed") throw new Error("expected changed");
+    expect(p.record.isbn13).toBe("9780802163103");
+  });
 });
