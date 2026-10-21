@@ -1,7 +1,7 @@
 // The catalog in pages (Story 108 / ADR 0096 §2): the librarian's book records
 // a page at a time, each page with only its own books' tag assertions, so a
 // worker's memory follows the page size rather than the catalog size.
-import { forEachPage } from "@unbnd/relay";
+import { forEachPage, queryAllPages } from "@unbnd/relay";
 import {
   buildBookRecordsHeaderAddress,
   buildBookTagAssertionsHeaderAddress,
@@ -31,7 +31,7 @@ export async function forEachCatalogPage(opts: {
     records: SignedNostrEvent[],
     assertionsBySlug: Map<string, SignedNostrEvent[]>,
   ) => Promise<void>;
-}): Promise<{ pages: number; events: number }> {
+}): Promise<{ pages: number; events: number; stuck: boolean }> {
   const { query, librarian } = opts;
   const booksZ = formatAddress(buildBookRecordsHeaderAddress(librarian as never));
   const assertZ = formatAddress(buildBookTagAssertionsHeaderAddress(librarian as never));
@@ -50,7 +50,12 @@ export async function forEachCatalogPage(opts: {
       const bySlug = new Map<string, SignedNostrEvent[]>();
       for (let i = 0; i < addresses.length; i += ADDRESSES_PER_READ) {
         const chunk = addresses.slice(i, i + ADDRESSES_PER_READ);
-        for (const e of await query({ kinds: [39999], "#z": [assertZ], "#a": chunk })) {
+        // Paged: a relay answers at most 500 events per request.
+        const { events } = await queryAllPages(
+          (cursor) => query({ kinds: [39999], "#z": [assertZ], "#a": chunk, ...cursor }),
+          { pageSize: 500, maxPages: Infinity, totalBudgetMs: Infinity },
+        );
+        for (const e of events) {
           let slug: string;
           try {
             slug = fromBookTagAssertionEvent(fromWireEvent(e) as never).bookSlug;
@@ -66,5 +71,5 @@ export async function forEachCatalogPage(opts: {
     },
     { pageSize: opts.pageSize ?? 500, maxPages: Infinity, totalBudgetMs: Infinity },
   );
-  return { pages: result.pages, events: result.events };
+  return { pages: result.pages, events: result.events, stuck: result.stuck };
 }

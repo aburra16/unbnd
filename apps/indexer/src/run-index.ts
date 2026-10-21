@@ -7,40 +7,64 @@
 // and BEFORE any upsert, so a junk document indexed before the read-time filter
 // cannot survive a rebuild. `deleteAll()` tolerates a 404, so a first-ever run
 // (empty/new index) is unaffected.
+import { createReadStream, createWriteStream } from "node:fs";
+import { mkdtemp, rm } from "node:fs/promises";
+import { once } from "node:events";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { createInterface } from "node:readline";
 import type { SearchDocument, SearchProvider } from "@unbnd/search";
 
 const BATCH = 500;
 
-export async function runIndex(
-  provider: SearchProvider,
-  docs: readonly SearchDocument[],
-): Promise<void> {
-  await provider.configureIndex();
-  await provider.deleteAll(); // clean rebuild — drop any stale/junk doc first
-  for (let i = 0; i < docs.length; i += BATCH) {
-    const batch = docs.slice(i, i + BATCH);
-    await provider.index(batch);
-    console.log(`[indexer] indexed ${Math.min(i + BATCH, docs.length)}/${docs.length}`);
-  }
-}
 
 /**
- * Story 108 / ADR 0096 §4: the same clean rebuild, a page at a time. `eachPage`
- * hands over each page's documents; nothing holds the whole catalog.
+ * Story 108 / ADR 0096 §4: the same clean rebuild without holding the catalog.
+ * The walk writes each page's documents to a temporary file; only a complete
+ * walk clears the index and loads it from that file, so a relay failure
+ * mid-walk leaves the old index as it was.
  */
 export async function runIndexInPages(
   provider: SearchProvider,
   eachPage: (onDocs: (docs: readonly SearchDocument[]) => Promise<void>) => Promise<void>,
 ): Promise<number> {
-  await provider.configureIndex();
-  await provider.deleteAll();
-  let indexed = 0;
-  await eachPage(async (docs) => {
-    for (let i = 0; i < docs.length; i += BATCH) {
-      await provider.index(docs.slice(i, i + BATCH));
+  const dir = await mkdtemp(join(tmpdir(), "unbnd-index-"));
+  const file = join(dir, "documents.ndjson");
+  try {
+    const out = createWriteStream(file);
+    let walked = 0;
+    try {
+      await eachPage(async (docs) => {
+        for (const d of docs) {
+          if (!out.write(`${JSON.stringify(d)}\n`)) await once(out, "drain");
+        }
+        walked += docs.length;
+      });
+    } finally {
+      out.end();
+      await once(out, "close");
     }
-    indexed += docs.length;
-    if (docs.length > 0) console.log(`[indexer] indexed ${indexed}`);
-  });
-  return indexed;
+    console.log(`[indexer] walked ${walked} documents; loading`);
+
+    await provider.configureIndex();
+    await provider.deleteAll();
+    let indexed = 0;
+    let batch: SearchDocument[] = [];
+    const flush = async () => {
+      if (batch.length === 0) return;
+      await provider.index(batch);
+      indexed += batch.length;
+      batch = [];
+      console.log(`[indexer] indexed ${indexed}/${walked}`);
+    };
+    for await (const line of createInterface({ input: createReadStream(file), crlfDelay: Infinity })) {
+      if (!line) continue;
+      batch.push(JSON.parse(line) as SearchDocument);
+      if (batch.length >= BATCH) await flush();
+    }
+    await flush();
+    return indexed;
+  } finally {
+    await rm(dir, { recursive: true, force: true });
+  }
 }

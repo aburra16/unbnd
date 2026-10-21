@@ -28,7 +28,7 @@ function relay(events: SignedNostrEvent[]) {
       if (f["#a"] && !(f["#a"] as string[]).some((a) => tag("a").includes(a))) return false;
       if (f.until !== undefined && e.created_at > (f.until as number)) return false;
       return true;
-    }).sort((a, b) => b.created_at - a.created_at).slice(0, (f.limit as number) ?? 1e9),
+    }).sort((a, b) => b.created_at - a.created_at).slice(0, Math.min((f.limit as number) ?? 500, 500)),
   );
 }
 
@@ -65,5 +65,16 @@ describe("forEachCatalogPage", () => {
     const slugs: string[] = [];
     await forEachCatalogPage({ query, librarian: LIB, pageSize: 10, onPage: async (rs) => { slugs.push(...rs.map((r) => r.tags[0]![1]!)); } });
     expect(slugs).toEqual(["mine"]);
+  });
+
+  it("pages each assertion read past the relay's 500-event cap (review round 1)", async () => {
+    const books = [record("b1", 9_999)];
+    const many = Array.from({ length: 700 }, (_, i) =>
+      buildBookAssertionEventsForTest("b1", [[i.toString(16).padStart(64, "0"), "fantasy", 1, 1_700_000_000 + i]])[0]!,
+    );
+    const query = relay([...books, ...many]);
+    let count = 0;
+    await forEachCatalogPage({ query, librarian: LIB, onPage: async (_r, bySlug) => { count = bySlug.get("b1")?.length ?? 0; } });
+    expect(count).toBe(700);
   });
 });

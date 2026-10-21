@@ -7,7 +7,7 @@ import { runIndexInPages } from "../src/run-index";
 const doc = (id: string) => ({ id, title: id, authorName: "A", subjects: [], tags: [], genreSlugs: [], format: "reference" }) as SearchDocument;
 
 describe("runIndexInPages", () => {
-  it("configures and clears once, before the first upsert, then indexes each page", async () => {
+  it("walks every page first, then configures, clears once and loads in batches", async () => {
     const calls: string[] = [];
     const provider = {
       configureIndex: vi.fn(async () => { calls.push("configure"); }),
@@ -19,7 +19,23 @@ describe("runIndexInPages", () => {
       await onDocs([]);
       await onDocs([doc("c")]);
     });
-    expect(calls).toEqual(["configure", "clear", "index:a,b", "index:c"]);
+    expect(calls).toEqual(["configure", "clear", "index:a,b,c"]);
     expect(count).toBe(3);
+  });
+
+  it("a walk that fails leaves the index alone: nothing is cleared (review round 1)", async () => {
+    const calls: string[] = [];
+    const provider = {
+      configureIndex: vi.fn(async () => { calls.push("configure"); }),
+      deleteAll: vi.fn(async () => { calls.push("clear"); }),
+      index: vi.fn(async () => { calls.push("index"); }),
+    } as unknown as SearchProvider;
+    await expect(
+      runIndexInPages(provider, async (onDocs) => {
+        await onDocs([doc("a")]);
+        throw new Error("relay dropped");
+      }),
+    ).rejects.toThrow(/relay dropped/);
+    expect(calls).toEqual([]);
   });
 });

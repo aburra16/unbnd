@@ -206,7 +206,8 @@ async function labels(): Promise<void> {
         (await local.query({ kinds: [39999], "#z": [formatAddress(buildBookTagAssertionsHeaderAddress(librarianPubkey))], limit: 1 })).length > 0,
       // A page of records at a time, with their books' assertions (ADR 0096 §3).
       eachCatalogPage: async (onPage) => {
-        await forEachCatalogPage({ query: (filter) => local.query(filter), librarian: librarianPubkey, onPage });
+        const walk = await forEachCatalogPage({ query: (filter) => local.query(filter), librarian: librarianPubkey, onPage });
+        if (walk.stuck) console.warn("[labels] more than a page of records share one second; the rest of the catalog was not reached");
       },
       readCurrent: async (slug) => {
         const filter = { kinds: [39999], authors: [librarianPubkey], "#z": [booksZ], "#d": [slug] };

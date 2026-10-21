@@ -18,13 +18,13 @@ describe("forEachPage", () => {
     });
     // Page two starts at the boundary second, so b and c come back and are skipped.
     expect(pages).toEqual([["a", "b", "c"], ["d"], ["e"]]);
-    expect(out).toEqual({ pages: 3, events: 5, capped: false });
+    expect(out).toEqual({ pages: 3, events: 5, capped: false, stuck: false });
   });
 
   it("stops on a page with nothing new, and reports a page bound reached", async () => {
     const same = [ev("a", 10), ev("b", 10)];
     const stuck = await forEachPage(async () => same, async () => {}, { pageSize: 2, maxPages: Infinity, totalBudgetMs: Infinity });
-    expect(stuck).toMatchObject({ events: 2, capped: false });
+    expect(stuck).toMatchObject({ events: 2, capped: false, stuck: true });
     let n = 0;
     const endless = await forEachPage(async () => [ev(`x${n++}`, 100 - n), ev(`y${n++}`, 100 - n)], async () => {}, { pageSize: 2, maxPages: 3, totalBudgetMs: Infinity });
     expect(endless).toMatchObject({ pages: 3, capped: true });

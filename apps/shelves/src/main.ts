@@ -117,7 +117,9 @@ async function main(): Promise<void> {
     const out: SignedNostrEvent[] = [];
     const addresses = slugs.map((s) => `39999:${lib}:${s}`);
     for (let i = 0; i < addresses.length; i += 250) {
-      out.push(...(await queryRelay(relayUrl, { kinds: [KIND], "#z": [assertsZ], "#a": addresses.slice(i, i + 250) })));
+      const chunk = addresses.slice(i, i + 250);
+      // Paged: the relay answers at most 500 events per request.
+      out.push(...(await queryAllPages((cursor) => queryRelay(relayUrl, { kinds: [KIND], "#z": [assertsZ], "#a": chunk, ...cursor }))));
     }
     return out;
   };

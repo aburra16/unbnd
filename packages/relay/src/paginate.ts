@@ -79,7 +79,7 @@ export async function forEachPage(
   fetchPage: (cursor: { until?: number; limit: number }) => Promise<SignedNostrEvent[]>,
   onPage: (events: SignedNostrEvent[]) => Promise<void>,
   opts: PaginateOpts,
-): Promise<{ pages: number; events: number; capped: boolean }> {
+): Promise<{ pages: number; events: number; capped: boolean; stuck: boolean }> {
   const { pageSize, maxPages, totalBudgetMs } = opts;
   const now = opts.now ?? (() => Date.now());
   const start = now();
@@ -87,6 +87,9 @@ export async function forEachPage(
   let until: number | undefined;
   let pages = 0;
   let capped = false;
+  // A full page with nothing new: more than a page of events share one second,
+  // and the walk cannot get past them. The caller should say so (ADR 0096).
+  let stuck = false;
 
   for (; pages < maxPages; ) {
     const page = await fetchPage({ until, limit: pageSize });
@@ -104,12 +107,16 @@ export async function forEachPage(
     }
     if (fresh.length > 0) await onPage(fresh);
 
-    if (page.length < pageSize || fresh.length === 0) break;
+    if (page.length >= pageSize && fresh.length === 0) {
+      stuck = true;
+      break;
+    }
+    if (page.length < pageSize) break;
     if (pages === maxPages) {
       capped = true;
       break;
     }
     until = oldest;
   }
-  return { pages, events: seen.size, capped };
+  return { pages, events: seen.size, capped, stuck };
 }
