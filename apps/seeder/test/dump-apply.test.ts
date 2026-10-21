@@ -114,4 +114,22 @@ describe("applyPlan", () => {
     expect(published).toHaveLength(1);
     expect(d.checkpoint.size()).toBe(0);
   });
+
+  it("a refused genre assertion keeps the book out of the checkpoint, and a re-run retries only what is missing", async () => {
+    let refuse = true;
+    const checkpoint = memoryCheckpoint();
+    const first = deps({ checkpoint });
+    first.d.publish = vi.fn(async (e: SignedNostrEvent) => {
+      const isAssertion = e.tags.some((t) => t[0] === "z" && t[1]!.endsWith("book-tag-assertions"));
+      return isAssertion && refuse ? { ok: false as const, reason: "busy" } : { ok: true as const, id: e.id };
+    });
+    expect(await applyPlan([planned()], first.d)).toMatchObject({ records: 1, assertions: 0, failed: 1 });
+    expect(checkpoint.size()).toBe(0);
+
+    refuse = false;
+    const again = deps({ checkpoint, current: [live(2023)] });
+    expect(await applyPlan([planned()], again.d)).toMatchObject({ records: 0, assertions: 1, skipped: 1 });
+    expect(again.published.map((e) => e.kind)).toEqual([39999]);
+    expect(checkpoint.size()).toBe(1);
+  });
 });
