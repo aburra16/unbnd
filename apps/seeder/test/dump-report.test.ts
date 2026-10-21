@@ -17,7 +17,7 @@ describe("ImportReport", () => {
     r.add({ kind: "dropped", reason: "readers" });
     r.add({ kind: "not-owned" });
     r.add({ kind: "unchanged" });
-    r.add({ kind: "new", record: rec({ slug: "ol-ol2w", title: "Dune" }), genres: ["science-fiction"], yearCorrected: { from: 1800, to: 1965 } });
+    r.add({ kind: "new", record: rec({ slug: "ol-ol2w", title: "Dune", publishYear: 1965 }), genres: ["science-fiction"], yearCorrected: { from: 1800, to: 1965 } });
     r.add({ kind: "changed", record: rec({ pageCount: 210 }), genres: [] }, rec());
     const out = r.toJSON();
     expect(out).toMatchObject({
