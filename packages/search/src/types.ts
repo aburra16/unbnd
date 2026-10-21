@@ -53,9 +53,11 @@ export type SearchResult = {
   readonly total: number;
   readonly offset: number;
   readonly limit: number;
+  /** True when the provider stopped at its window and more matches may exist (ADR 0095 §2). */
+  readonly capped?: boolean;
 };
 
-export type ProviderName = "meili" | "vespa";
+export type ProviderName = "meili" | "vespa" | "nip50";
 
 export type ProviderHealth = {
   readonly ok: boolean;

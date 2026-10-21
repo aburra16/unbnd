@@ -39,9 +39,11 @@ services:
       - NEO4J_USER=neo4j
       - NEO4J_PASSWORD=${NEO4J_PASSWORD}
       - TAPESTRY_API_URL=http://tapestry:80
-      - SEARCH_URL=http://search:7700
+      # Story 106 / ADR 0095: the search backend is a setting (Staging ops
+      # `search-relay` / `search-meili`); Meilisearch stays the default.
+      - SEARCH_URL=${SEARCH_URL:-http://search:7700}
       - SEARCH_API_KEY=${SEARCH_API_KEY}
-      - SEARCH_PROVIDER=meili
+      - SEARCH_PROVIDER=${SEARCH_PROVIDER:-meili}
       - BACKUP_ENCRYPTION_KEY=${BACKUP_ENCRYPTION_KEY}
       - LIBRARIAN_PUBKEY=${LIBRARIAN_PUBKEY}
       - PUBLIC_ORIGIN=${PUBLIC_ORIGIN}
@@ -161,7 +163,8 @@ services:
       # promoted book's SearchDocument best-effort after its durable publish.
       - SEARCH_URL=http://search:7700
       - SEARCH_API_KEY=${SEARCH_API_KEY}
-      - SEARCH_PROVIDER=${SEARCH_PROVIDER:-meili}
+      # Writes to Meilisearch whatever the api reads (ADR 0095 §6).
+      - SEARCH_PROVIDER=meili
     depends_on:
       db:
         condition: service_healthy
@@ -181,7 +184,8 @@ services:
       - LIBRARIAN_PUBKEY=${LIBRARIAN_PUBKEY}
       - SEARCH_URL=http://search:7700
       - SEARCH_API_KEY=${SEARCH_API_KEY}
-      - SEARCH_PROVIDER=${SEARCH_PROVIDER:-meili}
+      # Writes to Meilisearch whatever the api reads (ADR 0095 §6).
+      - SEARCH_PROVIDER=meili
     restart: "no"
 
   # Homepage trust-shelf worker (ADR 0036). Never starts with the normal stack —

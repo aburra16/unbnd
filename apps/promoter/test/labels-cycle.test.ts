@@ -194,4 +194,17 @@ describe("runLabelsCycle", () => {
     const { deps } = makeDeps({ publishLocal: vi.fn(async () => { throw new Error("socket closed"); }) });
     expect(await runLabelsCycle(deps)).toEqual({ checked: 2, relabelled: 2, failed: 0 });
   });
+
+  it("writes the record's ISBN as a NIP-73 identifier (Story 106 / ADR 0095 §7)", async () => {
+    const withIsbn = record("orbital", [["isbn", "9780141439518"]]);
+    const { deps, published } = makeDeps({ readBooks: vi.fn(async () => [withIsbn]) });
+    await runLabelsCycle(deps);
+    expect(published[0]!.event.tags).toContainEqual(["i", "isbn:9780141439518"]);
+  });
+
+  it("a record with only an ISBN-10 gets the 13-digit identifier (review round 2)", async () => {
+    const { deps, published } = makeDeps({ readBooks: vi.fn(async () => [record("orbital", [["isbn10", "0141439513"]])]) });
+    await runLabelsCycle(deps);
+    expect(published[0]!.event.tags).toContainEqual(["i", "isbn:9780141439518"]);
+  });
 });

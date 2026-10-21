@@ -41,7 +41,8 @@ describe("BOOK_RECORD_TAG_NAMES", () => {
     const written = new Set(
       toBookRecordEvent(full)
         .tags.map((t) => t[0])
-        .filter((n) => n !== "L" && n !== "l"),
+        // Labels and the NIP-73 ISBN identifier belong to BookLabels (ADR 0094, 0095 §7).
+        .filter((n) => n !== "L" && n !== "l" && n !== "i"),
     );
     expect(new Set(BOOK_RECORD_TAG_NAMES)).toEqual(written);
   });

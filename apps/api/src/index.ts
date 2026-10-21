@@ -92,13 +92,29 @@ import { startMaintenanceSweeper } from "./maintenance";
 import { evaluateAutoPromotions } from "./submissions/auto-promote";
 import { verifySignedChallenge } from "./auth/nostr";
 
+/** A ranked window of 100 from the search relay can take a few seconds. */
+const SEARCH_RELAY_TIMEOUT_MS = 8000;
+
 async function main() {
   const config = loadConfig();
-  const searchProvider = resolveProvider({
-    provider: config.searchProvider,
-    url: config.searchUrl,
-    apiKey: config.searchApiKey,
-  });
+  const searchProvider = resolveProvider(
+    {
+      provider: config.searchProvider,
+      url: config.searchUrl,
+      apiKey: config.searchApiKey,
+    },
+    // Story 106 / ADR 0095: the search relay read, which fails loudly when the
+    // relay does not answer, and the librarian whose list it searches.
+    {
+      librarian: config.librarianPubkey ?? "",
+      query: async (filter) => {
+        const read = await queryRelayUrlChecked(config.searchUrl, filter, SEARCH_RELAY_TIMEOUT_MS);
+        if (!read.ok) throw new Error("search relay did not answer");
+        return read.events;
+      },
+      verify: (event) => verifyEvent(event as Parameters<typeof verifyEvent>[0]),
+    },
+  );
 
   // Postgres may not accept connections the instant the API container starts
   // (compose `depends_on: service_healthy` covers the normal case; this is

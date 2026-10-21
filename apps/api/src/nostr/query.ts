@@ -131,6 +131,10 @@ export function queryRelayUrlChecked(
         collected.push(msg[2] as SignedNostrEvent);
       } else if (msg[0] === "EOSE") {
         finish(true);
+      } else if (msg[0] === "CLOSED") {
+        // The relay refused or ended the read (auth-required, rate limit, bad
+        // filter): a failure now, not a wait for the timeout (Story 106).
+        finish(false);
       }
     });
 

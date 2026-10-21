@@ -1,3 +1,5 @@
+import { isbn13Of } from "./isbn";
+
 // A book record's facets as NIP-32 labels (Story 105 / ADR 0094): genre, format
 // and language, so a relay filter on `#l` can narrow a search over records.
 // Genres are the applied consensus; format and language come from the record.
@@ -12,7 +14,12 @@ export type BookFacets = {
   readonly genres: readonly string[];
   readonly format?: string;
   readonly language?: string;
+  /** An ISBN-13 or ISBN-10, written as the NIP-73 `["i","isbn:<13 digits>"]` (ADR 0095 §7). */
+  readonly isbn13?: string;
 };
+
+/** The NIP-73 prefix for a book's ISBN. */
+export const ISBN_IDENTIFIER_PREFIX = "isbn:";
 
 type Tags = ReadonlyArray<readonly string[]>;
 const OURS = new Set<string>(BOOK_LABEL_NAMESPACES);
@@ -29,11 +36,17 @@ export function bookLabels(facets: BookFacets): string[][] {
   add(BOOK_GENRE_NAMESPACE, facets.genres);
   add(BOOK_FORMAT_NAMESPACE, facets.format ? [facets.format] : []);
   add(BOOK_LANGUAGE_NAMESPACE, facets.language ? [facets.language] : []);
+  const isbn = facets.isbn13 ? isbn13Of(facets.isbn13) : null;
+  if (isbn) out.push(["i", `${ISBN_IDENTIFIER_PREFIX}${isbn}`]);
   return out;
 }
 
 function isOurs(t: readonly string[]): boolean {
-  return (t[0] === "L" && OURS.has(t[1] ?? "")) || (t[0] === "l" && OURS.has(t[2] ?? ""));
+  return (
+    (t[0] === "L" && OURS.has(t[1] ?? "")) ||
+    (t[0] === "l" && OURS.has(t[2] ?? "")) ||
+    (t[0] === "i" && (t[1] ?? "").startsWith(ISBN_IDENTIFIER_PREFIX))
+  );
 }
 
 /** `tags` with this module's namespaces replaced by `labels`; every other tag stays in place. */

@@ -245,6 +245,8 @@ export type SearchResult = {
   total: number;
   offset: number;
   limit: number;
+  // Story 106 / ADR 0095: true when the search stopped at its top 100.
+  capped?: boolean;
 };
 
 // kind-0 profile metadata (ADR 0012). Always carries npub; the rest is

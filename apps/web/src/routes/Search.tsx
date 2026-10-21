@@ -28,7 +28,7 @@ type State =
   | { status: "idle" }
   | { status: "loading" }
   | { status: "error" }
-  | { status: "ready"; hits: Book[]; total: number };
+  | { status: "ready"; hits: Book[]; total: number; capped: boolean };
 
 export function Search() {
   const [params] = useSearchParams();
@@ -45,7 +45,7 @@ export function Search() {
     setState({ status: "loading" });
     api.search(q, { limit: PAGE, offset: 0 })
       .then((r) => {
-        if (!cancelled) setState({ status: "ready", hits: r.hits.map(toCard), total: r.total });
+        if (!cancelled) setState({ status: "ready", hits: r.hits.map(toCard), total: r.total, capped: r.capped ?? false });
       })
       .catch(() => {
         if (!cancelled) setState({ status: "error" });
@@ -60,7 +60,7 @@ export function Search() {
     setLoadingMore(true);
     try {
       const r = await api.search(q, { limit: PAGE, offset: state.hits.length });
-      setState({ status: "ready", hits: [...state.hits, ...r.hits.map(toCard)], total: r.total });
+      setState({ status: "ready", hits: [...state.hits, ...r.hits.map(toCard)], total: r.total, capped: r.capped ?? false });
     } catch {
       /* keep what we have */
     } finally {
@@ -88,7 +88,7 @@ export function Search() {
           <p className="search-count">
             {state.total === 0
               ? `No results for “${q}”.`
-              : `${state.total.toLocaleString("en-US")} result${state.total === 1 ? "" : "s"} for “${q}”`}
+              : `${state.total.toLocaleString("en-US")}${state.capped ? "+" : ""} result${state.total === 1 && !state.capped ? "" : "s"} for “${q}”`}
           </p>
           {state.hits.length > 0 && <BookGrid books={state.hits} />}
           {state.hits.length < state.total && (

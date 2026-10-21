@@ -6,6 +6,7 @@ import {
   type UnsignedDListEvent,
 } from "./envelope";
 import { bookLabels } from "./BookLabels";
+export { isbn13Of } from "./isbn";
 
 export const BOOK_RECORD_KIND = 39999 as const;
 export const BOOK_RECORD_WORD_TYPE = "bookSubmission" as const;
@@ -115,6 +116,7 @@ export const JUNK_TITLE_RE =
  */
 export const PRINT_ERA_START = 1450;
 
+
 /**
  * The publish year Unbnd reports for a record: the stored year from
  * PRINT_ERA_START on, otherwise none (ADR 0091 §3). Read projections call this;
@@ -217,8 +219,8 @@ export function toBookRecordEvent(record: BookRecord): BookRecordEvent {
   }
   tags.push(["format", record.format]);
   tags.push(["source", record.source]);
-  // ADR 0094 §5: format and language as labels; genre labels come from the labels pass.
-  for (const label of bookLabels({ genres: [], format: record.format, language: record.language })) {
+  // ADR 0094 §5, ADR 0095 §7: format, language and ISBN; genre labels come from the labels pass.
+  for (const label of bookLabels({ genres: [], format: record.format, language: record.language, isbn13: record.isbn13 ?? record.isbn10 })) {
     tags.push(label as [string, ...string[]]);
   }
 
