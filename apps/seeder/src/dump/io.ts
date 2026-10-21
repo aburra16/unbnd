@@ -68,7 +68,13 @@ export async function ensureDump(opts: {
   const path = join(opts.dir, name);
   const marker = `${path}.md5`;
   const recorded = await readFile(marker, "utf8").catch(() => "");
-  if (recorded.trim() === opts.md5 && (await stat(path).catch(() => null))) return path;
+  const existing = await stat(path).catch(() => null);
+  if (existing && recorded.trim() === opts.md5) return path;
+  // A file left by an earlier run (or put there by hand) is checked, not fetched again.
+  if (existing && (await md5Of(path)) === opts.md5) {
+    await writeFile(marker, opts.md5);
+    return path;
+  }
 
   await mkdir(opts.dir, { recursive: true });
   const partial = `${path}.part`;
