@@ -112,6 +112,10 @@ services:
     environment:
       - DCOSL_RELAY_URL=${DCOSL_RELAY_URL:-wss://dcosl.brainstorm.world/}
       - LIBRARIAN_NSEC=${LIBRARIAN_NSEC}
+      # Open Library import (ADR 0097): the dry run plans from the public key
+      # alone; --apply signs and publishes at IMPORT_RATE events a second.
+      - LIBRARIAN_PUBKEY=${LIBRARIAN_PUBKEY}
+      - IMPORT_RATE=${IMPORT_RATE:-10}
       # Genre recast (Story 75): reads the catalog off the LOCAL relay and
       # checkpoints on the seeder volume so a re-run resumes, not repeats.
       - STRFRY_URL=${STRFRY_URL:-ws://tapestry/relay}

@@ -5,9 +5,10 @@ import { build } from "esbuild";
 await build({
   // One-off entrypoints ride the same image: the catalog seed (index), the
   // genre recast (Story 75 / ADR 0073; `run seeder node recast.js`), the
-  // header-only publish (Story 97 / ADR 0087; `run seeder node headers.js`) and
-  // the catalog year correction (Story 104 / ADR 0093; `run seeder node years.js`).
-  entryPoints: ["src/index.ts", "src/recast.ts", "src/publish-headers.ts", "src/correct-years.ts"],
+  // header-only publish (Story 97 / ADR 0087; `run seeder node headers.js`),
+  // the catalog year correction (Story 104 / ADR 0093; `run seeder node years.js`),
+  // and the Open Library dump import (Story 109 / ADR 0097; `run seeder node import.js`).
+  entryPoints: ["src/index.ts", "src/recast.ts", "src/publish-headers.ts", "src/correct-years.ts", "src/import.ts"],
   bundle: true,
   platform: "node",
   target: "node22",

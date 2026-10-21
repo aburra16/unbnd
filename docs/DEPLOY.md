@@ -252,6 +252,34 @@ starts with the normal stack.
    `promotions.slug` unique constraint, so double-promote can never duplicate a
    catalog entry.
 
+## Open Library dump import (Story 109 / ADR 0097)
+
+The catalog is the books that pass the seeder's gate and have at least 5 Open
+Library readers, imported from Open Library's monthly dump (archive.org item
+`ol_dump_<date>`). Two steps, each a Staging ops task started detached on the
+seeder image, since a run takes hours:
+
+1. **Dry run.** `gh workflow run "Staging ops" -f task=import-dry-run -f dump=2026-09-30`
+   downloads the works, editions, authors, redirects and reading-log dumps to
+   `/data/ol-dumps/<date>` on the seeder volume (about 17.5 GB, kept for the
+   next run once verified against archive.org's md5), reads the librarian's
+   records from the hub, and writes `/data/import-plan-<date>.ndjson` and
+   `/data/import-report-<date>.json`. It publishes nothing and needs only the
+   librarian's public key.
+2. **Read the report.** `gh workflow run "Staging ops" -f task=import-report -f dump=2026-09-30`
+   prints the report (counts by outcome and gate signal, year corrections, which
+   fields changed on existing books, sample titles) and the import's log.
+3. **Apply.** `gh workflow run "Staging ops" -f task=import-apply -f dump=2026-09-30`
+   publishes the plan to the hub: each book re-checked against the hub first,
+   one event at a time at `IMPORT_RATE` a second (default 10; a first run of
+   159,000 books is about 310,000 events and takes 20 to 40 hours with the hub
+   reads), checkpointed in `/data/import-checkpoint` so a dropped run resumes
+   when started again. Only one import runs at a time.
+
+After an apply, the down-sync brings the records to Unbnd's relay, the labels
+pass labels them (genre, format, language, ISBN), and the search relay indexes
+them from the hub.
+
 ## Accusatory-tag reveal (Story 33 / ADR 0034)
 
 Revealing an accusatory tag (e.g. `ai-generated`) on a book is an operator

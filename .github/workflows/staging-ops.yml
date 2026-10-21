@@ -21,6 +21,9 @@ on:
           - headers # publish the seeder-owned list headers only (Story 97; idempotent)
           - years-check # dry run: list the catalog years the correction would change (Story 104; read-only)
           - years-fix # correct those catalog years at source, librarian-signed (Story 104; idempotent)
+          - import-dry-run # Open Library dump import, dry run: download, verify, plan, report; publishes nothing (Story 109; detached)
+          - import-apply # publish the dry run's plan for the given dump, paced and resumable (Story 109; detached)
+          - import-report # print the dry run's report and the import's latest log (read-only)
           - librarian-profile # publish the librarian's kind-0 + kind-10002 (Story 98; idempotent)
           - set-brainstorm-endpoints # point BRAINSTORM_API_URL/TRUST_RELAYS in .env at Brainstorm production + recreate the api (Story 98)
           - set-public-origin # ensure PUBLIC_ORIGIN in .env + restart the api
@@ -28,6 +31,11 @@ on:
           - search-meili # point the api's search back at Meilisearch (Story 106 rollback) + recreate the api
           - install-cron # install the documented worker crontab (idempotent)
           - show-status # read-only: crontab, deployed tag, recent worker logs
+      dump:
+        description: "Open Library dump date (YYYY-MM-DD) for the import tasks"
+        required: false
+        type: string
+        default: ""
 
 jobs:
   run:
@@ -44,7 +52,11 @@ jobs:
 
       - name: Run the task over SSH
         uses: appleboy/ssh-action@v1.2.0
+        env:
+          # Passed as data, never pasted into the script (an input is untrusted text).
+          DUMP: ${{ inputs.dump }}
         with:
+          envs: DUMP
           host: ${{ secrets.DROPLET_HOST }}
           username: ${{ secrets.DROPLET_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
@@ -84,6 +96,32 @@ jobs:
                 # to the local relay). The same templates a full seed publishes.
                 docker compose -f docker-compose.prod.yml --profile seed pull seeder
                 docker compose -f docker-compose.prod.yml --profile seed run --rm seeder node headers.js
+                ;;
+              import-dry-run|import-apply)
+                # Story 109 / ADR 0097. Runs for hours, so it is started detached
+                # under a fixed container name; import-report shows how it goes.
+                dump="${DUMP:-}"
+                if ! printf '%s' "$dump" | grep -Eq '^[0-9]{4}-[0-9]{2}-[0-9]{2}$'; then
+                  echo "::error::dump must be a date such as 2026-09-30"; exit 1
+                fi
+                if docker ps --format '{{.Names}}' | grep -qx unbnd-import; then
+                  echo "an import is already running"; exit 1
+                fi
+                docker rm unbnd-import >/dev/null 2>&1 || true
+                apply=""
+                if [ "${{ inputs.task }}" = "import-apply" ]; then apply="--apply"; fi
+                docker compose -f docker-compose.prod.yml --profile seed pull seeder
+                docker compose -f docker-compose.prod.yml --profile seed run -d --name unbnd-import seeder node import.js --dump "$dump" $apply
+                echo "started: node import.js --dump $dump $apply"
+                ;;
+              import-report)
+                dump="${DUMP:-}"
+                if ! printf '%s' "$dump" | grep -Eq '^[0-9]{4}-[0-9]{2}-[0-9]{2}$'; then
+                  echo "::error::dump must be a date such as 2026-09-30"; exit 1
+                fi
+                docker compose -f docker-compose.prod.yml --profile seed run --rm --entrypoint sh seeder -c "if [ -f /data/import-report-${dump}.json ]; then head -c 20000 /data/import-report-${dump}.json; else echo 'no report for ${dump} yet'; fi"
+                echo "--- import log (last 40 lines) ---"
+                docker logs --tail 40 unbnd-import 2>&1 || echo "(no import container)"
                 ;;
               years-check)
                 # Read the catalog from dcosl and Open Library; print every year
