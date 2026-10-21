@@ -10,6 +10,8 @@
 import { createReadStream, createWriteStream } from "node:fs";
 import { mkdtemp, rm } from "node:fs/promises";
 import { once } from "node:events";
+import type { Writable } from "node:stream";
+import { finished } from "node:stream/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { createInterface } from "node:readline";
@@ -27,23 +29,31 @@ const BATCH = 500;
 export async function runIndexInPages(
   provider: SearchProvider,
   eachPage: (onDocs: (docs: readonly SearchDocument[]) => Promise<void>) => Promise<void>,
+  opts: { readonly openOut?: (file: string) => Writable } = {},
 ): Promise<number> {
   const dir = await mkdtemp(join(tmpdir(), "unbnd-index-"));
   const file = join(dir, "documents.ndjson");
   try {
-    const out = createWriteStream(file);
+    const out = (opts.openOut ?? ((f: string) => createWriteStream(f)))(file);
+    // A write error (a full disk) must fail the run, not hang it or pass as done.
+    let writeError: Error | undefined;
+    out.on("error", (err: Error) => { writeError ??= err; });
     let walked = 0;
     try {
       await eachPage(async (docs) => {
         for (const d of docs) {
-          if (!out.write(`${JSON.stringify(d)}\n`)) await once(out, "drain");
+          if (writeError) throw writeError;
+          if (!out.write(`${JSON.stringify(d)}\n`)) {
+            await Promise.race([once(out, "drain"), finished(out)]);
+          }
         }
         walked += docs.length;
       });
     } finally {
       out.end();
-      await once(out, "close");
+      await finished(out).catch((err: Error) => { writeError ??= err; });
     }
+    if (writeError) throw writeError;
     console.log(`[indexer] walked ${walked} documents; loading`);
 
     await provider.configureIndex();

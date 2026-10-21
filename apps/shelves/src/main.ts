@@ -100,7 +100,7 @@ async function main(): Promise<void> {
   const readBooks = async () => {
     const summaries: SignedNostrEvent[] = [];
     const keep = new Set(["d", "added", "delisted"]);
-    await forEachPage(
+    const walk = await forEachPage(
       (cursor) => queryRelay(relayUrl, { kinds: [KIND], "#z": [booksZ], authors: [lib], ...cursor }),
       async (events) => {
         for (const e of events) {
@@ -109,6 +109,7 @@ async function main(): Promise<void> {
       },
       { pageSize: 500, maxPages: Infinity, totalBudgetMs: Infinity },
     );
+    if (walk.stuck) console.warn("[shelves] more than a page of records share one second; Recently added may miss older books");
     return summaries;
   };
   // Genre assertions for the reviewed books only, by book address in chunks.

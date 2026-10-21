@@ -44,7 +44,7 @@ async function main() {
   );
   const year = new Date().getUTCFullYear();
   const total = await runIndexInPages(provider, async (onDocs) => {
-    await forEachCatalogPage({
+    const walk = await forEachCatalogPage({
       query: (filter) => queryRelay(relayUrl, filter as never),
       librarian: lib,
       onPage: async (records, assertionsBySlug) => {
@@ -52,6 +52,9 @@ async function main() {
         await onDocs(buildSearchDocuments(records, taxonomy, assertions, year));
       },
     });
+    // A walk that could not get past one crowded second is incomplete: do not
+    // clear the index for it (ADR 0096 §4).
+    if (walk.stuck) throw new Error("indexer: more than a page of records share one second; not rebuilding from a partial walk");
   });
   console.log(`[indexer] done: ${total} documents indexed`);
 }
