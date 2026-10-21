@@ -149,4 +149,9 @@ describe("a work Open Library merged into another (review round 1)", () => {
   it("the merge target of a book already in the catalog is skipped and counted, not added twice", () => {
     expect(planBook(cand(), undefined, AUTHORS, HEADER, YEAR, { mergedFromCatalog: true })).toEqual({ kind: "dropped", reason: "merged" });
   });
+
+  it("a merge target that is itself in the catalog is planned as usual (review round 2)", () => {
+    const p = planBook(cand(), liveSummary(liveEvent()), AUTHORS, HEADER, YEAR, { mergedFromCatalog: true });
+    expect(p.kind).toBe("unchanged");
+  });
 });

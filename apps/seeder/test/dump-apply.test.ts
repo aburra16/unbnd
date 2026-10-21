@@ -152,6 +152,12 @@ describe("applyPlan", () => {
     expect(published[0]!.created_at).toBe(1_790_000_000);
   });
 
+  it("a new book that is on the hub by now, unchanged, is skipped (review round 2)", async () => {
+    const { d, published } = deps({ current: [live(2023)] });
+    expect(await applyPlan([planned({ kind: "new" })], d)).toMatchObject({ records: 0, skipped: 1, failed: 0 });
+    expect(published.some((e) => e.tags.some((t) => t[0] === "d" && t[1] === "ol-ol77w"))).toBe(false);
+  });
+
   it("a replacement is dated after the record it replaces (review round 1)", async () => {
     const ahead = { ...live(2021), created_at: 1_790_000_100 } as SignedNostrEvent;
     const { d, published } = deps({ current: [ahead] });

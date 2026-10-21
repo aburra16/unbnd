@@ -65,6 +65,10 @@ async function main(): Promise<void> {
     sk = decoded.data as Uint8Array;
   }
   const librarian = asHexPubkey(sk ? getPublicKey(sk) : env("LIBRARIAN_PUBKEY"));
+  // The plan was made for LIBRARIAN_PUBKEY; publishing it under another key would fork the catalog.
+  if (sk && process.env.LIBRARIAN_PUBKEY && asHexPubkey(process.env.LIBRARIAN_PUBKEY) !== librarian) {
+    throw new Error("import: LIBRARIAN_NSEC does not belong to LIBRARIAN_PUBKEY");
+  }
   const header = buildBookRecordsHeaderAddress(librarian);
   const booksZ = formatAddress(header);
   const assertZ = formatAddress(buildBookTagAssertionsHeaderAddress(librarian));
@@ -160,6 +164,8 @@ async function main(): Promise<void> {
       log: console.log,
     });
     console.log(`[import] applied ${date}: ${JSON.stringify(summary)}`);
+    // Failed books are retried by the next run; a non-zero exit makes them visible.
+    if (summary.failed > 0) process.exitCode = 1;
   } finally {
     hub.close();
   }
