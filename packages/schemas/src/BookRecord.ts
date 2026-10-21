@@ -6,6 +6,7 @@ import {
   type UnsignedDListEvent,
 } from "./envelope";
 import { bookLabels } from "./BookLabels";
+export { isbn13Of } from "./isbn";
 
 export const BOOK_RECORD_KIND = 39999 as const;
 export const BOOK_RECORD_WORD_TYPE = "bookSubmission" as const;
@@ -115,24 +116,6 @@ export const JUNK_TITLE_RE =
  */
 export const PRINT_ERA_START = 1450;
 
-/**
- * An ISBN-13 from what a reader typed (Story 106 / ADR 0095 §7): hyphens and
- * spaces dropped, an ISBN-10 converted with the 978 prefix, and the check digit
- * verified. Anything else is null.
- */
-export function isbn13Of(raw: string): string | null {
-  const s = raw.replace(/[\s-]/g, "").toUpperCase();
-  const digits13 = (d12: string) => {
-    const sum = [...d12].reduce((acc, c, i) => acc + Number(c) * (i % 2 === 0 ? 1 : 3), 0);
-    return d12 + String((10 - (sum % 10)) % 10);
-  };
-  if (/^\d{13}$/.test(s)) return digits13(s.slice(0, 12)) === s ? s : null;
-  if (/^\d{9}[\dX]$/.test(s)) {
-    const sum = [...s].reduce((acc, c, i) => acc + (c === "X" ? 10 : Number(c)) * (10 - i), 0);
-    return sum % 11 === 0 ? digits13(`978${s.slice(0, 9)}`) : null;
-  }
-  return null;
-}
 
 /**
  * The publish year Unbnd reports for a record: the stored year from
@@ -237,7 +220,7 @@ export function toBookRecordEvent(record: BookRecord): BookRecordEvent {
   tags.push(["format", record.format]);
   tags.push(["source", record.source]);
   // ADR 0094 §5, ADR 0095 §7: format, language and ISBN; genre labels come from the labels pass.
-  for (const label of bookLabels({ genres: [], format: record.format, language: record.language, isbn13: record.isbn13 })) {
+  for (const label of bookLabels({ genres: [], format: record.format, language: record.language, isbn13: record.isbn13 ?? record.isbn10 })) {
     tags.push(label as [string, ...string[]]);
   }
 

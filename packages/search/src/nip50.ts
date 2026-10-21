@@ -51,7 +51,7 @@ const WINDOW_TTL_MS = 2 * 60 * 1000;
 const MAX_WINDOWS = 500;
 const MAX_QUERY_CHARS = 200;
 /** NIP-50 options (`key:value`) a reader might type; only the adapter sets those. */
-const SEARCH_OPTION = /(^|\s)[a-z_]+:\S+/gi;
+const SEARCH_OPTION = /(^|\s)(include|exclude|domain|language|lang|sentiment|nsfw|observer|spam):\S*/gi;
 /** Brainstorm's search relay answers an unauthenticated search only with this option. */
 const OPEN_READ = "include:spam";
 
@@ -112,6 +112,7 @@ export class Nip50Provider implements SearchProvider {
     const key = JSON.stringify([isbn ?? "", text, f.genre ?? "", f.format ?? "", f.language ?? ""]);
     const cached = this.#windows.get(key);
     if (cached && this.#now() - cached.at < WINDOW_TTL_MS) return cached;
+    if (!isbn && text === "") return { hits: [], full: false, at: this.#now() };
     const inFlight = this.#pending.get(key);
     if (inFlight) return inFlight;
 

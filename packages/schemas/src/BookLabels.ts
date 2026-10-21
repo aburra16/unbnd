@@ -1,3 +1,5 @@
+import { isbn13Of } from "./isbn";
+
 // A book record's facets as NIP-32 labels (Story 105 / ADR 0094): genre, format
 // and language, so a relay filter on `#l` can narrow a search over records.
 // Genres are the applied consensus; format and language come from the record.
@@ -12,7 +14,7 @@ export type BookFacets = {
   readonly genres: readonly string[];
   readonly format?: string;
   readonly language?: string;
-  /** Written as a NIP-73 identifier, `["i","isbn:<13 digits>"]` (ADR 0095 §7). */
+  /** An ISBN-13 or ISBN-10, written as the NIP-73 `["i","isbn:<13 digits>"]` (ADR 0095 §7). */
   readonly isbn13?: string;
 };
 
@@ -34,7 +36,8 @@ export function bookLabels(facets: BookFacets): string[][] {
   add(BOOK_GENRE_NAMESPACE, facets.genres);
   add(BOOK_FORMAT_NAMESPACE, facets.format ? [facets.format] : []);
   add(BOOK_LANGUAGE_NAMESPACE, facets.language ? [facets.language] : []);
-  if (facets.isbn13) out.push(["i", `${ISBN_IDENTIFIER_PREFIX}${facets.isbn13}`]);
+  const isbn = facets.isbn13 ? isbn13Of(facets.isbn13) : null;
+  if (isbn) out.push(["i", `${ISBN_IDENTIFIER_PREFIX}${isbn}`]);
   return out;
 }
 

@@ -201,4 +201,10 @@ describe("runLabelsCycle", () => {
     await runLabelsCycle(deps);
     expect(published[0]!.event.tags).toContainEqual(["i", "isbn:9780141439518"]);
   });
+
+  it("a record with only an ISBN-10 gets the 13-digit identifier (review round 2)", async () => {
+    const { deps, published } = makeDeps({ readBooks: vi.fn(async () => [record("orbital", [["isbn10", "0141439513"]])]) });
+    await runLabelsCycle(deps);
+    expect(published[0]!.event.tags).toContainEqual(["i", "isbn:9780141439518"]);
+  });
 });

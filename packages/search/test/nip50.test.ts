@@ -171,6 +171,20 @@ describe("Nip50Provider: ISBN, signatures, shared reads, user text (review round
   });
 });
 
+describe("Nip50Provider: titles with colons, empty text (review round 2)", () => {
+  it("keeps a colon inside a title and strips only NIP-50 options", async () => {
+    const { p, query } = provider([]);
+    await p.search({ q: "Re:Zero include:spam language:fr", limit: 5, offset: 0 });
+    expect(query).toHaveBeenLastCalledWith(expect.objectContaining({ search: "Re:Zero include:spam" }));
+  });
+
+  it("a query that is only options asks the relay nothing and finds nothing", async () => {
+    const { p, query } = provider([book("a")]);
+    expect(await p.search({ q: "observer:abc sentiment:positive", limit: 5, offset: 0 })).toMatchObject({ hits: [], total: 0, capped: false });
+    expect(query).not.toHaveBeenCalled();
+  });
+});
+
 describe("Nip50Provider writes and health", () => {
   it("writes are no-ops: the relay indexes the hub's records itself", async () => {
     const { p, query } = provider([]);

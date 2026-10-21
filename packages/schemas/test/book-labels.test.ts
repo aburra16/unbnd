@@ -144,3 +144,20 @@ describe("the ISBN as a NIP-73 identifier", () => {
     expect(ev.tags).toContainEqual(["i", "isbn:9780141439518"]);
   });
 });
+
+describe("the ISBN identifier is always the 13-digit form (review round 2)", () => {
+  it("bookLabels normalizes an ISBN-10 or a hyphenated value, and skips one that is not an ISBN", () => {
+    expect(bookLabels({ genres: [], format: "reference", isbn13: "0141439513" })).toContainEqual(["i", "isbn:9780141439518"]);
+    expect(bookLabels({ genres: [], format: "reference", isbn13: "978-0-14-143951-8" })).toContainEqual(["i", "isbn:9780141439518"]);
+    expect(bookLabels({ genres: [], format: "reference", isbn13: "12345" }).some((t) => t[0] === "i")).toBe(false);
+  });
+
+  it("a record with only an ISBN-10 still carries the identifier", () => {
+    const LIB = hex64("1".repeat(63) + "a");
+    const ev = toBookRecordEvent({
+      slug: "s", title: "T", authorName: "A", isbn10: "0141439513", format: "reference", source: "openlibrary",
+      parentHeader: { kind: 39998, pubkey: LIB, dTag: "books" },
+    });
+    expect(ev.tags).toContainEqual(["i", "isbn:9780141439518"]);
+  });
+});
