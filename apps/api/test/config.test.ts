@@ -171,6 +171,10 @@ describe("loadConfig — env overrides", () => {
     ).toBe("vespa");
   });
 
+  it("respects SEARCH_PROVIDER=nip50 (Story 106 / ADR 0095)", () => {
+    expect(loadConfig({ ...ALL_REQUIRED, SEARCH_PROVIDER: "nip50" }).searchProvider).toBe("nip50");
+  });
+
   it("parses PORT as a number", () => {
     const c = loadConfig({ ...ALL_REQUIRED, PORT: "9000" });
     expect(c.port).toBe(9000);

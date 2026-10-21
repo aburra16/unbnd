@@ -1,0 +1,150 @@
+// FAILING TESTS — Story 106 / ADR 0095: the NIP-50 search provider. The relay
+// read is injected; no socket here.
+import { describe, expect, it, vi } from "vitest";
+import {
+  asHexPubkey,
+  bookLabels,
+  buildBookRecordsHeaderAddress,
+  formatAddress,
+  toBookRecordEvent,
+  toWireTemplate,
+  withBookLabels,
+  type SignedNostrEvent,
+} from "@unbnd/schemas";
+import { Nip50Provider } from "../src/nip50";
+import { resolveProvider } from "../src";
+
+const LIB = asHexPubkey("1".repeat(63) + "a");
+const BOOKS_Z = formatAddress(buildBookRecordsHeaderAddress(LIB));
+let seq = 0;
+
+function book(slug: string, o: { at?: number; pubkey?: string; extra?: string[][]; year?: number; language?: string; format?: "reference" | "ebook" } = {}): SignedNostrEvent {
+  const t = toWireTemplate(
+    toBookRecordEvent({
+      slug,
+      title: `Title ${slug}`,
+      authorName: `Author ${slug}`,
+      blurb: `About ${slug}.`,
+      publishYear: o.year ?? 2001,
+      language: o.language ?? "eng",
+      format: o.format ?? "reference",
+      source: "openlibrary",
+      coverUrl: `https://covers.example/${slug}.jpg`,
+      parentHeader: buildBookRecordsHeaderAddress(LIB),
+    }),
+    o.at ?? 1_790_000_000,
+  );
+  seq++;
+  return { ...t, tags: [...t.tags, ...(o.extra ?? [])], id: seq.toString(16).padStart(64, "0"), pubkey: o.pubkey ?? LIB, sig: "f".repeat(128) } as SignedNostrEvent;
+}
+
+function provider(events: SignedNostrEvent[], now = { t: 1_000 }) {
+  const query = vi.fn(async () => events);
+  const p = new Nip50Provider({ librarian: LIB, query, now: () => now.t });
+  return { p, query, now };
+}
+
+describe("Nip50Provider.search", () => {
+  it("asks the relay once for the top 100 of the librarian's books matching the text", async () => {
+    const { p, query } = provider([book("a")]);
+    await p.search({ q: "island", limit: 20, offset: 0 });
+    expect(query).toHaveBeenCalledWith({
+      kinds: [39999],
+      authors: [LIB],
+      "#z": [BOOKS_Z],
+      search: "island include:spam",
+      limit: 100,
+    });
+  });
+
+  it("keeps the relay's order, scores by rank, and maps the record's display fields", async () => {
+    const { p } = provider([book("first", { year: 1200 }), book("second"), book("third")]);
+    const r = await p.search({ q: "x", limit: 20, offset: 0 });
+    expect(r.hits.map((h) => h.slug)).toEqual(["first", "second", "third"]);
+    expect(r.hits.map((h) => h.score)).toEqual([1, 2 / 3, 1 / 3]);
+    expect(r.hits[1]).toMatchObject({ title: "Title second", authorName: "Author second", blurb: "About second.", coverUrl: "https://covers.example/second.jpg", publishYear: 2001, format: "reference" });
+    expect(r.hits[0]!.publishYear).toBeUndefined(); // before printing: no year (ADR 0091)
+    expect(r).toMatchObject({ total: 3, offset: 0, limit: 20, capped: false });
+  });
+
+  it("drops delisted, junk, foreign and superseded records", async () => {
+    const { p } = provider([
+      book("dup", { at: 100 }),
+      book("gone", { extra: [["delisted", "true"]] }),
+      book("stranger", { pubkey: "b".repeat(64) }),
+      book("dup", { at: 200, year: 1999 }),
+      book("junk", { year: 3000 }),
+      book("ok"),
+    ]);
+    const r = await p.search({ q: "x", limit: 20, offset: 0 });
+    expect(r.hits.map((h) => h.slug)).toEqual(["dup", "ok"]);
+    expect(r.hits[0]!.publishYear).toBe(1999);
+  });
+
+  it("pages within one ranked list and reads the relay once per query", async () => {
+    const many = Array.from({ length: 100 }, (_, i) => book(`b${String(i).padStart(3, "0")}`));
+    const { p, query } = provider(many);
+    const one = await p.search({ q: "x", limit: 20, offset: 0 });
+    const two = await p.search({ q: "x", limit: 20, offset: 20 });
+    expect(query).toHaveBeenCalledTimes(1);
+    expect(one.hits[0]!.slug).toBe("b000");
+    expect(two.hits[0]!.slug).toBe("b020");
+    expect(two).toMatchObject({ total: 100, capped: true });
+  });
+
+  it("asks again once the list is two minutes old, or for another query", async () => {
+    const { p, query, now } = provider([book("a")]);
+    await p.search({ q: "x", limit: 20, offset: 0 });
+    now.t += 119_000;
+    await p.search({ q: "x", limit: 20, offset: 0 });
+    expect(query).toHaveBeenCalledTimes(1);
+    now.t += 2_000;
+    await p.search({ q: "x", limit: 20, offset: 0 });
+    await p.search({ q: "y", limit: 20, offset: 0 });
+    expect(query).toHaveBeenCalledTimes(3);
+  });
+
+  it("filters genre at the relay by label, and format and language on the record", async () => {
+    const { p, query } = provider([
+      book("fr", { language: "fre" }),
+      book("en-ebook", { format: "ebook" }),
+      book("en", { extra: withBookLabels([], bookLabels({ genres: ["fantasy"], format: "reference", language: "eng" })) }),
+    ]);
+    const r = await p.search({ q: "x", limit: 20, offset: 0, filters: { genre: "fantasy", language: "eng", format: "reference" } });
+    expect(query).toHaveBeenCalledWith(expect.objectContaining({ "#l": ["fantasy"] }));
+    expect(r.hits.map((h) => h.slug)).toEqual(["en"]);
+  });
+
+  it("a failed relay read fails the search", async () => {
+    const p = new Nip50Provider({ librarian: LIB, query: vi.fn(async () => { throw new Error("relay down"); }) });
+    await expect(p.search({ q: "x", limit: 20, offset: 0 })).rejects.toThrow(/relay down/);
+  });
+});
+
+describe("Nip50Provider writes and health", () => {
+  it("writes are no-ops: the relay indexes the hub's records itself", async () => {
+    const { p, query } = provider([]);
+    await p.configureIndex();
+    await p.index([]);
+    await p.delete(["a"]);
+    await p.deleteAll();
+    expect(query).not.toHaveBeenCalled();
+  });
+
+  it("health reflects whether the relay answers", async () => {
+    expect((await provider([]).p.health()).ok).toBe(true);
+    const down = new Nip50Provider({ librarian: LIB, query: vi.fn(async () => { throw new Error("no"); }) });
+    expect(await down.health()).toMatchObject({ ok: false, provider: "nip50" });
+  });
+});
+
+describe("resolveProvider", () => {
+  it("builds the NIP-50 provider when given the relay read and the librarian", () => {
+    const p = resolveProvider({ provider: "nip50", url: "wss://relay", apiKey: "" }, { librarian: LIB, query: async () => [] });
+    expect(p.name).toBe("nip50");
+  });
+
+  it("refuses the NIP-50 provider without them", () => {
+    expect(() => resolveProvider({ provider: "nip50", url: "wss://relay", apiKey: "" })).toThrow(/librarian/);
+  });
+});

@@ -30,3 +30,12 @@ describe("trust settings reach every trust-reading service", () => {
     expect(pick("api")).toEqual(pick("shelves"));
   });
 });
+
+// Story 106 / ADR 0095 §6: the API's search backend is a setting in .env.
+describe("the api's search backend comes from .env", () => {
+  it("SEARCH_PROVIDER and SEARCH_URL default to Meilisearch and can be set", () => {
+    const env = envOf("api");
+    expect(env).toContain("SEARCH_PROVIDER=${SEARCH_PROVIDER:-meili}");
+    expect(env).toContain("SEARCH_URL=${SEARCH_URL:-http://search:7700}");
+  });
+});
