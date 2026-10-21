@@ -14,7 +14,9 @@ ADR 0013 kept every backend detail behind `SearchProvider` so a backend swap is 
 3. **What counts as a hit.** The librarian's newest version per slug, not delisted, not junk, parsed by the schema; format and language filters match the record within the list. The year is `credibleYear` (ADR 0091).
 4. **Scores from rank.** The hit at position `i` of `n` scores `(n − i) / n`, so the trust blend keeps its meaning.
 5. **Writes do nothing.** `index`, `delete`, `deleteAll` and `configureIndex` resolve without effect: the relay indexes the records on the hub itself.
-6. **The switch is configuration.** The API's `SEARCH_PROVIDER` and `SEARCH_URL` come from `.env`; Staging ops `search-relay` sets them to `nip50` and `wss://search.brainstorm.world`, and `search-meili` sets them back. The indexer and the promoter keep Meilisearch current, so the way back stays open until a later story retires it.
+6. **The switch is configuration.** The API's `SEARCH_PROVIDER` and `SEARCH_URL` come from `.env`; Staging ops `search-relay` sets them to `nip50` and `wss://search.brainstorm.world`, and `search-meili` sets them back. The promoter and the indexer are pinned to Meilisearch in the compose file (they read the same `.env`, and would otherwise follow the API and fail without the relay read). While the relay serves search, the API's index-on-write goes to the relay provider and does nothing, so tag changes reach Meilisearch only on the nightly rebuild; `search-meili` therefore rebuilds Meilisearch as it switches back.
+7. **ISBN as a NIP-73 identifier.** The relay does not match ISBN text, and `isbn` is a multi-letter tag no relay filters on. So the record carries `["i","isbn:<13 digits>"]` (NIP-73, the standard book identifier), written by `bookLabels` (record template and labels pass, ADR 0094), and `isbn13Of` turns an ISBN-13 or ISBN-10 query into an exact `#i` lookup with `search: "include:spam"`.
+8. **Answers from someone else's relay are checked.** The adapter takes a `verify` function and drops any event whose signature fails (the API passes nostr-tools `verifyEvent`); the API's checked read treats `CLOSED` as a failed read instead of waiting out the timeout; identical searches in flight share one read and a failed read is not kept; `key:value` options typed by a reader are removed, and the text is capped at 200 characters.
 
 ## Alternatives rejected
 - **Paging by `until`.** It skips better matches that are newer.
@@ -25,3 +27,5 @@ ADR 0013 kept every backend detail behind `SearchProvider` so a backend swap is 
 - A search shows at most its top 100 results.
 - A book's search entry follows the hub: a label, year or delisting reaches search once the relay has the new record.
 - The provider holds up to 500 recent result lists in the API's memory, about 100 short hits each.
+- A page loaded more than two minutes after the previous one comes from a new list, which can differ where results share a rank; a delisting can show in search for up to two minutes.
+- The first labels pass after deploy adds the ISBN identifier to every record that has an ISBN, another republish of most of the catalog.

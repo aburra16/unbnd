@@ -15,7 +15,9 @@ Unbnd runs its own Meilisearch and an indexer that copies the catalog into it. B
 4. **Only real books.** A delisted record, a junk record, another key's record or an older version of a record never appears; the year shown follows the print-era rule.
 5. **Filters.** A genre filter is a relay filter on the record's genre label (story 105); format and language are matched on the record within the list.
 6. **A failed read is a failure, not "no results".** The search route answers 503 as it does today when the provider fails.
-7. **A switch with a way back.** The compose file takes `SEARCH_PROVIDER` and `SEARCH_URL` for the API from `.env`; two Staging ops tasks set them (`search-relay`, `search-meili`) and recreate the API. Meilisearch and the indexer keep running until a later story retires them.
+7. **A switch with a way back.** The compose file takes `SEARCH_PROVIDER` and `SEARCH_URL` for the API from `.env`; two Staging ops tasks set them (`search-relay`, `search-meili`) and recreate the API. The promoter and the indexer stay on Meilisearch whatever the API reads, and `search-meili` rebuilds Meilisearch when it switches back. Meilisearch and the indexer keep running until a later story retires them.
+8. **ISBN lookups still find the book.** A book record carries its ISBN-13 as a NIP-73 identifier (`["i","isbn:<13 digits>"]`), written by the record template and the labels pass; a query that is an ISBN-13 or ISBN-10 becomes an exact `#i` lookup. The submit form's duplicate check keeps working.
+9. **The relay's answers are checked.** Each event's signature is verified, a `CLOSED` from the relay fails the read at once, identical searches in flight share one read, and NIP-50 options a reader types are removed from the text.
 
 ## Out of scope
 - Retiring Meilisearch, the indexer and index-on-write (a later story, after the relay has carried staging search for a while).

@@ -98,6 +98,7 @@ export async function runLabelsCycle(deps: LabelsDeps): Promise<LabelsSummary> {
       genres: appliedTags(taxonomy, byBook.get(tagValue(record, "d") ?? "") ?? []).genreSlugs,
       format: tagValue(record, "format"),
       language: tagValue(record, "lang"),
+      isbn13: tagValue(record, "isbn"),
     });
 
   for (const snapshot of currentRecords(books, deps.librarianPubkey)) {

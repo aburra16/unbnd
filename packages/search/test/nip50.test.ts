@@ -166,7 +166,8 @@ describe("Nip50Provider: ISBN, signatures, shared reads, user text (review round
     await p.search({ q: `star wars: a new hope observer:${"c".repeat(64)} domain:x.com`, limit: 5, offset: 0 });
     expect(query).toHaveBeenLastCalledWith(expect.objectContaining({ search: "star wars: a new hope include:spam" }));
     await p.search({ q: "w".repeat(500), limit: 5, offset: 0 });
-    expect((query.mock.calls.at(-1)![0] as { search: string }).search).toBe(`${"w".repeat(200)} include:spam`);
+    const last = query.mock.calls.at(-1) as unknown as [{ search: string }];
+    expect(last[0].search).toBe(`${"w".repeat(200)} include:spam`);
   });
 });
 

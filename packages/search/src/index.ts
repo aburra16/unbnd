@@ -28,7 +28,7 @@ export type {
  */
 export function resolveProvider(
   opts: ProviderOptions,
-  nip50?: Pick<Nip50Options, "librarian" | "query">,
+  nip50?: Pick<Nip50Options, "librarian" | "query" | "verify">,
 ): SearchProvider {
   switch (opts.provider) {
     case "meili":

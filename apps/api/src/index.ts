@@ -112,6 +112,7 @@ async function main() {
         if (!read.ok) throw new Error("search relay did not answer");
         return read.events;
       },
+      verify: (event) => verifyEvent(event as Parameters<typeof verifyEvent>[0]),
     },
   );
 

@@ -147,6 +147,11 @@ jobs:
                   echo "set ${kv}"
                 done
                 docker compose -f docker-compose.prod.yml up -d --force-recreate api
+                # Back on Meilisearch: rebuild it, since tag changes made while the
+                # relay served search reached Meilisearch only on the nightly run.
+                if [ "${{ inputs.task }}" = "search-meili" ]; then
+                  docker compose -f docker-compose.prod.yml --profile index run --rm indexer
+                fi
                 ;;
               set-public-origin)
                 if grep -q '^PUBLIC_ORIGIN=' .env; then

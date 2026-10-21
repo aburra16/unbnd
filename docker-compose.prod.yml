@@ -163,7 +163,8 @@ services:
       # promoted book's SearchDocument best-effort after its durable publish.
       - SEARCH_URL=http://search:7700
       - SEARCH_API_KEY=${SEARCH_API_KEY}
-      - SEARCH_PROVIDER=${SEARCH_PROVIDER:-meili}
+      # Writes to Meilisearch whatever the api reads (ADR 0095 §6).
+      - SEARCH_PROVIDER=meili
     depends_on:
       db:
         condition: service_healthy
@@ -183,7 +184,8 @@ services:
       - LIBRARIAN_PUBKEY=${LIBRARIAN_PUBKEY}
       - SEARCH_URL=http://search:7700
       - SEARCH_API_KEY=${SEARCH_API_KEY}
-      - SEARCH_PROVIDER=${SEARCH_PROVIDER:-meili}
+      # Writes to Meilisearch whatever the api reads (ADR 0095 §6).
+      - SEARCH_PROVIDER=meili
     restart: "no"
 
   # Homepage trust-shelf worker (ADR 0036). Never starts with the normal stack —

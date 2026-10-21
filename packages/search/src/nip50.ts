@@ -9,6 +9,7 @@ import {
   credibleYear,
   formatAddress,
   fromBookRecordEvent,
+  isbn13Of,
   fromWireEvent,
   isDelistedRecord,
   isJunkRecord,
@@ -29,6 +30,7 @@ export type Nip50Filter = {
   readonly authors: string[];
   readonly "#z": string[];
   readonly "#l"?: string[];
+  readonly "#i"?: string[];
   readonly search: string;
   readonly limit: number;
 };
@@ -38,6 +40,8 @@ export type Nip50Options = {
   readonly librarian: string;
   /** One read against the search relay; throws when the relay does not answer. */
   readonly query: (filter: Nip50Filter) => Promise<SignedNostrEvent[]>;
+  /** Signature check for each event the relay returns: it is not Unbnd's relay. */
+  readonly verify: (event: SignedNostrEvent) => boolean;
   readonly now?: () => number;
 };
 
@@ -45,6 +49,9 @@ export type Nip50Options = {
 export const SEARCH_WINDOW = 100;
 const WINDOW_TTL_MS = 2 * 60 * 1000;
 const MAX_WINDOWS = 500;
+const MAX_QUERY_CHARS = 200;
+/** NIP-50 options (`key:value`) a reader might type; only the adapter sets those. */
+const SEARCH_OPTION = /(^|\s)[a-z_]+:\S+/gi;
 /** Brainstorm's search relay answers an unauthenticated search only with this option. */
 const OPEN_READ = "include:spam";
 
@@ -57,6 +64,8 @@ export class Nip50Provider implements SearchProvider {
   readonly #librarian: string;
   readonly #booksZ: string;
   readonly #query: Nip50Options["query"];
+  readonly #verify: Nip50Options["verify"];
+  readonly #pending = new Map<string, Promise<Window>>();
   readonly #now: () => number;
   readonly #windows = new Map<string, Window>();
 
@@ -64,6 +73,7 @@ export class Nip50Provider implements SearchProvider {
     this.#librarian = opts.librarian;
     this.#booksZ = formatAddress(buildBookRecordsHeaderAddress(opts.librarian as never));
     this.#query = opts.query;
+    this.#verify = opts.verify;
     this.#now = opts.now ?? (() => Date.now());
   }
 
@@ -96,19 +106,37 @@ export class Nip50Provider implements SearchProvider {
 
   async #window(query: SearchQuery): Promise<Window> {
     const f = query.filters ?? {};
-    const key = JSON.stringify([query.q, f.genre ?? "", f.format ?? "", f.language ?? ""]);
-    const now = this.#now();
+    // An ISBN is an exact identifier lookup (NIP-73 `i`), not a text search (ADR 0095 §7).
+    const isbn = isbn13Of(query.q);
+    const text = isbn ? "" : query.q.replace(SEARCH_OPTION, " ").replace(/\s+/g, " ").trim().slice(0, MAX_QUERY_CHARS);
+    const key = JSON.stringify([isbn ?? "", text, f.genre ?? "", f.format ?? "", f.language ?? ""]);
     const cached = this.#windows.get(key);
-    if (cached && now - cached.at < WINDOW_TTL_MS) return cached;
+    if (cached && this.#now() - cached.at < WINDOW_TTL_MS) return cached;
+    const inFlight = this.#pending.get(key);
+    if (inFlight) return inFlight;
 
-    const events = await this.#query({
+    const load = this.#load(key, isbn, text, f).finally(() => this.#pending.delete(key));
+    this.#pending.set(key, load);
+    return load;
+  }
+
+  async #load(
+    key: string,
+    isbn: string | null,
+    text: string,
+    f: NonNullable<SearchQuery["filters"]>,
+  ): Promise<Window> {
+    const now = this.#now();
+    const fetched = await this.#query({
       kinds: [39999],
       authors: [this.#librarian],
       "#z": [this.#booksZ],
       ...(f.genre ? { "#l": [f.genre] } : {}),
-      search: `${query.q} ${OPEN_READ}`,
+      ...(isbn ? { "#i": [`isbn:${isbn}`] } : {}),
+      search: isbn ? OPEN_READ : `${text} ${OPEN_READ}`,
       limit: SEARCH_WINDOW,
     });
+    const events = fetched.filter((e) => this.#verify(e));
     const records = this.#currentRecords(events).filter(
       (e) => (!f.format || tagValue(e, "format") === f.format) && (!f.language || tagValue(e, "lang") === f.language),
     );
@@ -116,7 +144,7 @@ export class Nip50Provider implements SearchProvider {
     const n = parsed.length;
     const window: Window = {
       hits: parsed.map((h, i) => ({ ...h, score: (n - i) / n })),
-      full: events.length >= SEARCH_WINDOW,
+      full: fetched.length >= SEARCH_WINDOW,
       at: now,
     };
     this.#remember(key, window);
