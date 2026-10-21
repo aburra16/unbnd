@@ -49,4 +49,14 @@ describe("archive.org files", () => {
     await expect(ensureDump({ dir, kind: "works", date: "2026-09-30", md5: "0".repeat(32), fetchImpl })).rejects.toThrow(/md5/);
     await expect(readFile(join(dir, "ol_dump_works_2026-09-30.txt.gz"))).rejects.toThrow();
   });
+
+  it("a file already on disk without a marker is hashed once and kept when it matches", async () => {
+    const dir = await mkdtemp(join(tmpdir(), "dump-"));
+    const body = gzipSync("line\n");
+    await writeFile(join(dir, "ol_dump_works_2026-09-30.txt.gz"), body);
+    const fetchImpl = vi.fn(async () => new Response(body));
+    await ensureDump({ dir, kind: "works", date: "2026-09-30", md5: md5(body), fetchImpl });
+    expect(fetchImpl).not.toHaveBeenCalled();
+    expect(await readFile(join(dir, "ol_dump_works_2026-09-30.txt.gz.md5"), "utf8")).toBe(md5(body));
+  });
 });
