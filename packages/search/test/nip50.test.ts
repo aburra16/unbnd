@@ -38,9 +38,9 @@ function book(slug: string, o: { at?: number; pubkey?: string; extra?: string[][
   return { ...t, tags: [...t.tags, ...(o.extra ?? [])], id: seq.toString(16).padStart(64, "0"), pubkey: o.pubkey ?? LIB, sig: "f".repeat(128) } as SignedNostrEvent;
 }
 
-function provider(events: SignedNostrEvent[], now = { t: 1_000 }) {
+function provider(events: SignedNostrEvent[], now = { t: 1_000 }, verify: (e: SignedNostrEvent) => boolean = () => true) {
   const query = vi.fn(async () => events);
-  const p = new Nip50Provider({ librarian: LIB, query, now: () => now.t });
+  const p = new Nip50Provider({ librarian: LIB, query, verify, now: () => now.t });
   return { p, query, now };
 }
 
@@ -116,8 +116,57 @@ describe("Nip50Provider.search", () => {
   });
 
   it("a failed relay read fails the search", async () => {
-    const p = new Nip50Provider({ librarian: LIB, query: vi.fn(async () => { throw new Error("relay down"); }) });
+    const p = new Nip50Provider({ librarian: LIB, query: vi.fn(async () => { throw new Error("relay down"); }), verify: () => true });
     await expect(p.search({ q: "x", limit: 20, offset: 0 })).rejects.toThrow(/relay down/);
+  });
+});
+
+describe("Nip50Provider: ISBN, signatures, shared reads, user text (review round 1)", () => {
+  it("an ISBN query is an exact identifier lookup, not a text search", async () => {
+    const { p, query } = provider([book("orbital")]);
+    await p.search({ q: "978-0-14-143951-8", limit: 8, offset: 0 });
+    await p.search({ q: "0141439513", limit: 8, offset: 0 });
+    expect(query).toHaveBeenCalledWith({
+      kinds: [39999],
+      authors: [LIB],
+      "#z": [BOOKS_Z],
+      "#i": ["isbn:9780141439518"],
+      search: "include:spam",
+      limit: 100,
+    });
+    expect(query).toHaveBeenCalledTimes(1);
+  });
+
+  it("drops an event whose signature does not verify", async () => {
+    const good = book("good");
+    const forged = book("forged");
+    const { p } = provider([forged, good], { t: 1_000 }, (e) => e.id === good.id);
+    expect((await p.search({ q: "x", limit: 20, offset: 0 })).hits.map((h) => h.slug)).toEqual(["good"]);
+  });
+
+  it("identical searches in flight share one relay read", async () => {
+    let release!: (events: SignedNostrEvent[]) => void;
+    const query = vi.fn(() => new Promise<SignedNostrEvent[]>((r) => { release = r; }));
+    const p = new Nip50Provider({ librarian: LIB, query, verify: () => true });
+    const both = Promise.all([p.search({ q: "x", limit: 5, offset: 0 }), p.search({ q: "x", limit: 5, offset: 5 })]);
+    release([book("a")]);
+    await both;
+    expect(query).toHaveBeenCalledTimes(1);
+  });
+
+  it("a failed read is not kept: the next search asks again", async () => {
+    const query = vi.fn().mockRejectedValueOnce(new Error("down")).mockResolvedValue([book("a")]);
+    const p = new Nip50Provider({ librarian: LIB, query, verify: () => true });
+    await expect(p.search({ q: "x", limit: 5, offset: 0 })).rejects.toThrow();
+    expect((await p.search({ q: "x", limit: 5, offset: 0 })).hits).toHaveLength(1);
+  });
+
+  it("search options typed by a user are removed, and the text is capped", async () => {
+    const { p, query } = provider([]);
+    await p.search({ q: `star wars: a new hope observer:${"c".repeat(64)} domain:x.com`, limit: 5, offset: 0 });
+    expect(query).toHaveBeenLastCalledWith(expect.objectContaining({ search: "star wars: a new hope include:spam" }));
+    await p.search({ q: "w".repeat(500), limit: 5, offset: 0 });
+    expect((query.mock.calls.at(-1)![0] as { search: string }).search).toBe(`${"w".repeat(200)} include:spam`);
   });
 });
 
@@ -133,14 +182,14 @@ describe("Nip50Provider writes and health", () => {
 
   it("health reflects whether the relay answers", async () => {
     expect((await provider([]).p.health()).ok).toBe(true);
-    const down = new Nip50Provider({ librarian: LIB, query: vi.fn(async () => { throw new Error("no"); }) });
+    const down = new Nip50Provider({ librarian: LIB, query: vi.fn(async () => { throw new Error("no"); }), verify: () => true });
     expect(await down.health()).toMatchObject({ ok: false, provider: "nip50" });
   });
 });
 
 describe("resolveProvider", () => {
   it("builds the NIP-50 provider when given the relay read and the librarian", () => {
-    const p = resolveProvider({ provider: "nip50", url: "wss://relay", apiKey: "" }, { librarian: LIB, query: async () => [] });
+    const p = resolveProvider({ provider: "nip50", url: "wss://relay", apiKey: "" }, { librarian: LIB, query: async () => [], verify: () => true });
     expect(p.name).toBe("nip50");
   });
 

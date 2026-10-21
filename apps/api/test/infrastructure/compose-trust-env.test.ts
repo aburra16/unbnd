@@ -39,3 +39,13 @@ describe("the api's search backend comes from .env", () => {
     expect(env).toContain("SEARCH_URL=${SEARCH_URL:-http://search:7700}");
   });
 });
+
+describe("the workers keep Meilisearch current whatever the api reads (ADR 0095 §6)", () => {
+  it("the promoter and the indexer write to Meilisearch, not to the api's setting", () => {
+    for (const worker of ["promoter", "indexer"]) {
+      const env = envOf(worker);
+      expect(env, worker).toContain("SEARCH_PROVIDER=meili");
+      expect(env, worker).toContain("SEARCH_URL=http://search:7700");
+    }
+  });
+});

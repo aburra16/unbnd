@@ -135,6 +135,15 @@ describe("queryRelayUrlChecked — success signalling", () => {
     expect(out.events.map((e: SignedNostrEvent) => e.id)).toEqual(["a", "b"]);
   });
 
+  it("resolves { ok:false } at once when the relay closes the subscription (Story 106)", async () => {
+    const promise = queryRelayUrlChecked("ws://x", { kinds: [39999] }, 5000);
+    await driveLatest((ws) => {
+      ws.emit("message", JSON.stringify(["CLOSED", SUB_ID, "auth-required: sign in first"]));
+    });
+    const out = await promise;
+    expect(out).toEqual({ ok: false, events: [] });
+  });
+
   it("resolves { ok:false, events:[] } on a socket error", async () => {
     const promise = queryRelayUrlChecked("ws://x", { kinds: [39999] }, 5000);
     await driveLatest((ws) => {

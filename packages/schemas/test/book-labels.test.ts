@@ -8,7 +8,7 @@ import {
   withBookLabels,
   sameBookLabels,
 } from "../src/BookLabels";
-import { fromBookRecordEvent, toBookRecordEvent, type BookRecord } from "../src/BookRecord";
+import { fromBookRecordEvent, isbn13Of, toBookRecordEvent, type BookRecord } from "../src/BookRecord";
 import { fromWireEvent, toWireTemplate } from "../src/wire";
 import type { DListAddress } from "../src/envelope";
 import { hex64 } from "./_helpers";
@@ -109,5 +109,38 @@ describe("the record template carries format and language labels (ADR 0094 §5)"
     const wire = toWireTemplate(toBookRecordEvent(rec), 1_790_000_000);
     const tags = withBookLabels(wire.tags, bookLabels({ genres: ["fantasy"], format: "reference", language: "eng" }));
     expect(fromBookRecordEvent(fromWireEvent({ ...wire, tags }) as never)).toMatchObject({ slug: "ol-ol1w" });
+  });
+});
+
+// Story 106 / ADR 0095 §7: the book's ISBN as a NIP-73 identifier, so a relay
+// can find a book by ISBN with a single-letter tag filter.
+describe("the ISBN as a NIP-73 identifier", () => {
+  it("bookLabels adds [i, isbn:<13 digits>] when the book has an ISBN-13", () => {
+    expect(bookLabels({ genres: [], format: "reference", isbn13: "9780141439518" })).toContainEqual(["i", "isbn:9780141439518"]);
+    expect(bookLabels({ genres: [], format: "reference" }).some((t) => t[0] === "i")).toBe(false);
+  });
+
+  it("withBookLabels replaces an old ISBN identifier and keeps any other i tag", () => {
+    const tags = [["i", "isbn:9780000000000"], ["i", "https://example.com/x"], ["d", "x"]];
+    const out = withBookLabels(tags, bookLabels({ genres: [], format: "reference", isbn13: "9780141439518" }));
+    expect(out.filter((t) => t[0] === "i")).toEqual([["i", "https://example.com/x"], ["i", "isbn:9780141439518"]]);
+    expect(sameBookLabels(out, bookLabels({ genres: [], format: "reference", isbn13: "9780141439518" }))).toBe(true);
+  });
+
+  it("isbn13Of normalizes an ISBN-13 or converts an ISBN-10, and refuses anything else", () => {
+    expect(isbn13Of("978-0-14-143951-8")).toBe("9780141439518");
+    expect(isbn13Of("0141439513")).toBe("9780141439518");
+    expect(isbn13Of("080442957X")).toBe("9780804429573");
+    expect(isbn13Of("orbital")).toBeNull();
+    expect(isbn13Of("9780141439519")).toBeNull();
+  });
+
+  it("the record template carries the identifier", () => {
+    const LIB = hex64("1".repeat(63) + "a");
+    const ev = toBookRecordEvent({
+      slug: "s", title: "T", authorName: "A", isbn13: "9780141439518", format: "reference", source: "openlibrary",
+      parentHeader: { kind: 39998, pubkey: LIB, dTag: "books" },
+    });
+    expect(ev.tags).toContainEqual(["i", "isbn:9780141439518"]);
   });
 });
