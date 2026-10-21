@@ -137,8 +137,8 @@ function median(values: readonly number[]): number | undefined {
   if (values.length === 0) return undefined;
   const sorted = [...values].sort((a, b) => a - b);
   const mid = Math.floor(sorted.length / 2);
-  // Truncated, as Open Library's index stores the median as an integer.
-  return sorted.length % 2 ? sorted[mid]! : Math.floor((sorted[mid - 1]! + sorted[mid]!) / 2);
+  // Rounded: of the two, the closer to the values the catalog took from Open Library's search.
+  return sorted.length % 2 ? sorted[mid]! : Math.round((sorted[mid - 1]! + sorted[mid]!) / 2);
 }
 
 /** The search-API shape of a work, from its record, its editions and its first author's name. */

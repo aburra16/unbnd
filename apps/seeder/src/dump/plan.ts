@@ -42,7 +42,7 @@ export type LiveSummary = {
    * pick another valid value (the 2026-09-30 dry run: another ISBN of the same
    * work for 9,876 books, a ghostwriter for a pen name for 164).
    */
-  readonly identity: Partial<Pick<BookRecord, "title" | "authorName" | "isbn13" | "isbn10">>;
+  readonly identity: Partial<Pick<BookRecord, "title" | "authorName" | "isbn13" | "isbn10" | "pageCount">>;
   /** Tags a rebuild would drop: genre labels, foreign labels, unknown tags, other `i` tags. */
   readonly carried: readonly (readonly string[])[];
 };
@@ -92,6 +92,7 @@ export function liveSummary(event: SignedNostrEvent): LiveSummary {
     const v = record?.[f];
     if (typeof v === "string" && v.trim()) (identity as Record<string, string>)[f] = v;
   }
+  if (typeof record?.pageCount === "number" && record.pageCount > 0) identity.pageCount = record.pageCount;
   return {
     owned,
     identity,
@@ -120,7 +121,7 @@ export function planBook(
     judgeRecordYear(mapped, workEvidenceOf(candidate.doc), authors, currentYear),
   );
   const blurb = candidate.description ? capBlurb(sanitizeDescription(candidate.description)) : "";
-  // An existing book keeps its title, author and ISBNs; the dump fills them only when empty.
+  // An existing book keeps its title, author, ISBNs and page count; the dump fills them only when empty.
   const record: BookRecord = { ...judged, ...(blurb ? { blurb } : {}), ...(live?.identity ?? {}) };
 
   if (live && live.fingerprint === fingerprint(record)) return { kind: "unchanged" };
