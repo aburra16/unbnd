@@ -27,9 +27,9 @@ describe("archive.org files", () => {
   });
 
   it("reads the md5 of each file from files.xml", () => {
-    const xml = `<files><file name="ol_dump_works_2026-09-30.txt.gz" source="original"><md5>abc123</md5><size>9</size></file>
+    const xml = `<files><file name="ol_dump_works_2026-09-30.txt.gz" source="original"><md5>4b36fae3348000834fd444855cc9c263</md5><size>9</size></file>
 <file name="other.xml"><md5>zzz</md5></file></files>`;
-    expect(parseFilesXml(xml).get("ol_dump_works_2026-09-30.txt.gz")).toBe("abc123");
+    expect(parseFilesXml(xml).get("ol_dump_works_2026-09-30.txt.gz")).toBe("4b36fae3348000834fd444855cc9c263");
   });
 
   it("downloads a file, checks its md5, and skips one already verified", async () => {
