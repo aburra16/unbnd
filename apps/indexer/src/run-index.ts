@@ -38,20 +38,23 @@ export async function runIndexInPages(
     // A write error (a full disk) must fail the run, not hang it or pass as done.
     let writeError: Error | undefined;
     out.on("error", (err: Error) => { writeError ??= err; });
+    // One promise for the stream's end, shared by every wait (no listener pile-up).
+    const done = finished(out);
+    done.catch(() => {});
     let walked = 0;
     try {
       await eachPage(async (docs) => {
         for (const d of docs) {
           if (writeError) throw writeError;
           if (!out.write(`${JSON.stringify(d)}\n`)) {
-            await Promise.race([once(out, "drain"), finished(out)]);
+            await Promise.race([once(out, "drain"), done]);
           }
         }
         walked += docs.length;
       });
     } finally {
       out.end();
-      await finished(out).catch((err: Error) => { writeError ??= err; });
+      await done.catch((err: Error) => { writeError ??= err; });
     }
     if (writeError) throw writeError;
     console.log(`[indexer] walked ${walked} documents; loading`);
