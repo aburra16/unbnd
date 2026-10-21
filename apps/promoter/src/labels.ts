@@ -7,8 +7,6 @@
 // no LIBRARIAN_NSEC, no relay here.
 import {
   bookLabels,
-  fromBookTagAssertionEvent,
-  fromWireEvent,
   isDelistedRecord,
   sameBookLabels,
   withBookLabels,
@@ -21,12 +19,17 @@ import { appliedTags } from "@unbnd/search";
 
 export type LabelsDeps = {
   readonly librarianPubkey: HexPubkey;
-  /** The book records in the librarian's `books` list. */
-  readonly readBooks: () => Promise<SignedNostrEvent[]>;
-  /** The `book-tags` taxonomy. */
+  /** The `book-tags` taxonomy (the librarian's). */
   readonly readTaxonomy: () => Promise<SignedNostrEvent[]>;
-  /** Every `book-tag-assertions` item. */
-  readonly readAssertions: () => Promise<SignedNostrEvent[]>;
+  /** Whether any `book-tag-assertions` item exists at all. */
+  readonly hasAssertions: () => Promise<boolean>;
+  /**
+   * The librarian's records a page at a time, each page with its books'
+   * assertions by slug (Story 108 / ADR 0096 §3).
+   */
+  readonly eachCatalogPage: (
+    onPage: (records: SignedNostrEvent[], assertionsBySlug: Map<string, SignedNostrEvent[]>) => Promise<void>,
+  ) => Promise<void>;
   /**
    * The librarian's versions of a slug's record on the hub and on Unbnd's relay,
    * read just before signing. The newest wins: a write may have reached only one.
@@ -61,38 +64,38 @@ function newest(events: readonly SignedNostrEvent[]): SignedNostrEvent | null {
   return [...events].sort((a, b) => b.created_at - a.created_at || a.id.localeCompare(b.id))[0] ?? null;
 }
 
-function assertionsByBook(events: readonly SignedNostrEvent[]): Map<string, SignedNostrEvent[]> {
-  const out = new Map<string, SignedNostrEvent[]>();
-  for (const e of events) {
-    let slug: string;
-    try {
-      slug = fromBookTagAssertionEvent(fromWireEvent(e) as never).bookSlug;
-    } catch {
-      continue;
-    }
-    const list = out.get(slug) ?? [];
-    list.push(e);
-    out.set(slug, list);
-  }
-  return out;
-}
 
 export async function runLabelsCycle(deps: LabelsDeps): Promise<LabelsSummary> {
   const log = deps.log ?? ((m: string) => console.log(m));
-  const [books, taxonomy, assertions] = await Promise.all([
-    deps.readBooks(),
-    deps.readTaxonomy(),
-    deps.readAssertions(),
-  ]);
+  const [taxonomy, anyAssertion] = await Promise.all([deps.readTaxonomy(), deps.hasAssertions()]);
   const summary: LabelsSummary = { checked: 0, relabelled: 0, failed: 0 };
   // A failed read must never look like a catalog with no genres (ADR 0094 §5).
-  const empty = books.length === 0 ? "book" : taxonomy.length === 0 ? "tag" : assertions.length === 0 ? "assertion" : null;
+  const empty = taxonomy.length === 0 ? "tag" : !anyAssertion ? "assertion" : null;
   if (empty) {
     summary.stopped = `the ${empty} list read empty`;
     log(`[labels] stopped: ${summary.stopped}`);
     return summary;
   }
-  const byBook = assertionsByBook(assertions);
+  await deps.eachCatalogPage(async (records, byBook) => {
+    await relabelPage(deps, log, taxonomy, records, byBook, summary);
+  });
+  if (summary.checked === 0) {
+    summary.stopped = "the book list read empty";
+    log(`[labels] stopped: ${summary.stopped}`);
+    return summary;
+  }
+  log(`[labels] checked ${summary.checked}, relabelled ${summary.relabelled}, failed ${summary.failed}`);
+  return summary;
+}
+
+async function relabelPage(
+  deps: LabelsDeps,
+  log: (message: string) => void,
+  taxonomy: readonly SignedNostrEvent[],
+  books: readonly SignedNostrEvent[],
+  byBook: Map<string, SignedNostrEvent[]>,
+  summary: LabelsSummary,
+): Promise<void> {
   const labelsFor = (record: SignedNostrEvent) =>
     bookLabels({
       genres: appliedTags(taxonomy, byBook.get(tagValue(record, "d") ?? "") ?? []).genreSlugs,
@@ -136,6 +139,4 @@ export async function runLabelsCycle(deps: LabelsDeps): Promise<LabelsSummary> {
       log(`[labels] ${slug}: Unbnd's relay failed (${err instanceof Error ? err.message : String(err)}); the down-sync brings it`);
     }
   }
-  log(`[labels] checked ${summary.checked}, relabelled ${summary.relabelled}, failed ${summary.failed}`);
-  return summary;
 }

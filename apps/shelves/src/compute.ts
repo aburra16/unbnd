@@ -12,9 +12,7 @@
 // neutral `TrustProvider.weights` seam (the architecture guard enforces it).
 import { npubEncode } from "nostr-tools/nip19";
 import {
-  buildBookRecordsHeaderAddress,
   buildBookTagsHeaderAddress,
-  buildBookTagAssertionsHeaderAddress,
   formatAddress,
   fromBookTagAssertionEvent,
   fromBookTagEvent,
@@ -68,6 +66,13 @@ export type ShelfComputeDeps = {
    * (Story 99 / ADR 0089); the shared fold decides which stand.
    */
   readonly readReviews: () => Promise<SignedNostrEvent[]>;
+  /**
+   * The librarian's book records as summaries: id, pubkey, kind, created_at and
+   * only the `d`, `added` and `delisted` tags (Story 108 / ADR 0096 §5).
+   */
+  readonly readBooks: () => Promise<SignedNostrEvent[]>;
+  /** The genre assertions about the given books only. */
+  readonly readAssertionsFor: (bookSlugs: readonly string[]) => Promise<SignedNostrEvent[]>;
   /** The neutral trust seam (ADR 0014). Never throws per its contract; we still
    * wrap the call so a surprise rejection degrades to an empty map. */
   readonly trust: TrustProvider;
@@ -190,15 +195,12 @@ export async function computeShelves(deps: ShelfComputeDeps): Promise<ShelfSet> 
   // Honest no-vantage / no-catalog: empty shelves, no compute (AC-6).
   if (!observer || !lib) return EMPTY;
 
-  const booksZ = formatAddress(buildBookRecordsHeaderAddress(lib as never));
   const tagsZ = formatAddress(buildBookTagsHeaderAddress(lib as never));
-  const assertsZ = formatAddress(buildBookTagAssertionsHeaderAddress(lib as never));
 
-  const [bookEvents, ratingEvents, taxonomyEvents, assertionEvents] = await Promise.all([
-    deps.readConcept(booksZ),
+  const [bookEvents, ratingEvents, taxonomyEvents] = await Promise.all([
+    deps.readBooks(),
     deps.readReviews(),
     deps.readConcept(tagsZ).then((events) => events.filter((e) => e.pubkey === lib)),
-    deps.readConcept(assertsZ),
   ]);
 
   // The candidate book set (catalog membership).
@@ -269,6 +271,8 @@ export async function computeShelves(deps: ShelfComputeDeps): Promise<ShelfSet> 
 
   // ── Genre shelves: per genre, books ranked by weightedRatings.average ──
   const genres = parseGenres(taxonomyEvents);
+  // Genre rows rank reviewed books only, so only their assertions are read (ADR 0096 §5).
+  const assertionEvents = dedupedByBook.size > 0 ? await deps.readAssertionsFor([...dedupedByBook.keys()]) : [];
   const membership = genreMembership(assertionEvents);
   const genreRows: Array<{ slug: string; name: string; books: ShelfRow[]; qualifying: number }> = [];
   for (const genre of genres) {

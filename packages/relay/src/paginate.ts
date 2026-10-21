@@ -69,3 +69,54 @@ export async function queryAllPages(
 
   return { events: [...byId.values()], capped };
 }
+
+/**
+ * Story 108 / ADR 0096 §1: the same walk as `queryAllPages`, but each page's
+ * new events go to `onPage` and only their ids are kept, so memory follows the
+ * page size rather than the result size.
+ */
+export async function forEachPage(
+  fetchPage: (cursor: { until?: number; limit: number }) => Promise<SignedNostrEvent[]>,
+  onPage: (events: SignedNostrEvent[]) => Promise<void>,
+  opts: PaginateOpts,
+): Promise<{ pages: number; events: number; capped: boolean; stuck: boolean }> {
+  const { pageSize, maxPages, totalBudgetMs } = opts;
+  const now = opts.now ?? (() => Date.now());
+  const start = now();
+  const seen = new Set<string>();
+  let until: number | undefined;
+  let pages = 0;
+  let capped = false;
+  // A full page with nothing new: more than a page of events share one second,
+  // and the walk cannot get past them. The caller should say so (ADR 0096).
+  let stuck = false;
+
+  for (; pages < maxPages; ) {
+    const page = await fetchPage({ until, limit: pageSize });
+    if (now() - start > totalBudgetMs) throw new Error("forEachPage: total budget exhausted");
+    pages++;
+
+    const fresh: SignedNostrEvent[] = [];
+    let oldest = Infinity;
+    for (const e of page) {
+      if (!seen.has(e.id)) {
+        seen.add(e.id);
+        fresh.push(e);
+      }
+      if (e.created_at < oldest) oldest = e.created_at;
+    }
+    if (fresh.length > 0) await onPage(fresh);
+
+    if (page.length >= pageSize && fresh.length === 0) {
+      stuck = true;
+      break;
+    }
+    if (page.length < pageSize) break;
+    if (pages === maxPages) {
+      capped = true;
+      break;
+    }
+    until = oldest;
+  }
+  return { pages, events: seen.size, capped, stuck };
+}

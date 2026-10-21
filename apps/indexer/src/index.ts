@@ -5,15 +5,13 @@
 // SEARCH_PROVIDER flip — this file never names a backend.
 import {
   asHexPubkey,
-  buildBookRecordsHeaderAddress,
   buildBookTagsHeaderAddress,
-  buildBookTagAssertionsHeaderAddress,
   formatAddress,
 } from "@unbnd/schemas";
-import { resolveProvider, type ProviderName } from "@unbnd/search";
+import { forEachCatalogPage, resolveProvider, type ProviderName } from "@unbnd/search";
 import { queryRelay, queryAllPages } from "./relay";
 import { buildSearchDocuments } from "./build-documents";
-import { runIndex } from "./run-index";
+import { runIndexInPages } from "./run-index";
 
 const KIND = 39999;
 
@@ -35,32 +33,30 @@ async function main() {
     apiKey: env("SEARCH_API_KEY"),
   });
 
-  const booksZ = formatAddress(buildBookRecordsHeaderAddress(lib));
   const tagsZ = formatAddress(buildBookTagsHeaderAddress(lib));
-  const assertZ = formatAddress(buildBookTagAssertionsHeaderAddress(lib));
 
   console.log(`[indexer] relay=${relayUrl} provider=${provider.name} librarian=${lib.slice(0, 12)}`);
 
-  // Paginate past the relay's per-REQ cap so the WHOLE catalog is indexed.
-  const readAll = (z: string, authors?: string[]) =>
-    queryAllPages((cursor) =>
-      queryRelay(relayUrl, { kinds: [KIND], "#z": [z], ...(authors ? { authors } : {}), ...cursor }),
-    );
-  const [books, taxonomy, assertions] = await Promise.all([
-    readAll(booksZ),
-    // The tag list is the librarian's alone, as the labels pass reads it (ADR 0094 §5).
-    readAll(tagsZ, [lib]),
-    readAll(assertZ),
-  ]);
-  console.log(
-    `[indexer] read ${books.length} books, ${taxonomy.length} taxonomy, ${assertions.length} assertions`,
+  // The tag list is the librarian's alone, as the labels pass reads it (ADR 0094 §5);
+  // it is small. The catalog is read a page at a time (ADR 0096 §4).
+  const taxonomy = await queryAllPages((cursor) =>
+    queryRelay(relayUrl, { kinds: [KIND], "#z": [tagsZ], authors: [lib], ...cursor }),
   );
-
-  const docs = buildSearchDocuments(books, taxonomy, assertions, new Date().getUTCFullYear());
-  console.log(`[indexer] built ${docs.length} documents`);
-
-  await runIndex(provider, docs);
-  console.log(`[indexer] done: ${docs.length} documents indexed`);
+  const year = new Date().getUTCFullYear();
+  const total = await runIndexInPages(provider, async (onDocs) => {
+    const walk = await forEachCatalogPage({
+      query: (filter) => queryRelay(relayUrl, filter as never),
+      librarian: lib,
+      onPage: async (records, assertionsBySlug) => {
+        const assertions = [...assertionsBySlug.values()].flat();
+        await onDocs(buildSearchDocuments(records, taxonomy, assertions, year));
+      },
+    });
+    // A walk that could not get past one crowded second is incomplete: do not
+    // clear the index for it (ADR 0096 §4).
+    if (walk.stuck) throw new Error("indexer: more than a page of records share one second; not rebuilding from a partial walk");
+  });
+  console.log(`[indexer] done: ${total} documents indexed`);
 }
 
 main().catch((err) => {

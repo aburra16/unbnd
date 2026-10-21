@@ -171,5 +171,10 @@ jobs:
                 crontab -l || echo "(no crontab)"
                 echo "--- containers ---"
                 docker compose -f docker-compose.prod.yml ps
+                echo "--- memory ---"
+                free -m
+                docker stats --no-stream --format "{{.Name}} {{.MemUsage}}"
+                echo "--- disk ---"
+                df -h / | tail -1
                 ;;
             esac

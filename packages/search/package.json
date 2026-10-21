@@ -13,6 +13,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@unbnd/relay": "workspace:*",
     "@unbnd/schemas": "workspace:*"
   },
   "devDependencies": {

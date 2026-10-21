@@ -3,6 +3,8 @@
 import { describe, expect, it, vi } from "vitest";
 import {
   asHexPubkey,
+  fromBookTagAssertionEvent,
+  fromWireEvent,
   bookLabels,
   buildBookRecordsHeaderAddress,
   formatAddress,
@@ -33,36 +35,53 @@ function record(slug: string, extra: string[][] = [], at = NOW - 1000, pubkey: s
 
 const taxonomy = [buildBookTagEventForTest("fantasy", "genre", "Fantasy", "normal")];
 
-function makeDeps(over: Partial<LabelsDeps> = {}) {
+type Over = Partial<LabelsDeps> & {
+  books?: SignedNostrEvent[];
+  assertions?: SignedNostrEvent[];
+  pageSize?: number;
+};
+
+function makeDeps(over: Over = {}) {
   const published: { where: string; event: SignedNostrEvent }[] = [];
+  const books = over.books ?? [record("orbital"), record("dune")];
+  const assertions =
+    over.assertions ?? buildBookAssertionEventsForTest("orbital", [["a".repeat(64), "fantasy", 1]]);
+  const pageSize = over.pageSize ?? 500;
+  // By default the hub holds what the pass read: the newest copy of each slug.
   const snapshot = new Map<string, SignedNostrEvent>();
+  for (const b of books) {
+    const slug = b.tags.find((t) => t[0] === "d")![1]!;
+    const prior = snapshot.get(slug);
+    if (b.pubkey === LIB && (!prior || b.created_at > prior.created_at)) snapshot.set(slug, b);
+  }
+  const slugOfAssertion = (e: SignedNostrEvent) =>
+    fromBookTagAssertionEvent(fromWireEvent(e) as never).bookSlug;
+  const { books: _b, assertions: _a, pageSize: _p, ...rest } = over;
   const deps: LabelsDeps = {
     librarianPubkey: LIB,
-    readBooks: vi.fn(async () => [record("orbital"), record("dune")]),
-    readCurrent: undefined as unknown as LabelsDeps["readCurrent"],
     readTaxonomy: vi.fn(async () => taxonomy),
-    readAssertions: vi.fn(async () => buildBookAssertionEventsForTest("orbital", [["a".repeat(64), "fantasy", 1]])),
+    hasAssertions: vi.fn(async () => assertions.length > 0),
+    eachCatalogPage: vi.fn(async (onPage) => {
+      for (let i = 0; i < books.length; i += pageSize) {
+        const page = books.slice(i, i + pageSize);
+        const slugs = new Set(page.map((b) => b.tags.find((t) => t[0] === "d")![1]!));
+        const bySlug = new Map<string, SignedNostrEvent[]>();
+        for (const a of assertions) {
+          const slug = slugOfAssertion(a);
+          if (!slugs.has(slug)) continue;
+          bySlug.set(slug, [...(bySlug.get(slug) ?? []), a]);
+        }
+        await onPage(page, bySlug);
+      }
+    }),
+    readCurrent: async (slug) => (snapshot.has(slug) ? [snapshot.get(slug)!] : []),
     sign: vi.fn((t) => ({ ...t, id: `signed-${t.tags.find((x: string[]) => x[0] === "d")?.[1]}`, pubkey: LIB, sig: "e".repeat(128) }) as unknown as SignedNostrEvent),
     publishDcosl: vi.fn(async (event) => { published.push({ where: "dcosl", event }); return { ok: true as const, id: event.id }; }),
     publishLocal: vi.fn(async (event) => { published.push({ where: "local", event }); return { ok: true as const, id: event.id }; }),
     now: () => NOW,
     log: () => undefined,
-    ...over,
+    ...rest,
   };
-  // By default the hub holds what the pass read: the newest copy of each slug.
-  if (!over.readCurrent) {
-    const readBooks = deps.readBooks;
-    (deps as { readBooks: LabelsDeps["readBooks"] }).readBooks = async () => {
-      const books = await readBooks();
-      for (const b of books) {
-        const slug = b.tags.find((t) => t[0] === "d")![1]!;
-        const prior = snapshot.get(slug);
-        if (b.pubkey === LIB && (!prior || b.created_at > prior.created_at)) snapshot.set(slug, b);
-      }
-      return books;
-    };
-    (deps as { readCurrent: LabelsDeps["readCurrent"] }).readCurrent = async (slug) => (snapshot.has(slug) ? [snapshot.get(slug)!] : []);
-  }
   return { deps, published };
 }
 
@@ -79,7 +98,7 @@ describe("runLabelsCycle", () => {
 
   it("keeps the content and every other tag, and dates the new version after the old one", async () => {
     const future = record("orbital", [], NOW + 500);
-    const { deps, published } = makeDeps({ readBooks: vi.fn(async () => [future]) });
+    const { deps, published } = makeDeps({ books: [future] });
     await runLabelsCycle(deps);
     const out = published[0]!.event;
     expect(out.content).toBe("Blurb of orbital.");
@@ -99,7 +118,7 @@ describe("runLabelsCycle", () => {
 
   it("a book already carrying the right labels is left alone", async () => {
     const labelled = record("dune", bookLabels({ genres: [], format: "reference", language: "eng" }));
-    const { deps, published } = makeDeps({ readBooks: vi.fn(async () => [labelled]) });
+    const { deps, published } = makeDeps({ books: [labelled] });
     expect(await runLabelsCycle(deps)).toEqual({ checked: 1, relabelled: 0, failed: 0 });
     expect(published).toEqual([]);
   });
@@ -109,7 +128,7 @@ describe("runLabelsCycle", () => {
     const older = record("dune", [], NOW - 5000);
     const newer = record("dune", bookLabels({ genres: [], format: "reference", language: "eng" }), NOW - 100);
     const delisted = record("gone", [["delisted", "true"]]);
-    const { deps, published } = makeDeps({ readBooks: vi.fn(async () => [stranger, older, newer, delisted]) });
+    const { deps, published } = makeDeps({ books: [stranger, older, newer, delisted] });
     expect(await runLabelsCycle(deps)).toEqual({ checked: 1, relabelled: 0, failed: 0 });
     expect(published).toEqual([]);
   });
@@ -127,7 +146,7 @@ describe("runLabelsCycle", () => {
   it("stamps the first-added date from the record's own created_at, and keeps one already there", async () => {
     const fresh = record("orbital", [], NOW - 1000);
     const stamped = record("dune", [["added", "1700000000"]], NOW - 900);
-    const { deps, published } = makeDeps({ readBooks: vi.fn(async () => [fresh, stamped]) });
+    const { deps, published } = makeDeps({ books: [fresh, stamped] });
     await runLabelsCycle(deps);
     const added = (id: string) => published.find((p) => p.event.id === id)!.event.tags.filter((t) => t[0] === "added");
     expect(added("signed-orbital")).toEqual([["added", String(NOW - 1000)]]);
@@ -138,7 +157,7 @@ describe("runLabelsCycle", () => {
     const snap = record("orbital", [["year", "1990"]], NOW - 1000);
     const current = record("orbital", [["year", "2001"]], NOW - 10);
     const { deps, published } = makeDeps({
-      readBooks: vi.fn(async () => [snap]),
+      books: [snap],
       readCurrent: vi.fn(async () => [snap, current]),
     });
     expect(await runLabelsCycle(deps)).toEqual({ checked: 1, relabelled: 1, failed: 0 });
@@ -151,7 +170,7 @@ describe("runLabelsCycle", () => {
 
   it("a record delisted since the snapshot is left alone", async () => {
     const { deps, published } = makeDeps({
-      readBooks: vi.fn(async () => [record("orbital")]),
+      books: [record("orbital")],
       readCurrent: vi.fn(async () => [record("orbital", [["delisted", "true"]], NOW - 5)]),
     });
     expect(await runLabelsCycle(deps)).toEqual({ checked: 1, relabelled: 0, failed: 0 });
@@ -160,7 +179,7 @@ describe("runLabelsCycle", () => {
 
   it("a delisting that reached only Unbnd's relay wins over the hub's older listed copy", async () => {
     const { deps, published } = makeDeps({
-      readBooks: vi.fn(async () => [record("orbital")]),
+      books: [record("orbital")],
       readCurrent: vi.fn(async () => [record("orbital", [], NOW - 1000), record("orbital", [["delisted", "true"]], NOW - 5)]),
     });
     expect(await runLabelsCycle(deps)).toEqual({ checked: 1, relabelled: 0, failed: 0 });
@@ -169,7 +188,7 @@ describe("runLabelsCycle", () => {
 
   it("a record neither relay returns is counted as failed and not written", async () => {
     const { deps, published } = makeDeps({
-      readBooks: vi.fn(async () => [record("orbital")]),
+      books: [record("orbital")],
       readCurrent: vi.fn(async () => []),
     });
     expect(await runLabelsCycle(deps)).toEqual({ checked: 1, relabelled: 0, failed: 1 });
@@ -179,8 +198,8 @@ describe("runLabelsCycle", () => {
   it("an empty book list, tag list or assertion read stops the pass before it writes anything", async () => {
     for (const over of [
       { readTaxonomy: vi.fn(async () => []) },
-      { readBooks: vi.fn(async () => []) },
-      { readAssertions: vi.fn(async () => []) },
+      { books: [] },
+      { assertions: [] },
     ]) {
       const { deps, published } = makeDeps(over);
       const summary = await runLabelsCycle(deps);
@@ -197,14 +216,21 @@ describe("runLabelsCycle", () => {
 
   it("writes the record's ISBN as a NIP-73 identifier (Story 106 / ADR 0095 §7)", async () => {
     const withIsbn = record("orbital", [["isbn", "9780141439518"]]);
-    const { deps, published } = makeDeps({ readBooks: vi.fn(async () => [withIsbn]) });
+    const { deps, published } = makeDeps({ books: [withIsbn] });
     await runLabelsCycle(deps);
     expect(published[0]!.event.tags).toContainEqual(["i", "isbn:9780141439518"]);
   });
 
   it("a record with only an ISBN-10 gets the 13-digit identifier (review round 2)", async () => {
-    const { deps, published } = makeDeps({ readBooks: vi.fn(async () => [record("orbital", [["isbn10", "0141439513"]])]) });
+    const { deps, published } = makeDeps({ books: [record("orbital", [["isbn10", "0141439513"]])] });
     await runLabelsCycle(deps);
     expect(published[0]!.event.tags).toContainEqual(["i", "isbn:9780141439518"]);
+  });
+
+  it("works page by page and gives the same result (Story 108 / ADR 0096 §3)", async () => {
+    const { deps, published } = makeDeps({ pageSize: 1 });
+    expect(await runLabelsCycle(deps)).toEqual({ checked: 2, relabelled: 2, failed: 0 });
+    expect(deps.eachCatalogPage).toHaveBeenCalledTimes(1);
+    expect(labelsOf(published.find((p) => p.event.id === "signed-orbital")!.event.tags).genres).toEqual(["fantasy"]);
   });
 });

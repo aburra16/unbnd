@@ -10,6 +10,7 @@ export type NostrFilter = {
   readonly until?: number;
   readonly since?: number;
   readonly [tagFilter: `#${string}`]: string[] | number[] | undefined;
+  readonly authors?: string[];
 };
 
 export function queryRelay(

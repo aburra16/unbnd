@@ -22,7 +22,10 @@ import type { SearchDocument, SearchProvider } from "@unbnd/search";
 import { loadIndexerModule } from "./_load";
 
 type RunIndexModule = {
-  runIndex: (provider: SearchProvider, docs: readonly SearchDocument[]) => Promise<void>;
+  runIndexInPages: (
+    provider: SearchProvider,
+    eachPage: (onDocs: (docs: readonly SearchDocument[]) => Promise<void>) => Promise<void>,
+  ) => Promise<number>;
 };
 const load = () => loadIndexerModule<RunIndexModule>("run-index");
 
@@ -59,16 +62,24 @@ const doc = (id: string): SearchDocument => ({
   format: "reference",
 });
 
+// Story 108 / ADR 0096 §4: the rebuild is `runIndexInPages`; these hold its
+// flush ordering for a catalog handed over as one page.
+async function rebuildWith() {
+  const { runIndexInPages } = await load();
+  return (provider: SearchProvider, docs: readonly SearchDocument[]) =>
+    runIndexInPages(provider, async (onDocs) => onDocs(docs));
+}
+
 describe("runIndex — flush before upsert (Story 56, ADR 0055 §4)", () => {
   it("calls provider.deleteAll() exactly once", async () => {
-    const { runIndex } = await load();
+    const runIndex = await rebuildWith();
     const { provider } = recordingProvider();
     await runIndex(provider, [doc("a")]);
     expect(provider.deleteAll).toHaveBeenCalledTimes(1);
   });
 
   it("calls deleteAll() AFTER configureIndex() and BEFORE any index() upsert", async () => {
-    const { runIndex } = await load();
+    const runIndex = await rebuildWith();
     const { provider, calls } = recordingProvider();
     await runIndex(provider, [doc("a"), doc("b")]);
     const flushAt = calls.indexOf("deleteAll");
@@ -82,7 +93,7 @@ describe("runIndex — flush before upsert (Story 56, ADR 0055 §4)", () => {
   });
 
   it("flushes even when there are zero documents (a clean rebuild always flushes)", async () => {
-    const { runIndex } = await load();
+    const runIndex = await rebuildWith();
     const { provider, calls } = recordingProvider();
     await runIndex(provider, []);
     expect(provider.deleteAll).toHaveBeenCalledTimes(1);
