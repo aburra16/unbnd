@@ -16,8 +16,9 @@ describe("forEachPage", () => {
     const out = await forEachPage(fetchPage, async (events) => { pages.push(events.map((e) => e.id)); }, {
       pageSize: 3, maxPages: Infinity, totalBudgetMs: Infinity,
     });
-    expect(pages).toEqual([["a", "b", "c"], ["d", "e"]]);
-    expect(out).toEqual({ pages: 2, events: 5, capped: false });
+    // Page two starts at the boundary second, so b and c come back and are skipped.
+    expect(pages).toEqual([["a", "b", "c"], ["d"], ["e"]]);
+    expect(out).toEqual({ pages: 3, events: 5, capped: false });
   });
 
   it("stops on a page with nothing new, and reports a page bound reached", async () => {

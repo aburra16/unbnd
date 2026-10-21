@@ -22,7 +22,7 @@ import {
 import { runDemotionCycle, runPromotionCycle, type DemoterDeps, type PromoterDeps } from "./index";
 import { createQueue } from "./queue";
 import { connectRelay, queryAllPages } from "@unbnd/relay";
-import { resolveProvider, reindexBook, type ProviderName } from "@unbnd/search";
+import { forEachCatalogPage, resolveProvider, reindexBook, type ProviderName } from "@unbnd/search";
 import { createRevealQueue } from "./reveal/queue";
 import { runRevealCommand } from "./reveal/cli";
 import { runRevealCycle, type RevealDeps } from "./reveal/cycle";
@@ -200,10 +200,14 @@ async function labels(): Promise<void> {
   try {
     await runLabelsCycle({
       librarianPubkey,
-      readBooks: () => readAll(booksZ, [librarianPubkey]),
       // The seeder is the tag list's only writer (ADR 0094 §5).
       readTaxonomy: () => readAll(formatAddress(buildBookTagsHeaderAddress(librarianPubkey)), [librarianPubkey]),
-      readAssertions: () => readAll(formatAddress(buildBookTagAssertionsHeaderAddress(librarianPubkey))),
+      hasAssertions: async () =>
+        (await local.query({ kinds: [39999], "#z": [formatAddress(buildBookTagAssertionsHeaderAddress(librarianPubkey))], limit: 1 })).length > 0,
+      // A page of records at a time, with their books' assertions (ADR 0096 §3).
+      eachCatalogPage: async (onPage) => {
+        await forEachCatalogPage({ query: (filter) => local.query(filter), librarian: librarianPubkey, onPage });
+      },
       readCurrent: async (slug) => {
         const filter = { kinds: [39999], authors: [librarianPubkey], "#z": [booksZ], "#d": [slug] };
         const [hub, mine] = await Promise.all([dcosl.query(filter), local.query(filter)]);

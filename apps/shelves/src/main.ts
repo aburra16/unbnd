@@ -8,7 +8,14 @@
 // concept-handle / authors filter) resolved at runtime (CLAUDE.md), never the
 // secret. Kept SEPARATE from `compute.ts` so the unit tests import the pure core
 // without executing anything.
-import { asHexPubkey } from "@unbnd/schemas";
+import { forEachPage } from "@unbnd/relay";
+import {
+  asHexPubkey,
+  buildBookRecordsHeaderAddress,
+  buildBookTagAssertionsHeaderAddress,
+  formatAddress,
+  type SignedNostrEvent,
+} from "@unbnd/schemas";
 import { resolveTrustProvider, type TrustProvider, BRAINSTORM_DEFAULTS } from "@unbnd/trust";
 import { runShelvesCycle } from "./compute";
 import { loadShelfDefs } from "./config";
@@ -88,6 +95,33 @@ async function main(): Promise<void> {
     return [...reviews, ...removals];
   };
 
+  // Book records as small summaries, built a page at a time (ADR 0096 §5).
+  const booksZ = formatAddress(buildBookRecordsHeaderAddress(lib));
+  const readBooks = async () => {
+    const summaries: SignedNostrEvent[] = [];
+    const keep = new Set(["d", "added", "delisted"]);
+    await forEachPage(
+      (cursor) => queryRelay(relayUrl, { kinds: [KIND], "#z": [booksZ], authors: [lib], ...cursor }),
+      async (events) => {
+        for (const e of events) {
+          summaries.push({ ...e, content: "", sig: "", tags: e.tags.filter((t) => keep.has(t[0] ?? "")) });
+        }
+      },
+      { pageSize: 500, maxPages: Infinity, totalBudgetMs: Infinity },
+    );
+    return summaries;
+  };
+  // Genre assertions for the reviewed books only, by book address in chunks.
+  const assertsZ = formatAddress(buildBookTagAssertionsHeaderAddress(lib));
+  const readAssertionsFor = async (slugs: readonly string[]) => {
+    const out: SignedNostrEvent[] = [];
+    const addresses = slugs.map((s) => `39999:${lib}:${s}`);
+    for (let i = 0; i < addresses.length; i += 250) {
+      out.push(...(await queryRelay(relayUrl, { kinds: [KIND], "#z": [assertsZ], "#a": addresses.slice(i, i + 250) })));
+    }
+    return out;
+  };
+
   console.log(
     `[shelves] relay=${relayUrl} trust=${trust.name} librarian=${lib.slice(0, 12)} observer=${houseObserverPubkey.slice(0, 12)}`,
   );
@@ -97,6 +131,8 @@ async function main(): Promise<void> {
       config: { librarianPubkey: lib, houseObserverPubkey },
       readConcept,
       readReviews,
+      readBooks,
+      readAssertionsFor,
       trust,
       now: () => Math.floor(Date.now() / 1000),
       defs,

@@ -23,3 +23,24 @@ export async function runIndex(
     console.log(`[indexer] indexed ${Math.min(i + BATCH, docs.length)}/${docs.length}`);
   }
 }
+
+/**
+ * Story 108 / ADR 0096 §4: the same clean rebuild, a page at a time. `eachPage`
+ * hands over each page's documents; nothing holds the whole catalog.
+ */
+export async function runIndexInPages(
+  provider: SearchProvider,
+  eachPage: (onDocs: (docs: readonly SearchDocument[]) => Promise<void>) => Promise<void>,
+): Promise<number> {
+  await provider.configureIndex();
+  await provider.deleteAll();
+  let indexed = 0;
+  await eachPage(async (docs) => {
+    for (let i = 0; i < docs.length; i += BATCH) {
+      await provider.index(docs.slice(i, i + BATCH));
+    }
+    indexed += docs.length;
+    if (docs.length > 0) console.log(`[indexer] indexed ${indexed}`);
+  });
+  return indexed;
+}

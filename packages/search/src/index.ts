@@ -9,6 +9,7 @@ import type { ProviderOptions, SearchProvider } from "./types";
 export { MeiliProvider } from "./meili";
 export { Nip50Provider, SEARCH_WINDOW, type Nip50Filter, type Nip50Options } from "./nip50";
 export { appliedTags, buildBookDocument } from "./build-document";
+export { forEachCatalogPage, type CatalogQuery } from "./catalog-pages";
 export { reindexBook, type BookReader } from "./reindex-book";
 export type {
   ProviderHealth,

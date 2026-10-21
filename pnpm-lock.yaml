@@ -370,6 +370,9 @@ importers:
 
   packages/search:
     dependencies:
+      '@unbnd/relay':
+        specifier: workspace:*
+        version: link:../relay
       '@unbnd/schemas':
         specifier: workspace:*
         version: link:../schemas

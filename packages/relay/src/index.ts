@@ -10,5 +10,5 @@ export type {
   ReconnectInfo,
 } from "./resilient";
 export type { RelayConnection, PublishResult, RelayFilter } from "./types";
-export { queryAllPages } from "./paginate";
+export { forEachPage, queryAllPages } from "./paginate";
 export type { PagedResult, PaginateOpts } from "./paginate";
