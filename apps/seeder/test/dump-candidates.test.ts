@@ -67,7 +67,7 @@ describe("extractCandidates", () => {
     const { readFile } = await import("node:fs/promises");
     const lines = gunzipSync(await readFile(files.redirects)).toString() + "/type/redirect\t/works/OL5W\t1\t2026\t{not json\n";
     await wf(files.redirects, gz(lines));
-    const merged: Array<[string, string[]]> = [];
+    const merged: Array<[string, readonly string[]]> = [];
     await extractCandidates(files, {
       readersMin: 5,
       onCandidate: (c, _authors, mergedFrom) => { merged.push([c.doc.key!, mergedFrom]); },

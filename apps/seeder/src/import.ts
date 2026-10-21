@@ -59,7 +59,7 @@ async function main(): Promise<void> {
   // The dry run reads and publishes nothing, so it needs only the librarian's
   // public key; --apply signs, so it alone needs LIBRARIAN_NSEC.
   let sk: Uint8Array | undefined;
-  if (apply || process.env.LIBRARIAN_NSEC) {
+  if (apply || (process.env.LIBRARIAN_NSEC && !process.env.LIBRARIAN_PUBKEY)) {
     const decoded = decode(env("LIBRARIAN_NSEC"));
     if (decoded.type !== "nsec") throw new Error("LIBRARIAN_NSEC is not an nsec");
     sk = decoded.data as Uint8Array;
@@ -90,7 +90,7 @@ async function main(): Promise<void> {
       const live = new Map<string, LiveSummary>();
       const before = new Map<string, FingerprintInput>();
       const newestAt = new Map<string, number>();
-      await forEachPage(
+      const walk = await forEachPage(
         (cursor) => hub.query({ kinds: [39999], authors: [librarian], "#z": [booksZ], ...cursor }),
         async (events) => {
           for (const e of events) {
@@ -107,6 +107,8 @@ async function main(): Promise<void> {
         },
         { pageSize: 500, maxPages: Infinity, totalBudgetMs: Infinity },
       );
+      // A cut-short read would plan existing books as new: refuse it.
+      if (walk.stuck || walk.capped) throw new Error("import: the hub read did not reach every record; not planning from it");
       console.log(`[import] ${live.size} records on the hub`);
 
       // 3. Extract and plan every candidate; keep the plan for --apply.
@@ -119,9 +121,10 @@ async function main(): Promise<void> {
         {
           readersMin: READERS_MIN,
           log: console.log,
-          onCandidate: async (candidate, authors) => {
+          onCandidate: async (candidate, authors, mergedFrom) => {
             const slug = `ol-${candidate.doc.key!.replace("/works/", "").toLowerCase()}`;
-            const p = planBook(candidate, live.get(slug), authors, header, currentYear);
+            const mergedFromCatalog = mergedFrom.some((id) => live.has(`ol-${id.toLowerCase()}`));
+            const p = planBook(candidate, live.get(slug), authors, header, currentYear, { mergedFromCatalog });
             report.add(p, before.get(slug));
             if (p.kind === "new" || p.kind === "changed") {
               const line: PlannedBook = { slug, kind: p.kind, record: p.record, genres: p.genres };

@@ -109,10 +109,18 @@ export function planBook(
   authors: ReadonlyMap<string, AuthorEvidence>,
   header: DListAddress<39998>,
   currentYear: number,
+  opts: {
+    /**
+     * A book already in the catalog was merged into this work in Open Library:
+     * adding it would list the book twice. Merges are the sync story's to handle.
+     */
+    readonly mergedFromCatalog?: boolean;
+  } = {},
 ): Plan {
   const reason = gateReason(candidate.doc, currentYear);
   if (reason) return { kind: "dropped", reason };
   if (candidate.readers < READERS_MIN) return { kind: "dropped", reason: "readers" };
+  if (opts.mergedFromCatalog && !live) return { kind: "dropped", reason: "merged" };
   if (live && !live.owned) return { kind: "not-owned" };
 
   const mapped = mapSearchDocToBookRecord(candidate.doc, header);

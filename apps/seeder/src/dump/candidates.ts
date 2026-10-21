@@ -44,8 +44,15 @@ export async function extractCandidates(
   files: DumpFiles,
   opts: {
     readonly readersMin: number;
-    /** Each candidate, with every candidate's author already read (for the year rule). */
-    readonly onCandidate: (candidate: Candidate, authors: ReadonlyMap<string, AuthorEvidence>) => void | Promise<void>;
+    /**
+     * Each candidate, with every candidate's author already read (for the year
+     * rule) and the works Open Library merged into it.
+     */
+    readonly onCandidate: (
+      candidate: Candidate,
+      authors: ReadonlyMap<string, AuthorEvidence>,
+      mergedFrom: readonly string[],
+    ) => void | Promise<void>;
     readonly log?: (message: string) => void;
   },
 ): Promise<{ authors: Map<string, AuthorEvidence>; stats: ExtractStats }> {
@@ -60,7 +67,12 @@ export async function extractCandidates(
   for await (const line of gzLines(files.redirects)) {
     const parts = splitDumpLine(line);
     if (!parts || !(parts.key.startsWith("/works/") || parts.key.startsWith("/authors/"))) continue;
-    const r = parseRedirect(JSON.parse(parts.json) as { key?: unknown; location?: unknown });
+    let r;
+    try {
+      r = parseRedirect(JSON.parse(parts.json) as { key?: unknown; location?: unknown });
+    } catch {
+      continue;
+    }
     if (!r) continue;
     if (r.from.endsWith("W")) workTo.set(num(r.from), num(r.to));
     else authorTo.set(num(r.from), num(r.to));
@@ -83,6 +95,10 @@ export async function extractCandidates(
   for (const [w, n] of readers) if (n >= opts.readersMin) candidates.add(w);
   for (const w of [...readers.keys()]) if (!candidates.has(w)) readers.delete(w);
   stats.candidates = candidates.size;
+  const mergedInto = new Map<number, string[]>();
+  for (const [from, to] of workTo) {
+    if (candidates.has(to)) mergedInto.set(to, [...(mergedInto.get(to) ?? []), `OL${from}W`]);
+  }
   log(`[import] ${stats.worksWithReaders} works with readers, ${stats.candidates} with at least ${opts.readersMin}`);
 
   // 3. Editions of candidates.
@@ -146,7 +162,7 @@ export async function extractCandidates(
       doc: toSearchDoc(id, fields, agg, authorName),
       readers: readers.get(w) ?? 0,
       ...(fields.description ? { description: fields.description } : {}),
-    }, authors);
+    }, authors, mergedInto.get(w) ?? []);
     stats.handedOn++;
   }
   return { authors, stats };

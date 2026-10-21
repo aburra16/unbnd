@@ -52,7 +52,11 @@ jobs:
 
       - name: Run the task over SSH
         uses: appleboy/ssh-action@v1.2.0
+        env:
+          # Passed as data, never pasted into the script (an input is untrusted text).
+          DUMP: ${{ inputs.dump }}
         with:
+          envs: DUMP
           host: ${{ secrets.DROPLET_HOST }}
           username: ${{ secrets.DROPLET_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
@@ -96,7 +100,7 @@ jobs:
               import-dry-run|import-apply)
                 # Story 109 / ADR 0097. Runs for hours, so it is started detached
                 # under a fixed container name; import-report shows how it goes.
-                dump="${{ inputs.dump }}"
+                dump="${DUMP:-}"
                 if ! printf '%s' "$dump" | grep -Eq '^[0-9]{4}-[0-9]{2}-[0-9]{2}$'; then
                   echo "::error::dump must be a date such as 2026-09-30"; exit 1
                 fi
@@ -111,8 +115,11 @@ jobs:
                 echo "started: node import.js --dump $dump $apply"
                 ;;
               import-report)
-                dump="${{ inputs.dump }}"
-                docker compose -f docker-compose.prod.yml --profile seed run --rm --entrypoint sh seeder -c "cat /data/import-report-${dump}.json 2>/dev/null | head -c 20000 || echo 'no report for ${dump} yet'"
+                dump="${DUMP:-}"
+                if ! printf '%s' "$dump" | grep -Eq '^[0-9]{4}-[0-9]{2}-[0-9]{2}$'; then
+                  echo "::error::dump must be a date such as 2026-09-30"; exit 1
+                fi
+                docker compose -f docker-compose.prod.yml --profile seed run --rm --entrypoint sh seeder -c "if [ -f /data/import-report-${dump}.json ]; then head -c 20000 /data/import-report-${dump}.json; else echo 'no report for ${dump} yet'; fi"
                 echo "--- import log (last 40 lines) ---"
                 docker logs --tail 40 unbnd-import 2>&1 || echo "(no import container)"
                 ;;

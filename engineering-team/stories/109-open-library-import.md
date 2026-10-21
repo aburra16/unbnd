@@ -12,8 +12,9 @@ The catalog holds about 11,300 books, the top of 8 subjects by readers, collecte
 4. **Compare before publishing.** The import reads the librarian's records from the hub in pages. A book is new, changed (its fingerprint differs) or unchanged. Records the import does not own are never touched: community books (`source: community` or `submitted-by`), and delisted records.
 5. **A changed book keeps what others added.** It is rebuilt from the dump, and keeps the live record's first-added date (`added`, or its `created_at`), its genre labels and any tag the schema does not write.
 6. **A dry run first.** Without `--apply` the import publishes nothing and writes a report: candidates; drops by gate signal; new, changed, unchanged and not owned; year corrections; and a sample of new titles.
-7. **Paced, resumable publishing.** `--apply` publishes each book's record and genre assertions to the hub, librarian-signed, at `IMPORT_RATE` events a second (default 10), each with its own `created_at`, and checkpoints each book so a dropped run resumes where it stopped.
-8. **Ops.** Staging ops tasks `import-dry-run` and `import-apply` take the dump date.
+7. **Paced, resumable publishing.** `--apply` publishes each book's record and genre assertions to the hub, librarian-signed, at `IMPORT_RATE` events a second (default 10), each with its own `created_at`, and checkpoints each book so a dropped run resumes where it stopped. It re-reads each book from the hub first: a changed book whose read comes back empty fails and is retried later; a new book that is on the hub by now keeps that record's identity; a replacement is dated after the record it replaces.
+8. **No book twice.** A work into which Open Library merged a book already in the catalog is skipped and counted as `merged`.
+9. **Ops.** Staging ops tasks `import-dry-run`, `import-apply` and `import-report` take the dump date as data, and validate it.
 
 ## Out of scope
 - The monthly schedule, removals of merged or deleted works and old-slug aliases (a later story with its own ADR).

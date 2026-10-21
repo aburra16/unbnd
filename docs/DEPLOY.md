@@ -271,9 +271,10 @@ seeder image, since a run takes hours:
    fields changed on existing books, sample titles) and the import's log.
 3. **Apply.** `gh workflow run "Staging ops" -f task=import-apply -f dump=2026-09-30`
    publishes the plan to the hub: each book re-checked against the hub first,
-   one event at a time at `IMPORT_RATE` a second (default 10, about 9 hours for
-   a first run of 159,000 books), checkpointed in `/data/import-checkpoint` so
-   a dropped run resumes when started again. Only one import runs at a time.
+   one event at a time at `IMPORT_RATE` a second (default 10; a first run of
+   159,000 books is about 310,000 events and takes 20 to 40 hours with the hub
+   reads), checkpointed in `/data/import-checkpoint` so a dropped run resumes
+   when started again. Only one import runs at a time.
 
 After an apply, the down-sync brings the records to Unbnd's relay, the labels
 pass labels them (genre, format, language, ISBN), and the search relay indexes

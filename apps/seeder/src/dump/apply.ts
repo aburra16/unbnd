@@ -49,6 +49,9 @@ const newest = (events: readonly SignedNostrEvent[]) =>
 
 export async function applyPlan(books: Iterable<PlannedBook> | AsyncIterable<PlannedBook>, deps: ApplyDeps): Promise<ApplySummary> {
   const log = deps.log ?? (() => {});
+  if (!Number.isFinite(deps.ratePerSecond) || deps.ratePerSecond <= 0) {
+    throw new Error(`import: the publishing rate must be a positive number of events a second, not ${deps.ratePerSecond}`);
+  }
   const gap = Math.ceil(1000 / deps.ratePerSecond);
   const assertionsHeader = buildBookTagAssertionsHeaderAddress(deps.librarian as never);
   const summary: ApplySummary = { records: 0, assertions: 0, skipped: 0, failed: 0 };
@@ -76,15 +79,24 @@ export async function applyPlan(books: Iterable<PlannedBook> | AsyncIterable<Pla
 
     // Re-check against the hub (ADR 0097 §5): ownership and content may have moved.
     const current = newest(await deps.readCurrent(book.slug));
+    if (!current && book.kind === "changed") {
+      // The dry run saw this record; an empty read is a failed read, not a gone record.
+      summary.failed++;
+      log(`[import] ${book.slug}: the hub returned no current record`);
+      continue;
+    }
     const live = current ? liveSummary(current) : undefined;
     if (live && !live.owned) {
       summary.skipped++;
       continue;
     }
-    if (live && live.fingerprint === fp) {
+    // A book the dry run planned as new may be on the hub by now: it keeps its identity.
+    const record = live ? { ...book.record, ...live.identity } : book.record;
+    const createdAt = Math.max(deps.now(), current ? current.created_at + 1 : 0);
+    if (live && live.fingerprint === fingerprint(record)) {
       // The record is already right; its genres may still be missing.
       summary.skipped++;
-    } else if (await send(recordEventFor(book.record, live, deps.now()), book.slug)) {
+    } else if (await send(recordEventFor(record, live, createdAt), book.slug)) {
       summary.records++;
     } else {
       summary.failed++;
