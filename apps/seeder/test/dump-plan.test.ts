@@ -142,4 +142,11 @@ describe("an existing book keeps its identity (dry run of 2026-09-30)", () => {
     if (p.kind !== "changed") throw new Error("expected changed");
     expect(p.record.isbn13).toBe("9780802163103");
   });
+
+});
+
+describe("a work Open Library merged into another (review round 1)", () => {
+  it("the merge target of a book already in the catalog is skipped and counted, not added twice", () => {
+    expect(planBook(cand(), undefined, AUTHORS, HEADER, YEAR, { mergedFromCatalog: true })).toEqual({ kind: "dropped", reason: "merged" });
+  });
 });

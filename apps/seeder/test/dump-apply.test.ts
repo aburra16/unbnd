@@ -132,4 +132,37 @@ describe("applyPlan", () => {
     expect(again.published.map((e) => e.kind)).toEqual([39999]);
     expect(checkpoint.size()).toBe(1);
   });
+
+  it("a changed book whose re-read comes back empty is a failure, not a new record (review round 1)", async () => {
+    const { d, published } = deps({ current: [] });
+    expect(await applyPlan([planned({ kind: "changed" })], d)).toMatchObject({ records: 0, failed: 1 });
+    expect(published).toEqual([]);
+    expect(d.checkpoint.size()).toBe(0);
+  });
+
+  it("a new book that is on the hub by now keeps that record's identity and first-added date (review round 1)", async () => {
+    const onHub = live(2021, [["author", "Carolyn Keene"]]);
+    const json = JSON.parse(onHub.tags.find((t) => t[0] === "json")![1]!);
+    json.bookSubmission.authorName = "Carolyn Keene";
+    const current = { ...onHub, tags: onHub.tags.filter((t) => t[0] !== "author" || t[1] === "Carolyn Keene").map((t) => (t[0] === "json" ? ["json", JSON.stringify(json)] : t)) } as SignedNostrEvent;
+    const { d, published } = deps({ current: [current] });
+    await applyPlan([planned({ kind: "new" })], d);
+    expect(published[0]!.tags).toContainEqual(["author", "Carolyn Keene"]);
+    expect(published[0]!.tags).toContainEqual(["added", "1780000000"]);
+    expect(published[0]!.created_at).toBe(1_790_000_000);
+  });
+
+  it("a replacement is dated after the record it replaces (review round 1)", async () => {
+    const ahead = { ...live(2021), created_at: 1_790_000_100 } as SignedNostrEvent;
+    const { d, published } = deps({ current: [ahead] });
+    await applyPlan([planned({ kind: "changed" })], d);
+    expect(published[0]!.created_at).toBe(1_790_000_101);
+  });
+
+  it("refuses a rate that is not a positive number (review round 1)", async () => {
+    for (const ratePerSecond of [Number.NaN, 0, -5, Infinity]) {
+      const { d } = deps();
+      await expect(applyPlan([planned()], { ...d, ratePerSecond })).rejects.toThrow(/rate/);
+    }
+  });
 });

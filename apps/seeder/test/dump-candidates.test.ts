@@ -59,4 +59,19 @@ describe("extractCandidates", () => {
     expect(result.authors.get("OL8A")).toEqual({ name: "Ann Other", birthYear: 1950 });
     expect(result.stats).toMatchObject({ candidates: 2 });
   });
+
+  it("a malformed redirect line is skipped, and the candidate is told which works were merged into it", async () => {
+    const files = await dumps();
+    const { writeFile: wf } = await import("node:fs/promises");
+    const { gunzipSync, gzipSync: gz } = await import("node:zlib");
+    const { readFile } = await import("node:fs/promises");
+    const lines = gunzipSync(await readFile(files.redirects)).toString() + "/type/redirect\t/works/OL5W\t1\t2026\t{not json\n";
+    await wf(files.redirects, gz(lines));
+    const merged: Array<[string, string[]]> = [];
+    await extractCandidates(files, {
+      readersMin: 5,
+      onCandidate: (c, _authors, mergedFrom) => { merged.push([c.doc.key!, mergedFrom]); },
+    });
+    expect(merged).toEqual([["/works/OL1W", []], ["/works/OL3W", ["OL9W"]]]);
+  });
 });
