@@ -87,12 +87,13 @@ export function liveSummary(event: SignedNostrEvent): LiveSummary {
     !record.submittedBy &&
     tag("submitted-by") === undefined;
   const added = Number(tag("added"));
-  const identity: LiveSummary["identity"] = {};
+  const kept: Record<string, string | number> = {};
   for (const f of ["title", "authorName", "isbn13", "isbn10"] as const) {
     const v = record?.[f];
-    if (typeof v === "string" && v.trim()) (identity as Record<string, string>)[f] = v;
+    if (typeof v === "string" && v.trim()) kept[f] = v;
   }
-  if (typeof record?.pageCount === "number" && record.pageCount > 0) identity.pageCount = record.pageCount;
+  if (typeof record?.pageCount === "number" && record.pageCount > 0) kept.pageCount = record.pageCount;
+  const identity = kept as LiveSummary["identity"];
   return {
     owned,
     identity,
