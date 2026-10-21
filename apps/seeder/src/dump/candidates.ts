@@ -44,7 +44,8 @@ export async function extractCandidates(
   files: DumpFiles,
   opts: {
     readonly readersMin: number;
-    readonly onCandidate: (candidate: Candidate) => void | Promise<void>;
+    /** Each candidate, with every candidate's author already read (for the year rule). */
+    readonly onCandidate: (candidate: Candidate, authors: ReadonlyMap<string, AuthorEvidence>) => void | Promise<void>;
     readonly log?: (message: string) => void;
   },
 ): Promise<{ authors: Map<string, AuthorEvidence>; stats: ExtractStats }> {
@@ -145,7 +146,7 @@ export async function extractCandidates(
       doc: toSearchDoc(id, fields, agg, authorName),
       readers: readers.get(w) ?? 0,
       ...(fields.description ? { description: fields.description } : {}),
-    });
+    }, authors);
     stats.handedOn++;
   }
   return { authors, stats };
