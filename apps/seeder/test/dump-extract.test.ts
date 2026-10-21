@@ -94,10 +94,10 @@ describe("toSearchDoc", () => {
     expect(doc).not.toHaveProperty("number_of_pages_median");
   });
 
-  it("an even count of page numbers takes the median truncated, as Open Library's index does", () => {
+  it("an even count of page numbers takes the rounded mean of the middle two (closest to the catalog's values)", () => {
     const agg = new EditionAggregate();
     agg.add({ languages: [], isbns: [], pages: 415 });
     agg.add({ languages: [], isbns: [], pages: 416 });
-    expect(toSearchDoc("OL1W", { title: "T", subjects: [] }, agg, undefined).number_of_pages_median).toBe(415);
+    expect(toSearchDoc("OL1W", { title: "T", subjects: [] }, agg, undefined).number_of_pages_median).toBe(416);
   });
 });
