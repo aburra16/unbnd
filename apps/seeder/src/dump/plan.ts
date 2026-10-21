@@ -37,6 +37,12 @@ export type LiveSummary = {
   readonly owned: boolean;
   readonly fingerprint: string | null;
   readonly added: number;
+  /**
+   * The book's identity as the catalog shows it: kept when the dump would only
+   * pick another valid value (the 2026-09-30 dry run: another ISBN of the same
+   * work for 9,876 books, a ghostwriter for a pen name for 164).
+   */
+  readonly identity: Partial<Pick<BookRecord, "title" | "authorName" | "isbn13" | "isbn10">>;
   /** Tags a rebuild would drop: genre labels, foreign labels, unknown tags, other `i` tags. */
   readonly carried: readonly (readonly string[])[];
 };
@@ -81,8 +87,14 @@ export function liveSummary(event: SignedNostrEvent): LiveSummary {
     !record.submittedBy &&
     tag("submitted-by") === undefined;
   const added = Number(tag("added"));
+  const identity: LiveSummary["identity"] = {};
+  for (const f of ["title", "authorName", "isbn13", "isbn10"] as const) {
+    const v = record?.[f];
+    if (typeof v === "string" && v.trim()) (identity as Record<string, string>)[f] = v;
+  }
   return {
     owned,
+    identity,
     fingerprint: record ? fingerprint(record) : null,
     added: Number.isInteger(added) && added > 0 ? added : event.created_at,
     carried: event.tags.filter((t) => !rebuiltTag(t)).map((t) => [...t]),
@@ -108,7 +120,8 @@ export function planBook(
     judgeRecordYear(mapped, workEvidenceOf(candidate.doc), authors, currentYear),
   );
   const blurb = candidate.description ? capBlurb(sanitizeDescription(candidate.description)) : "";
-  const record: BookRecord = blurb ? { ...judged, blurb } : judged;
+  // An existing book keeps its title, author and ISBNs; the dump fills them only when empty.
+  const record: BookRecord = { ...judged, ...(blurb ? { blurb } : {}), ...(live?.identity ?? {}) };
 
   if (live && live.fingerprint === fingerprint(record)) return { kind: "unchanged" };
   const yearCorrected =
