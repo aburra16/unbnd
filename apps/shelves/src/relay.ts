@@ -1,5 +1,5 @@
-// One-shot relay read for the shelves worker (ADR 0036 §1), mirroring
-// apps/indexer/src/relay.ts: REQ → collect EVENTs → EOSE/timeout, plus the
+// One-shot relay read for the shelves worker (ADR 0036 §1):
+// REQ → collect EVENTs → EOSE/timeout, plus the
 // cap-safe paginating `queryAllPages` (ADR 0021). The worker reads the catalog +
 // ratings + taxonomy + genre membership off the LOCAL relay — the same source
 // the API read paths use. Read-only; the worker holds no signing key.

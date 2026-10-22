@@ -49,14 +49,8 @@ import {
   getUpsyncHealth,
   startUpsyncHealthMonitor,
 } from "./health/upsync";
-import { resolveProvider, reindexBook as reindexBookHelper } from "@unbnd/search";
-import {
-  asHexPubkey,
-  buildBookRecordsHeaderAddress,
-  buildBookTagsHeaderAddress,
-  buildBookTagAssertionsHeaderAddress,
-  formatAddress,
-} from "@unbnd/schemas";
+import { Nip50Provider } from "@unbnd/search";
+import { unavailableSearch } from "./search/unavailable";
 import {
   createCustodialUser,
   createOrLoadSovereignUser,
@@ -100,24 +94,20 @@ const SEARCH_RELAY_TIMEOUT_MS = 8000;
 
 async function main() {
   const config = loadConfig();
-  const searchProvider = resolveProvider(
-    {
-      provider: config.searchProvider,
-      url: config.searchUrl,
-      apiKey: config.searchApiKey,
-    },
-    // Story 106 / ADR 0095: the search relay read, which fails loudly when the
-    // relay does not answer, and the librarian whose list it searches.
-    {
-      librarian: config.librarianPubkey ?? "",
-      query: async (filter) => {
-        const read = await queryRelayUrlChecked(config.searchUrl, filter, SEARCH_RELAY_TIMEOUT_MS);
-        if (!read.ok) throw new Error("search relay did not answer");
-        return read.events;
-      },
-      verify: (event) => verifyEvent(event as Parameters<typeof verifyEvent>[0]),
-    },
-  );
+  // Search is Brainstorm's search relay (ADR 0095, ADR 0100): a read that
+  // fails loudly when the relay does not answer, and the librarian whose list
+  // it searches.
+  const searchProvider = config.librarianPubkey
+    ? new Nip50Provider({
+        librarian: config.librarianPubkey,
+        query: async (filter) => {
+          const read = await queryRelayUrlChecked(config.searchUrl, filter, SEARCH_RELAY_TIMEOUT_MS);
+          if (!read.ok) throw new Error("search relay did not answer");
+          return read.events;
+        },
+        verify: (event) => verifyEvent(event as Parameters<typeof verifyEvent>[0]),
+      })
+    : unavailableSearch("LIBRARIAN_PUBKEY is not set");
 
   // Postgres may not accept connections the instant the API container starts
   // (compose `depends_on: service_healthy` covers the normal case; this is
@@ -625,40 +615,11 @@ async function main() {
       queryPaged: userEventDeps.queryPaged,
     }),
   );
-  // Index-on-write (Story 60 / ADR 0059 §4): a best-effort, fire-and-forget
-  // single-book reindex fired by the tags route AFTER a durable assertion
-  // publish. The reader issues three scoped, per-book relay reads (ADR 0059 §3):
-  // the book record (#z books-header + #d slug), the taxonomy (#z book-tags),
-  // and THIS book's assertions (#z assertions + #a book address). The doc is
-  // rebuilt via the shared @unbnd/search builder (RAW consensus) and upserted
-  // through the resolved SearchProvider; the helper swallows all failures.
-  const lib = config.librarianPubkey ? asHexPubkey(config.librarianPubkey) : undefined;
-  const booksZ = lib ? formatAddress(buildBookRecordsHeaderAddress(lib)) : "";
-  const tagsZ = lib ? formatAddress(buildBookTagsHeaderAddress(lib)) : "";
-  const assertZ = lib ? formatAddress(buildBookTagAssertionsHeaderAddress(lib)) : "";
-  const makeBookReader = (slug: string) => async () => {
-    const bookAddr = `39999:${lib}:${slug}`;
-    const [bookEvents, taxonomyEvents, assertionEvents] = await Promise.all([
-      queryEvents(config, { kinds: [39999], "#z": [booksZ], "#d": [slug], limit: 1 }),
-      queryEvents(config, { kinds: [39999], "#z": [tagsZ], ...(lib ? { authors: [lib] } : {}) }),
-      queryEvents(config, { kinds: [39999], "#z": [assertZ], "#a": [bookAddr] }),
-    ]);
-    return { bookEvent: bookEvents[0] ?? null, taxonomyEvents, assertionEvents };
-  };
-  const reindexBook = (slug: string): void => {
-    if (!lib) return; // no librarian configured → no live index path
-    void reindexBookHelper(
-      searchProvider,
-      makeBookReader(slug),
-      slug,
-      new Date().getUTCFullYear(),
-    );
-  };
   // Promotion + demotion enqueues live beside the state machine in src/db
   // (Story 80 / ADR 0078 §2). The off-path apps/promoter worker fulfills the
   // rows; the librarian secret is NEVER on this process (ADR 0031 §2).
 
-  app.use("/", buildTagsRouter({ ...userEventDeps, reindexBook, enqueueReveal }));
+  app.use("/", buildTagsRouter({ ...userEventDeps, enqueueReveal }));
   app.use("/", buildShelvesRouter(userEventDeps));
   app.use(
     "/",

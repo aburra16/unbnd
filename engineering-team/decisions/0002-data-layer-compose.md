@@ -1,6 +1,6 @@
 # ADR 0002: Data-layer stack via Docker Compose
 
-**Status:** Accepted
+**Status:** Accepted; the `search` service superseded by ADR 0100
 **Date:** 2026-05-28
 **Story:** `engineering-team/stories/done/2-data-layer-compose.md`
 

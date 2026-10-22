@@ -49,13 +49,6 @@ export type PromoterDeps = {
   readonly markDone: (job: PromotionJob, canonicalId: string) => Promise<void>;
   /** Mark a job failed (retriable) with a reason. */
   readonly markFailed: (job: PromotionJob, reason: string) => Promise<void>;
-  /**
-   * Best-effort index-on-write hook (Story 60 / ADR 0059 §5). Fired AFTER the
-   * durable publish + markDone so a freshly promoted book is findable in search
-   * WITHOUT a batch run. A reindex failure is logged + swallowed and NEVER fails
-   * the job (markDone is the contract). Absent → no live index update.
-   */
-  readonly reindexBook?: (bookSlug: string) => Promise<void> | void;
   /** Wall-clock for the signed event's created_at; deterministic in tests. */
   readonly now?: () => number;
 };
@@ -107,22 +100,8 @@ async function promoteOne(deps: PromoterDeps, job: PromotionJob): Promise<void> 
     await deps.markFailed(job, local.reason ?? dcosl.reason ?? "publish failed");
     return;
   }
+  // The search relay indexes the promoted record from the hub (ADR 0100).
   await deps.markDone(job, signed.id);
-
-  // Best-effort index-on-write (ADR 0059 §5): only AFTER the durable publish +
-  // markDone (the contract). A reindex failure is logged + swallowed and NEVER
-  // fails the job (markDone already ran).
-  if (deps.reindexBook) {
-    try {
-      await deps.reindexBook(job.slug);
-    } catch (err) {
-      console.warn(
-        `[index-on-write] promoter reindex ${job.slug} failed: ${
-          err instanceof Error ? err.message : String(err)
-        }`,
-      );
-    }
-  }
 }
 
 /** One promotion run: claim, then process each job independently. */
@@ -157,12 +136,6 @@ export type DemoterDeps = {
   /** Mark a job demoted with the delisting event id (stored in canonical_id). */
   readonly markDemoted: (job: PromotionJob, delistId: string) => Promise<void>;
   readonly markDemoteFailed: (job: PromotionJob, reason: string) => Promise<void>;
-  /**
-   * Remove docs from the live search index (ADR 0078 sec.3). Optional and
-   * best-effort like reindexBook: a failure is logged + swallowed and never
-   * fails the job (the batch rebuild is the backstop).
-   */
-  readonly searchDelete?: (slugs: readonly string[]) => Promise<void> | void;
 };
 
 async function demoteOne(deps: DemoterDeps, job: PromotionJob): Promise<boolean> {
@@ -186,22 +159,9 @@ async function demoteOne(deps: DemoterDeps, job: PromotionJob): Promise<boolean>
     console.warn(`[demote] dcosl publish for ${job.slug} failed: ${dcosl.reason}`);
   }
 
+  // A delisted record never resolves to a book (ADR 0078), in search included:
+  // the relay indexes the delisting from the hub (ADR 0100).
   await deps.markDemoted(job, signed.id);
-
-  // Best-effort live-index removal (ADR 0078 sec.3), only AFTER the durable
-  // publish + markDemoted: a failure is logged + swallowed (the batch rebuild
-  // is the backstop), never un-demotes the job.
-  if (deps.searchDelete) {
-    try {
-      await deps.searchDelete([job.slug]);
-    } catch (err) {
-      console.warn(
-        `[demote] search delete for ${job.slug} failed: ${
-          err instanceof Error ? err.message : String(err)
-        }`,
-      );
-    }
-  }
   return true;
 }
 

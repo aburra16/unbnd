@@ -41,11 +41,8 @@ function makeApp(
   extra: Partial<SearchDeps> = {},
 ) {
   const provider = {
-    name: "meili",
+    name: "nip50",
     health: vi.fn(),
-    configureIndex: vi.fn(),
-    index: vi.fn(),
-    deleteAll: vi.fn(),
     search,
   } as unknown as SearchProvider;
   const deps: SearchDeps = {

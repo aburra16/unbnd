@@ -1,5 +1,5 @@
 // FAILING TESTS — Story 105 / ADR 0094 §3: the applied-tags rule extracted
-// from buildBookDocument, so the index and the record labels share it.
+// so the labels pass and its tests share one rule.
 import { describe, expect, it } from "vitest";
 import {
   buildBookAssertionEventsForTest,

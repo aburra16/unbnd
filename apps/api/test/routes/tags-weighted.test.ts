@@ -27,7 +27,7 @@ const LIB = asHexPubkey("1".repeat(63) + "a");
 const HOUSE = "f".repeat(64); // default house observer hex
 const cfg = {
   port: 8787, strfryUrl: "ws://x", neo4jBoltUrl: "x", neo4jUser: "neo4j", neo4jPassword: "x",
-  tapestryApiUrl: "x", searchUrl: "x", searchApiKey: "x", searchProvider: "meili",
+  tapestryApiUrl: "x", searchUrl: "x",
   trustProvider: "fixture",
   databaseUrl: "x", backupEncryptionKey: "a".repeat(64), publicOrigin: "x",
   librarianPubkey: LIB, houseObserverPubkey: HOUSE,

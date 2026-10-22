@@ -1,6 +1,6 @@
 # ADR 0096: Workers read the catalog in pages
 
-**Status:** Accepted
+**Status:** Accepted; the indexer's paged walk retired by ADR 0100
 **Date:** 2026-10-21
 **Story:** `engineering-team/stories/108-catalog-in-pages.md`
 

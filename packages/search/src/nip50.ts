@@ -17,7 +17,6 @@ import {
 } from "@unbnd/schemas";
 import type {
   ProviderHealth,
-  SearchDocument,
   SearchHit,
   SearchProvider,
   SearchQuery,
@@ -70,6 +69,10 @@ export class Nip50Provider implements SearchProvider {
   readonly #windows = new Map<string, Window>();
 
   constructor(opts: Nip50Options) {
+    // Without the librarian there is no list to search; fail at startup.
+    if (!/^[0-9a-f]{64}$/.test(opts.librarian)) {
+      throw new Error("Nip50Provider: the librarian key (LIBRARIAN_PUBKEY, hex) is required");
+    }
     this.#librarian = opts.librarian;
     this.#booksZ = formatAddress(buildBookRecordsHeaderAddress(opts.librarian as never));
     this.#query = opts.query;
@@ -86,12 +89,6 @@ export class Nip50Provider implements SearchProvider {
       return { ok: false, provider: this.name, error: err instanceof Error ? err.message : String(err) };
     }
   }
-
-  // The relay indexes the hub's records itself (ADR 0095 §5).
-  async configureIndex(): Promise<void> {}
-  async index(_docs: readonly SearchDocument[]): Promise<void> {}
-  async delete(_ids: readonly string[]): Promise<void> {}
-  async deleteAll(): Promise<void> {}
 
   async search(query: SearchQuery): Promise<SearchResult> {
     const window = await this.#window(query);

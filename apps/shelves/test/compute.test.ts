@@ -9,7 +9,7 @@
 // SINGLE batched `weights` call — no new trust/ranking math.
 //
 // These tests inject a real FixtureTrustProvider + fakes — NO intra-module
-// vi.mock, matching the DI style of the ratings/search route + indexer tests.
+// vi.mock, matching the DI style of the ratings and search route tests.
 // They are FAILING until `apps/shelves/src/compute.ts` exists (the module-under-
 // test import below resolves to a not-yet-built module).
 import { describe, expect, it, vi } from "vitest";

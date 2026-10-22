@@ -14,7 +14,8 @@
 // Equal finals preserve the incoming text order (stable). On ANY trust failure
 // (blend ≤ 0, no observer, no librarian address, empty weights, a throw) it
 // returns the adapter's order UNCHANGED — pure text relevance, never throws.
-// The module reads ONLY the neutral `SearchHit.score`; no Meili specifics.
+// The module reads ONLY the neutral `SearchHit.score`, which the search relay
+// provider derives from rank (ADR 0095, ADR 0100).
 import { npubEncode } from "nostr-tools/nip19";
 import type { SearchHit, SearchResult } from "@unbnd/search";
 import type { SignedNostrEvent } from "@unbnd/schemas";

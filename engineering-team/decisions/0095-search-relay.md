@@ -1,6 +1,6 @@
 # ADR 0095: A NIP-50 search provider, loading results ahead
 
-**Status:** Accepted
+**Status:** Accepted; §6 superseded by ADR 0100 (Meilisearch retired)
 **Date:** 2026-10-20
 **Story:** `engineering-team/stories/106-search-relay.md`
 **Builds on:** ADR 0013 (the provider seam), ADR 0035 (trust-weighted search), ADR 0094 (labels on records)

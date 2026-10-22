@@ -10,9 +10,8 @@ export type Config = {
   readonly neo4jUser: string;
   readonly neo4jPassword: string;
   readonly tapestryApiUrl: string;
+  /** Brainstorm's search relay, the catalog's search backend (ADR 0100). */
   readonly searchUrl: string;
-  readonly searchApiKey: string;
-  readonly searchProvider: "meili" | "vespa" | "nip50";
   readonly databaseUrl: string;
   /** 32-byte server-managed backup key, hex-encoded (64 hex chars). */
   readonly backupEncryptionKey: string;
@@ -220,7 +219,6 @@ const DEFAULT_PROFILE_RELAYS = [
   "wss://nos.lol",
 ];
 
-const KNOWN_PROVIDERS: readonly Config["searchProvider"][] = ["meili", "vespa", "nip50"];
 const KNOWN_TRUST_PROVIDERS: readonly TrustProviderName[] = ["brainstorm", "fixture"];
 
 function required(env: NodeJS.ProcessEnv, name: string): string {
@@ -242,15 +240,6 @@ function withDefault(
 
 export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
   const neo4jPassword = required(env, "NEO4J_PASSWORD");
-  const searchApiKey = required(env, "SEARCH_API_KEY");
-
-  const providerRaw = withDefault(env, "SEARCH_PROVIDER", "meili");
-  if (!KNOWN_PROVIDERS.includes(providerRaw as Config["searchProvider"])) {
-    throw new Error(
-      `config: SEARCH_PROVIDER must be one of ${KNOWN_PROVIDERS.join(", ")}; got ${JSON.stringify(providerRaw)}`,
-    );
-  }
-  const searchProvider = providerRaw as Config["searchProvider"];
 
   const portRaw = withDefault(env, "PORT", "8787");
   const port = Number(portRaw);
@@ -576,7 +565,7 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
     throw new Error("config: HOUSE_OBSERVER_PUBKEY must be 64 lowercase hex chars when set");
   }
 
-  // Trust backend selection (ADR 0017), mirroring SEARCH_PROVIDER. `fixture` is
+  // Trust backend selection (ADR 0017). `fixture` is
   // a deterministic, network-free provider for CI + the staging seed harness.
   const trustProviderRaw = withDefault(env, "TRUST_PROVIDER", "brainstorm");
   if (!KNOWN_TRUST_PROVIDERS.includes(trustProviderRaw as TrustProviderName)) {
@@ -640,9 +629,7 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
     neo4jUser: withDefault(env, "NEO4J_USER", "neo4j"),
     neo4jPassword,
     tapestryApiUrl: withDefault(env, "TAPESTRY_API_URL", "http://localhost:8080"),
-    searchUrl: withDefault(env, "SEARCH_URL", "http://localhost:7700"),
-    searchApiKey,
-    searchProvider,
+    searchUrl: withDefault(env, "SEARCH_URL", "wss://search.brainstorm.world"),
     databaseUrl,
     backupEncryptionKey,
     publicOrigin: withDefault(env, "PUBLIC_ORIGIN", "http://localhost:5181"),

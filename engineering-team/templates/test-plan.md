@@ -25,7 +25,7 @@ Things not in the acceptance criteria but still worth covering.
 ## Test infrastructure
 - Test runner: Vitest (lives at `apps/web/test/...` and `apps/api/test/...`).
 - Browser/component flow: Vitest + Testing Library, optionally Playwright for end-to-end. Set per-ADR if Playwright is introduced.
-- Tapestry data layer: `docker compose up` brings strfry on :7777, Neo4j on :7687, Meilisearch on :7700. Tests that need a relay assume the stack is running locally.
+- Tapestry data layer: `docker compose up` brings strfry on :7777, Neo4j on :7687, Postgres on :5432; search is Brainstorm's search relay (ADR 0100). Tests that need a relay assume the stack is running locally.
 - Fixtures: `apps/web/src/data/*-fixtures.ts` for UI; integration tests should seed strfry with a small, deterministic set of events from `test/fixtures/events/`.
 
 ## How to run

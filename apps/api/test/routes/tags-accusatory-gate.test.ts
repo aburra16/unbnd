@@ -44,7 +44,7 @@ const BELOW = "e".repeat(64); // absent from the map → weight 0 → below
 function cfg(over: Partial<Config> = {}): Config {
   return {
     port: 8787, strfryUrl: "ws://x", neo4jBoltUrl: "x", neo4jUser: "neo4j", neo4jPassword: "x",
-    tapestryApiUrl: "x", searchUrl: "x", searchApiKey: "x", searchProvider: "meili",
+    tapestryApiUrl: "x", searchUrl: "x",
     trustProvider: "fixture",
     databaseUrl: "x", backupEncryptionKey: "a".repeat(64), publicOrigin: "x",
     librarianPubkey: LIB, houseObserverPubkey: HOUSE, curatorThreshold: 0.5,

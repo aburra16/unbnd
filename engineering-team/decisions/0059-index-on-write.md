@@ -1,6 +1,6 @@
 # ADR 0059: Index-on-write — incremental, best-effort search index updates on live writes
 
-**Status:** Accepted
+**Status:** Superseded by ADR 0100 (no index writes; the search relay indexes the hub)
 **Date:** 2026-06-05
 **Story:** `engineering-team/stories/done/60-index-on-write.md`
 

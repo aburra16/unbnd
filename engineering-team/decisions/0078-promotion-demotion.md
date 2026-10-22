@@ -1,6 +1,6 @@
 # ADR 0078: Promotion demotion — a delisted-state replace, one promotions state machine
 
-**Status:** Accepted
+**Status:** Accepted; the live search-index delete superseded by ADR 0100
 **Date:** 2026-06-09
 **Story:** `engineering-team/stories/80-promotion-demotion.md`
 

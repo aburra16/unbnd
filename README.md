@@ -36,14 +36,13 @@ Trust scores are **NIP-85 kind-30382** events produced by the Brainstorm GrapeRa
  browser ── caddy (web, auto-TLS) ── api (Express) ── tapestry (strfry relay + Neo4j)
                                         │                 ▲  │
                                         ├── db (Postgres) │  └─ local relay = read source
-                                        └── search (Meilisearch)
-                                              ▲
- jobs (profiles): seeder, indexer ────────────┘
+                                        └── search ── Brainstorm's search relay (NIP-50)
+ jobs (profiles): seeder, promoter, shelves, librarian
 ```
 
 - **dcosl** (`wss://dcosl.brainstorm.world/`) is the shared relay backbone. The seeder publishes the catalog there; the local strfry syncs **down**; the API **dual-publishes** community writes **up** (plus a `--dir up` cron backstop).
 - **Trust** scores come from the **nip85** relays + the Brainstorm API (`brainstormserver.nosfabrica.com`).
-- **Search** and **trust** are **provider-agnostic** behind interfaces with CI guards, so the planned Meili→Vespa move (and any trust-source change) is a one-adapter swap.
+- **Search** is Brainstorm's search relay, which indexes the catalog from the hub (ADR 0100); **search** and **trust** sit behind provider interfaces, so a source change is one adapter.
 
 ## Monorepo layout (pnpm)
 
@@ -52,15 +51,14 @@ Trust scores are **NIP-85 kind-30382** events produced by the Brainstorm GrapeRa
 | `apps/web` | Vite + React + TypeScript front end |
 | `apps/api` | Express + TypeScript API (auth, ratings, tags, search, trust, submissions) |
 | `apps/seeder` | One-off job: Open Library → librarian-signed book records → dcosl |
-| `apps/indexer` | One-off job: local relay → `@unbnd/search` (build the search index) |
 | `packages/schemas` | `@unbnd/schemas` — DList event shapes (BookRecord, BookRating, BookTag, …) |
-| `packages/search` | `@unbnd/search` — provider-neutral search interface + Meili adapter |
+| `packages/search` | `@unbnd/search` — search interface, the search relay adapter, the applied-tags rule and paged catalog reads |
 | `apps/api/src/trust` | provider-neutral trust (`TrustProvider`) + Brainstorm/NIP-85 adapter |
 | `engineering-team/` | PRD, ADRs (`decisions/`), stories, reviews, runbooks |
 
 ## Develop
 
-Requires Node 22 + pnpm. The data layer (relay/Neo4j/Postgres/Meili) runs in Docker.
+Requires Node 22 + pnpm. The data layer (relay/Neo4j/Postgres) runs in Docker.
 
 ```bash
 pnpm install
@@ -78,11 +76,11 @@ pnpm -r test
 pnpm --filter @unbnd/web build
 ```
 
-Notable env vars (see `.env.example`): `STRFRY_URL`, `LIBRARIAN_PUBKEY`, `DATABASE_URL`, `BACKUP_ENCRYPTION_KEY`, `DCOSL_RELAY_URL`, `SEARCH_URL`/`SEARCH_PROVIDER`, `BRAINSTORM_API_URL`/`TRUST_RELAYS`/`HOUSE_OBSERVER_PUBKEY`.
+Notable env vars (see `.env.example`): `STRFRY_URL`, `LIBRARIAN_PUBKEY`, `DATABASE_URL`, `BACKUP_ENCRYPTION_KEY`, `DCOSL_RELAY_URL`, `SEARCH_URL` (the search relay), `BRAINSTORM_API_URL`/`TRUST_RELAYS`/`HOUSE_OBSERVER_PUBKEY`.
 
 ## Deploy
 
-GitHub Actions: `ci.yml` (typecheck/test/build on every branch) and `staging.yml` (build GHCR images on merge to `main`, then SSH-deploy to the droplet, SHA-pinned). Catalog seed and search index are run on the droplet as compose profile jobs (`--profile seed` / `--profile index`). See `docs/DEPLOY.md` and `ops/sync-runbook.md`.
+GitHub Actions: `ci.yml` (typecheck/test/build on every branch) and `staging.yml` (build GHCR images on merge to `main`, then SSH-deploy to the droplet, SHA-pinned). Catalog jobs run on the droplet as compose profile jobs (`--profile seed`, `--profile promote`, `--profile shelves`). See `docs/DEPLOY.md` and `ops/sync-runbook.md`.
 
 ## Conventions
 

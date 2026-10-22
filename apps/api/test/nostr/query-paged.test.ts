@@ -1,6 +1,5 @@
 // Failing tests (red) for Story 21 — the paginating author-scoped read.
-// Mirrors apps/indexer/test/relay.test.ts (the proven queryAllPages pattern this
-// ADR says to mirror) but targets the NEW exports in apps/api/src/nostr/query.ts:
+// Follows the proven queryAllPages pattern the ADR says to mirror, and targets the NEW exports in apps/api/src/nostr/query.ts:
 // `queryAllPages(fetchPage, opts?)` and `queryEventsPaged(config, filter)`, both
 // returning `PagedResult = { events, capped }`. Neither exists yet, so every test
 // here fails at import / undefined-export — the intended red.

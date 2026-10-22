@@ -19,7 +19,7 @@ import { toHex } from "../nostr/npub";
 const COOKIE_NAME = "session";
 const KIND = 39999;
 // Chunk size for the #d catalog enrichment read — tracks strfry maxFilterLimit
-// (same source the indexer's BATCH and the paginator's page size use).
+// (the same source the paginator's page size uses).
 const RELAY_PAGE_SIZE = 500;
 
 /** A shelf with its books resolved to catalog records (ADR 0019 Decision 1). */

@@ -95,7 +95,7 @@ If a request tries to expand into any of these, the Product Owner pauses and ask
 | Backend | Node.js + Express + TypeScript | `apps/api` |
 | Test runner | Vitest | introduced with the first formal cycle's ADR |
 | Type gate | `tsc --noEmit` via `pnpm -r typecheck` | the workspace typecheck gate |
-| Data layer | strfry + Neo4j + Meilisearch + GrapeRank | Docker Compose; not yet wired |
+| Data layer | strfry + Neo4j + GrapeRank; search on Brainstorm's search relay | Docker Compose; search per ADR 0100 |
 | App DB | Postgres | user accounts, sessions, encrypted nostr keys; not yet wired |
 | Package manager | pnpm 9 workspace | `apps/web`, `apps/api`, and `packages/*` (incl. `@unbnd/ui` design system) |
 | Dev server | `pnpm dev:web` on :5181, `pnpm dev:api` on :8787 |

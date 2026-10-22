@@ -1,6 +1,6 @@
 // The ONE shared cap-safe relay pager (Story 82; extracted from the three
 // per-app copies; apps/api/src/nostr/query.ts carried the superset semantics
-// per ADR 0021, apps/indexer and apps/shelves the simple unbounded walk).
+// per ADR 0021, apps/shelves the simple unbounded walk).
 // Walks backwards by created_at with an `until` cursor, dedups by id across
 // the boundary second, stops on a short page or a no-new-events plateau.
 // Callers pass their OWN bounds so every prior call site's behavior is

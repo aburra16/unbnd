@@ -3,7 +3,8 @@
 Staging stands up the current `main` (sovereign login + sovereign rating
 publish) at `https://staging.unbnd.ink` on one DigitalOcean droplet, against a
 real strfry relay. Architecture: ADR 0007. Stack: `docker-compose.prod.yml`
-(Caddy → API → data layer + Postgres + Meilisearch).
+(Caddy → API → data layer + Postgres; search is Brainstorm's search relay,
+ADR 0100).
 
 This is **staging**, not a launch: books are fixtures, custodial (email)
 rating is not live yet (story 5b), and `__Host-` cookies + rate limiting are
@@ -77,7 +78,7 @@ deferred to cycle 5.
 | `SSH_PRIVATE_KEY` | private half of the deploy keypair |
 
 The app/runtime secrets (`POSTGRES_PASSWORD`, `NEO4J_PASSWORD`,
-`SEARCH_API_KEY`, `BACKUP_ENCRYPTION_KEY`, `LIBRARIAN_PUBKEY`) live in the
+`BACKUP_ENCRYPTION_KEY`, `LIBRARIAN_PUBKEY`) live in the
 droplet `/opt/unbnd/.env`, not in Actions — the deploy job only needs SSH.
 
 ## Continuous deploy
@@ -90,7 +91,7 @@ deploy)`), runs after **CI** succeeds on `main`:
 2. **deploy** (`needs: build`) — SSHes to the droplet, `git reset --hard
    <SHA>`, persists `UNBND_IMAGE_TAG=<SHA>` in `/opt/unbnd/.env` (ADR 0060), then
    `UNBND_IMAGE_TAG=<SHA> docker compose pull && up -d`. The persisted tag means a
-   later by-hand profile-worker `run` (seeder/promoter/indexer/shelves/librarian)
+   later by-hand profile-worker `run` (seeder/promoter/shelves/librarian)
    in a fresh shell resolves to the deployed SHA, not a stale `:latest`.
 
 Because `deploy` `needs` `build`, the droplet can never pull stale images, and
@@ -184,8 +185,9 @@ gh workflow run "Staging ops" -f task=recast
 
 Check the run log's per-genre yield report: `booksSeen` should be near the
 known catalog size (paging didn't stall), and any genre printed `<-- EMPTY`
-should be dropped from `STARTER_TAXONOMY` before launch. Follow with a batch
-index rebuild (`-f task=index`) so search picks the new genres up.
+should be dropped from `STARTER_TAXONOMY` before launch. Search picks the new
+genres up once the labels pass has written them onto the records and the search
+relay has indexed them from the hub (ADR 0100).
 
 ### Catalog year correction (Story 104 / ADR 0093; idempotent)
 
@@ -214,7 +216,7 @@ replaced; one that changed since the plan (a demotion, a labels pass, a seed
 write) is skipped as `stale` and the run exits non-zero, so run `years-check`
 again. The task holds the labels pass's lock for its whole run, so it waits for
 a running labels pass and the labels cron skips while it runs. The five-minute down-sync brings them to the
-local relay; follow with `-f task=index` so search shows the new years. A
+local relay, and the search relay indexes them from the hub. A
 second `years-check` should list no `correct` lines.
 
 A dry run also works off the droplet with only the public key:
@@ -279,6 +281,25 @@ seeder image, since a run takes hours:
 After an apply, the down-sync brings the records to Unbnd's relay, the labels
 pass labels them (genre, format, language, ISBN), and the search relay indexes
 them from the hub.
+
+## Retiring Meilisearch (Story 112 / ADR 0100)
+
+Search reads Brainstorm's search relay (`SEARCH_URL`, default
+`wss://search.brainstorm.world`); nothing on the droplet builds a search index.
+After the first deploy without Meilisearch:
+
+1. `gh workflow run "Staging ops" -f task=retire-meilisearch` stops and removes
+   the `unbnd-search` container, which `up -d` leaves running once its service
+   is gone, and lists the `unbnd_search` volume if it is still there.
+2. `gh workflow run "Staging ops" -f task=install-cron` replaces the crontab
+   without the nightly indexer line.
+3. The volume holds only the old index. Removing it is permanent, so it is a
+   step for the operator on the droplet: `docker volume rm unbnd_search` (the
+   task above lists the exact name). The old image can go too:
+   `docker image rm getmeili/meilisearch:v1.10`.
+4. `SEARCH_API_KEY` and `SEARCH_PROVIDER` in `.env` are no longer read and can
+   be deleted. `SEARCH_URL`, if present, must be `wss://search.brainstorm.world`
+   (or another search relay), not the old `http://search:7700`.
 
 ## Image proxy (Story 111 / ADR 0099)
 

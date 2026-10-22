@@ -14,7 +14,7 @@ const compose = () =>
 //
 // The data-layer image is externally pinned (built from a pinned upstream
 // Tapestry commit) and stays :latest by design — excluded, alongside the
-// third-party postgres/meilisearch images, which never match the unbnd- prefix.
+// third-party images (postgres, imgproxy, nginx), which never match the unbnd- prefix.
 describe("docker-compose.prod.yml image tags", () => {
   it("tags every ghcr.io/aburra16/unbnd-* app image with ${UNBND_IMAGE_TAG}", () => {
     const lines = compose().split("\n");

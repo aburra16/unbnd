@@ -4,7 +4,6 @@ import { SESSION_LIFETIME_MS } from "../src/auth/sessions";
 
 const ALL_REQUIRED = {
   NEO4J_PASSWORD: "tapestry-local-dev",
-  SEARCH_API_KEY: "local-dev-search-key",
   DATABASE_URL: "postgres://unbnd:unbnd@localhost:5432/unbnd",
   BACKUP_ENCRYPTION_KEY: "a".repeat(64),
 };
@@ -14,12 +13,6 @@ describe("loadConfig — required vars", () => {
     const env = { ...ALL_REQUIRED, NEO4J_PASSWORD: undefined } as NodeJS.ProcessEnv;
     delete env.NEO4J_PASSWORD;
     expect(() => loadConfig(env)).toThrow(/NEO4J_PASSWORD/);
-  });
-
-  it("throws when SEARCH_API_KEY is missing", () => {
-    const env = { ...ALL_REQUIRED } as NodeJS.ProcessEnv;
-    delete env.SEARCH_API_KEY;
-    expect(() => loadConfig(env)).toThrow(/SEARCH_API_KEY/);
   });
 
   it("throws when DATABASE_URL is missing", () => {
@@ -69,18 +62,8 @@ describe("loadConfig — defaults", () => {
     );
   });
 
-  it("defaults SEARCH_URL to http://localhost:7700", () => {
-    expect(loadConfig({ ...ALL_REQUIRED }).searchUrl).toBe(
-      "http://localhost:7700",
-    );
-  });
-
   it("defaults NEO4J_USER to 'neo4j'", () => {
     expect(loadConfig({ ...ALL_REQUIRED }).neo4jUser).toBe("neo4j");
-  });
-
-  it("defaults SEARCH_PROVIDER to 'meili'", () => {
-    expect(loadConfig({ ...ALL_REQUIRED }).searchProvider).toBe("meili");
   });
 
   it("defaults PORT to 8787", () => {
@@ -162,29 +145,10 @@ describe("loadConfig — env overrides", () => {
     ).toBe("ws://relay.example.com");
   });
 
-  it("respects SEARCH_PROVIDER=vespa", () => {
-    expect(
-      loadConfig({
-        ...ALL_REQUIRED,
-        SEARCH_PROVIDER: "vespa",
-      }).searchProvider,
-    ).toBe("vespa");
-  });
-
-  it("respects SEARCH_PROVIDER=nip50 (Story 106 / ADR 0095)", () => {
-    expect(loadConfig({ ...ALL_REQUIRED, SEARCH_PROVIDER: "nip50" }).searchProvider).toBe("nip50");
-  });
-
   it("parses PORT as a number", () => {
     const c = loadConfig({ ...ALL_REQUIRED, PORT: "9000" });
     expect(c.port).toBe(9000);
     expect(typeof c.port).toBe("number");
-  });
-
-  it("throws when SEARCH_PROVIDER is an unknown value", () => {
-    expect(() =>
-      loadConfig({ ...ALL_REQUIRED, SEARCH_PROVIDER: "elasticsearch" }),
-    ).toThrow(/SEARCH_PROVIDER/);
   });
 });
 
@@ -358,5 +322,15 @@ describe("loadConfig — image proxy keys (story 111 / ADR 0099)", () => {
   it("refuses one key without the other, or a key that is not hex", () => {
     expect(() => loadConfig({ ...ALL_REQUIRED, IMAGE_PROXY_KEY: HEX } as NodeJS.ProcessEnv)).toThrow(/IMAGE_PROXY/);
     expect(() => loadConfig({ ...ALL_REQUIRED, IMAGE_PROXY_KEY: "nothex", IMAGE_PROXY_SALT: HEX } as NodeJS.ProcessEnv)).toThrow(/IMAGE_PROXY/);
+  });
+});
+
+describe("loadConfig — search is the relay (story 112 / ADR 0100)", () => {
+  it("needs no search key, and defaults to Brainstorm's search relay", () => {
+    const env = { ...ALL_REQUIRED } as NodeJS.ProcessEnv;
+    const cfg = loadConfig(env) as unknown as Record<string, unknown>;
+    expect(cfg.searchUrl).toBe("wss://search.brainstorm.world");
+    expect(cfg).not.toHaveProperty("searchApiKey");
+    expect(cfg).not.toHaveProperty("searchProvider");
   });
 });
