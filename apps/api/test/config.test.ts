@@ -346,3 +346,17 @@ describe("loadConfig — profile relays (story 110 / ADR 0098)", () => {
     expect(relays).not.toContain("wss://relay.nostr.band");
   });
 });
+
+describe("loadConfig — image proxy keys (story 111 / ADR 0099)", () => {
+  const HEX = "ab".repeat(32);
+  it("is off without keys", () => {
+    expect(loadConfig({ ...ALL_REQUIRED } as NodeJS.ProcessEnv).imageProxy).toBeUndefined();
+  });
+  it("is on with both keys", () => {
+    expect(loadConfig({ ...ALL_REQUIRED, IMAGE_PROXY_KEY: HEX, IMAGE_PROXY_SALT: HEX } as NodeJS.ProcessEnv).imageProxy).toEqual({ key: HEX, salt: HEX });
+  });
+  it("refuses one key without the other, or a key that is not hex", () => {
+    expect(() => loadConfig({ ...ALL_REQUIRED, IMAGE_PROXY_KEY: HEX } as NodeJS.ProcessEnv)).toThrow(/IMAGE_PROXY/);
+    expect(() => loadConfig({ ...ALL_REQUIRED, IMAGE_PROXY_KEY: "nothex", IMAGE_PROXY_SALT: HEX } as NodeJS.ProcessEnv)).toThrow(/IMAGE_PROXY/);
+  });
+});

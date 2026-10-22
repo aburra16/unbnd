@@ -28,3 +28,16 @@ describe("Avatar", () => {
     expect(screen.getByText("XY")).toBeInTheDocument();
   });
 });
+
+describe("Avatar with a proxied picture (story 111)", () => {
+  it("tries the original picture when the proxied one fails, then initials", () => {
+    render(<Avatar label="Mira Calloway" seed="npub1abc" picture="/img/s/avatar/x.webp" pictureFallback="https://x/p.gif" />);
+    let img = document.querySelector("img.avatar-img") as HTMLImageElement;
+    expect(img.getAttribute("src")).toBe("/img/s/avatar/x.webp");
+    fireEvent.error(img);
+    img = document.querySelector("img.avatar-img") as HTMLImageElement;
+    expect(img.getAttribute("src")).toBe("https://x/p.gif");
+    fireEvent.error(img);
+    expect(screen.getByText("MC")).toBeInTheDocument();
+  });
+});
