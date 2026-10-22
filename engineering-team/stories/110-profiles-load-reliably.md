@@ -13,10 +13,10 @@ Only purplepag.es, a profile index, had it, and it is not in the set. Six lookup
 The web app caches whatever comes back for the session, so one empty answer shows initials until the tab is closed. The relay read also takes events as given: a relay could serve a forged kind-0 for anyone.
 
 ## Acceptance criteria
-1. **The right relays.** The default profile relays are purplepag.es, relay.primal.net, relay.damus.io and nos.lol; relay.nostr.band is dropped. `PROFILE_RELAYS` still overrides them.
+1. **The right relays.** The default profile relays are purplepag.es, relay.primal.net, relay.damus.io and nos.lol; relay.nostr.band is dropped. `PROFILE_RELAYS` still overrides them. Lookups also ask Unbnd's own relay, where every profile written through Unbnd is published first.
 2. **Only real events count.** Kind-0, kind-3 and kind-10002 reads keep an event only if its signature verifies and its author is the pubkey asked for.
-3. **No waiting on a dead relay.** A lookup returns when every relay has answered, or a short grace after the first relay returns an event, or at the timeout, whichever comes first.
-4. **The server remembers profiles.** `GET /api/profile/:id` serves a profile it found in the last 10 minutes without a relay read. An older one is served at once and refreshed in the background, one refresh per person at a time. A refresh that finds nothing keeps the old profile. A person with no profile anywhere is remembered as such for a minute. The cache is bounded.
+3. **No waiting on a dead relay.** A lookup for display returns when every relay has answered, or a short grace after the first relay returns an event, or at the timeout, whichever comes first. The reads taken just before a profile or follow write still wait for every relay, so a write merges onto the newest event found.
+4. **The server remembers profiles.** `GET /api/profile/:id` serves a profile it found in the last 10 minutes without a relay read. An older one is served at once and refreshed in the background, one refresh per person at a time. A refresh that finds nothing keeps the old profile. A person with no profile anywhere is remembered as such for a minute. A profile written through Unbnd is cached as written. The cache is bounded.
 5. **The app never forgets a picture it has.** An answer with no profile fields does not replace a cached profile in the web app.
 
 ## Out of scope

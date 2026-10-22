@@ -59,4 +59,14 @@ describe("useProfileMeta caching", () => {
     // The very first paint already shows the cached picture — never "none".
     expect(screen.getByTestId("pic").textContent).toBe(META.picture);
   });
+
+  it("an answer with no profile fields never replaces a cached picture (story 110)", async () => {
+    sessionStorage.setItem(`unbnd:profile:${ID}`, JSON.stringify(META));
+    profileGetMock.mockResolvedValue({ profile: { npub: ID } });
+    render(<Probe />);
+    await waitFor(() => expect(profileGetMock).toHaveBeenCalledTimes(1));
+    await new Promise((r) => setTimeout(r, 0));
+    expect(screen.getByTestId("pic").textContent).toBe(META.picture);
+    expect(JSON.parse(sessionStorage.getItem(`unbnd:profile:${ID}`) ?? "null")).toEqual(META);
+  });
 });
