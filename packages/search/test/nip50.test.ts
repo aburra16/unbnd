@@ -191,3 +191,11 @@ describe("Nip50Provider health", () => {
     expect(await down.health()).toMatchObject({ ok: false, provider: "nip50" });
   });
 });
+
+describe("Nip50Provider needs the librarian (story 112 review)", () => {
+  it("refuses to start without a hex librarian key", () => {
+    for (const librarian of ["", "npub1abc", "z".repeat(64)]) {
+      expect(() => new Nip50Provider({ librarian, query: async () => [], verify: () => true })).toThrow(/librarian/);
+    }
+  });
+});
