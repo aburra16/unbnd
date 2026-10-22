@@ -114,7 +114,7 @@ export function Profile() {
   return (
     <PageShell>
       <header className="me-head">
-        <Avatar label={name} seed={npub ?? ""} picture={meta?.picture} size={72} />
+        <Avatar label={name} seed={npub ?? ""} picture={meta?.pictureImage ?? meta?.picture} pictureFallback={meta?.pictureImage ? meta?.picture : undefined} size={72} />
         <div className="me-id">
           <h1 className="me-name">{name}</h1>
           {npub && <CuratorBadge npub={npub} />}

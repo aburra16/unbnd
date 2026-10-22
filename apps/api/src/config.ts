@@ -44,6 +44,11 @@ export type Config = {
    * not set it. ADR 0012.
    */
   readonly profileRelays?: readonly string[];
+  /**
+   * imgproxy signing keys (Story 111 / ADR 0099). Both `IMAGE_PROXY_KEY` and
+   * `IMAGE_PROXY_SALT` (hex) or neither; unset means no proxied image URLs.
+   */
+  readonly imageProxy?: { readonly key: string; readonly salt: string };
   /** Trust-score backend (ADR 0014/0017). `fixture` = deterministic, no network. */
   readonly trustProvider: TrustProviderName;
   /** Brainstorm API base for resolving an observer's trust-score source. ADR 0014. */
@@ -541,6 +546,18 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
       ? profileRelaysRaw.split(",").map((s) => s.trim()).filter(Boolean)
       : [...DEFAULT_PROFILE_RELAYS, ...(dcoslRelayUrl ? [dcoslRelayUrl] : [])];
 
+  // Image proxy signing (ADR 0099): both keys or neither, each even-length hex.
+  const imageKey = env.IMAGE_PROXY_KEY ?? "";
+  const imageSalt = env.IMAGE_PROXY_SALT ?? "";
+  const isHexKey = (v: string) => /^(?:[0-9a-fA-F]{2})+$/.test(v);
+  if ((imageKey === "") !== (imageSalt === "")) {
+    throw new Error("config: IMAGE_PROXY_KEY and IMAGE_PROXY_SALT must be set together");
+  }
+  if (imageKey !== "" && !(isHexKey(imageKey) && isHexKey(imageSalt))) {
+    throw new Error("config: IMAGE_PROXY_KEY and IMAGE_PROXY_SALT must be hex");
+  }
+  const imageProxy = imageKey === "" ? undefined : { key: imageKey, salt: imageSalt };
+
   // Trust-weighting (ADR 0014). Sensible defaults so it's on in prod; a blank
   // HOUSE_OBSERVER_PUBKEY disables the house-weighted default (fail-safe to raw).
   const trustRelaysRaw = env.TRUST_RELAYS;
@@ -594,6 +611,7 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
     dcoslRelayUrl,
     propagateWrites,
     profileRelays,
+    ...(imageProxy ? { imageProxy } : {}),
     trustProvider,
     brainstormApiUrl: withDefault(env, "BRAINSTORM_API_URL", BRAINSTORM_DEFAULTS.apiUrl),
     trustRelays,

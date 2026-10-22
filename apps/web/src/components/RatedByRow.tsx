@@ -42,7 +42,7 @@ function RaterBadge({
       title={name}
       aria-label={name}
     >
-      <Avatar label={name} seed={rating.npub} picture={meta?.picture} size={size ?? 30} />
+      <Avatar label={name} seed={rating.npub} picture={meta?.pictureImage ?? meta?.picture} pictureFallback={meta?.pictureImage ? meta?.picture : undefined} size={size ?? 30} />
       {detailed && (
         <span className="rated-by-detail">
           <span className="rated-by-name">{name}</span>

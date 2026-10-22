@@ -85,6 +85,7 @@ export function toCardBook(book: PublicBook): Book {
     title: book.title,
     author: book.authorName,
     coverUrl: book.coverUrl,
+    ...(book.coverImage ? { coverImage: book.coverImage } : {}),
     coverFrom: g.from,
     coverTo: g.to,
     coverInk: g.ink,

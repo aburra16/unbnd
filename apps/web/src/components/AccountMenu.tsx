@@ -62,12 +62,12 @@ export function AccountMenu({ user, onSignedOut }: Props) {
         aria-label={`${name} — account menu`}
         onClick={() => setOpen((v) => !v)}
       >
-        <Avatar label={name} seed={user.npub} picture={meta?.picture} size={30} />
+        <Avatar label={name} seed={user.npub} picture={meta?.pictureImage ?? meta?.picture} pictureFallback={meta?.pictureImage ? meta?.picture : undefined} size={30} />
       </IconButton>
       {open && (
         <div className="acct-menu" role="menu">
           <Link className="acct-id" to="/profile/me" role="menuitem" onClick={() => setOpen(false)}>
-            <Avatar label={name} seed={user.npub} picture={meta?.picture} size={36} />
+            <Avatar label={name} seed={user.npub} picture={meta?.pictureImage ?? meta?.picture} pictureFallback={meta?.pictureImage ? meta?.picture : undefined} size={36} />
             <span className="acct-id-text">
               <span className="acct-name">{name}</span>
               <span className="acct-npub">{shortNpub(user.npub)}</span>

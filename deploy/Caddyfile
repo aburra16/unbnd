@@ -15,6 +15,12 @@
 		reverse_proxy api:8787
 	}
 
+	# Covers and profile pictures through the image cache (ADR 0099). The
+	# prefix is removed: imgproxy signs the path that follows it.
+	handle_path /img/* {
+		reverse_proxy imgcache:80
+	}
+
 	# NIP-05 (librarian identity). The spec requires permissive CORS on
 	# nostr.json so any nostr client can resolve the identifier. Routed
 	# explicitly so the SPA catch-all below doesn't shadow it.

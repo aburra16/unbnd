@@ -92,6 +92,8 @@ import { startMaintenanceSweeper } from "./maintenance";
 import { evaluateAutoPromotions } from "./submissions/auto-promote";
 import { verifySignedChallenge } from "./auth/nostr";
 import { cacheOnPublish, createProfileCache } from "./profile/cache";
+import { imageProxyUrl } from "./images/sign";
+import { imageUrlsMiddleware } from "./images/transform";
 
 /** A ranked window of 100 from the search relay can take a few seconds. */
 const SEARCH_RELAY_TIMEOUT_MS = 8000;
@@ -136,6 +138,12 @@ async function main() {
 
   const app = express();
   app.use(express.json({ limit: "256kb" }));
+  // Proxied cover and profile-picture URLs beside the originals (ADR 0099).
+  const imageKeys = config.imageProxy;
+  app.use(
+    "/api",
+    imageUrlsMiddleware(imageKeys ? (src, preset) => imageProxyUrl(src, preset, imageKeys) : undefined),
+  );
 
   // --- kind-0 write seams, constructed BEFORE buildAuthRouter so the signup
   // bootstrap + login reconciliation (ADR 0027) can use them. The publisher and

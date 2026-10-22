@@ -34,22 +34,27 @@ export type AvatarProps = {
   /** Seed for the deterministic colour — use the npub so it's stable. */
   seed: string;
   picture?: string;
+  /** Tried when `picture` fails to load (the original behind a proxied picture, ADR 0099). */
+  pictureFallback?: string;
   size?: number;
 };
 
-export function Avatar({ label, seed, picture, size = 30 }: AvatarProps) {
-  const [broken, setBroken] = useState(false);
+export function Avatar({ label, seed, picture, pictureFallback, size = 30 }: AvatarProps) {
+  // How many sources have failed: picture, then pictureFallback, then initials.
+  const [failed, setFailed] = useState(0);
+  const src = [picture, pictureFallback].filter(Boolean)[failed];
   const idx = hash(seed) % BGS.length;
   const dim = { width: size, height: size, fontSize: Math.round(size * 0.4) };
 
-  if (picture && !broken) {
+  if (src) {
     return (
       <img
+        key={src}
         className="avatar avatar-img"
-        src={picture}
+        src={src}
         alt=""
         style={{ width: size, height: size }}
-        onError={() => setBroken(true)}
+        onError={() => setFailed((n) => n + 1)}
       />
     );
   }
