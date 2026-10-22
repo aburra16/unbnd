@@ -25,8 +25,13 @@ The round 1 fixes held, each pinned by a test that fails on the red commit. Thro
 
 Accepted and recorded: `/img/health` answers from outside (harmless, not cached); the nginx and deploy changes are checked by end-to-end runs rather than tests.
 
+## Round 3: PASS
+Confirmed independently with 16 concurrent requests per source, twice each, in a 1 GB container: 24-megapixel sources (interlaced or not, 750 KB or 19 MB) refused at about 20 MB in use; 12-megapixel interlaced 16-bit PNGs, the worst case under the cap, peaked at 576 to 596 MB, including three waves of 32 requests; no restart. The full chain (Caddy, nginx, imgproxy) still serves, caches and refuses as in round 2.
+
+Accepted and recorded: formats with more bytes per pixel than 16-bit RGBA are untested against the cap; watch imgproxy's memory on staging after deploy.
+
 ## Quality gates (at HEAD)
 - [x] typecheck, build and tests clean: api 1060 + 13 skipped, web 462, ui 20, all other packages unchanged; `caddy validate`, `nginx -t`, `docker compose config`.
 
 ## Verdict
-Round 2 pending.
+**PASS.** After merge and deploy: check the keys were created, that `/img` serves a cover (MISS, then HIT), and imgproxy's memory in `show-status`.
