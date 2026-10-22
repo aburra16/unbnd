@@ -41,6 +41,11 @@ function writeCache(id: string, value: ProfileMeta | null): void {
   }
 }
 
+/** True when a profile carries anything beyond its npub. */
+function hasFields(meta: ProfileMeta | null | undefined): boolean {
+  return !!meta && Object.entries(meta).some(([k, v]) => k !== "npub" && v !== undefined && v !== "");
+}
+
 export function useProfileMeta(idOrNpub: string | undefined): ProfileMeta | null {
   const [meta, setMeta] = useState<ProfileMeta | null>(() => {
     if (!idOrNpub) return null;
@@ -67,6 +72,13 @@ export function useProfileMeta(idOrNpub: string | undefined): ProfileMeta | null
       .get(idOrNpub)
       .then((res) => {
         if (cancelled) return;
+        // An empty answer is a relay miss, not a deleted profile (Story 110):
+        // never let it replace a profile we already have.
+        if (!hasFields(res.profile)) {
+          if (hasFields(readCache(idOrNpub))) return;
+          // Nothing to show yet: let the next mount ask again.
+          fetchedThisSession.delete(idOrNpub);
+        }
         writeCache(idOrNpub, res.profile);
         setMeta(res.profile);
       })

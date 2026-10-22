@@ -1,12 +1,17 @@
 import { describe, expect, it, vi } from "vitest";
 import { parseKind0, fetchProfileMeta } from "../../src/nostr/profile";
 import type { SignedNostrEvent } from "@unbnd/schemas";
+import { finalizeEvent, generateSecretKey, getPublicKey } from "nostr-tools/pure";
+// Signed by one test key: profile reads keep only verified events (ADR 0098 §2).
+const SK = generateSecretKey();
+const PK = getPublicKey(SK);
+
 
 function k0(content: unknown, created_at = 1): SignedNostrEvent {
-  return {
-    id: "x", pubkey: "a".repeat(64), sig: "s", kind: 0, created_at,
-    tags: [], content: typeof content === "string" ? content : JSON.stringify(content),
-  } as SignedNostrEvent;
+  return finalizeEvent(
+    { kind: 0, created_at, tags: [], content: typeof content === "string" ? content : JSON.stringify(content) },
+    SK,
+  ) as unknown as SignedNostrEvent;
 }
 
 describe("parseKind0", () => {
@@ -49,7 +54,7 @@ describe("fetchProfileMeta", () => {
     });
     const m = await fetchProfileMeta(
       ["wss://dead", "wss://relay.primal.net", "wss://nos.lol"],
-      "a".repeat(64),
+      PK,
       queryFn as never,
     );
     expect(m?.name).toBe("newer");
@@ -57,7 +62,7 @@ describe("fetchProfileMeta", () => {
   });
 
   it("returns null when no relay has a kind-0", async () => {
-    const m = await fetchProfileMeta(["wss://a"], "a".repeat(64), async () => []);
+    const m = await fetchProfileMeta(["wss://a"], PK, async () => []);
     expect(m).toBeNull();
   });
 });

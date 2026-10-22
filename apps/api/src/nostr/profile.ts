@@ -3,6 +3,7 @@
 // nostr network — not on dcosl. We fan out a best-effort read across a set of
 // public relays and take the newest. Failures degrade to null (callers fall
 // back to an initials avatar).
+import { verifyEvent } from "nostr-tools/pure";
 import type { SignedNostrEvent } from "@unbnd/schemas";
 import { queryRelayUrl, type NostrFilter } from "./query";
 
@@ -18,6 +19,8 @@ export type ProfileMeta = {
 };
 
 const KIND0_TIMEOUT_MS = 3000;
+/** A display lookup stops this long after the first relay returns a profile (ADR 0098 §3). */
+const EARLY_GRACE_MS = 400;
 
 function str(v: unknown): string | undefined {
   return typeof v === "string" && v.trim() !== "" ? v.trim() : undefined;
@@ -109,9 +112,68 @@ export type RelayQuery = (
   filter: NostrFilter,
 ) => Promise<SignedNostrEvent[]>;
 
+/** Only the asked author's events with a valid signature count (ADR 0098 §2). */
+function authentic(events: readonly SignedNostrEvent[], pubkeyHex: string): SignedNostrEvent[] {
+  return events.filter((e) => {
+    if (e.pubkey !== pubkeyHex) return false;
+    try {
+      // A plain copy: nostr-tools caches a verified flag on the object it checks.
+      const { id, pubkey, created_at, kind, tags, content, sig } = e;
+      return verifyEvent({ id, pubkey, created_at, kind, tags, content, sig });
+    } catch {
+      return false;
+    }
+  });
+}
+
 /**
- * Fan out a kind-0 read across relays in parallel, flatten, take the newest.
- * Best-effort: any relay that throws/times out contributes nothing.
+ * Read one filter from every relay, best-effort: a relay that throws or times
+ * out contributes nothing. With `early`, resolve once every relay has finished,
+ * EARLY_GRACE_MS after the first relay returns an event, or at the timeout,
+ * whichever is first (ADR 0098 §3); without it, wait for every relay.
+ */
+function fanOut(
+  relays: readonly string[],
+  filter: NostrFilter,
+  pubkeyHex: string,
+  queryFn: RelayQuery,
+  early: boolean,
+): Promise<SignedNostrEvent[]> {
+  if (!early) {
+    return Promise.all(relays.map((url) => queryFn(url, filter).catch(() => []))).then((results) =>
+      authentic(results.flat(), pubkeyHex),
+    );
+  }
+  return new Promise((resolve) => {
+    const found: SignedNostrEvent[] = [];
+    let pending = relays.length;
+    let grace: ReturnType<typeof setTimeout> | undefined;
+    let done = false;
+    const finish = () => {
+      if (done) return;
+      done = true;
+      clearTimeout(deadline);
+      clearTimeout(grace);
+      resolve(found);
+    };
+    const deadline = setTimeout(finish, KIND0_TIMEOUT_MS);
+    if (pending === 0) return finish();
+    for (const url of relays) {
+      void queryFn(url, filter)
+        .catch(() => [])
+        .then((events) => {
+          const kept = authentic(events, pubkeyHex);
+          found.push(...kept);
+          if (kept.length > 0 && grace === undefined) grace = setTimeout(finish, EARLY_GRACE_MS);
+          if (--pending === 0) finish();
+        });
+    }
+  });
+}
+
+/**
+ * A person's display profile: the newest verified kind-0 across the relays,
+ * finishing early once one relay has answered (ADR 0098).
  */
 export async function fetchProfileMeta(
   relays: readonly string[],
@@ -120,10 +182,7 @@ export async function fetchProfileMeta(
     queryRelayUrl(url, filter, KIND0_TIMEOUT_MS),
 ): Promise<ProfileMeta | null> {
   const filter: NostrFilter = { kinds: [0], authors: [pubkeyHex], limit: 1 };
-  const results = await Promise.all(
-    relays.map((url) => queryFn(url, filter).catch(() => [])),
-  );
-  return parseKind0(results.flat());
+  return parseKind0(await fanOut(relays, filter, pubkeyHex, queryFn, true));
 }
 
 /**
@@ -141,10 +200,8 @@ export async function fetchRawKind0(
     queryRelayUrl(url, filter, KIND0_TIMEOUT_MS),
 ): Promise<{ content: Record<string, unknown> | null; createdAt: number | null }> {
   const filter: NostrFilter = { kinds: [0], authors: [pubkeyHex], limit: 1 };
-  const results = await Promise.all(
-    relays.map((url) => queryFn(url, filter).catch(() => [])),
-  );
-  const newest = pickNewestKind0(results.flat());
+  // Waits for every relay: a write merges onto the newest event found (ADR 0098 §3).
+  const newest = pickNewestKind0(await fanOut(relays, filter, pubkeyHex, queryFn, false));
   return {
     content: parseRawKind0Content(newest),
     createdAt: newest ? newest.created_at : null,
@@ -162,7 +219,7 @@ export async function fetchWriteRelays(
   queryFn: RelayQuery = (url, filter) => queryRelayUrl(url, filter, KIND0_TIMEOUT_MS),
 ): Promise<string[]> {
   const filter: NostrFilter = { kinds: [10002], authors: [pubkeyHex], limit: 1 };
-  const results = (await Promise.all(relays.map((url) => queryFn(url, filter).catch(() => [])))).flat();
+  const results = (await fanOut(relays, filter, pubkeyHex, queryFn, false)).filter((e) => e.kind === 10002);
   const newest = results.reduce<(typeof results)[number] | null>(
     (best, e) => (!best || e.created_at > best.created_at ? e : best),
     null,
@@ -190,10 +247,7 @@ export async function fetchRawKind3(
     queryRelayUrl(url, filter, KIND0_TIMEOUT_MS),
 ): Promise<{ tags: string[][] | null; content: string; createdAt: number | null }> {
   const filter: NostrFilter = { kinds: [3], authors: [pubkeyHex], limit: 1 };
-  const results = await Promise.all(
-    relays.map((url) => queryFn(url, filter).catch(() => [])),
-  );
-  const newest = pickNewestKind3(results.flat());
+  const newest = pickNewestKind3(await fanOut(relays, filter, pubkeyHex, queryFn, false));
   return {
     tags: newest ? newest.tags : null,
     content: newest ? newest.content : "",

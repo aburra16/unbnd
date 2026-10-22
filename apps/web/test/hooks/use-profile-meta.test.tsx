@@ -59,4 +59,26 @@ describe("useProfileMeta caching", () => {
     // The very first paint already shows the cached picture — never "none".
     expect(screen.getByTestId("pic").textContent).toBe(META.picture);
   });
+
+  it("an answer with no profile fields never replaces a cached picture (story 110)", async () => {
+    sessionStorage.setItem(`unbnd:profile:${ID}`, JSON.stringify(META));
+    profileGetMock.mockResolvedValue({ profile: { npub: ID } });
+    render(<Probe />);
+    await waitFor(() => expect(profileGetMock).toHaveBeenCalledTimes(1));
+    await new Promise((r) => setTimeout(r, 0));
+    expect(screen.getByTestId("pic").textContent).toBe(META.picture);
+    expect(JSON.parse(sessionStorage.getItem(`unbnd:profile:${ID}`) ?? "null")).toEqual(META);
+  });
+
+  it("an empty answer with nothing cached is shown, and the next mount asks again (review round 1)", async () => {
+    profileGetMock.mockResolvedValue({ profile: { npub: ID } });
+    const first = render(<Probe />);
+    await waitFor(() => expect(profileGetMock).toHaveBeenCalledTimes(1));
+    expect(screen.getByTestId("pic").textContent).toBe("none");
+    first.unmount();
+    profileGetMock.mockResolvedValue({ profile: META });
+    render(<Probe />);
+    await waitFor(() => expect(screen.getByTestId("pic").textContent).toBe(META.picture));
+    expect(profileGetMock).toHaveBeenCalledTimes(2);
+  });
 });

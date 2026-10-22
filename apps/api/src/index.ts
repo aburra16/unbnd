@@ -35,7 +35,7 @@ import { buildShelvesRouter } from "./routes/shelves";
 import { buildSubmissionsRouter } from "./routes/submissions";
 import { publishEvent, publishToMany } from "./nostr/publish";
 import { publishPublicRelayKind } from "./nostr/publish-public-relay-kind";
-import { fetchRawKind0, fetchRawKind3, fetchWriteRelays } from "./nostr/profile";
+import { fetchProfileMeta, fetchRawKind0, fetchRawKind3, fetchWriteRelays } from "./nostr/profile";
 import { makeReviewPublisher } from "./reviews/publish";
 import { runReviewSyncCycle, startReviewSync } from "./reviews/relay-sync";
 import { bootstrapCustodialKind0 } from "./profile/bootstrap-kind0";
@@ -91,6 +91,7 @@ import {
 import { startMaintenanceSweeper } from "./maintenance";
 import { evaluateAutoPromotions } from "./submissions/auto-promote";
 import { verifySignedChallenge } from "./auth/nostr";
+import { cacheOnPublish, createProfileCache } from "./profile/cache";
 
 /** A ranked window of 100 from the search relay can take a few seconds. */
 const SEARCH_RELAY_TIMEOUT_MS = 8000;
@@ -159,13 +160,21 @@ async function main() {
         )
       : localPublish;
 
+  // Profile reads ask Unbnd's own relay first: every profile and follow list
+  // written through Unbnd lands there before the public relays (ADR 0098).
+  const profileReadRelays = [config.strfryUrl, ...(config.profileRelays ?? [])];
+  // Display profiles, cached (ADR 0098).
+  const profileCache = createProfileCache({
+    resolve: (hex) => fetchProfileMeta(profileReadRelays, hex),
+  });
+
   // kind-0 profile publisher (ADR 0022, F2-A). Distinct from the shared
   // `publish` (local + dcosl): kind-0 lives on the public profile relays, so we
   // publish to the LOCAL relay first (gates the response + read-back), then fan
   // out best-effort to `config.profileRelays` (which already includes the four
   // public relays + dcosl). The fan-out is fire-and-forget — a public-relay
   // failure never fails the user's save. NEVER dcosl (which rejects kind-0).
-  const publishKind0 = async (event: SignedNostrEvent) => {
+  const publishKind0Uncached = async (event: SignedNostrEvent) => {
     const local = await publishEvent(config.strfryUrl, event);
     if (local.ok && config.profileRelays && config.profileRelays.length > 0) {
       void publishToMany(config.profileRelays, event).then((rs) =>
@@ -179,6 +188,7 @@ async function main() {
     }
     return local;
   };
+  const publishKind0 = cacheOnPublish(publishKind0Uncached, profileCache);
 
   // Custodial server-signing via the ephemeral wrap (ADR 0006). Returns null on
   // NoSessionKeyError (post-restart / evicted) so callers degrade gracefully.
@@ -304,7 +314,7 @@ async function main() {
             try {
               await reconcileCustodialKind0(
                 {
-                  fetchRaw: (hex) => fetchRawKind0(config.profileRelays ?? [], hex),
+                  fetchRaw: (hex) => fetchRawKind0(profileReadRelays, hex),
                   sign: custodialSign,
                   publishKind0,
                   now: () => Math.floor(Date.now() / 1000),
@@ -477,7 +487,7 @@ async function main() {
       trust,
     }),
   );
-  app.use("/", buildProfileRouter({ config }));
+  app.use("/", buildProfileRouter({ config, cache: profileCache }));
   app.use(
     "/",
     buildProfileStatsRouter({
@@ -505,7 +515,7 @@ async function main() {
       config,
       sessionUser: resolveSessionUser,
       publish: publishKind0,
-      fetchRaw: (hex) => fetchRawKind0(config.profileRelays ?? [], hex),
+      fetchRaw: (hex) => fetchRawKind0(profileReadRelays, hex),
       custodialSign: userEventDeps.custodialSign,
     }),
   );
@@ -515,7 +525,7 @@ async function main() {
       config,
       sessionUser: resolveSessionUser, // already returns displayName (ADR 0027)
       publish: publishKind0,
-      fetchRaw: (hex) => fetchRawKind0(config.profileRelays ?? [], hex),
+      fetchRaw: (hex) => fetchRawKind0(profileReadRelays, hex),
       custodialSign: userEventDeps.custodialSign,
       // Postgres lockstep, AFTER the canonical publish (ADR 0028 F1-A).
       updateDisplayName: (id, name) =>
@@ -528,7 +538,7 @@ async function main() {
       config,
       sessionUser: resolveSessionUser,
       publish: publishKind3,
-      fetchRaw: (hex) => fetchRawKind3(config.profileRelays ?? [], hex),
+      fetchRaw: (hex) => fetchRawKind3(profileReadRelays, hex),
       custodialSign: userEventDeps.custodialSign,
     }),
   );

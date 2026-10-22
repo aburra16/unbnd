@@ -338,3 +338,11 @@ describe("loadConfig — PERSONALIZE_MIN_FOLLOWS (ADR 0026)", () => {
     ).toThrow(/PERSONALIZE_MIN_FOLLOWS/);
   });
 });
+
+describe("loadConfig — profile relays (story 110 / ADR 0098)", () => {
+  it("defaults to purplepag.es and live general relays, without relay.nostr.band", () => {
+    const relays = loadConfig({ ...ALL_REQUIRED } as NodeJS.ProcessEnv).profileRelays ?? [];
+    expect(relays).toEqual(expect.arrayContaining(["wss://purplepag.es", "wss://relay.primal.net", "wss://relay.damus.io", "wss://nos.lol"]));
+    expect(relays).not.toContain("wss://relay.nostr.band");
+  });
+});
