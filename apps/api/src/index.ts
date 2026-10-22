@@ -35,7 +35,7 @@ import { buildShelvesRouter } from "./routes/shelves";
 import { buildSubmissionsRouter } from "./routes/submissions";
 import { publishEvent, publishToMany } from "./nostr/publish";
 import { publishPublicRelayKind } from "./nostr/publish-public-relay-kind";
-import { fetchRawKind0, fetchRawKind3, fetchWriteRelays } from "./nostr/profile";
+import { fetchProfileMeta, fetchRawKind0, fetchRawKind3, fetchWriteRelays } from "./nostr/profile";
 import { makeReviewPublisher } from "./reviews/publish";
 import { runReviewSyncCycle, startReviewSync } from "./reviews/relay-sync";
 import { bootstrapCustodialKind0 } from "./profile/bootstrap-kind0";
@@ -91,6 +91,7 @@ import {
 import { startMaintenanceSweeper } from "./maintenance";
 import { evaluateAutoPromotions } from "./submissions/auto-promote";
 import { verifySignedChallenge } from "./auth/nostr";
+import { cacheOnPublish, createProfileCache } from "./profile/cache";
 
 /** A ranked window of 100 from the search relay can take a few seconds. */
 const SEARCH_RELAY_TIMEOUT_MS = 8000;
@@ -165,7 +166,12 @@ async function main() {
   // out best-effort to `config.profileRelays` (which already includes the four
   // public relays + dcosl). The fan-out is fire-and-forget — a public-relay
   // failure never fails the user's save. NEVER dcosl (which rejects kind-0).
-  const publishKind0 = async (event: SignedNostrEvent) => {
+  // Display profiles, cached (ADR 0098). Lookups read Unbnd's own relay too,
+  // where every profile written through Unbnd lands first.
+  const profileCache = createProfileCache({
+    resolve: (hex) => fetchProfileMeta([config.strfryUrl, ...(config.profileRelays ?? [])], hex),
+  });
+  const publishKind0Uncached = async (event: SignedNostrEvent) => {
     const local = await publishEvent(config.strfryUrl, event);
     if (local.ok && config.profileRelays && config.profileRelays.length > 0) {
       void publishToMany(config.profileRelays, event).then((rs) =>
@@ -179,6 +185,7 @@ async function main() {
     }
     return local;
   };
+  const publishKind0 = cacheOnPublish(publishKind0Uncached, profileCache);
 
   // Custodial server-signing via the ephemeral wrap (ADR 0006). Returns null on
   // NoSessionKeyError (post-restart / evicted) so callers degrade gracefully.
@@ -477,7 +484,7 @@ async function main() {
       trust,
     }),
   );
-  app.use("/", buildProfileRouter({ config }));
+  app.use("/", buildProfileRouter({ config, cache: profileCache }));
   app.use(
     "/",
     buildProfileStatsRouter({

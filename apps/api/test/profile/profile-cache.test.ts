@@ -44,7 +44,7 @@ describe("the profile cache", () => {
 
   it("a refresh that finds nothing, or fails, keeps the profile", async () => {
     let mode: "found" | "empty" | "fail" = "found";
-    const { cache, fn, clock } = setup(async () => {
+    const { cache, clock } = setup(async () => {
       if (mode === "fail") throw new Error("relays down");
       return mode === "found" ? PIC : null;
     });

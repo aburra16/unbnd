@@ -14,17 +14,14 @@
 import { describe, expect, it, vi } from "vitest";
 import { fetchRawKind3 } from "../../src/nostr/profile";
 import type { SignedNostrEvent } from "@unbnd/schemas";
+import { finalizeEvent, generateSecretKey, getPublicKey } from "nostr-tools/pure";
+// Signed by one test key: profile reads keep only verified events (ADR 0098 §2).
+const SK = generateSecretKey();
+const PK = getPublicKey(SK);
+
 
 function k3(tags: string[][], created_at = 1, content = ""): SignedNostrEvent {
-  return {
-    id: "x",
-    pubkey: "a".repeat(64),
-    sig: "s",
-    kind: 3,
-    created_at,
-    tags,
-    content,
-  } as SignedNostrEvent;
+  return finalizeEvent({ kind: 3, created_at, tags, content }, SK) as unknown as SignedNostrEvent;
 }
 
 describe("fetchRawKind3", () => {
@@ -37,7 +34,7 @@ describe("fetchRawKind3", () => {
     });
     const got = await fetchRawKind3(
       ["wss://dead", "wss://relay.primal.net", "wss://nos.lol"],
-      "a".repeat(64),
+      PK,
       queryFn as never,
     );
     expect(got.tags).toEqual([["p", "b".repeat(64), "wss://r", "bob"]]);
@@ -53,21 +50,21 @@ describe("fetchRawKind3", () => {
       ["p", "d".repeat(64), "wss://nos.lol", "alice"],
       ["t", "books"],
     ];
-    const got = await fetchRawKind3(["wss://a"], "a".repeat(64), async () => [
+    const got = await fetchRawKind3(["wss://a"], PK, async () => [
       k3(rich, 200),
     ]);
     expect(got.tags).toEqual(rich);
   });
 
   it("returns null tags + '' content + null createdAt when no relay has a kind-3", async () => {
-    const got = await fetchRawKind3(["wss://a"], "a".repeat(64), async () => []);
+    const got = await fetchRawKind3(["wss://a"], PK, async () => []);
     expect(got.tags).toBeNull();
     expect(got.content).toBe("");
     expect(got.createdAt).toBeNull();
   });
 
   it("ignores non-kind-3 events when choosing the freshest", async () => {
-    const got = await fetchRawKind3(["wss://a"], "a".repeat(64), async () => [
+    const got = await fetchRawKind3(["wss://a"], PK, async () => [
       { ...k3([["p", "z".repeat(64)]], 999), kind: 1 } as SignedNostrEvent,
       k3([["p", "b".repeat(64)]], 5),
     ]);

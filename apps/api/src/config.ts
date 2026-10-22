@@ -207,11 +207,12 @@ export type Config = {
 const DEFAULT_HOUSE_OBSERVER =
   "be7bf5de068c1d842ed34a7c270507ec940f5ea51671cfd062a95e9d09420d0a";
 
+// purplepag.es indexes profiles; relay.nostr.band is gone (ADR 0098 §1).
 const DEFAULT_PROFILE_RELAYS = [
-  "wss://relay.damus.io",
+  "wss://purplepag.es",
   "wss://relay.primal.net",
+  "wss://relay.damus.io",
   "wss://nos.lol",
-  "wss://relay.nostr.band",
 ];
 
 const KNOWN_PROVIDERS: readonly Config["searchProvider"][] = ["meili", "vespa", "nip50"];

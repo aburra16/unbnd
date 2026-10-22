@@ -20,17 +20,17 @@ import {
   fetchRawKind0,
 } from "../../src/nostr/profile";
 import type { SignedNostrEvent } from "@unbnd/schemas";
+import { finalizeEvent, generateSecretKey, getPublicKey } from "nostr-tools/pure";
+// Signed by one test key: profile reads keep only verified events (ADR 0098 §2).
+const SK = generateSecretKey();
+const PK = getPublicKey(SK);
+
 
 function k0(content: unknown, created_at = 1): SignedNostrEvent {
-  return {
-    id: "x",
-    pubkey: "a".repeat(64),
-    sig: "s",
-    kind: 0,
-    created_at,
-    tags: [],
-    content: typeof content === "string" ? content : JSON.stringify(content),
-  } as SignedNostrEvent;
+  return finalizeEvent(
+    { kind: 0, created_at, tags: [], content: typeof content === "string" ? content : JSON.stringify(content) },
+    SK,
+  ) as unknown as SignedNostrEvent;
 }
 
 describe("pickNewestKind0", () => {
@@ -108,7 +108,7 @@ describe("fetchRawKind0", () => {
     });
     const got = await fetchRawKind0(
       ["wss://dead", "wss://relay.primal.net", "wss://nos.lol"],
-      "a".repeat(64),
+      PK,
       queryFn as never,
     );
     expect(got.content).toEqual({ name: "newer", lud16: "x@y" });
@@ -117,7 +117,7 @@ describe("fetchRawKind0", () => {
   });
 
   it("returns null content + null createdAt when no relay has a kind-0", async () => {
-    const got = await fetchRawKind0(["wss://a"], "a".repeat(64), async () => []);
+    const got = await fetchRawKind0(["wss://a"], PK, async () => []);
     expect(got.content).toBeNull();
     expect(got.createdAt).toBeNull();
   });
