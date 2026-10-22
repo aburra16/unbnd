@@ -1,6 +1,6 @@
 # Review: Story 111 — Images are served through Unbnd
 
-**Reviewer:** independent reviewer (rounds 1 and 2)
+**Reviewer:** independent reviewer (rounds 1 to 3)
 **Date:** 2026-10-22
 
 ## Round 1: FAIL, three blocking
@@ -17,6 +17,13 @@ Non-blocking, fixed in the same round:
 - The ADR, story and DEPLOY.md describe what was built: keys made by the deploy, and a rotation re-fetches every image once.
 
 Accepted and recorded: anyone can publish a kind-0 whose picture Unbnd will sign; the fetch limits bound what one source costs, and a rate limit on `/img` waits until abuse shows. The SSRF checks passed in round 1 (private, loopback, link-local, CGNAT and IPv6-mapped addresses, names resolving to private addresses, redirects to them, a pixel bomb, unsigned URLs).
+
+## Round 2: FAIL, one blocking
+The round 1 fixes held, each pinned by a test that fails on the red commit. Through the real chain (Caddy, nginx, imgproxy): Caddy passes escaped paths through raw and cleans `//` and `/./`; nginx forwards the request URI unchanged, so the cache key and the path imgproxy verifies are the same. Cold covers no longer queue in imgproxy; the remaining failures came from Open Library itself and were not cached.
+
+**B4. A crafted image exhausted imgproxy's memory.** An interlaced 16-bit PNG of 750 KB decodes to the full 24-megapixel cap: four at once killed a 768 MB container. Anyone can publish a kind-0 picture pointing at such a file. **Fixed:** the cap is 12 megapixels and the limit 1 GB. Re-run with the reviewer's files, 16 at once: 24-megapixel files refused at once (21 MB in use); 12-megapixel files served, three rounds, 626 MB peak, no restart. The download timeout went from 5 to 8 s so a slow Open Library cover is still fetched and kept (N9).
+
+Accepted and recorded: `/img/health` answers from outside (harmless, not cached); the nginx and deploy changes are checked by end-to-end runs rather than tests.
 
 ## Quality gates (at HEAD)
 - [x] typecheck, build and tests clean: api 1060 + 13 skipped, web 462, ui 20, all other packages unchanged; `caddy validate`, `nginx -t`, `docker compose config`.

@@ -44,14 +44,16 @@ services:
       - IMGPROXY_ALLOW_LOOPBACK_SOURCE_ADDRESSES=false
       - IMGPROXY_ALLOW_LINK_LOCAL_SOURCE_ADDRESSES=false
       - IMGPROXY_MAX_SRC_FILE_SIZE=20971520
-      # Covers and avatars never need more than 24 megapixels. Workers mostly
-      # wait on slow sources (a download holds its worker), so there are many;
-      # the resolution cap keeps 16 of them inside the memory limit.
-      - IMGPROXY_MAX_SRC_RESOLUTION=24
+      # Workers mostly wait on slow sources (a download holds its worker), so
+      # there are many. A crafted small file can decode to the full resolution
+      # cap, so the cap is what bounds memory: 16 decodes at 12 megapixels peak
+      # under 700 MB, inside the 1 GB limit. Larger sources fall back to the
+      # original image.
+      - IMGPROXY_MAX_SRC_RESOLUTION=12
       - IMGPROXY_MAX_ANIMATION_FRAMES=1
-      - IMGPROXY_DOWNLOAD_TIMEOUT=5
+      - IMGPROXY_DOWNLOAD_TIMEOUT=8
       - IMGPROXY_WORKERS=16
-    mem_limit: 768m
+    mem_limit: 1g
     restart: unless-stopped
 
   # The image cache (ADR 0099 §4): nginx keeps each resized image on disk.
