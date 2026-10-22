@@ -360,3 +360,14 @@ describe("loadConfig — image proxy keys (story 111 / ADR 0099)", () => {
     expect(() => loadConfig({ ...ALL_REQUIRED, IMAGE_PROXY_KEY: "nothex", IMAGE_PROXY_SALT: HEX } as NodeJS.ProcessEnv)).toThrow(/IMAGE_PROXY/);
   });
 });
+
+describe("loadConfig — search is the relay (story 112 / ADR 0100)", () => {
+  it("needs no search key, and defaults to Brainstorm's search relay", () => {
+    const env = { ...ALL_REQUIRED } as NodeJS.ProcessEnv;
+    delete env.SEARCH_API_KEY;
+    const cfg = loadConfig(env) as unknown as Record<string, unknown>;
+    expect(cfg.searchUrl).toBe("wss://search.brainstorm.world");
+    expect(cfg).not.toHaveProperty("searchApiKey");
+    expect(cfg).not.toHaveProperty("searchProvider");
+  });
+});
