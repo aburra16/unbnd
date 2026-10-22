@@ -46,6 +46,8 @@ export type SubmissionInput = {
   isbn10?: string;
   blurb?: string;
   coverUrl?: string;
+  /** The cover through Unbnd's image proxy (ADR 0099); prefer it, fall back to coverUrl. */
+  coverImage?: string;
   publishYear?: number;
   pageCount?: number;
   language?: string;
@@ -69,6 +71,8 @@ export type SubmittedBook = {
   authorName: string;
   isbn13?: string;
   coverUrl?: string;
+  /** The cover through Unbnd's image proxy (ADR 0099); prefer it, fall back to coverUrl. */
+  coverImage?: string;
   publishYear?: number;
   createdAt: number;
   /** Present on the public list: the submitter's npub. */
@@ -121,6 +125,8 @@ export type PublicBook = {
   authorName: string;
   blurb?: string;
   coverUrl?: string;
+  /** The cover through Unbnd's image proxy (ADR 0099); prefer it, fall back to coverUrl. */
+  coverImage?: string;
   publishYear?: number;
   pageCount?: number;
   language?: string;
@@ -234,6 +240,8 @@ export type SearchHit = {
   authorName: string;
   blurb?: string;
   coverUrl?: string;
+  /** The cover through Unbnd's image proxy (ADR 0099); prefer it, fall back to coverUrl. */
+  coverImage?: string;
   publishYear?: number;
   isbn13?: string;
   format: string;
@@ -256,6 +264,8 @@ export type ProfileMeta = {
   name?: string;
   displayName?: string;
   picture?: string;
+  /** The picture through Unbnd's image proxy (ADR 0099). */
+  pictureImage?: string;
   nip05?: string;
   about?: string;
   // ADR 0020: a "Writes on Substack" link, server-validated as an http(s) URL.
@@ -299,6 +309,8 @@ export type OlLookup = {
   title?: string;
   authorName?: string;
   coverUrl?: string;
+  /** The cover through Unbnd's image proxy (ADR 0099); prefer it, fall back to coverUrl. */
+  coverImage?: string;
   pageCount?: number;
   publishYear?: number;
 };

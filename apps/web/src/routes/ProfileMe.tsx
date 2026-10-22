@@ -103,7 +103,7 @@ export function ProfileMe() {
   return (
     <PageShell>
       <header className="me-head">
-        <Avatar label={name} seed={user.npub} picture={meta?.picture} size={72} />
+        <Avatar label={name} seed={user.npub} picture={meta?.pictureImage ?? meta?.picture} pictureFallback={meta?.pictureImage ? meta?.picture : undefined} size={72} />
         <div className="me-id">
           <h1 className="me-name">{name}</h1>
           {meta?.nip05 && <p className="me-nip05">{meta.nip05}</p>}

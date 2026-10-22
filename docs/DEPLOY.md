@@ -280,6 +280,24 @@ After an apply, the down-sync brings the records to Unbnd's relay, the labels
 pass labels them (genre, format, language, ISBN), and the search relay indexes
 them from the hub.
 
+## Image proxy (Story 111 / ADR 0099)
+
+Covers and profile pictures are served at `/img/*` through two containers:
+`imgproxy` (resizes; serves only URLs the API signed) and `imgcache` (nginx,
+keeps each resized image on the `img-cache` volume, up to 5 GB). The API adds
+`coverImage` and `pictureImage` beside the original URLs; the app falls back to
+the originals if the proxy fails.
+
+The signing keys `IMAGE_PROXY_KEY` and `IMAGE_PROXY_SALT` live in `.env`. The
+staging deploy creates them once with `openssl rand -hex 32` and never prints
+them. Compose refuses to start without them, because imgproxy without a key
+would serve any URL. To rotate, delete both lines from `.env` and deploy again. The cache is keyed
+by the signed URL, so every image is fetched again once, and pages already open
+fall back to the original images until they reload.
+
+To check the cache: `curl -sI https://staging.unbnd.ink/img/... | grep -i x-cache-status`
+shows `MISS` on a first view and `HIT` after.
+
 ## Accusatory-tag reveal (Story 33 / ADR 0034)
 
 Revealing an accusatory tag (e.g. `ai-generated`) on a book is an operator

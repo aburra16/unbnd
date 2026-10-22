@@ -22,9 +22,49 @@ services:
       - "443:443"
     depends_on:
       - api
+      - imgcache
     volumes:
       - caddy-data:/data
       - caddy-config:/config
+    restart: unless-stopped
+
+  # Image proxy (Story 111 / ADR 0099): resizes covers and profile pictures,
+  # signed URLs only. Without its key imgproxy would accept unsigned URLs, so
+  # the stack refuses to start without one. Private, loopback and link-local
+  # sources are refused so a signed URL cannot reach db, api or tapestry.
+  imgproxy:
+    container_name: unbnd-imgproxy
+    image: darthsim/imgproxy:v4.0.17
+    environment:
+      - IMGPROXY_KEY=${IMAGE_PROXY_KEY:?IMAGE_PROXY_KEY is missing from .env}
+      - IMGPROXY_SALT=${IMAGE_PROXY_SALT:?IMAGE_PROXY_SALT is missing from .env}
+      - IMGPROXY_ONLY_PRESETS=true
+      - IMGPROXY_PRESETS=cover=resizing_type:fit/width:400/height:600,avatar=resizing_type:fill/width:144/height:144/gravity:sm
+      - IMGPROXY_ALLOW_PRIVATE_SOURCE_ADDRESSES=false
+      - IMGPROXY_ALLOW_LOOPBACK_SOURCE_ADDRESSES=false
+      - IMGPROXY_ALLOW_LINK_LOCAL_SOURCE_ADDRESSES=false
+      - IMGPROXY_MAX_SRC_FILE_SIZE=20971520
+      # Workers mostly wait on slow sources (a download holds its worker), so
+      # there are many. A crafted small file can decode to the full resolution
+      # cap, so the cap is what bounds memory: 16 decodes at 12 megapixels peak
+      # under 700 MB, inside the 1 GB limit. Larger sources fall back to the
+      # original image.
+      - IMGPROXY_MAX_SRC_RESOLUTION=12
+      - IMGPROXY_MAX_ANIMATION_FRAMES=1
+      - IMGPROXY_DOWNLOAD_TIMEOUT=8
+      - IMGPROXY_WORKERS=16
+    mem_limit: 1g
+    restart: unless-stopped
+
+  # The image cache (ADR 0099 §4): nginx keeps each resized image on disk.
+  imgcache:
+    container_name: unbnd-imgcache
+    image: nginx:1.30.6-alpine
+    depends_on:
+      - imgproxy
+    volumes:
+      - ./deploy/imgcache.conf:/etc/nginx/conf.d/default.conf:ro
+      - img-cache:/var/cache/img
     restart: unless-stopped
 
   api:
@@ -47,6 +87,9 @@ services:
       - BACKUP_ENCRYPTION_KEY=${BACKUP_ENCRYPTION_KEY}
       - LIBRARIAN_PUBKEY=${LIBRARIAN_PUBKEY}
       - PUBLIC_ORIGIN=${PUBLIC_ORIGIN}
+      # Signs /img URLs for the image proxy (ADR 0099). The deploy creates both.
+      - IMAGE_PROXY_KEY=${IMAGE_PROXY_KEY:?IMAGE_PROXY_KEY is missing from .env}
+      - IMAGE_PROXY_SALT=${IMAGE_PROXY_SALT:?IMAGE_PROXY_SALT is missing from .env}
       # Write up-sync (ADR 0011): dual-publish accepted community writes to dcosl.
       - DCOSL_RELAY_URL=${DCOSL_RELAY_URL:-wss://dcosl.brainstorm.world/}
       - PROPAGATE_WRITES=${PROPAGATE_WRITES:-true}
@@ -267,3 +310,4 @@ volumes:
   postgres:
   search:
   seeder-data:
+  img-cache:

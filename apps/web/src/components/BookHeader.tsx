@@ -8,6 +8,7 @@ import type {
   TagConsensus,
 } from "../lib/api";
 import { coverGradient } from "../lib/view-model";
+import { useImageFallback } from "../hooks/useImageFallback";
 import "./BookHeader.css";
 
 type Props = {
@@ -31,6 +32,7 @@ export function BookHeader({
   authorProvided,
 }: Props) {
   const g = coverGradient(book.slug);
+  const cover = useImageFallback(book.coverImage, book.coverUrl);
   const chips = [...genres, ...styles];
   // AC-6 attribution: "From the author" applies whenever the verified author
   // provided ANY applied overlay field — blurb, cover, or purchase link — not
@@ -42,9 +44,9 @@ export function BookHeader({
     );
   return (
     <header className="bh">
-      {book.coverUrl ? (
+      {cover.src ? (
         <div className="bh-cover bh-cover-img">
-          <img src={book.coverUrl} alt="" loading="lazy" />
+          <img key={cover.src} src={cover.src} alt="" loading="lazy" onError={cover.onError} />
         </div>
       ) : (
         <div

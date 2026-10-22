@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { useImageFallback } from "../hooks/useImageFallback";
 import "./BookCard.css";
 
 export type BookSignal = {
@@ -12,6 +13,8 @@ export type Book = {
   author: string;
   rating?: number;
   coverUrl?: string;
+  /** The cover through Unbnd's image proxy (ADR 0099), tried before coverUrl. */
+  coverImage?: string;
   coverFrom: string;
   coverTo: string;
   coverInk: string;
@@ -27,11 +30,12 @@ export function BookCard({ book, size = "shelf" }: Props) {
   const ratingText =
     typeof book.rating === "number" ? book.rating.toFixed(1) : null;
   const showSignals = size === "grid" && book.signals && book.signals.length > 0;
+  const cover = useImageFallback(book.coverImage, book.coverUrl);
   return (
     <Link className={`book book-${size}`} to={`/book/${book.slug}`}>
-      {book.coverUrl ? (
+      {cover.src ? (
         <div className="book-cover">
-          <img className="book-cover-img" src={book.coverUrl} alt="" loading="lazy" />
+          <img key={cover.src} className="book-cover-img" src={cover.src} alt="" loading="lazy" onError={cover.onError} />
         </div>
       ) : (
         <div
