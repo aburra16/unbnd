@@ -41,8 +41,11 @@ export type AvatarProps = {
 
 export function Avatar({ label, seed, picture, pictureFallback, size = 30 }: AvatarProps) {
   // How many sources have failed: picture, then pictureFallback, then initials.
-  const [failed, setFailed] = useState(0);
-  const src = [picture, pictureFallback].filter(Boolean)[failed];
+  // New sources start over.
+  const sources = [picture, pictureFallback].filter(Boolean);
+  const key = sources.join("\n");
+  const [failed, setFailed] = useState({ key, count: 0 });
+  const src = sources[failed.key === key ? failed.count : 0];
   const idx = hash(seed) % BGS.length;
   const dim = { width: size, height: size, fontSize: Math.round(size * 0.4) };
 
@@ -54,7 +57,7 @@ export function Avatar({ label, seed, picture, pictureFallback, size = 30 }: Ava
         src={src}
         alt=""
         style={{ width: size, height: size }}
-        onError={() => setFailed((n) => n + 1)}
+        onError={() => setFailed((f) => ({ key, count: (f.key === key ? f.count : 0) + 1 }))}
       />
     );
   }

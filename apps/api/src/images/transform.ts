@@ -19,8 +19,15 @@ const isHttp = (v: unknown): v is string => typeof v === "string" && /^https?:\/
 export function addImageUrls(value: unknown, sign: ImageSigner): unknown {
   if (Array.isArray(value)) return value.map((v) => addImageUrls(v, sign));
   if (value === null || typeof value !== "object") return value;
+  // Only plain objects are rebuilt; a Date or anything with its own toJSON
+  // passes through as it is.
+  const proto = Object.getPrototypeOf(value);
+  if (proto !== Object.prototype && proto !== null) return value;
   const out: Record<string, unknown> = {};
-  for (const [k, v] of Object.entries(value)) out[k] = addImageUrls(v, sign);
+  for (const [k, v] of Object.entries(value)) {
+    // defineProperty keeps a "__proto__" key from user data an own key.
+    Object.defineProperty(out, k, { value: addImageUrls(v, sign), enumerable: true, writable: true, configurable: true });
+  }
   for (const [from, to, preset] of FIELDS) {
     if (isHttp(out[from]) && out[to] === undefined) out[to] = sign(out[from] as string, preset);
   }

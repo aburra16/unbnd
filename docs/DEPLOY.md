@@ -291,9 +291,9 @@ the originals if the proxy fails.
 The signing keys `IMAGE_PROXY_KEY` and `IMAGE_PROXY_SALT` live in `.env`. The
 staging deploy creates them once with `openssl rand -hex 32` and never prints
 them. Compose refuses to start without them, because imgproxy without a key
-would serve any URL. To rotate, delete both lines from `.env` and deploy again;
-cached images keep working, and old proxied URLs held by open pages stop
-loading until a refresh.
+would serve any URL. To rotate, delete both lines from `.env` and deploy again. The cache is keyed
+by the signed URL, so every image is fetched again once, and pages already open
+fall back to the original images until they reload.
 
 To check the cache: `curl -sI https://staging.unbnd.ink/img/... | grep -i x-cache-status`
 shows `MISS` on a first view and `HIT` after.

@@ -113,7 +113,12 @@ jobs:
             export UNBND_IMAGE_TAG=${{ env.DEPLOY_SHA }}
             # Image proxy signing keys (ADR 0099): created once, never printed.
             for k in IMAGE_PROXY_KEY IMAGE_PROXY_SALT; do
-              grep -q "^$k=" .env || printf '\n%s=%s\n' "$k" "$(openssl rand -hex 32)" >> .env
+              if ! grep -q "^$k=." .env; then
+                v="$(openssl rand -hex 32)"
+                [ "${#v}" -eq 64 ] || { echo "::error::could not create $k"; exit 1; }
+                sed -i "/^$k=/d" .env
+                printf '\n%s=%s\n' "$k" "$v" >> .env
+              fi
             done
             # Pull the exact SHA-tagged images built above; data layer stays :latest.
             docker compose -f docker-compose.prod.yml pull

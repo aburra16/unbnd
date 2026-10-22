@@ -18,6 +18,7 @@ function toCard(h: SearchHit): Book {
     title: h.title,
     author: h.authorName,
     coverUrl: h.coverUrl,
+    ...(h.coverImage ? { coverImage: h.coverImage } : {}),
     coverFrom: g.from,
     coverTo: g.to,
     coverInk: g.ink,
