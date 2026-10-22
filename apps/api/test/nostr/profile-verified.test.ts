@@ -3,7 +3,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { finalizeEvent, generateSecretKey, getPublicKey } from "nostr-tools/pure";
 import type { SignedNostrEvent } from "@unbnd/schemas";
-import { fetchProfileMeta, fetchRawKind0, fetchRawKind3 } from "../../src/nostr/profile";
+import { fetchProfileMeta, fetchRawKind0, fetchRawKind3, fetchWriteRelays } from "../../src/nostr/profile";
 
 const sk = generateSecretKey();
 const AUTHOR = getPublicKey(sk);
@@ -36,6 +36,14 @@ describe("profile reads keep only verified events from the author", () => {
     const k3bad = { ...k3good, created_at: 300, sig: "0".repeat(128) } as SignedNostrEvent;
     const k3 = await fetchRawKind3(["wss://a"], AUTHOR, async () => [k3good, k3bad]);
     expect(k3.createdAt).toBe(100);
+  });
+});
+
+describe("write relays (review round 1)", () => {
+  it("come only from a verified kind 10002", async () => {
+    const list = finalizeEvent({ kind: 10002, created_at: 100, tags: [["r", "wss://mine.example"]], content: "" }, sk) as unknown as SignedNostrEvent;
+    const other = finalizeEvent({ kind: 1, created_at: 200, tags: [["r", "wss://not-a-list.example"]], content: "" }, sk) as unknown as SignedNostrEvent;
+    expect(await fetchWriteRelays(["wss://a"], AUTHOR, async () => [list, other])).toEqual(["wss://mine.example"]);
   });
 });
 

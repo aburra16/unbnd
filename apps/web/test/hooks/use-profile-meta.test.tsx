@@ -69,4 +69,16 @@ describe("useProfileMeta caching", () => {
     expect(screen.getByTestId("pic").textContent).toBe(META.picture);
     expect(JSON.parse(sessionStorage.getItem(`unbnd:profile:${ID}`) ?? "null")).toEqual(META);
   });
+
+  it("an empty answer with nothing cached is shown, and the next mount asks again (review round 1)", async () => {
+    profileGetMock.mockResolvedValue({ profile: { npub: ID } });
+    const first = render(<Probe />);
+    await waitFor(() => expect(profileGetMock).toHaveBeenCalledTimes(1));
+    expect(screen.getByTestId("pic").textContent).toBe("none");
+    first.unmount();
+    profileGetMock.mockResolvedValue({ profile: META });
+    render(<Probe />);
+    await waitFor(() => expect(screen.getByTestId("pic").textContent).toBe(META.picture));
+    expect(profileGetMock).toHaveBeenCalledTimes(2);
+  });
 });

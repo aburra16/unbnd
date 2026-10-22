@@ -55,4 +55,12 @@ describe("a kind-0 Unbnd publishes replaces the cached profile", () => {
     await publish(k0);
     expect(await cache.get(pk)).toEqual({ name: "old name" });
   });
+
+  it("a published event that is not a kind-0 leaves the cache alone (review round 1)", async () => {
+    const cache = createProfileCache({ resolve: async () => ({ name: "old name" }) });
+    await cache.get(pk);
+    const k3 = finalizeEvent({ kind: 3, created_at: 100, tags: [], content: JSON.stringify({ name: "not a profile" }) }, sk) as unknown as SignedNostrEvent;
+    await cacheOnPublish(async () => ({ ok: true as const, id: k3.id }), cache)(k3);
+    expect(await cache.get(pk)).toEqual({ name: "old name" });
+  });
 });

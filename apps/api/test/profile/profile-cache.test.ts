@@ -110,4 +110,34 @@ describe("the profile cache", () => {
     await cache.get(B!);
     expect(fn).toHaveBeenCalledTimes(4);
   });
+
+  it("a read that started before a publish does not overwrite the published profile (review round 1)", async () => {
+    let release!: (m: ProfileMeta) => void;
+    const { cache } = setup(() => new Promise<ProfileMeta>((r) => (release = r)));
+    const pending = cache.get(PK);
+    cache.set(PK, { name: "published" });
+    release({ name: "old relay answer" });
+    await pending;
+    expect(await cache.get(PK)).toEqual({ name: "published" });
+  });
+
+  it("after a failed refresh, the next one waits a minute (review round 1)", async () => {
+    let fail = false;
+    const { cache, fn, clock } = setup(async () => {
+      if (fail) throw new Error("down");
+      return PIC;
+    });
+    await cache.get(PK);
+    fail = true;
+    clock.advance(11 * MIN);
+    await cache.get(PK);
+    await new Promise((r) => setTimeout(r, 0));
+    expect(fn).toHaveBeenCalledTimes(2);
+    clock.advance(30_000);
+    await cache.get(PK);
+    expect(fn).toHaveBeenCalledTimes(2);
+    clock.advance(31_000);
+    await cache.get(PK);
+    expect(fn).toHaveBeenCalledTimes(3);
+  });
 });
