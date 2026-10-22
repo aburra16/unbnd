@@ -10,7 +10,11 @@ const FRESH_MS = 10 * 60_000;
 const EMPTY_MS = 60_000;
 const MAX_ENTRIES = 10_000;
 
-type Entry = { meta: ProfileMeta | null; at: number };
+/**
+ * `staleAt`: when the entry should be read again. `version`: bumped by `set`,
+ * so a read that started before a publish does not overwrite it.
+ */
+type Entry = { meta: ProfileMeta | null; staleAt: number; version: number };
 
 export type ProfileCache = {
   /** The person's profile: cached, refreshed in the background when old, read when unknown. */
@@ -37,22 +41,30 @@ export function createProfileCache(opts: {
     while (entries.size > max) entries.delete(entries.keys().next().value!);
   };
 
-  // One read per person at a time. A failed read stores nothing; an empty read
-  // never replaces a profile we have.
+  const fresh = (meta: ProfileMeta | null, version: number): Entry => ({
+    meta,
+    staleAt: now() + (meta ? FRESH_MS : EMPTY_MS),
+    version,
+  });
+
+  // One read per person at a time. A failed or empty read never replaces a
+  // profile we have; it keeps it and tries again in a minute. A failed first
+  // read stores nothing.
   const read = (hex: string): Promise<ProfileMeta | null> => {
     const inFlight = reading.get(hex);
     if (inFlight) return inFlight;
+    const started = entries.get(hex)?.version ?? 0;
+    const settle = (meta: ProfileMeta | null | undefined): ProfileMeta | null => {
+      const had = entries.get(hex);
+      if ((had?.version ?? 0) !== started) return had?.meta ?? null;
+      if (meta) put(hex, fresh(meta, started));
+      else if (had?.meta) put(hex, { ...had, staleAt: now() + EMPTY_MS });
+      else if (meta === null) put(hex, fresh(null, started));
+      return meta ?? had?.meta ?? null;
+    };
     const p = opts
       .resolve(hex)
-      .then(
-        (meta) => {
-          const had = entries.get(hex);
-          if (meta || !had?.meta) put(hex, { meta, at: now() });
-          else put(hex, { meta: had.meta, at: had.at });
-          return meta ?? had?.meta ?? null;
-        },
-        () => entries.get(hex)?.meta ?? null,
-      )
+      .then(settle, () => settle(undefined))
       .finally(() => reading.delete(hex));
     reading.set(hex, p);
     return p;
@@ -63,15 +75,14 @@ export function createProfileCache(opts: {
       const entry = entries.get(hex);
       if (!entry) return read(hex);
       put(hex, entry);
-      const age = now() - entry.at;
-      if (entry.meta ? age >= FRESH_MS : age >= EMPTY_MS) {
+      if (now() >= entry.staleAt) {
         if (!entry.meta) return read(hex);
         void read(hex);
       }
       return entry.meta;
     },
     set(hex, meta) {
-      put(hex, { meta, at: now() });
+      put(hex, fresh(meta, (entries.get(hex)?.version ?? 0) + 1));
     },
     size: () => entries.size,
   };

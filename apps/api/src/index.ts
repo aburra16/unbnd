@@ -160,17 +160,20 @@ async function main() {
         )
       : localPublish;
 
+  // Profile reads ask Unbnd's own relay first: every profile and follow list
+  // written through Unbnd lands there before the public relays (ADR 0098).
+  const profileReadRelays = [config.strfryUrl, ...(config.profileRelays ?? [])];
+  // Display profiles, cached (ADR 0098).
+  const profileCache = createProfileCache({
+    resolve: (hex) => fetchProfileMeta(profileReadRelays, hex),
+  });
+
   // kind-0 profile publisher (ADR 0022, F2-A). Distinct from the shared
   // `publish` (local + dcosl): kind-0 lives on the public profile relays, so we
   // publish to the LOCAL relay first (gates the response + read-back), then fan
   // out best-effort to `config.profileRelays` (which already includes the four
   // public relays + dcosl). The fan-out is fire-and-forget — a public-relay
   // failure never fails the user's save. NEVER dcosl (which rejects kind-0).
-  // Display profiles, cached (ADR 0098). Lookups read Unbnd's own relay too,
-  // where every profile written through Unbnd lands first.
-  const profileCache = createProfileCache({
-    resolve: (hex) => fetchProfileMeta([config.strfryUrl, ...(config.profileRelays ?? [])], hex),
-  });
   const publishKind0Uncached = async (event: SignedNostrEvent) => {
     const local = await publishEvent(config.strfryUrl, event);
     if (local.ok && config.profileRelays && config.profileRelays.length > 0) {
@@ -311,7 +314,7 @@ async function main() {
             try {
               await reconcileCustodialKind0(
                 {
-                  fetchRaw: (hex) => fetchRawKind0(config.profileRelays ?? [], hex),
+                  fetchRaw: (hex) => fetchRawKind0(profileReadRelays, hex),
                   sign: custodialSign,
                   publishKind0,
                   now: () => Math.floor(Date.now() / 1000),
@@ -512,7 +515,7 @@ async function main() {
       config,
       sessionUser: resolveSessionUser,
       publish: publishKind0,
-      fetchRaw: (hex) => fetchRawKind0(config.profileRelays ?? [], hex),
+      fetchRaw: (hex) => fetchRawKind0(profileReadRelays, hex),
       custodialSign: userEventDeps.custodialSign,
     }),
   );
@@ -522,7 +525,7 @@ async function main() {
       config,
       sessionUser: resolveSessionUser, // already returns displayName (ADR 0027)
       publish: publishKind0,
-      fetchRaw: (hex) => fetchRawKind0(config.profileRelays ?? [], hex),
+      fetchRaw: (hex) => fetchRawKind0(profileReadRelays, hex),
       custodialSign: userEventDeps.custodialSign,
       // Postgres lockstep, AFTER the canonical publish (ADR 0028 F1-A).
       updateDisplayName: (id, name) =>
@@ -535,7 +538,7 @@ async function main() {
       config,
       sessionUser: resolveSessionUser,
       publish: publishKind3,
-      fetchRaw: (hex) => fetchRawKind3(config.profileRelays ?? [], hex),
+      fetchRaw: (hex) => fetchRawKind3(profileReadRelays, hex),
       custodialSign: userEventDeps.custodialSign,
     }),
   );

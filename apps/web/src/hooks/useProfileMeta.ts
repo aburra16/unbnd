@@ -74,7 +74,11 @@ export function useProfileMeta(idOrNpub: string | undefined): ProfileMeta | null
         if (cancelled) return;
         // An empty answer is a relay miss, not a deleted profile (Story 110):
         // never let it replace a profile we already have.
-        if (!hasFields(res.profile) && hasFields(readCache(idOrNpub))) return;
+        if (!hasFields(res.profile)) {
+          if (hasFields(readCache(idOrNpub))) return;
+          // Nothing to show yet: let the next mount ask again.
+          fetchedThisSession.delete(idOrNpub);
+        }
         writeCache(idOrNpub, res.profile);
         setMeta(res.profile);
       })

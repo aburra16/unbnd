@@ -219,7 +219,7 @@ export async function fetchWriteRelays(
   queryFn: RelayQuery = (url, filter) => queryRelayUrl(url, filter, KIND0_TIMEOUT_MS),
 ): Promise<string[]> {
   const filter: NostrFilter = { kinds: [10002], authors: [pubkeyHex], limit: 1 };
-  const results = await fanOut(relays, filter, pubkeyHex, queryFn, false);
+  const results = (await fanOut(relays, filter, pubkeyHex, queryFn, false)).filter((e) => e.kind === 10002);
   const newest = results.reduce<(typeof results)[number] | null>(
     (best, e) => (!best || e.created_at > best.created_at ? e : best),
     null,
