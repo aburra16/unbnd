@@ -170,7 +170,8 @@ jobs:
                 # `up -d` leaves a container whose service is gone, so remove
                 # it here. The data volume is the operator's to remove.
                 docker rm -f unbnd-search 2>/dev/null && echo "removed unbnd-search" || echo "no unbnd-search container"
-                docker volume ls --format '{{.Name}}' | grep -x 'unbnd_search' || true
+                echo "search volumes left for the operator to remove (DEPLOY.md):"
+                docker volume ls --format '{{.Name}}' | grep -i search || echo "  none"
                 ;;
               set-public-origin)
                 if grep -q '^PUBLIC_ORIGIN=' .env; then

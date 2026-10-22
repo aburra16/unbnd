@@ -156,7 +156,7 @@ export function queryEvents(
 // a PagedResult so callers can surface an honest "N+". `queryEvents`/
 // `queryRelayUrl` above are left untouched so the under-cap path is byte-identical.
 
-const RELAY_PAGE_SIZE = 500; // tracks strfry maxFilterLimit (indexer BATCH)
+const RELAY_PAGE_SIZE = 500; // tracks strfry maxFilterLimit
 const MAX_PAGES = 20; // ceiling: 20 × 500 = 10,000 events
 const PAGE_TIMEOUT_MS = 8000; // per-REQ budget (ample on the local relay)
 const TOTAL_BUDGET_MS = 25000; // overall wall-clock budget across all pages

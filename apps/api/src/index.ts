@@ -50,6 +50,7 @@ import {
   startUpsyncHealthMonitor,
 } from "./health/upsync";
 import { Nip50Provider } from "@unbnd/search";
+import { unavailableSearch } from "./search/unavailable";
 import {
   createCustodialUser,
   createOrLoadSovereignUser,
@@ -96,15 +97,17 @@ async function main() {
   // Search is Brainstorm's search relay (ADR 0095, ADR 0100): a read that
   // fails loudly when the relay does not answer, and the librarian whose list
   // it searches.
-  const searchProvider = new Nip50Provider({
-    librarian: config.librarianPubkey ?? "",
-    query: async (filter) => {
-      const read = await queryRelayUrlChecked(config.searchUrl, filter, SEARCH_RELAY_TIMEOUT_MS);
-      if (!read.ok) throw new Error("search relay did not answer");
-      return read.events;
-    },
-    verify: (event) => verifyEvent(event as Parameters<typeof verifyEvent>[0]),
-  });
+  const searchProvider = config.librarianPubkey
+    ? new Nip50Provider({
+        librarian: config.librarianPubkey,
+        query: async (filter) => {
+          const read = await queryRelayUrlChecked(config.searchUrl, filter, SEARCH_RELAY_TIMEOUT_MS);
+          if (!read.ok) throw new Error("search relay did not answer");
+          return read.events;
+        },
+        verify: (event) => verifyEvent(event as Parameters<typeof verifyEvent>[0]),
+      })
+    : unavailableSearch("LIBRARIAN_PUBKEY is not set");
 
   // Postgres may not accept connections the instant the API container starts
   // (compose `depends_on: service_healthy` covers the normal case; this is

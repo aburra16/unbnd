@@ -565,7 +565,7 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
     throw new Error("config: HOUSE_OBSERVER_PUBKEY must be 64 lowercase hex chars when set");
   }
 
-  // Trust backend selection (ADR 0017), mirroring SEARCH_PROVIDER. `fixture` is
+  // Trust backend selection (ADR 0017). `fixture` is
   // a deterministic, network-free provider for CI + the staging seed harness.
   const trustProviderRaw = withDefault(env, "TRUST_PROVIDER", "brainstorm");
   if (!KNOWN_TRUST_PROVIDERS.includes(trustProviderRaw as TrustProviderName)) {

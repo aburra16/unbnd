@@ -23,7 +23,7 @@ The capabilities this book delivered, in plain language. One bullet per observab
 The concrete surface that now exists — **derived from the diff, not just the docs:**
 - **User-facing:** screens / routes / endpoints / commands added or changed (`apps/web`, `apps/api`).
 - **Domain:** DList kinds and concept handles touched (`kind:pubkey:d-tag`), schema changes, fixtures updated.
-- **Data & contracts:** event kinds, API routes, stored shapes, Meili index changes.
+- **Data & contracts:** event kinds, API routes, stored shapes, labels the search relay filters on.
 
 ## 4. Deviations from intent
 The heart of the audit. Every place the built product differs from the anchor (PRD §refs, or acceptance-frame bullets). **Harvested** from ADR `Consequences`, story `Out of scope` / `Open questions`, review notes, and any Implementer `## Deviations` logs — then reconciled against the diff. Rationale is *sourced*, never re-invented.

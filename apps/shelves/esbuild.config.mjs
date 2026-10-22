@@ -1,5 +1,5 @@
 // Production bundle for the shelves worker (ADR 0036). Same approach as the
-// indexer/promoter: inline @unbnd/schemas + @unbnd/trust TS + npm deps into one
+// promoter: inline @unbnd/schemas + @unbnd/trust TS + npm deps into one
 // ESM file. Entry is the runtime main; output dist/index.js.
 import { build } from "esbuild";
 

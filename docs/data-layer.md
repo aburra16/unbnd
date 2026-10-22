@@ -43,7 +43,7 @@ docker compose up -d
 docker compose ps
 ```
 
-Both `unbnd-tapestry` and `unbnd-search` should be in the `running` state.
+Both `unbnd-tapestry` and `unbnd-db` should be in the `running` state.
 
 ## Stop the stack
 

@@ -1,6 +1,6 @@
 # ADR 0013: Catalog search (provider-agnostic, Meili first)
 
-**Status:** Superseded by ADR 0100 (Meilisearch retired; the search relay is the only backend)
+**Status:** Superseded in part by ADR 0100 (Meilisearch retired; the provider interface remains, narrowed)
 **Date:** 2026-05-29
 **Story:** `engineering-team/stories/12-catalog-search.md`
 

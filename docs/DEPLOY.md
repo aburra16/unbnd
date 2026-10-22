@@ -294,8 +294,12 @@ After the first deploy without Meilisearch:
 2. `gh workflow run "Staging ops" -f task=install-cron` replaces the crontab
    without the nightly indexer line.
 3. The volume holds only the old index. Removing it is permanent, so it is a
-   step for the operator on the droplet:
-   `docker volume rm unbnd_search`.
+   step for the operator on the droplet: `docker volume rm unbnd_search` (the
+   task above lists the exact name). The old image can go too:
+   `docker image rm getmeili/meilisearch:v1.10`.
+4. `SEARCH_API_KEY` and `SEARCH_PROVIDER` in `.env` are no longer read and can
+   be deleted. `SEARCH_URL`, if present, must be `wss://search.brainstorm.world`
+   (or another search relay), not the old `http://search:7700`.
 
 ## Image proxy (Story 111 / ADR 0099)
 

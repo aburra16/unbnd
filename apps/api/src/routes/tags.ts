@@ -94,7 +94,6 @@ function payloadTagSlug(event: SignedNostrEvent): string | undefined {
   }
 }
 
-
 /**
  * Reduce accusatory-reveal events to the set of tag slugs currently revealed
  * (ADR 0034 §3 / AC-4/AC-6). Keep the LATEST event per (book, tag) d-tag by

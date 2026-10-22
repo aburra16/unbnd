@@ -69,6 +69,10 @@ export class Nip50Provider implements SearchProvider {
   readonly #windows = new Map<string, Window>();
 
   constructor(opts: Nip50Options) {
+    // Without the librarian there is no list to search; fail at startup.
+    if (!/^[0-9a-f]{64}$/.test(opts.librarian)) {
+      throw new Error("Nip50Provider: the librarian key (LIBRARIAN_PUBKEY, hex) is required");
+    }
     this.#librarian = opts.librarian;
     this.#booksZ = formatAddress(buildBookRecordsHeaderAddress(opts.librarian as never));
     this.#query = opts.query;
