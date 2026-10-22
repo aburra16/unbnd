@@ -50,3 +50,13 @@ describe("imageUrlsMiddleware", () => {
     expect(res.body.book).toEqual({ coverUrl: "https://x/c.jpg" });
   });
 });
+
+describe("addImageUrls leaves non-plain objects alone (review round 1)", () => {
+  it("a Date still serializes as a date, and a __proto__ key stays an own key", () => {
+    const at = new Date("2026-10-22T00:00:00Z");
+    const out = addImageUrls({ at, nested: JSON.parse('{"__proto__": {"coverUrl": "https://x/c.jpg"}}') }, sign) as any;
+    expect(JSON.stringify(out.at)).toBe(JSON.stringify(at));
+    expect(Object.getPrototypeOf(out.nested)).toBe(Object.prototype);
+    expect(Object.keys(out.nested)).toContain("__proto__");
+  });
+});
