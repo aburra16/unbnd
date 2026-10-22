@@ -33,7 +33,7 @@ Anyone publishes anything — ratings, reviews, genre tags, quality signal flags
 
 A POV's view of the world is `(events from anyone) × (that POV's trust scoring)`. Both inputs change over time. Storing the *result* — "what does PoV X think today" — invites stale data and a combinatorial denormalization burden across N POVs × M books × M tags.
 
-- Prefer scanning raw DList events + applying the active POV's GrapeRank at query time. Meilisearch can carry per-POV trust columns; compose them with `#z` (parent-pointer) and `#p` (pubkey) filters from strfry.
+- Prefer scanning raw DList events + applying the active POV's GrapeRank at query time, reading with `#z` (parent-pointer) and `#p` (pubkey) filters from strfry.
 - Only denormalize per-POV when the query-time cost is provably unacceptable. "It might be slow" is not enough — measure.
 - **Common mistake**: "let me compute the trust-weighted score once and cache it." The answer changes when the POV changes (logged-in user switches from House to personalized) or when a new rating arrives. Re-derive on read; cache only with a clear invalidation story.
 

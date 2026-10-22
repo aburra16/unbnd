@@ -1,9 +1,9 @@
 # Data layer — local development
 
-Unbnd's data layer is two Docker services:
+Unbnd's data layer is one Docker service, plus Brainstorm's search relay:
 
 - **`tapestry`** — the Tapestry container, built locally from upstream source. Runs strfry (nostr relay), Neo4j (graph DB), the brainstorm Express server, GrapeRank, and nginx under supervisord.
-- **`search`** — Meilisearch by default; `SEARCH_PROVIDER=nip50` with `SEARCH_URL=wss://search.brainstorm.world` reads Brainstorm's search relay instead (Story 106 / ADR 0095), switched with the Staging ops tasks `search-relay` and `search-meili`.
+- **Search** — Brainstorm's search relay (`SEARCH_URL`, default `wss://search.brainstorm.world`), read through `@unbnd/search` (ADR 0095, ADR 0100). Nothing runs locally for it.
 
 `apps/api` runs on the host (`pnpm dev:api`) and probes the data layer via `/health/data`.
 
@@ -51,7 +51,7 @@ Both `unbnd-tapestry` and `unbnd-search` should be in the `running` state.
 docker compose down
 ```
 
-Stopping with `docker compose down` preserves the named volumes — your Neo4j data, strfry events, and Meilisearch indexes survive a restart. To **also clear the volumes**, run:
+Stopping with `docker compose down` preserves the named volumes — your Neo4j data and strfry events survive a restart. To **also clear the volumes**, run:
 
 ```
 docker compose down -v
@@ -87,7 +87,7 @@ Expected when everything is reachable:
     "strfry":   { "ok": true, "latencyMs": 12 },
     "neo4j":    { "ok": true, "latencyMs": 38 },
     "tapestry": { "ok": true, "latencyMs": 21 },
-    "search":   { "ok": true, "provider": "meili", "latencyMs": 7 }
+    "search":   { "ok": true, "provider": "nip50", "latencyMs": 180 }
   }
 }
 ```
@@ -100,24 +100,15 @@ If any probe fails, the endpoint returns HTTP 503 with `ok: false` and a per-ser
 |---|---|---|---|
 | `OWNER_PUBKEY` | yes | — | Hex pubkey for the Tapestry container's relay-level admin identity. Distinct from the future Unbnd Librarian pubkey. |
 | `NEO4J_PASSWORD` | yes | — | Neo4j password. Choose a strong value for dev. |
-| `SEARCH_API_KEY` | yes | — | Master key for the search service. Passed into Meilisearch as `MEILI_MASTER_KEY` at the container boundary. |
-| `SEARCH_PROVIDER` | no | `meili` | Discriminator. `meili` today; `vespa` once that provider ships. |
 | `STRFRY_URL` | no | `ws://localhost:7777` | WebSocket URL apps/api uses to probe strfry. |
 | `NEO4J_BOLT_URL` | no | `bolt://localhost:7687` | Bolt URL apps/api uses to probe Neo4j. |
 | `NEO4J_USER` | no | `neo4j` | Bolt user. |
 | `TAPESTRY_API_URL` | no | `http://localhost:8080` | HTTP base URL of the Tapestry Express API. |
-| `SEARCH_URL` | no | `http://localhost:7700` | HTTP base URL of the search service. |
+| `SEARCH_URL` | no | `wss://search.brainstorm.world` | The search relay (NIP-50). |
 
 ## Swapping the search provider
 
-The compose service is named `search` and apps/api speaks to it through `apps/api/src/search/SearchProvider.ts`. The current implementation is `apps/api/src/search/meili.ts`. Swapping to a different provider later:
-
-1. Add `apps/api/src/search/vespa.ts` implementing `SearchProvider`.
-2. Extend the switch in `apps/api/src/search/index.ts` to return the new impl when `searchProvider === "vespa"`.
-3. Change `image: getmeili/meilisearch:v1.10` in `docker-compose.yml` to the Vespa image.
-4. Set `SEARCH_PROVIDER=vespa` in `.env`.
-
-No other call sites need to change.
+`apps/api` searches through the `SearchProvider` interface in `@unbnd/search`; the one implementation is `packages/search/src/nip50.ts`, which reads the search relay. Another backend would be one more file implementing that interface, chosen where `apps/api/src/index.ts` builds the provider.
 
 ## Updating the Tapestry image
 

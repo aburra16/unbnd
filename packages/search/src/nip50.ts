@@ -17,7 +17,6 @@ import {
 } from "@unbnd/schemas";
 import type {
   ProviderHealth,
-  SearchDocument,
   SearchHit,
   SearchProvider,
   SearchQuery,
@@ -86,12 +85,6 @@ export class Nip50Provider implements SearchProvider {
       return { ok: false, provider: this.name, error: err instanceof Error ? err.message : String(err) };
     }
   }
-
-  // The relay indexes the hub's records itself (ADR 0095 §5).
-  async configureIndex(): Promise<void> {}
-  async index(_docs: readonly SearchDocument[]): Promise<void> {}
-  async delete(_ids: readonly string[]): Promise<void> {}
-  async deleteAll(): Promise<void> {}
 
   async search(query: SearchQuery): Promise<SearchResult> {
     const window = await this.#window(query);

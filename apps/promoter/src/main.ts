@@ -22,7 +22,7 @@ import {
 import { runDemotionCycle, runPromotionCycle, type DemoterDeps, type PromoterDeps } from "./index";
 import { createQueue } from "./queue";
 import { connectRelay, queryAllPages } from "@unbnd/relay";
-import { forEachCatalogPage, resolveProvider, reindexBook, type ProviderName } from "@unbnd/search";
+import { forEachCatalogPage } from "@unbnd/search";
 import { createRevealQueue } from "./reveal/queue";
 import { runRevealCommand } from "./reveal/cli";
 import { runRevealCycle, type RevealDeps } from "./reveal/cycle";
@@ -96,21 +96,6 @@ async function promote(): Promise<void> {
   const submissionsAddr = formatAddress(
     buildBookSubmissionsHeaderAddress(librarianPubkey),
   );
-  // Index-on-write address scoping (Story 60 / ADR 0059 §3, §5).
-  const booksZ = formatAddress(buildBookRecordsHeaderAddress(librarianPubkey));
-  const tagsZ = formatAddress(buildBookTagsHeaderAddress(librarianPubkey));
-  const assertZ = formatAddress(buildBookTagAssertionsHeaderAddress(librarianPubkey));
-
-  // Resolved SearchProvider for the best-effort index-on-write upsert (same way
-  // the indexer resolves it from env). The reader issues scoped per-book reads
-  // off the worker's own local relay connection; the shared helper rebuilds the
-  // doc via RAW consensus and upserts through the neutral provider.
-  const searchProvider = resolveProvider({
-    provider: env("SEARCH_PROVIDER", "meili") as ProviderName,
-    url: env("SEARCH_URL", "http://search:7700"),
-    apiKey: env("SEARCH_API_KEY", ""),
-  });
-
   const queue = createQueue(databaseUrl);
   const local = await connectRelay(strfryUrl);
   const dcosl = await connectRelay(dcoslUrl);
@@ -135,26 +120,11 @@ async function promote(): Promise<void> {
     publishDcosl: (event) => dcosl.publish(event),
     markDone: (job, canonicalId) => queue.markDone(job, canonicalId),
     markFailed: (job, reason) => queue.markFailed(job, reason),
-    reindexBook: (slug) =>
-      reindexBook(
-        searchProvider,
-        async (bookSlug) => {
-          const bookAddr = `39999:${librarianPubkey}:${bookSlug}`;
-          const [bookEvents, taxonomyEvents, assertionEvents] = await Promise.all([
-            local.query({ kinds: [39999], "#z": [booksZ], "#d": [bookSlug], limit: 1 }),
-            local.query({ kinds: [39999], "#z": [tagsZ], authors: [librarianPubkey] }),
-            local.query({ kinds: [39999], "#z": [assertZ], "#a": [bookAddr] }),
-          ]);
-          return { bookEvent: bookEvents[0] ?? null, taxonomyEvents, assertionEvents };
-        },
-        slug,
-        new Date().getUTCFullYear(),
-      ),
     now: () => Math.floor(Date.now() / 1000),
   };
 
   // Story 80 / ADR 0078: the demotion cycle rides the same cron run, sharing
-  // the queue, relays, signer, and provider.
+  // the queue, relays and signer.
   const demoteDeps: DemoterDeps = {
     librarianPubkey,
     claimDemotePending: () => queue.claimDemotePending(),
@@ -163,7 +133,6 @@ async function promote(): Promise<void> {
     publishDcosl: deps.publishDcosl,
     markDemoted: (job, delistId) => queue.markDemoted(job, delistId),
     markDemoteFailed: (job, reason) => queue.markDemoteFailed(job, reason),
-    searchDelete: (slugs) => searchProvider.delete(slugs),
   };
 
   try {

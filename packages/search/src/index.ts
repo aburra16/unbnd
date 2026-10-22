@@ -1,50 +1,16 @@
-// @unbnd/search — provider-agnostic catalog search (ADR 0013). Consumers (the
-// API, the indexer) depend only on this package's neutral surface. Backend
-// specifics live in a single adapter file (meili.ts today, vespa.ts later);
-// swapping providers is implementing one adapter + flipping ProviderOptions.
-import { MeiliProvider } from "./meili";
-import { Nip50Provider, type Nip50Options } from "./nip50";
-import type { ProviderOptions, SearchProvider } from "./types";
-
-export { MeiliProvider } from "./meili";
+// @unbnd/search: catalog search (ADR 0013, ADR 0100). Brainstorm's search relay
+// is the backend, read through the NIP-50 provider; the API depends only on the
+// neutral `SearchProvider` surface. Also home to the applied-tags rule and the
+// paged catalog walk, which the labels pass and the workers share.
 export { Nip50Provider, SEARCH_WINDOW, type Nip50Filter, type Nip50Options } from "./nip50";
-export { appliedTags, buildBookDocument } from "./build-document";
+export { appliedTags } from "./applied-tags";
 export { forEachCatalogPage, type CatalogQuery } from "./catalog-pages";
-export { reindexBook, type BookReader } from "./reindex-book";
 export type {
   ProviderHealth,
   ProviderName,
-  ProviderOptions,
-  SearchDocument,
   SearchFilters,
   SearchHit,
   SearchProvider,
   SearchQuery,
   SearchResult,
 } from "./types";
-
-/**
- * Pick the provider implementation from neutral options. Throws on an unknown
- * or not-yet-implemented provider so misconfiguration fails fast at startup.
- */
-export function resolveProvider(
-  opts: ProviderOptions,
-  nip50?: Pick<Nip50Options, "librarian" | "query" | "verify">,
-): SearchProvider {
-  switch (opts.provider) {
-    case "meili":
-      return new MeiliProvider(opts);
-    case "nip50":
-      // The relay read and the librarian come from the caller (ADR 0095 §1).
-      if (!nip50?.librarian) throw new Error("resolveProvider: nip50 needs the librarian key and a relay read");
-      return new Nip50Provider(nip50);
-    case "vespa":
-      throw new Error(
-        "resolveProvider: vespa provider is not yet implemented; add src/vespa.ts",
-      );
-    default: {
-      const exhaustive: never = opts.provider;
-      throw new Error(`resolveProvider: unknown provider ${JSON.stringify(exhaustive)}`);
-    }
-  }
-}

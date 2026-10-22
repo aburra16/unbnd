@@ -79,11 +79,8 @@ services:
       - NEO4J_USER=neo4j
       - NEO4J_PASSWORD=${NEO4J_PASSWORD}
       - TAPESTRY_API_URL=http://tapestry:80
-      # Story 106 / ADR 0095: the search backend is a setting (Staging ops
-      # `search-relay` / `search-meili`); Meilisearch stays the default.
-      - SEARCH_URL=${SEARCH_URL:-http://search:7700}
-      - SEARCH_API_KEY=${SEARCH_API_KEY}
-      - SEARCH_PROVIDER=${SEARCH_PROVIDER:-meili}
+      # Brainstorm's search relay is the catalog's search (ADR 0095, ADR 0100).
+      - SEARCH_URL=${SEARCH_URL:-wss://search.brainstorm.world}
       - BACKUP_ENCRYPTION_KEY=${BACKUP_ENCRYPTION_KEY}
       - LIBRARIAN_PUBKEY=${LIBRARIAN_PUBKEY}
       - PUBLIC_ORIGIN=${PUBLIC_ORIGIN}
@@ -111,8 +108,6 @@ services:
       db:
         condition: service_healthy
       tapestry:
-        condition: service_started
-      search:
         condition: service_started
     restart: unless-stopped
 
@@ -206,33 +201,11 @@ services:
       - DCOSL_RELAY_URL=${DCOSL_RELAY_URL:-wss://dcosl.brainstorm.world/}
       - LIBRARIAN_PUBKEY=${LIBRARIAN_PUBKEY}
       - LIBRARIAN_NSEC=${LIBRARIAN_NSEC}
-      # Index-on-write (Story 60 / ADR 0059 §5): the promoter upserts a freshly
-      # promoted book's SearchDocument best-effort after its durable publish.
-      - SEARCH_URL=http://search:7700
-      - SEARCH_API_KEY=${SEARCH_API_KEY}
-      # Writes to Meilisearch whatever the api reads (ADR 0095 §6).
-      - SEARCH_PROVIDER=meili
     depends_on:
       db:
         condition: service_healthy
       tapestry:
         condition: service_started
-    restart: "no"
-
-  # Search indexer (ADR 0013). Never starts with the normal stack — only via
-  #   docker compose --profile index run --rm indexer
-  # Reads the local relay catalog and loads the search index. Provider-agnostic
-  # (SEARCH_PROVIDER); re-runnable.
-  indexer:
-    image: ghcr.io/aburra16/unbnd-indexer:${UNBND_IMAGE_TAG:-latest}
-    profiles: ["index"]
-    environment:
-      - STRFRY_URL=ws://tapestry/relay
-      - LIBRARIAN_PUBKEY=${LIBRARIAN_PUBKEY}
-      - SEARCH_URL=http://search:7700
-      - SEARCH_API_KEY=${SEARCH_API_KEY}
-      # Writes to Meilisearch whatever the api reads (ADR 0095 §6).
-      - SEARCH_PROVIDER=meili
     restart: "no"
 
   # Homepage trust-shelf worker (ADR 0036). Never starts with the normal stack —
@@ -290,17 +263,6 @@ services:
       - RELAY_PUBLISH_TIMEOUT_MS=${RELAY_PUBLISH_TIMEOUT_MS:-10000}
     restart: "no"
 
-  search:
-    container_name: unbnd-search
-    image: getmeili/meilisearch:v1.10
-    environment:
-      - MEILI_MASTER_KEY=${SEARCH_API_KEY}
-      - MEILI_ENV=production
-      - MEILI_NO_ANALYTICS=true
-    volumes:
-      - search:/meili_data
-    restart: unless-stopped
-
 volumes:
   caddy-data:
   caddy-config:
@@ -308,6 +270,5 @@ volumes:
   strfry:
   tapestry-data:
   postgres:
-  search:
   seeder-data:
   img-cache:

@@ -1,26 +1,6 @@
-// Provider-neutral search domain types (ADR 0013). NOTHING here (or anywhere
-// outside a provider adapter) may reference Meili/Vespa specifics — that's what
-// keeps the provider swap a one-adapter change. Enforced by the architecture
-// guard test.
-
-/** A book as loaded into the search index. `id` is the book slug. */
-export type SearchDocument = {
-  readonly id: string;
-  readonly title: string;
-  readonly authorName: string;
-  readonly isbn13?: string;
-  readonly subjects: readonly string[];
-  /** Applied community tag NAMES (non-accusatory), e.g. "Literary fiction". */
-  readonly tags: readonly string[];
-  /** Applied genre slugs, for filtering. */
-  readonly genreSlugs: readonly string[];
-  readonly blurb?: string;
-  readonly format: string;
-  readonly language?: string;
-  readonly publishYear?: number;
-  readonly coverUrl?: string;
-  readonly openLibraryId?: string;
-};
+// Provider-neutral search domain types (ADR 0013, ADR 0100). The search relay
+// is the one provider; the interface stays so another could be added behind it
+// without touching the API.
 
 export type SearchFilters = {
   readonly genre?: string;
@@ -57,7 +37,7 @@ export type SearchResult = {
   readonly capped?: boolean;
 };
 
-export type ProviderName = "meili" | "vespa" | "nip50";
+export type ProviderName = "nip50";
 
 export type ProviderHealth = {
   readonly ok: boolean;
@@ -67,29 +47,10 @@ export type ProviderHealth = {
   readonly latencyMs?: number;
 };
 
-/** Connection options for any provider. Deliberately minimal + neutral. */
-export type ProviderOptions = {
-  readonly provider: ProviderName;
-  readonly url: string;
-  readonly apiKey: string;
-};
-
 export interface SearchProvider {
   readonly name: ProviderName;
   /** Liveness/version probe. */
   health(): Promise<ProviderHealth>;
-  /** Apply index settings (searchable order/weights, filterable attrs, etc.). */
-  configureIndex(): Promise<void>;
-  /** Upsert documents by id. Idempotent. */
-  index(docs: readonly SearchDocument[]): Promise<void>;
-  /**
-   * Delete specific documents by id (Story 80 / ADR 0078 §3: the demote cycle
-   * removes a delisted book from the live index without waiting for the batch
-   * rebuild). Idempotent: deleting an absent id is a no-op.
-   */
-  delete(ids: readonly string[]): Promise<void>;
-  /** Drop all documents (for a clean re-index). */
-  deleteAll(): Promise<void>;
   /** Full-text query → provider-neutral results. */
   search(query: SearchQuery): Promise<SearchResult>;
 }

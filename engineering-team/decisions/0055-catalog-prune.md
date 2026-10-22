@@ -1,6 +1,6 @@
 # ADR 0055: Prune catalog junk by a read-time filter, not NIP-09 deletion
 
-**Status:** Accepted
+**Status:** Accepted; the search-index prune superseded by ADR 0100
 **Date:** 2026-06-05
 **Story:** `engineering-team/stories/done/56-catalog-prune.md`
 

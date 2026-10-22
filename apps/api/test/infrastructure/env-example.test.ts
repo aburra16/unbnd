@@ -15,8 +15,6 @@ describe(".env.example", () => {
   it.each([
     "OWNER_PUBKEY",
     "NEO4J_PASSWORD",
-    "SEARCH_API_KEY",
-    "SEARCH_PROVIDER",
     "STRFRY_URL",
     "NEO4J_BOLT_URL",
     "NEO4J_USER",
@@ -35,9 +33,8 @@ describe(".env.example", () => {
     expect(envExample()).toMatch(new RegExp(`^${key}=`, "m"));
   });
 
-  it("does not use Meili-specific env var names", () => {
-    const text = envExample();
-    expect(text).not.toMatch(/^MEILI_/m);
+  it("points search at Brainstorm's search relay (ADR 0100)", () => {
+    expect(envExample()).toMatch(/^SEARCH_URL=wss:\/\/search\.brainstorm\.world$/m);
   });
 });
 

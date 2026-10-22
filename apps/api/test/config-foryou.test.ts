@@ -14,7 +14,6 @@ import { loadConfig } from "../src/config";
 
 const ALL_REQUIRED = {
   NEO4J_PASSWORD: "tapestry-local-dev",
-  SEARCH_API_KEY: "local-dev-search-key",
   DATABASE_URL: "postgres://unbnd:unbnd@localhost:5432/unbnd",
   BACKUP_ENCRYPTION_KEY: "a".repeat(64),
 };

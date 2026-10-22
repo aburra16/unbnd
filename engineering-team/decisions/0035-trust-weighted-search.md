@@ -1,6 +1,6 @@
 # ADR 0035: Trust-weighted search re-ranking
 
-**Status:** Accepted
+**Status:** Accepted; the text score is the search relay's rank since ADR 0095 and ADR 0100
 **Date:** 2026-06-02
 **Story:** `engineering-team/stories/done/34-trust-weighted-search.md`
 

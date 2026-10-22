@@ -11,9 +11,7 @@ const cfg: Config = {
   neo4jUser: "neo4j",
   neo4jPassword: "test",
   tapestryApiUrl: "http://localhost:8080",
-  searchUrl: "http://localhost:7700",
-  searchApiKey: "test-key",
-  searchProvider: "meili",
+  searchUrl: "wss://search.example",
   trustProvider: "brainstorm",
   databaseUrl: "postgres://x:x@localhost:5432/x",
   backupEncryptionKey: "a".repeat(64),
@@ -28,12 +26,8 @@ function makeApp(overrides: Partial<HealthDeps> = {}) {
     probeTapestry: vi.fn(async () => ({ ok: true })),
     probePostgres: vi.fn(async () => ({ ok: true })),
     searchProvider: {
-      name: "meili",
-      health: vi.fn(async () => ({ ok: true, provider: "meili" as const })),
-      configureIndex: vi.fn(async () => {}),
-      index: vi.fn(async () => {}),
-      delete: vi.fn(async (_ids: readonly string[]) => {}),
-    deleteAll: vi.fn(async () => {}),
+      name: "nip50",
+      health: vi.fn(async () => ({ ok: true, provider: "nip50" as const })),
       search: vi.fn(async () => ({ hits: [], total: 0, offset: 0, limit: 0 })),
     },
     ...overrides,
@@ -62,7 +56,7 @@ describe("GET /health/data", () => {
     expect(res.body.services.neo4j.ok).toBe(true);
     expect(res.body.services.tapestry.ok).toBe(true);
     expect(res.body.services.search.ok).toBe(true);
-    expect(res.body.services.search.provider).toBe("meili");
+    expect(res.body.services.search.provider).toBe("nip50");
     expect(res.body.services.postgres.ok).toBe(true);
   });
 
@@ -99,23 +93,19 @@ describe("GET /health/data", () => {
     const res = await request(
       makeApp({
         searchProvider: {
-          name: "meili",
+          name: "nip50",
           health: vi.fn(async () => ({
             ok: false,
-            provider: "meili" as const,
+            provider: "nip50" as const,
             error: "503 Service Unavailable",
           })),
-          configureIndex: vi.fn(async () => {}),
-          index: vi.fn(async () => {}),
-          delete: vi.fn(async (_ids: readonly string[]) => {}),
-    deleteAll: vi.fn(async () => {}),
           search: vi.fn(async () => ({ hits: [], total: 0, offset: 0, limit: 0 })),
         },
       }),
     ).get("/health/data");
     expect(res.status).toBe(503);
     expect(res.body.services.search.ok).toBe(false);
-    expect(res.body.services.search.provider).toBe("meili");
+    expect(res.body.services.search.provider).toBe("nip50");
   });
 
   it("runs all probes regardless of which fails (parallel execution)", async () => {

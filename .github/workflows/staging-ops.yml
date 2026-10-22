@@ -15,7 +15,6 @@ on:
         options:
           - promote # one promoter cycle (promotions + demotions + reveals)
           - labels # one labels pass: genre, format and language labels on every record (Story 105; idempotent)
-          - index # batch search-index rebuild
           - shelves # homepage trust-shelf recompute
           - recast # genre recast over the existing catalog (Story 75; idempotent)
           - headers # publish the seeder-owned list headers only (Story 97; idempotent)
@@ -27,8 +26,7 @@ on:
           - librarian-profile # publish the librarian's kind-0 + kind-10002 (Story 98; idempotent)
           - set-brainstorm-endpoints # point BRAINSTORM_API_URL/TRUST_RELAYS in .env at Brainstorm production + recreate the api (Story 98)
           - set-public-origin # ensure PUBLIC_ORIGIN in .env + restart the api
-          - search-relay # point the api's search at Brainstorm's search relay (Story 106) + recreate the api
-          - search-meili # point the api's search back at Meilisearch (Story 106 rollback) + recreate the api
+          - retire-meilisearch # stop and remove the retired Meilisearch container (Story 112; its data volume stays)
           - install-cron # install the documented worker crontab (idempotent)
           - show-status # read-only: crontab, deployed tag, recent worker logs
       dump:
@@ -76,9 +74,6 @@ jobs:
                 docker compose -f docker-compose.prod.yml --profile promote pull promoter
                 mkdir -p /opt/unbnd/ops-logs
                 flock -n /opt/unbnd/ops-logs/labels.lock docker compose -f docker-compose.prod.yml --profile promote run --rm promoter node index.js labels || echo "labels: a pass is already running"
-                ;;
-              index)
-                docker compose -f docker-compose.prod.yml --profile index run --rm indexer
                 ;;
               shelves)
                 docker compose -f docker-compose.prod.yml --profile shelves run --rm shelves
@@ -166,30 +161,16 @@ jobs:
                   echo "*/5 * * * * cd /opt/unbnd && docker compose -f docker-compose.prod.yml --profile promote run --rm promoter >> /opt/unbnd/ops-logs/promote.log 2>&1"
                   echo "2-59/5 * * * * cd /opt/unbnd && flock -n /opt/unbnd/ops-logs/labels.lock docker compose -f docker-compose.prod.yml --profile promote run --rm promoter node index.js labels >> /opt/unbnd/ops-logs/labels.log 2>&1"
                   echo "0 * * * * cd /opt/unbnd && docker compose -f docker-compose.prod.yml --profile shelves run --rm shelves >> /opt/unbnd/ops-logs/shelves.log 2>&1"
-                  echo "20 4 * * * cd /opt/unbnd && docker compose -f docker-compose.prod.yml --profile index run --rm indexer >> /opt/unbnd/ops-logs/index.log 2>&1"
                 } | crontab -
                 echo "crontab installed:"
                 crontab -l
                 ;;
-              search-relay|search-meili)
-                # ADR 0095 §6: the api's search backend is two .env keys. The
-                # indexer and promoter keep Meilisearch current either way.
-                if [ "${{ inputs.task }}" = "search-relay" ]; then
-                  pairs="SEARCH_PROVIDER=nip50 SEARCH_URL=wss://search.brainstorm.world"
-                else
-                  pairs="SEARCH_PROVIDER=meili SEARCH_URL=http://search:7700"
-                fi
-                for kv in $pairs; do
-                  k="${kv%%=*}"
-                  if grep -q "^${k}=" .env; then sed -i "s|^${k}=.*|${kv}|" .env; else printf '\n%s\n' "$kv" >> .env; fi
-                  echo "set ${kv}"
-                done
-                docker compose -f docker-compose.prod.yml up -d --force-recreate api
-                # Back on Meilisearch: rebuild it, since tag changes made while the
-                # relay served search reached Meilisearch only on the nightly run.
-                if [ "${{ inputs.task }}" = "search-meili" ]; then
-                  docker compose -f docker-compose.prod.yml --profile index run --rm indexer
-                fi
+              retire-meilisearch)
+                # ADR 0100: compose no longer defines the search service, and
+                # `up -d` leaves a container whose service is gone, so remove
+                # it here. The data volume is the operator's to remove.
+                docker rm -f unbnd-search 2>/dev/null && echo "removed unbnd-search" || echo "no unbnd-search container"
+                docker volume ls --format '{{.Name}}' | grep -x 'unbnd_search' || true
                 ;;
               set-public-origin)
                 if grep -q '^PUBLIC_ORIGIN=' .env; then

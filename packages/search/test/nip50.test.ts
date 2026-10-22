@@ -12,7 +12,6 @@ import {
   type SignedNostrEvent,
 } from "@unbnd/schemas";
 import { Nip50Provider } from "../src/nip50";
-import { resolveProvider } from "../src";
 
 const LIB = asHexPubkey("1".repeat(63) + "a");
 const BOOKS_Z = formatAddress(buildBookRecordsHeaderAddress(LIB));
@@ -185,30 +184,10 @@ describe("Nip50Provider: titles with colons, empty text (review round 2)", () =>
   });
 });
 
-describe("Nip50Provider writes and health", () => {
-  it("writes are no-ops: the relay indexes the hub's records itself", async () => {
-    const { p, query } = provider([]);
-    await p.configureIndex();
-    await p.index([]);
-    await p.delete(["a"]);
-    await p.deleteAll();
-    expect(query).not.toHaveBeenCalled();
-  });
-
+describe("Nip50Provider health", () => {
   it("health reflects whether the relay answers", async () => {
     expect((await provider([]).p.health()).ok).toBe(true);
     const down = new Nip50Provider({ librarian: LIB, query: vi.fn(async () => { throw new Error("no"); }), verify: () => true });
     expect(await down.health()).toMatchObject({ ok: false, provider: "nip50" });
-  });
-});
-
-describe("resolveProvider", () => {
-  it("builds the NIP-50 provider when given the relay read and the librarian", () => {
-    const p = resolveProvider({ provider: "nip50", url: "wss://relay", apiKey: "" }, { librarian: LIB, query: async () => [], verify: () => true });
-    expect(p.name).toBe("nip50");
-  });
-
-  it("refuses the NIP-50 provider without them", () => {
-    expect(() => resolveProvider({ provider: "nip50", url: "wss://relay", apiKey: "" })).toThrow(/librarian/);
   });
 });

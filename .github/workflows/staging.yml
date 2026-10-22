@@ -40,8 +40,6 @@ jobs:
             dockerfile: apps/seeder/Dockerfile
           - name: promoter
             dockerfile: apps/promoter/Dockerfile
-          - name: indexer
-            dockerfile: apps/indexer/Dockerfile
           - name: shelves
             dockerfile: apps/shelves/Dockerfile
           - name: librarian

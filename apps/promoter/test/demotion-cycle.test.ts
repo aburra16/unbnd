@@ -1,12 +1,11 @@
 // FAILING TESTS — Story 80 / ADR 0078 (the worker DEMOTION cycle), fully
 // injected like the promote consume-loop: a fake claim, a FAKE librarian
-// signer (no real LIBRARIAN_NSEC), fake publishers, a fake search delete.
-// Asserts: claims demote_pending jobs, builds + signs the DELISTING at the
-// record's own address, publishes local + dcosl, deletes the doc from the
-// live index, marks the row demoted with the delisting event id; sign /
-// publish failures mark demote_failed without crashing the run; a search
-// delete failure is swallowed (the batch rebuild is the backstop); one job's
-// failure never aborts the others.
+// signer (no real LIBRARIAN_NSEC), fake publishers. Asserts: claims
+// demote_pending jobs, builds + signs the DELISTING at the record's own
+// address, publishes local + dcosl, marks the row demoted with the delisting
+// event id; sign / publish failures mark demote_failed without crashing the
+// run; one job's failure never aborts the others. Search follows the hub
+// (ADR 0100), so the cycle writes to no index.
 import { describe, expect, it, vi } from "vitest";
 import { asHexPubkey, type SignedNostrEvent } from "@unbnd/schemas";
 import {
@@ -46,7 +45,6 @@ function makeDeps(over: Partial<DemoterDeps> = {}) {
     publishDcosl: vi.fn(async () => ({ ok: true as const, id: "delist-event-id" })),
     markDemoted: vi.fn(async () => undefined),
     markDemoteFailed: vi.fn(async () => undefined),
-    searchDelete: vi.fn(async () => undefined),
     ...over,
   };
   return deps;
@@ -73,31 +71,6 @@ describe("runDemotionCycle — the happy path (AC-3, AC-4)", () => {
     expect(deps.publishLocal).toHaveBeenCalledTimes(1);
     expect(deps.publishDcosl).toHaveBeenCalledTimes(1);
     expect(deps.markDemoted).toHaveBeenCalledWith(job("orbital--x"), "delist-event-id");
-    expect(deps.markDemoteFailed).not.toHaveBeenCalled();
-    expect(result.demoted).toEqual(["orbital--x"]);
-  });
-
-  it("removes the doc from the live search index (delete by slug)", async () => {
-    const deps = makeDeps();
-    await runDemotionCycle(deps);
-    expect(deps.searchDelete).toHaveBeenCalledWith(["orbital--x"]);
-  });
-
-  it("searchDelete is optional: absent → the demotion still completes", async () => {
-    const deps = makeDeps({ searchDelete: undefined });
-    const result = await runDemotionCycle(deps);
-    expect(deps.markDemoted).toHaveBeenCalledTimes(1);
-    expect(result.demoted).toEqual(["orbital--x"]);
-  });
-
-  it("a searchDelete failure is swallowed (batch rebuild is the backstop) — the job is still demoted", async () => {
-    const deps = makeDeps({
-      searchDelete: vi.fn(async () => {
-        throw new Error("provider down");
-      }),
-    });
-    const result = await runDemotionCycle(deps);
-    expect(deps.markDemoted).toHaveBeenCalledTimes(1);
     expect(deps.markDemoteFailed).not.toHaveBeenCalled();
     expect(result.demoted).toEqual(["orbital--x"]);
   });
