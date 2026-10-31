@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { Container, Icon, SEMANTIC_COLORS } from "@unbnd/ui";
 import { useSession } from "../hooks/useSession";
+import { BuiltOnBrainstorm } from "./BuiltOnBrainstorm";
 import "./Footer.css";
 
 export function Footer() {
@@ -24,6 +25,9 @@ export function Footer() {
           <Link to="/auth">Sign in</Link>
         )}
       </div>
+      </Container>
+      <Container frame="chrome" className="footer-credit">
+        <BuiltOnBrainstorm />
       </Container>
     </footer>
   );

@@ -383,6 +383,20 @@ For each: a re-skin needs no action (tokens carry through). A component-look
 overhaul edits that CSS directly, or, better, primitivizes it first so the look
 is owned in one place.
 
+### Brainstorm's shared line (fitted, not styled, here)
+
+"Built on Brainstorm" at the foot of every page (ADR 0101) is Brainstorm's
+element, `apps/web/src/components/built-on-brainstorm.js`, a pinned copy of
+Brainstorm's file. Its look is Brainstorm's (`https://brainstorm.world/built-on/v1.css`,
+with the copy's own look as the fallback), and the copy carries Brainstorm's
+CSS literals, outside the guards by extension. Unbnd fits it only through
+`BuiltOnBrainstorm.css`: its font size and its three properties
+(`--built-on-color`, `--built-on-hover-color`, `--built-on-focus-color`), all
+set to tokens, so a re-skin or a dark skin carries through with no action.
+Never restyle it with `::part()` (a test refuses it): that would cut Unbnd off
+from Brainstorm's restyles. A change to its words, link or mark is a new
+version of Brainstorm's file, copied and re-pinned.
+
 ### JS-injected colors (the `[data-theme]` blind spot)
 
 Some colors are TypeScript hex constants interpolated into the DOM by JS

@@ -10,7 +10,13 @@
   justify-content: space-between;
   align-items: center;
   padding-top: var(--u-space-22);
-  padding-bottom: var(--u-space-22);
+}
+
+/* ADR 0101 §5: the Built on Brainstorm line, a row of its own under the
+ * footer's row, at its start. */
+.footer-credit {
+  display: flex;
+  padding-bottom: var(--u-space-6);
 }
 
 .footer-left {
@@ -46,7 +52,7 @@
 }
 
 @media (max-width: 480px) {
-  .footer {
+  .footer-row {
     flex-direction: column;
     gap: var(--u-space-14);
     align-items: flex-start;
