@@ -138,7 +138,8 @@ describe("the fit (ADR 0101 §3, §4)", () => {
       readdirSync(dir, { withFileTypes: true }).flatMap((d) =>
         d.isDirectory() ? walk(resolve(dir, d.name)) : /\.(css|tsx?)$/.test(d.name) ? [resolve(dir, d.name)] : [],
       );
-    const offenders = walk(resolve(COMPONENTS, "..")).filter((file) => /::part\(/.test(readFileSync(file, "utf8")));
+    const code = (file: string) => readFileSync(file, "utf8").replace(/\/\*[\s\S]*?\*\//g, "");
+    const offenders = walk(resolve(COMPONENTS, "..")).filter((file) => /::part\(\s*\w/.test(code(file)));
     expect(offenders).toEqual([]);
   });
 });

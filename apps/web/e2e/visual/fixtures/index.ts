@@ -307,4 +307,9 @@ export async function mockApi(page: Page, opts: MockApiOptions): Promise<void> {
     const match = API_ROUTES.find((m) => m.test(url));
     return jsonFulfill(route, match ? match.body : API_DEFAULT);
   });
+
+  // The Built on Brainstorm line asks brainstorm.world for its look (ADR 0101
+  // §7). Refused, it draws the look its pinned copy carries, so a restyle there
+  // never changes a capture here, and no capture reaches the network.
+  await page.route("https://brainstorm.world/**", (route) => route.abort());
 }

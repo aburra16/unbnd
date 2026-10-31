@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { Icon } from "@unbnd/ui";
+import { BuiltOnBrainstorm } from "./BuiltOnBrainstorm";
 import "./AuthShell.css";
 
 type Props = {
@@ -33,6 +34,7 @@ export function AuthShell({
         <div className="auth-card-body">{children}</div>
         {footer && <div className="auth-card-footer">{footer}</div>}
       </div>
+      <BuiltOnBrainstorm className="auth-built-on" />
     </div>
   );
 }

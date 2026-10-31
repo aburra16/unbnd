@@ -37,6 +37,12 @@
   box-shadow: var(--u-elevation-hairline);
 }
 
+/* ADR 0101 §5: the Built on Brainstorm line, centred under the card. Two
+ * classes, so it wins over the frame's own margin whatever the sheets' order. */
+.built-on.auth-built-on {
+  margin-top: var(--u-space-12);
+}
+
 .auth-card-mark {
   display: flex;
   justify-content: center;

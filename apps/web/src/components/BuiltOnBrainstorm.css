@@ -1,0 +1,20 @@
+/* ADR 0101 §4: the frame. `contain: paint` keeps whatever the shared
+ * stylesheet draws inside this box; the padding is the focus ring's reach
+ * (2px out, 2px wide), and the negative margin keeps the line on its row's
+ * edge. */
+.built-on {
+  display: inline-flex;
+  contain: paint;
+  padding: var(--u-space-4);
+  margin: calc(-1 * var(--u-space-4));
+}
+
+/* ADR 0101 §3: the fit, through the element's own properties only. The
+ * footer's muted caption, the ink when pointed at or focused, Unbnd's amber
+ * focus ring. Never ::part(), which would cut Unbnd off from restyles. */
+.built-on-line {
+  font-size: var(--u-font-size-11);
+  --built-on-color: var(--u-muted);
+  --built-on-hover-color: var(--u-ink);
+  --built-on-focus-color: var(--u-amber);
+}
