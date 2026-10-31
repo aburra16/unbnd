@@ -410,6 +410,7 @@
   --u-raw-space-60: 60px;
   --u-raw-space-80: 80px; /* swept off the NotFound.tsx inline padding */
   --u-raw-space-n8: -8px; /* negative; RatedByRow avatar-stack overlap */
+  --u-raw-space-n4: -4px; /* negative; the Built on Brainstorm frame's pull-back */
 
   /* ===================================================================== *
    * Tier 2 — semantic spacing aliases (ADR 0042 §1). Point at Tier 1, never
@@ -453,6 +454,7 @@
   --u-space-60: var(--u-raw-space-60);
   --u-space-80: var(--u-raw-space-80);
   --u-space-n8: var(--u-raw-space-n8);
+  --u-space-n4: var(--u-raw-space-n4);
 
   /* ===================================================================== *
    * Tier 1 — raw radius tokens (ADR 0043 §1). Literal values only, no

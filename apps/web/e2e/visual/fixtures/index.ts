@@ -2,9 +2,10 @@
 //
 // Every object here is typed against the response types exported from
 // `src/lib/api.ts`, so an API shape change surfaces as a typecheck error in
-// this file rather than a silent drift. The `mockApi` helper installs two
+// this file rather than a silent drift. The `mockApi` helper installs
 // `page.route` handlers (one for /auth/**, one for /api/**) that fulfill the
-// app's fetch fan-out from these fixtures before the first navigation. A
+// app's fetch fan-out from these fixtures before the first navigation, and a
+// third that refuses brainstorm.world (ADR 0101). A
 // catch-all default keeps any unanticipated request failing closed to a known
 // state instead of hanging or hitting a real network.
 //
@@ -277,6 +278,8 @@ export type MockApiOptions = { auth: AuthState };
  *   returns an empty-valid 200.
  * - /api/**  : matched against the route map; unmapped paths return the
  *   documented empty-valid default.
+ * - https://brainstorm.world/** : refused, so the Built on Brainstorm line
+ *   draws its pinned copy's own look (ADR 0101 §7).
  */
 export async function mockApi(page: Page, opts: MockApiOptions): Promise<void> {
   await page.route("**/auth/**", (route) => {

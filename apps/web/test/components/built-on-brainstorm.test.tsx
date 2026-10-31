@@ -129,7 +129,7 @@ describe("the fit (ADR 0101 §3, §4)", () => {
     expect(frame).toMatchObject({
       contain: "paint",
       padding: "var(--u-space-4)",
-      margin: "calc(-1 * var(--u-space-4))",
+      margin: "var(--u-space-n4)",
     });
   });
 

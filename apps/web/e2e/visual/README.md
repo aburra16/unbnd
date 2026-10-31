@@ -37,12 +37,15 @@ and supplies fixed content entirely in the test layer:
 - `fixtures/index.ts` holds typed fixture objects, checked against the response
   types exported from `src/lib/api.ts`. An API shape change surfaces as a
   typecheck error here.
-- `mockApi(page, { auth })` installs two `page.route` handlers before
+- `mockApi(page, { auth })` installs three `page.route` handlers before
   navigation. `**/auth/**` resolves `/auth/me` (signed-out by default, so
   `useSession` resolves to signed-out). `**/api/**` matches the request against
   the route map and fulfills with the corresponding fixture; an unmapped path
   returns a documented empty-but-valid default so an unanticipated fetch fails
   closed rather than reaching a real network.
+  `https://brainstorm.world/**` is refused, so the Built on Brainstorm line
+  draws the look its pinned copy carries, whatever brainstorm.world serves
+  (ADR 0101).
 - Every fixture book omits `coverUrl`, so the deterministic token-gradient
   cover placeholder renders and no external `covers.openlibrary.org` image
   loads.

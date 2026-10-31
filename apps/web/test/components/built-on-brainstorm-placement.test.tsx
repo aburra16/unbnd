@@ -53,10 +53,15 @@ describe("sign-in pages (AuthShell)", () => {
 });
 
 describe("every route", () => {
-  it("composes PageShell or AuthShell, so no page ships without the line", () => {
+  it("is a route module, imported as it is, that composes PageShell or AuthShell, so no page ships without the line", () => {
     const app = readFileSync(resolve(SRC, "App.tsx"), "utf8");
-    const routes = [...app.matchAll(/from "\.\/routes\/(\w+)"/g)].map((m) => m[1]);
+    const routes = [...app.matchAll(/import \{ (\w+) \} from "\.\/routes\/\1"/g)].map((m) => m[1]);
     expect(routes.length).toBeGreaterThanOrEqual(18);
+    // Every element a <Route> draws is one of those modules: none lazy, none from elsewhere.
+    const elements = [...app.matchAll(/element=\{<(\w+)/g)].map((m) => m[1]);
+    expect(elements.length).toBeGreaterThanOrEqual(18);
+    expect(elements.filter((name) => !routes.includes(name))).toEqual([]);
+    expect(app).not.toMatch(/\blazy\s*\(|import\s*\(/);
     const bare = routes.filter((name) => {
       const source = readFileSync(resolve(SRC, "routes", `${name}.tsx`), "utf8");
       return !/<(PageShell|AuthShell)[\s>]/.test(source);

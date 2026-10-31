@@ -37,7 +37,7 @@ The file is copied byte for byte and pinned by its hash; a wrapper component giv
 1. **The copy.** `apps/web/src/components/built-on-brainstorm.js` is Brainstorm-UI's version 1 file as it is (`staging` at `9cedf9c0`, SHA-256 `c769ec4498b2beb0a1c942d58a2cdf22607fe68a84f2b0a4e38127edc0952f97`). A test pins the hash, so an edit or a formatter pass fails CI. A newer copy means a new pin, in a PR that says why.
 2. **One wrapper, the one place it loads.** `BuiltOnBrainstorm.tsx` imports the file once (a side-effect import; the element also refuses to define itself twice) and is the only way the app draws the line. It declares the element in `JSX.IntrinsicElements` with `class`, and gives it `class`, never `className`.
 3. **Fitted with tokens, through the hooks only.** `BuiltOnBrainstorm.css` sets `--built-on-color: var(--u-muted)`, `--built-on-hover-color: var(--u-ink)`, `--built-on-focus-color: var(--u-amber)` (Unbnd's focus ring, as on its buttons) and `font-size: var(--u-font-size-11)` (the footer's links). No `::part()` rule: that would cut Unbnd off from every restyle after.
-4. **Bounded.** The element sits in a `span.built-on` with `contain: paint` and `padding: var(--u-space-4)`, the focus ring's reach (a 2px outline 2px out), so the ring shows and nothing the shared sheet draws leaves the frame. Margins of the same size, negated, keep the line on the row's edge.
+4. **Bounded.** The element sits in a `span.built-on` with `contain: paint` and `padding: var(--u-space-4)`, the focus ring's reach (a 2px outline 2px out), so the ring shows and nothing the shared sheet draws leaves the frame. A margin of `var(--u-space-n4)`, a new negative step in the ADR 0042 §3 pattern, keeps the line on the row's edge.
 5. **Where it sits.** In the footer, a second chrome row (`.footer-credit`) under the footer's row, at the row's start, under Unbnd's own mark. On the sign-in pages, centred under the card. `PageShell` and `AuthShell` each draw it once; a guard holds every route to one of the two shells.
 6. **No policy to change.** A guard reads `apps/web/index.html` and `deploy/Caddyfile`: if either ever sets a Content Security Policy, its `style-src` (or `default-src`, when there is no `style-src`) must allow `https://brainstorm.world`. The element needs no script source.
 7. **The visual harness refuses brainstorm.world.** `mockApi` aborts every request to it, so the line draws in the element's launch look, which is part of the pinned copy, whatever `v1.css` holds. A restyle upstream cannot fail Unbnd's CI, and no capture reaches the network.
@@ -46,6 +46,7 @@ The file is copied byte for byte and pinned by its hash; a wrapper component giv
 - The line appears on every page, and restyles reach Unbnd within the hour after Brainstorm deploys them, with no change here.
 - Until production brainstorm.world serves `/built-on/`, each page logs one failed request for `v1.css` (no CORS header) and the line keeps its own look, which is the same.
 - The copy carries Brainstorm's own CSS literals inside a JavaScript string. The guards scan `.css`, `.ts` and `.tsx`, so it is outside them by extension; a guard widened to `.js` must leave this file out, as third-party code copied as it is.
+- The frame bounds what the shared sheet can paint, not how big it can make the frame: a bad `v1.css` could still make the footer as tall as it likes. That would show at once, and a fixed size would break a legitimate restyle, so it is left unbounded.
 - `v1.css` is loaded from another origin on every page view, with `referrerpolicy="no-referrer"` and `crossorigin="anonymous"`: brainstorm.world learns an IP address and nothing of the page.
 - Every captured screen changes (the footer, or the foot of the sign-in page): all seven baselines regenerate in the pinned image, in a commit of their own.
 - **Affects existing fixtures?** No. **New dependency?** No (a copied file). **PRD section change required?** No.
@@ -56,6 +57,8 @@ The file is copied byte for byte and pinned by its hash; a wrapper component giv
 - `apps/web/src/components/Footer.tsx` / `.css`: a `Container frame="chrome" className="footer-credit"` row after `.footer-row`. The `max-width: 480px` rule targets `.footer-row` (it targeted `.footer`, which has had no flex layout since ADR 0086).
 - `apps/web/src/components/AuthShell.tsx` / `.css`: the line after `.auth-card`.
 - `apps/web/e2e/visual/fixtures/index.ts`: `mockApi` aborts `https://brainstorm.world/**`.
+- `apps/web/vitest.config.ts`: happy-dom fetches a stylesheet link it is given, so every web test file now runs with `disableCSSFileLoading` and `handleDisabledFileLoadingAsSuccess`: the sheet is skipped, quietly, and no test reaches the network. No other test uses a stylesheet link.
+- `packages/ui/styles/tokens.css`: `--u-raw-space-n4` / `--u-space-n4`.
 - `packages/ui/REDESIGN.md` §7: the line as a surface Unbnd fits but does not style.
 
 ## Out of scope

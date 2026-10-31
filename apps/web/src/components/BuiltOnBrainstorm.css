@@ -6,7 +6,7 @@
   display: inline-flex;
   contain: paint;
   padding: var(--u-space-4);
-  margin: calc(-1 * var(--u-space-4));
+  margin: var(--u-space-n4);
 }
 
 /* ADR 0101 §3: the fit, through the element's own properties only. The

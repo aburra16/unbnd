@@ -18,7 +18,8 @@ function policies(text: string): string[] {
     const content = tag.match(/content=(["'])(.*?)\1/i);
     if (content) found.push(content[2]);
   }
-  for (const m of text.matchAll(/Content-Security-Policy\s+(["`])(.*?)\1/gi)) found.push(m[2]);
+  // Caddy takes a value in double quotes, or in backticks across lines.
+  for (const m of text.matchAll(/Content-Security-Policy\s+(["`])([\s\S]*?)\1/gi)) found.push(m[2].replace(/\s+/g, " "));
   return found;
 }
 
@@ -48,6 +49,9 @@ describe("the policy check", () => {
   it("finds a policy in a page's meta tag and in a Caddy header line", () => {
     expect(policies(`<meta http-equiv="Content-Security-Policy" content="default-src 'self'">`)).toEqual(["default-src 'self'"]);
     expect(policies(`\t\theader Content-Security-Policy "default-src 'self'; style-src 'self'"`)).toEqual([
+      "default-src 'self'; style-src 'self'",
+    ]);
+    expect(policies("header {\n\tContent-Security-Policy `default-src 'self';\n\t\tstyle-src 'self'`\n}")).toEqual([
       "default-src 'self'; style-src 'self'",
     ]);
   });

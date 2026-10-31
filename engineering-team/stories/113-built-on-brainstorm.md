@@ -1,6 +1,6 @@
 # Story 113: Built on Brainstorm at the foot of every page
 
-**Status:** Approved
+**Status:** Done
 **Created:** 2026-10-31
 **Type:** Feature
 
@@ -15,7 +15,7 @@ Found while checking the foot on a phone: the footer's `max-width: 480px` rule s
 As a reader, at the foot of every page I see that Unbnd is built on Brainstorm, and can follow the line to Brainstorm's site.
 
 ## Acceptance criteria
-1. **Every page.** The standard pages carry the line in their footer bar, on a row of its own under the footer's row; the sign-in pages carry it under the card. One line per page. Every route composes `PageShell` or `AuthShell`, held by a guard so a new route cannot ship without the line.
+1. **Every page.** The standard pages carry the line in their footer bar, on a row of its own under the footer's row; the sign-in pages carry it under the card. One line per page. Every route `App.tsx` draws is a module in `src/routes/`, imported directly, that composes `PageShell` or `AuthShell`; a guard fails a route that does neither. A route's early returns (loading, error, not found) are checked by review, since the guard reads source.
 2. **Brainstorm's element, as Brainstorm gives it.** `built-on-brainstorm.js` is a byte-for-byte copy of Brainstorm-UI's version 1 file, pinned by its SHA-256, and loaded once. The link (brainstorm.world, a new tab, `noopener noreferrer`), the words, the accessible name "Built on Brainstorm (opens in a new tab)" and the mark are the element's own, checked through its shadow root.
 3. **Fitted with Unbnd's tokens.** At rest the footer's muted colour, the ink when pointed at or focused, Unbnd's amber focus ring, the footer's 11px type. The app sets these through the element's three properties and its font size, and never restyles its parts. React 18 sets `className` on a custom element as an attribute of that name, so the element gets `class`.
 4. **Bounded.** The line sits in a frame of its own with `contain: paint` and padding equal to the focus ring's reach, so whatever the shared stylesheet draws stays inside that frame.
