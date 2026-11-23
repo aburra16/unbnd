@@ -59,7 +59,7 @@ services:
   # The image cache (ADR 0099 §4): nginx keeps each resized image on disk.
   imgcache:
     container_name: unbnd-imgcache
-    image: nginx:1.30.6-alpine
+    image: nginx:1.30.7-alpine
     depends_on:
       - imgproxy
     volumes:
